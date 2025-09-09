@@ -2,7 +2,6 @@ package com.github.musicyou.ui.screens.settings
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import com.github.musicyou.LocalPlayerPadding
 import com.github.musicyou.R
 import com.github.musicyou.enums.NavigationLabelsVisibility
@@ -74,7 +74,7 @@ fun GeneralSettings() {
         if (isAtLeastAndroid13) {
             val intent = Intent(
                 Settings.ACTION_APP_LOCALE_SETTINGS,
-                Uri.parse("package:${context.packageName}")
+                "package:${context.packageName}".toUri()
             )
 
             SettingsEntry(
@@ -94,7 +94,7 @@ fun GeneralSettings() {
         if (isAtLeastAndroid12) {
             val intent = Intent(
                 Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS,
-                Uri.parse("package:${context.packageName}")
+                "package:${context.packageName}".toUri()
             )
 
             SettingsEntry(

@@ -142,9 +142,11 @@ fun About() {
             title = {
                 Text(
                     text = stringResource(
-                        id = if (newVersionAvailable == true) R.string.new_version_available
-                        else if (newVersionAvailable == false) R.string.no_updates_available
-                        else R.string.checking_for_updates
+                        id = when (newVersionAvailable) {
+                            true -> R.string.new_version_available
+                            false -> R.string.no_updates_available
+                            else -> R.string.checking_for_updates
+                        }
                     )
                 )
             },
