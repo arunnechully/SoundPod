@@ -16,7 +16,7 @@ kotlin {
 }
 
 android {
-    namespace = "it.vfsfitvnm.vimusic"
+    namespace = "com.github.musicyou"
     compileSdk = 36
 
     defaultConfig {
