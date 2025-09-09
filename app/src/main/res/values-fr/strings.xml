@@ -108,8 +108,6 @@
     </plurals>
     <string name="hide_from_quick_picks">Masquer de la Sélection Rapide</string>
     <string name="more_from">Plus de</string>
-    <string name="no">Non</string>
-    <string name="yes">Oui</string>
     <string name="stop_sleep_timer_dialog">Arrêter la minuterie de sommeil ?</string>
     <string name="hide_song_dialog">Masquer ce titre ?</string>
     <string name="hide_song_dialog_description">Son temps de lecture et son cache seront effacés. Cette action est irréversible.</string>

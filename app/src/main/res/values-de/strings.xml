@@ -104,8 +104,6 @@
     </plurals>
     <string name="hide_from_quick_picks">Empfehlungen löschen</string>
     <string name="more_from">Mehr von</string>
-    <string name="no">Nein</string>
-    <string name="yes">Ja</string>
     <string name="stop_sleep_timer_dialog">Schlaf-Timer anhalten?</string>
     <string name="hide_song_dialog">Dieses Lied löschen?</string>
     <string name="hide_song_dialog_description">Die Wiedergabedauer und der Cache werden gelöscht. Dieser Vorgang ist nicht rückgängig zu machen.</string>

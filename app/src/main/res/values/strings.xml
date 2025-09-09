@@ -107,8 +107,6 @@
     </plurals>
     <string name="hide_from_quick_picks">Hide from quick picks</string>
     <string name="more_from">More from</string>
-    <string name="no">No</string>
-    <string name="yes">Yes</string>
     <string name="stop_sleep_timer_dialog">Stop sleep timer?</string>
     <string name="hide_song_dialog">Hide this song?</string>
     <string name="hide_song_dialog_description">Its playback time and cache will be wiped. This action is irreversible.</string>
