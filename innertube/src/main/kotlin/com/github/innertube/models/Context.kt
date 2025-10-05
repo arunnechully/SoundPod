@@ -13,7 +13,7 @@ data class Context(
         val clientVersion: String,
         val clientId: String,
         val osVersion: String?,
-        val platform: String,
+        val platform: String?,
         val userAgent: String,
         val gl: String,
         val hl: String,
