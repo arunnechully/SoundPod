@@ -43,5 +43,11 @@ fun MainNavigation(
                 navController = navController
             )
         }
+
+        composable("search") {
+            SearchScreen(
+                navController = navController
+            )
+        }
     }
 }
