@@ -3,7 +3,7 @@ package com.soundpod.music.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryScrollableTabRow
@@ -23,15 +23,12 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
 @Composable
-fun HorizontalMenu() {
-    val tabs = listOf("Home", "Library", "Artists", "Playlists", "Genres")
-
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { tabs.size })
+fun MusicTabs(pagerState: PagerState) {
+    val tabs = listOf("Tracks", "Albums", "Artists")
     val coroutineScope = rememberCoroutineScope()
     var selectedTabIndex by remember { mutableIntStateOf(0) }
 
     Column {
-        // Tab Row
         PrimaryScrollableTabRow(
             selectedTabIndex = selectedTabIndex,
             edgePadding = 8.dp,
@@ -49,8 +46,7 @@ fun HorizontalMenu() {
                     selected = isSelected,
                     onClick = {
                         selectedTabIndex = index
-                        // Scroll pager to the selected tab
-                        coroutineScope.launch { pagerState.scrollToPage(index) }
+                        coroutineScope.launch { pagerState.animateScrollToPage(index) }
                     },
                     modifier = Modifier
                         .padding(horizontal = 6.dp, vertical = 4.dp)
@@ -69,13 +65,7 @@ fun HorizontalMenu() {
             }
         }
 
-        // Pager (Assuming TabsPager is defined elsewhere and handles the content)
-        TabsPager(
-            tabs = tabs,
-            pagerState = pagerState
-        )
-
-        // Sync selected tab with pager page
+        // ✅ Keep tab highlight in sync with pager swipes
         LaunchedEffect(pagerState.currentPage) {
             selectedTabIndex = pagerState.currentPage
         }

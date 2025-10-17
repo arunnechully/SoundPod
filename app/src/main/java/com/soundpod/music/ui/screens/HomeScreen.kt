@@ -1,21 +1,35 @@
 package com.soundpod.music.ui.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.soundpod.music.ui.components.HorizontalMenu
+import com.soundpod.music.ui.components.MusicTabs
 import com.soundpod.music.ui.components.TopBar
 
 @Composable
 fun HomeScreen(
     navController: NavController
 ) {
+    val isDarkTheme = isSystemInDarkTheme()
+
+    // ✅ Single shared pager state
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 3 })
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -24,10 +38,31 @@ fun HomeScreen(
         TopBar(
             onSearch = { navController.navigate("search") }
         )
-        Spacer(
+
+        Spacer(modifier = Modifier.padding(vertical = 2.dp))
+
+        // ✅ Pass the pagerState into MusicTabs
+        MusicTabs(pagerState = pagerState)
+
+        Box(
             modifier = Modifier
-                .padding(vertical = 2.dp)
-        )
-        HorizontalMenu()
+                .fillMaxSize()
+                .clip(RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp))
+                .background(
+                    color = if (isDarkTheme) Color(0xFF1E1E1E)
+                    else Color(0xFFFFFFFF)
+                )
+        ) {
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
+                when (page) {
+                    0 -> Tracks()
+                    1 -> Box(Modifier.fillMaxSize()) { Text("Albums") }
+                    2 -> Box(Modifier.fillMaxSize()) { Text("Artists") }
+                }
+            }
+        }
     }
 }
