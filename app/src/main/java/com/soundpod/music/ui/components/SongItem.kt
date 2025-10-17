@@ -1,6 +1,5 @@
 package com.soundpod.music.ui.components
 
-import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
@@ -19,13 +18,10 @@ import com.soundpod.music.data.Song
 @Composable
 fun SongItem(
     song: Song,
-    songs: List<Song>,
-    context: Context
+    songs: List<Song>
 ) {
     val mediaController = MediaControllerHolder.controller
     val isDarkTheme = isSystemInDarkTheme()
-
-    // Observe currently playing item
     var currentMediaId by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(mediaController) {

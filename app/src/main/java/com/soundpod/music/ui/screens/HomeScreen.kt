@@ -18,7 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.soundpod.music.ui.components.MusicTabs
+import com.soundpod.music.ui.components.HorizontalTabs
 import com.soundpod.music.ui.components.TopBar
 
 @Composable
@@ -26,10 +26,8 @@ fun HomeScreen(
     navController: NavController
 ) {
     val isDarkTheme = isSystemInDarkTheme()
-
-    // ✅ Single shared pager state
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { 3 })
-
+    val background = if (isDarkTheme) Color(0xFF1E1E1E) else Color(0xFFFFFFFF)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -41,16 +39,13 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.padding(vertical = 2.dp))
 
-        MusicTabs(pagerState = pagerState)
+        HorizontalTabs(pagerState = pagerState)
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .clip(RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp))
-                .background(
-                    color = if (isDarkTheme) Color(0xFF1E1E1E)
-                    else Color(0xFFFFFFFF)
-                )
+                .background(color = background)
         ) {
             HorizontalPager(
                 state = pagerState,

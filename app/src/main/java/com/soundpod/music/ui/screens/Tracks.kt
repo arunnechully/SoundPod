@@ -1,11 +1,10 @@
 package com.soundpod.music.ui.screens
 
+import com.soundpod.music.ui.components.ErrorMessage
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,22 +28,19 @@ fun Tracks() {
     }
 
     if (songs.isEmpty()) {
-        Text(
-            text = "No songs found or permission denied.",
-            modifier = Modifier.padding(16.dp)
-        )
+        ErrorMessage() // ✅ replaces Text
     } else {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp) // 👈 spacing between songs
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(songs) { song ->
                 SongItem(
                     song = song,
-                    songs = songs,
-                    context = context
+                    songs = songs
                 )
             }
         }
     }
+
 }
