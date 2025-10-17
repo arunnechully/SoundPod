@@ -36,7 +36,7 @@ fun HomeScreen(
     ) {
         TopBar(
             onSearch = { navController.navigate("search") },
-            onMore = {}
+            onSettingsClick = { navController.navigate("settings") }
         )
 
         Spacer(modifier = Modifier.padding(vertical = 2.dp))

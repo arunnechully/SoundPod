@@ -54,7 +54,9 @@ fun MainNavigation(
         }
 
         composable("settings") {
-            SettingsScreen()
+            SettingsScreen(
+                onBackClick = { navController.popBackStack() }
+            )
         }
     }
 }
