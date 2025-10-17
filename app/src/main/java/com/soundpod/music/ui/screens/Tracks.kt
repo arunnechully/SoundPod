@@ -1,6 +1,6 @@
 package com.soundpod.music.ui.screens
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,27 +20,30 @@ import com.soundpod.music.ui.components.SongItem
 import com.soundpod.music.utils.RequestAudioPermission
 
 @Composable
-fun Tracks (){
-
+fun Tracks() {
     val context = LocalContext.current
     var songs by remember { mutableStateOf<List<Song>>(emptyList()) }
+
     RequestAudioPermission {
         songs = MusicRepository.getAllSongs(context)
     }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        if (songs.isEmpty()) {
-            Text(
-                text = "No songs found or permission denied."
-            )
-        } else {
-            LazyColumn {
-                items(songs) { song ->
-                    SongItem(song = song, songs = songs, context = context)
-                }
+
+    if (songs.isEmpty()) {
+        Text(
+            text = "No songs found or permission denied.",
+            modifier = Modifier.padding(16.dp)
+        )
+    } else {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(8.dp) // 👈 spacing between songs
+        ) {
+            items(songs) { song ->
+                SongItem(
+                    song = song,
+                    songs = songs,
+                    context = context
+                )
             }
         }
     }

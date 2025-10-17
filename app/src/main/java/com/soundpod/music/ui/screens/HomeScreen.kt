@@ -41,7 +41,6 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.padding(vertical = 2.dp))
 
-        // ✅ Pass the pagerState into MusicTabs
         MusicTabs(pagerState = pagerState)
 
         Box(
@@ -55,7 +54,8 @@ fun HomeScreen(
         ) {
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
             ) { page ->
                 when (page) {
                     0 -> Tracks()

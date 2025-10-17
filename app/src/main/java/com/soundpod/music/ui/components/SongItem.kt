@@ -64,17 +64,21 @@ fun SongItem(
                     controller.play()
                 }
             }
-            .padding(vertical = 8.dp)
     ) {
-        Text(
-            text = song.title,
-            style = MaterialTheme.typography.titleMedium,
-            color = titleColor
-        )
-        Text(
-            text = song.artist,
-            style = MaterialTheme.typography.bodySmall,
-            color = if (isDarkTheme) Color.Gray else Color.DarkGray
-        )
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+        ) {
+            Text(
+                text = song.title,
+                style = MaterialTheme.typography.titleMedium,
+                color = titleColor
+            )
+            Text(
+                text = song.artist,
+                style = MaterialTheme.typography.bodySmall,
+                color = if (isDarkTheme) Color.Gray else Color.DarkGray
+            )
+        }
     }
 }
