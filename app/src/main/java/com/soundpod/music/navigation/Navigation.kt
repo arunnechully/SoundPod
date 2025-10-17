@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalAnimationApi::class)
 
-package com.soundpod.music.ui.screens
+package com.soundpod.music.navigation
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
@@ -17,6 +17,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.soundpod.music.ui.screens.HomeScreen
+import com.soundpod.music.ui.screens.SearchScreen
+import com.soundpod.music.ui.screens.SettingsScreen
 
 @Composable
 fun MainNavigation(
@@ -48,6 +51,10 @@ fun MainNavigation(
             SearchScreen(
                 navController = navController
             )
+        }
+
+        composable("settings") {
+            SettingsScreen()
         }
     }
 }

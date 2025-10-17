@@ -18,7 +18,8 @@ import androidx.compose.ui.unit.sp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(
-    onSearch: () -> Unit
+    onSearch: () -> Unit,
+    onMore: () -> Unit
 ) {
     val isDarkTheme = isSystemInDarkTheme()
     val iconColor = if (isDarkTheme) Color.White else Color.Black
@@ -43,7 +44,7 @@ fun TopBar(
                 )
             }
             IconButton(
-                onClick = {}
+                onClick = onMore
             ) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,

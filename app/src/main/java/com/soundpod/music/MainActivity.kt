@@ -14,7 +14,7 @@ import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.soundpod.music.player.PlaybackService
-import com.soundpod.music.ui.screens.MainNavigation
+import com.soundpod.music.navigation.MainNavigation
 object MediaControllerHolder {
     var controller: MediaController? by mutableStateOf(null)
 }

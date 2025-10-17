@@ -1,29 +1,23 @@
 package com.soundpod.music.ui.components
 
-import android.graphics.BitmapFactory
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun ErrorMessage() {
-    val context = LocalContext.current
-
-    // Load bitmap from assets
-    val bitmap = context.assets.open("img/a1.webp").use { inputStream ->
-        BitmapFactory.decodeStream(inputStream)
-    }
+fun ErrorMessage(
+    onAddFolderClick: () -> Unit // 👈 callback for button action
+) {
     val isDarkTheme = isSystemInDarkTheme()
-    val text = if (isDarkTheme) Color.White else Color.Black
+    val textColor = if (isDarkTheme) Color.White else Color.Black
 
     Column(
         modifier = Modifier
@@ -32,19 +26,21 @@ fun ErrorMessage() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Image from assets
-        Image(
-            bitmap = bitmap.asImageBitmap(),
-            contentDescription = "No songs found",
-            modifier = Modifier.size(250.dp) // adjust size as needed
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         Text(
             text = "No songs found or permission denied.",
-            color = text,
+            color = textColor,
             fontSize = 18.sp
         )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Button(
+            onClick = onAddFolderClick
+        ) {
+            Text(
+                text = "Add a Folder",
+                style = MaterialTheme.typography.labelLarge
+            )
+        }
     }
 }
