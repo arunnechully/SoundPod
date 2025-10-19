@@ -1,4 +1,4 @@
-package com.soundpod.music.ui.screens
+package com.soundpod.music.ui.screens.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,7 +25,7 @@ fun HomeScreen(
     navController: NavController
 ) {
     val isDarkTheme = isSystemInDarkTheme()
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 3 })
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 10 })
     val background = if (isDarkTheme) Color(0xFF1E1E1E) else Color(0xFFFFFFFF)
 
     Column(
@@ -56,8 +55,10 @@ fun HomeScreen(
             ) { page ->
                 when (page) {
                     0 -> Tracks()
-                    1 -> Box(Modifier.fillMaxSize()) { Text("Albums") }
-                    2 -> Box(Modifier.fillMaxSize()) { Text("Artists") }
+                    1 -> {}
+                    2 -> {}
+                    3 -> {}
+                    4 -> {}
                 }
             }
         }

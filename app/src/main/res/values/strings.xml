@@ -1,3 +1,33 @@
 <resources>
     <string name="app_name">SoundPod</string>
+
+    <!-- settings -->
+    <string name="settings">Settings</string>
+
+    <!-- settings_Appearance -->
+    <string name="appearance">Appearance</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="dark_mode_description">Use a theme across the app</string>
+    <string name="dynamic_color">Dynamic Color</string>
+    <string name="dynamic_color_description">Match system accent color</string>
+
+    <!-- settings_Player -->
+    <string name="player">Player</string>
+    <string name="crossfade">Crossfade</string>
+    <string name="crossfade_description">Smoothly transition between tracks</string>
+    <string name="skip_silence">Skip Silence</string>
+    <string name="skip_silence_description">Skip silent parts during playback</string>
+    <string name="audio_focus">Audio Focus</string>
+    <string name="audio_focus_description">Pause playback when other apps play audio</string>
+
+    <!-- settings_Backup/Restore -->
+    <string name="backup_restore">Backup and restore</string>
+    <string name="storage">Storage and cache</string>
+
+    <!-- settings_other -->
+    <string name="more_settings">More Settings</string>
+    <string name="experimental">Experimental</string>
+    <string name="about">About</string>
+    <string name="privacy">Privacy</string>
+
 </resources>

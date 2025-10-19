@@ -2,6 +2,7 @@ package com.soundpod.music.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,12 +11,7 @@ import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -26,12 +22,16 @@ import kotlinx.coroutines.launch
 fun HorizontalTabs(
     pagerState: PagerState
 ) {
-    val tabs = listOf("Tracks", "Albums", "Artists")
+    val tabs = listOf("Tracks", "Playlist", "Favorite", "Albums", "Artists", "Genres", "Downloads") // Added more tabs to better demonstrate centering
     val coroutineScope = rememberCoroutineScope()
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
+
+    // The selectedTabIndex is directly tied to the PagerState.currentPage
+    val selectedTabIndex = pagerState.currentPage
 
     Column {
         PrimaryScrollableTabRow(
+            // Use the PagerState's current page as the selected index.
+            // PrimaryScrollableTabRow automatically tries to center the selected tab.
             selectedTabIndex = selectedTabIndex,
             edgePadding = 8.dp,
             containerColor = Color.Transparent,
@@ -47,13 +47,18 @@ fun HorizontalTabs(
                 Tab(
                     selected = isSelected,
                     onClick = {
-                        selectedTabIndex = index
-                        coroutineScope.launch { pagerState.animateScrollToPage(index) }
+                        // Scroll the Pager when the tab is clicked
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(index)
+                        }
+                        // NOTE: You no longer need to manually update a 'selectedTabIndex' state here
+                        // because it's sourced from 'pagerState.currentPage'.
                     },
                     modifier = Modifier
-                        .padding(horizontal = 6.dp, vertical = 4.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(backgroundColor),
+                        .padding(horizontal = 4.dp, vertical = 8.dp)
+                        .clip(RoundedCornerShape(50.dp))
+                        .background(backgroundColor)
+                        .height(32.dp),
                     text = {
                         Text(
                             text = title,
@@ -65,11 +70,6 @@ fun HorizontalTabs(
                     }
                 )
             }
-        }
-
-        // ✅ Keep tab highlight in sync with pager swipes
-        LaunchedEffect(pagerState.currentPage) {
-            selectedTabIndex = pagerState.currentPage
         }
     }
 }

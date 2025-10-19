@@ -1,7 +1,9 @@
-package com.soundpod.music.ui.components
+package com.soundpod.music.ui.components.settings
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -28,8 +30,6 @@ fun SettingsCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp), // inner padding
-            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             content()
         }
