@@ -127,7 +127,7 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun SettingRow(
+fun SettingRow(
     title: String,
     textColor: Color,
     icon: ImageVector? = null,
@@ -171,29 +171,53 @@ private fun SettingRow(
 
 
 @Composable
-private fun SettingColum(
+fun SettingColum(
     textColor: Color,
+    icon: ImageVector? = null,
+    painterRes: Int? = null,
     title: String,
     description: String,
+    onClick: () -> Unit,
 ) {
-
-    Column(
+    Row(
         modifier = Modifier
-            .fillMaxSize()
-            .clickable(
-                onClick = {}
-            )
-            .padding(horizontal = 12.dp, vertical = 12.dp)
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            color = textColor
-        )
-        Text(
-            text = description,
-            style = MaterialTheme.typography.bodySmall,
-            color = textColor.copy(alpha = 0.7f)
-        )
+
+        if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
+                tint = textColor,
+                modifier = Modifier.size(28.dp)
+            )
+        } else if (painterRes != null) {
+            Icon(
+                painter = painterResource(id = painterRes),
+                contentDescription = title,
+                tint = textColor,
+                modifier = Modifier.size(28.dp)
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = textColor
+            )
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = textColor.copy(alpha = 0.7f)
+            )
+        }
     }
 }

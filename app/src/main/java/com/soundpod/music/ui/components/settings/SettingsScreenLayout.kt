@@ -62,7 +62,7 @@ fun SettingsScreenLayout(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(horizontal = 14.dp)
-                .clip(RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp))
+                .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
                 .verticalScroll(scrollState)
         ) {
             content()
