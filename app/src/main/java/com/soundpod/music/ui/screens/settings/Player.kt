@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.CenterFocusStrong
+import androidx.compose.material.icons.filled.CenterFocusWeak
 import androidx.compose.material.icons.filled.MusicOff
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Timer
@@ -74,6 +76,14 @@ fun Player(
                     description = "Skip silent parts during playback",
                     switchState = skipSilenceEnabled,
                     onSwitchChange = { skipSilenceEnabled = it }
+                )
+                SwitchSetting(
+                    textColor = textColor,
+                    painterRes = R.drawable.audio_focus,
+                    title = "Audio Focus",
+                    description = "Pause playback when other media is playing",
+                    switchState = true,
+                    onSwitchChange = {}
                 )
                 SwitchSetting(
                     textColor = textColor,
