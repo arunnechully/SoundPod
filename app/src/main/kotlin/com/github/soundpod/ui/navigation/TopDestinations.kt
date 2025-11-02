@@ -15,6 +15,13 @@ import com.github.soundpod.R
 
 object TopDestinations {
     val list = listOf(
+
+        TopDestination(
+            route = Routes.NewHome,
+            resourceId = R.string.home,
+            unselectedIcon = Icons.Outlined.Home,
+            selectedIcon = Icons.Filled.Home
+        ),
         TopDestination(
             route = Routes.Home,
             resourceId = R.string.home,

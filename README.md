@@ -1,4 +1,4 @@
-# Music You
+# SoundPod
 
 An Android application for streaming music from YouTube Music.
 

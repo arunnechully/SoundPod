@@ -24,6 +24,7 @@ import com.github.soundpod.ui.screens.builtinplaylist.BuiltInPlaylistScreen
 import com.github.soundpod.ui.screens.home.HomeAlbums
 import com.github.soundpod.ui.screens.home.HomeArtistList
 import com.github.soundpod.ui.screens.home.HomePlaylists
+import com.github.soundpod.ui.screens.home.HomeScreen
 import com.github.soundpod.ui.screens.home.HomeSongs
 import com.github.soundpod.ui.screens.home.QuickPicks
 import com.github.soundpod.ui.screens.localplaylist.LocalPlaylistScreen
@@ -55,7 +56,7 @@ fun Navigation(
         navController = navController,
         startDestination = TopDestinations.routes.getOrElse(
             index = screenIndex,
-            defaultValue = { Routes.Home }
+            defaultValue = { Routes.NewHome }
         )::class,
         enterTransition = {
             NavigationTransitions.enterTransition(
@@ -112,20 +113,27 @@ fun Navigation(
             }
         }
 
-        playerComposable(route = Routes.Home::class) {
-            QuickPicks(
-                openSearch = { navController.navigate(route = Routes.Search) },
-                openSettings = { navController.navigate(route = Routes.Settings) },
-                onAlbumClick = navigateToAlbum,
-                onArtistClick = navigateToArtist,
-                onPlaylistClick = { browseId ->
-                    navController.navigate(route = Routes.Playlist(id = browseId))
-                },
-                onOfflinePlaylistClick = {
-                    navController.navigate(route = Routes.BuiltInPlaylist(index = 1))
-                }
+        playerComposable(route = Routes.NewHome::class) {
+            HomeScreen(
+                navController = navController
             )
         }
+
+
+//        playerComposable(route = Routes.Home::class) {
+//            QuickPicks(
+//                openSearch = { navController.navigate(route = Routes.Search) },
+//                openSettings = { navController.navigate(route = Routes.Settings) },
+//                onAlbumClick = navigateToAlbum,
+//                onArtistClick = navigateToArtist,
+//                onPlaylistClick = { browseId ->
+//                    navController.navigate(route = Routes.Playlist(id = browseId))
+//                },
+//                onOfflinePlaylistClick = {
+//                    navController.navigate(route = Routes.BuiltInPlaylist(index = 1))
+//                }
+//            )
+//        }
 
         playerComposable(route = Routes.Songs::class) {
             HomeSongs(

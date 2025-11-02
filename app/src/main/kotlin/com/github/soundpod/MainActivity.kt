@@ -111,15 +111,15 @@ class MainActivity : ComponentActivity() {
                         val menuState = LocalMenuState.current
 
                         Scaffold(
-                            bottomBar = {
-                                AnimatedVisibility(
-                                    visible = playerState.targetValue != SheetValue.Expanded,
-                                    enter = slideInVertically(initialOffsetY = { it / 2 }),
-                                    exit = slideOutVertically(targetOffsetY = { it })
-                                ) {
-                                    BottomNavigation(navController = navController)
-                                }
-                            }
+//                            bottomBar = {
+//                                AnimatedVisibility(
+//                                    visible = playerState.targetValue != SheetValue.Expanded,
+//                                    enter = slideInVertically(initialOffsetY = { it / 2 }),
+//                                    exit = slideOutVertically(targetOffsetY = { it })
+//                                ) {
+//                                    BottomNavigation(navController = navController)
+//                                }
+//                            }
                         ) { paddingValues ->
                             PlayerScaffold(
                                 navController = navController,

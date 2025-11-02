@@ -81,8 +81,8 @@ import kotlinx.coroutines.launch
 @ExperimentalAnimationApi
 @Composable
 fun QuickPicks(
-    openSearch: () -> Unit,
-    openSettings: () -> Unit,
+//    openSearch: () -> Unit,
+//    openSettings: () -> Unit,
     onAlbumClick: (String) -> Unit,
     onArtistClick: (String) -> Unit,
     onPlaylistClick: (String) -> Unit,
@@ -107,29 +107,29 @@ fun QuickPicks(
         viewModel.loadQuickPicks(quickPicksSource = quickPicksSource)
     }
 
-    HomeScaffold(
-        title = R.string.app_name,
-        openSearch = openSearch,
-        openSettings = openSettings
-    ) {
-        BoxWithConstraints {
-            val quickPicksLazyGridItemWidthFactor =
-                if (isLandscape && maxWidth * 0.475f >= 320.dp) 0.475f else 0.9f
-
-            val density = LocalDensity.current
-
-            val snapLayoutInfoProvider = remember(quickPicksLazyGridState) {
-                with(density) {
-                    SnapLayoutInfoProvider(
-                        lazyGridState = quickPicksLazyGridState,
-                        positionInLayout = { layoutSize, itemSize ->
-                            (layoutSize * quickPicksLazyGridItemWidthFactor / 2f - itemSize / 2f)
-                        }
-                    )
-                }
-            }
-
-            val itemInHorizontalGridWidth = maxWidth * quickPicksLazyGridItemWidthFactor
+//    HomeScaffold(
+//        title = R.string.app_name,
+//        openSearch = openSearch,
+//        openSettings = openSettings
+//    ) {
+//        BoxWithConstraints {
+//            val quickPicksLazyGridItemWidthFactor =
+//                if (isLandscape && maxWidth * 0.475f >= 320.dp) 0.475f else 0.9f
+//
+//            val density = LocalDensity.current
+//
+//            val snapLayoutInfoProvider = remember(quickPicksLazyGridState) {
+//                with(density) {
+//                    SnapLayoutInfoProvider(
+//                        lazyGridState = quickPicksLazyGridState,
+//                        positionInLayout = { layoutSize, itemSize ->
+//                            (layoutSize * quickPicksLazyGridItemWidthFactor / 2f - itemSize / 2f)
+//                        }
+//                    )
+//                }
+//            }
+//
+//            val itemInHorizontalGridWidth = maxWidth * quickPicksLazyGridItemWidthFactor
 
             Column(
                 modifier = Modifier
@@ -147,7 +147,7 @@ fun QuickPicks(
                     LazyHorizontalGrid(
                         state = quickPicksLazyGridState,
                         rows = GridCells.Fixed(count = 4),
-                        flingBehavior = rememberSnapFlingBehavior(snapLayoutInfoProvider),
+//                        flingBehavior = rememberSnapFlingBehavior(snapLayoutInfoProvider),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height((songThumbnailSizeDp + Dimensions.itemsVerticalPadding * 2) * 4)
@@ -156,8 +156,8 @@ fun QuickPicks(
                             item {
                                 LocalSongItem(
                                     modifier = Modifier
-                                        .animateItem()
-                                        .width(itemInHorizontalGridWidth),
+                                        .animateItem(),
+//                                        .width(itemInHorizontalGridWidth),
                                     song = song,
                                     onClick = {
                                         val mediaItem = song.asMediaItem
@@ -194,7 +194,8 @@ fun QuickPicks(
                             SongItem(
                                 modifier = Modifier
                                     .animateItem()
-                                    .width(itemInHorizontalGridWidth),
+//                                    .width(itemInHorizontalGridWidth)
+                                ,
                                 song = song,
                                 onClick = {
                                     val mediaItem = song.asMediaItem
@@ -387,5 +388,5 @@ fun QuickPicks(
                 }
             }
         }
-    }
-}
+//    }
+//}
