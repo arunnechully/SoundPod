@@ -77,8 +77,6 @@ import kotlinx.coroutines.launch
 @ExperimentalAnimationApi
 @Composable
 fun HomeSongs(
-    openSearch: () -> Unit,
-    openSettings: () -> Unit,
     onGoToAlbum: (String) -> Unit,
     onGoToArtist: (String) -> Unit
 ) {
@@ -101,37 +99,6 @@ fun HomeSongs(
             sortOrder = sortOrder
         )
     }
-
-    HomeScaffold(
-        title = R.string.songs,
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
-        },
-        floatingActionButton = {
-            AnimatedVisibility(
-                visible = viewModel.items.isNotEmpty(),
-                enter = fadeIn() + scaleIn(),
-                exit = scaleOut() + fadeOut()
-            ) {
-                FloatingActionButton(
-                    onClick = {
-                        binder?.stopRadio()
-                        binder?.player?.forcePlayFromBeginning(
-                            viewModel.items.shuffled().map(Song::asMediaItem)
-                        )
-                    },
-                    modifier = Modifier.padding(bottom = playerPadding)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Shuffle,
-                        contentDescription = stringResource(id = R.string.shuffle)
-                    )
-                }
-            }
-        },
-        openSearch = openSearch,
-        openSettings = openSettings
-    ) {
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 400.dp),
             contentPadding = PaddingValues(bottom = if (viewModel.items.isNotEmpty()) 16.dp + 72.dp + playerPadding else 16.dp + playerPadding),
@@ -245,4 +212,3 @@ fun HomeSongs(
             }
         }
     }
-}

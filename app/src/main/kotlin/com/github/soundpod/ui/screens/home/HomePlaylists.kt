@@ -45,8 +45,6 @@ import com.github.soundpod.viewmodels.HomePlaylistsViewModel
 @ExperimentalFoundationApi
 @Composable
 fun HomePlaylists(
-    openSearch: () -> Unit,
-    openSettings: () -> Unit,
     onBuiltInPlaylist: (Int) -> Unit,
     onPlaylistClick: (Playlist) -> Unit
 ) {
@@ -80,11 +78,6 @@ fun HomePlaylists(
         )
     }
 
-    HomeScaffold(
-        title = R.string.playlists,
-        openSearch = openSearch,
-        openSettings = openSettings
-    ) {
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 150.dp),
             contentPadding = PaddingValues(
@@ -146,4 +139,3 @@ fun HomePlaylists(
             }
         }
     }
-}

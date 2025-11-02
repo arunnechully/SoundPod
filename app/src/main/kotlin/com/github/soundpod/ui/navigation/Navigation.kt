@@ -21,12 +21,7 @@ import com.github.soundpod.enums.SettingsSection
 import com.github.soundpod.ui.screens.album.AlbumScreen
 import com.github.soundpod.ui.screens.artist.ArtistScreen
 import com.github.soundpod.ui.screens.builtinplaylist.BuiltInPlaylistScreen
-import com.github.soundpod.ui.screens.home.HomeAlbums
-import com.github.soundpod.ui.screens.home.HomeArtistList
-import com.github.soundpod.ui.screens.home.HomePlaylists
 import com.github.soundpod.ui.screens.home.HomeScreen
-import com.github.soundpod.ui.screens.home.HomeSongs
-import com.github.soundpod.ui.screens.home.QuickPicks
 import com.github.soundpod.ui.screens.localplaylist.LocalPlaylistScreen
 import com.github.soundpod.ui.screens.playlist.PlaylistScreen
 import com.github.soundpod.ui.screens.search.SearchScreen

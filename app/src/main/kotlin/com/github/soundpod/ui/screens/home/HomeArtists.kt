@@ -33,8 +33,6 @@ import com.github.soundpod.viewmodels.HomeArtistsViewModel
 @ExperimentalAnimationApi
 @Composable
 fun HomeArtistList(
-    openSearch: () -> Unit,
-    openSettings: () -> Unit,
     onArtistClick: (Artist) -> Unit
 ) {
     val playerPadding = LocalPlayerPadding.current
@@ -50,44 +48,37 @@ fun HomeArtistList(
             sortOrder = sortOrder
         )
     }
-
-    HomeScaffold(
-        title = R.string.artists,
-        openSearch = openSearch,
-        openSettings = openSettings
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = 100.dp),
+        contentPadding = PaddingValues(
+            start = 8.dp,
+            end = 8.dp,
+            bottom = 16.dp + playerPadding
+        ),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier.fillMaxSize()
     ) {
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = 100.dp),
-            contentPadding = PaddingValues(
-                start = 8.dp,
-                end = 8.dp,
-                bottom = 16.dp + playerPadding
-            ),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.fillMaxSize()
+        item(
+            key = "header",
+            span = { GridItemSpan(maxLineSpan) }
         ) {
-            item(
-                key = "header",
-                span = { GridItemSpan(maxLineSpan) }
-            ) {
-                SortingHeader(
-                    sortBy = sortBy,
-                    changeSortBy = { sortBy = it },
-                    sortByEntries = ArtistSortBy.entries.toList(),
-                    sortOrder = sortOrder,
-                    toggleSortOrder = { sortOrder = !sortOrder },
-                    size = viewModel.items.size,
-                    itemCountText = R.plurals.number_of_artists
-                )
-            }
+            SortingHeader(
+                sortBy = sortBy,
+                changeSortBy = { sortBy = it },
+                sortByEntries = ArtistSortBy.entries.toList(),
+                sortOrder = sortOrder,
+                toggleSortOrder = { sortOrder = !sortOrder },
+                size = viewModel.items.size,
+                itemCountText = R.plurals.number_of_artists
+            )
+        }
 
-            items(items = viewModel.items, key = Artist::id) { artist ->
-                LocalArtistItem(
-                    modifier = Modifier.animateItem(),
-                    artist = artist,
-                    onClick = { onArtistClick(artist) }
-                )
-            }
+        items(items = viewModel.items, key = Artist::id) { artist ->
+            LocalArtistItem(
+                modifier = Modifier.animateItem(),
+                artist = artist,
+                onClick = { onArtistClick(artist) }
+            )
         }
     }
 }

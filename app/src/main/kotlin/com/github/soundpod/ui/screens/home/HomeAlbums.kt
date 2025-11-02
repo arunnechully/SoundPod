@@ -33,8 +33,6 @@ import com.github.soundpod.viewmodels.HomeAlbumsViewModel
 @ExperimentalAnimationApi
 @Composable
 fun HomeAlbums(
-    openSearch: () -> Unit,
-    openSettings: () -> Unit,
     onAlbumClick: (Album) -> Unit
 ) {
     val playerPadding = LocalPlayerPadding.current
@@ -50,12 +48,6 @@ fun HomeAlbums(
             sortOrder = sortOrder
         )
     }
-
-    HomeScaffold(
-        title = R.string.albums,
-        openSearch = openSearch,
-        openSettings = openSettings
-    ) {
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 150.dp),
             contentPadding = PaddingValues(
@@ -93,4 +85,3 @@ fun HomeAlbums(
             }
         }
     }
-}
