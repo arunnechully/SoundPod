@@ -25,9 +25,11 @@ import com.github.soundpod.ui.screens.home.HomeScreen
 import com.github.soundpod.ui.screens.localplaylist.LocalPlaylistScreen
 import com.github.soundpod.ui.screens.playlist.PlaylistScreen
 import com.github.soundpod.ui.screens.search.SearchScreen
-import com.github.soundpod.ui.screens.settings.NewSettingsScreen
+import com.github.soundpod.ui.screens.settings.newsettings.NewSettingsScreen
 import com.github.soundpod.ui.screens.settings.SettingsPage
-import com.github.soundpod.ui.screens.settings.SettingsScreen
+import com.github.soundpod.ui.screens.settings.newsettings.Appearance
+import com.github.soundpod.ui.screens.settings.newsettings.Experiment
+import com.github.soundpod.ui.screens.settings.newsettings.NewPlayerSettings
 import com.github.soundpod.utils.homeScreenTabIndexKey
 import com.github.soundpod.utils.rememberPreference
 import kotlinx.coroutines.launch
@@ -168,6 +170,24 @@ fun Navigation(
             SettingsPage(
                 section = SettingsSection.entries[route.index],
                 pop = popDestination
+            )
+        }
+
+        playerComposable(route = Routes.Appearance::class) {
+            Appearance(
+                onBackClick = {navController.popBackStack()}
+            )
+        }
+
+        playerComposable(route = Routes.Player::class) {
+            NewPlayerSettings(
+                onBackClick = {navController.popBackStack()}
+            )
+        }
+
+        playerComposable(route = Routes.Experiment::class) {
+            Experiment(
+                onBackClick = {navController.popBackStack()}
             )
         }
 

@@ -37,6 +37,14 @@ sealed class Routes {
     data class SettingsPage(val index: Int)
 
     @Serializable
+    data object Appearance
+
+    @Serializable
+    data object Player
+
+    @Serializable
+    data object Experiment
+    @Serializable
     data object Search
 
     @Serializable

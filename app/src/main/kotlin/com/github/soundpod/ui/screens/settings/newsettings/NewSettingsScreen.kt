@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.github.soundpod.ui.screens.settings
+package com.github.soundpod.ui.screens.settings.newsettings
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -56,13 +56,13 @@ fun NewSettingsScreen(
                     title = stringResource(id = R.string.appearance),
                     textColor = textColor,
                     icon = Icons.Default.ColorLens,
-                    onClick = { navController.navigate("appearance") }
+                    onClick = { navController.navigate("Appearance") }
                 )
                 SettingRow(
                     title = stringResource(id = R.string.player),
                     textColor = textColor,
                     icon = Icons.Default.PlayArrow,
-                    onClick = { navController.navigate("player") }
+                    onClick = { navController.navigate("Player") }
                 )
             }
 
@@ -107,7 +107,7 @@ fun NewSettingsScreen(
                     title = stringResource(id = R.string.experimental),
                     textColor = textColor,
                     painterRes = R.drawable.experimental,
-                    onClick = { navController.navigate("experiment") }
+                    onClick = { navController.navigate("Experiment") }
                 )
             }
 
