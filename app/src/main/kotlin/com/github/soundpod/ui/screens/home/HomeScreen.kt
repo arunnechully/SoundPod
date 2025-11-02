@@ -68,8 +68,6 @@ fun HomeScreen(
             ) { page ->
                 when (page) {
                     0 -> QuickPicks(
-//                        openSearch = { navController.navigate(route = Routes.Search) },
-//                        openSettings = { navController.navigate(route = Routes.Settings) },
                         onAlbumClick = navigateToAlbum,
                         onArtistClick = navigateToArtist,
                         onPlaylistClick = { browseId ->

@@ -106,7 +106,10 @@ class MainActivity : ComponentActivity() {
             )
 
             AppTheme {
-                Box(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
                     CompositionLocalProvider(value = LocalPlayerServiceBinder provides binder) {
                         val menuState = LocalMenuState.current
 

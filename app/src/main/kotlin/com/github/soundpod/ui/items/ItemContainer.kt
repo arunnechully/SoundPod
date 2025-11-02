@@ -127,7 +127,7 @@ fun ListItemContainer(
     onLongClick: (() -> Unit)? = null,
     maxLines: Int = 1,
     color: Color = MaterialTheme.colorScheme.surfaceVariant,
-    containerColor: Color = ListItemDefaults.colors().containerColor,
+    containerColor: Color = Color.Transparent,
     thumbnail: @Composable (size: Dp) -> Unit,
     thumbnailHeight: Dp = 56.dp,
     thumbnailAspectRatio: Float = 1F,
