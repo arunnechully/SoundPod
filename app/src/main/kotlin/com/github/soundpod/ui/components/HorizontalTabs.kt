@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 fun HorizontalTabs(
     pagerState: PagerState
 ) {
-    val tabs = listOf("Tracks", "Playlist", "Favorite", "Albums", "Artists", "Genres", "Downloads") // Added more tabs to better demonstrate centering
+    val tabs = listOf("Home", "Songs", "Artists", "Albums", "Playlists")
     val coroutineScope = rememberCoroutineScope()
 
     // The selectedTabIndex is directly tied to the PagerState.currentPage
@@ -51,8 +51,6 @@ fun HorizontalTabs(
                         coroutineScope.launch {
                             pagerState.animateScrollToPage(index)
                         }
-                        // NOTE: You no longer need to manually update a 'selectedTabIndex' state here
-                        // because it's sourced from 'pagerState.currentPage'.
                     },
                     modifier = Modifier
                         .padding(horizontal = 4.dp, vertical = 8.dp)

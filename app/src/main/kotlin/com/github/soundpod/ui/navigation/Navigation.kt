@@ -119,60 +119,6 @@ fun Navigation(
             )
         }
 
-
-//        playerComposable(route = Routes.Home::class) {
-//            QuickPicks(
-//                openSearch = { navController.navigate(route = Routes.Search) },
-//                openSettings = { navController.navigate(route = Routes.Settings) },
-//                onAlbumClick = navigateToAlbum,
-//                onArtistClick = navigateToArtist,
-//                onPlaylistClick = { browseId ->
-//                    navController.navigate(route = Routes.Playlist(id = browseId))
-//                },
-//                onOfflinePlaylistClick = {
-//                    navController.navigate(route = Routes.BuiltInPlaylist(index = 1))
-//                }
-//            )
-//        }
-
-        playerComposable(route = Routes.Songs::class) {
-            HomeSongs(
-                openSearch = { navController.navigate(route = Routes.Search) },
-                openSettings = { navController.navigate(route = Routes.Settings) },
-                onGoToAlbum = navigateToAlbum,
-                onGoToArtist = navigateToArtist
-            )
-        }
-
-        playerComposable(route = Routes.Artists::class) {
-            HomeArtistList(
-                openSearch = { navController.navigate(route = Routes.Search) },
-                openSettings = { navController.navigate(route = Routes.Settings) },
-                onArtistClick = { artist -> navigateToArtist(artist.id) }
-            )
-        }
-
-        playerComposable(route = Routes.Albums::class) {
-            HomeAlbums(
-                openSearch = { navController.navigate(route = Routes.Search) },
-                openSettings = { navController.navigate(route = Routes.Settings) },
-                onAlbumClick = { album -> navigateToAlbum(album.id) }
-            )
-        }
-
-        playerComposable(route = Routes.Playlists::class) {
-            HomePlaylists(
-                openSearch = { navController.navigate(route = Routes.Search) },
-                openSettings = { navController.navigate(route = Routes.Settings) },
-                onBuiltInPlaylist = { playlistIndex ->
-                    navController.navigate(route = Routes.BuiltInPlaylist(index = playlistIndex))
-                },
-                onPlaylistClick = { playlist ->
-                    navController.navigate(route = Routes.LocalPlaylist(id = playlist.id))
-                }
-            )
-        }
-
         playerComposable(route = Routes.Artist::class) { navBackStackEntry ->
             val route: Routes.Artist = navBackStackEntry.toRoute()
 

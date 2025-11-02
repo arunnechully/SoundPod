@@ -30,7 +30,7 @@ fun HomeScreen(
     navController: NavController
 ) {
     val isDarkTheme = isSystemInDarkTheme()
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 10 })
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = {5})
     val background = if (isDarkTheme) Color(0xFF1E1E1E) else Color(0xFFFFFFFF)
 
     val navigateToAlbum = { browseId: String ->
@@ -77,10 +77,36 @@ fun HomeScreen(
                             navController.navigate(route = Routes.BuiltInPlaylist(index = 1))
                         }
                     )
-                    1 -> {}
-                    2 -> {}
-                    3 -> {}
-                    4 -> {}
+
+                    1 -> HomeSongs(
+                        openSearch = { navController.navigate(route = Routes.Search) },
+                        openSettings = { navController.navigate(route = Routes.Settings) },
+                        onGoToAlbum = navigateToAlbum,
+                        onGoToArtist = navigateToArtist
+                    )
+
+                    2 -> HomeArtistList(
+                        openSearch = { navController.navigate(route = Routes.Search) },
+                        openSettings = { navController.navigate(route = Routes.Settings) },
+                        onArtistClick = { artist -> navigateToArtist(artist.id) }
+                    )
+
+                    3 -> HomeAlbums(
+                        openSearch = { navController.navigate(route = Routes.Search) },
+                        openSettings = { navController.navigate(route = Routes.Settings) },
+                        onAlbumClick = { album -> navigateToAlbum(album.id) }
+                    )
+
+                    4 -> HomePlaylists(
+                        openSearch = { navController.navigate(route = Routes.Search) },
+                        openSettings = { navController.navigate(route = Routes.Settings) },
+                        onBuiltInPlaylist = { playlistIndex ->
+                            navController.navigate(route = Routes.BuiltInPlaylist(index = playlistIndex))
+                        },
+                        onPlaylistClick = { playlist ->
+                            navController.navigate(route = Routes.LocalPlaylist(id = playlist.id))
+                        }
+                    )
                 }
             }
         }
