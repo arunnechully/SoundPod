@@ -35,6 +35,7 @@ import androidx.navigation.NavController
 import com.github.soundpod.R
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
+import com.github.soundpod.ui.navigation.Routes
 
 @Composable
 fun NewSettingsScreen(
@@ -56,13 +57,13 @@ fun NewSettingsScreen(
                     title = stringResource(id = R.string.appearance),
                     textColor = textColor,
                     icon = Icons.Default.ColorLens,
-                    onClick = { navController.navigate("Appearance") }
+                    onClick = { navController.navigate(Routes.Appearance) }
                 )
                 SettingRow(
                     title = stringResource(id = R.string.player),
                     textColor = textColor,
                     icon = Icons.Default.PlayArrow,
-                    onClick = { navController.navigate("Player") }
+                    onClick = { navController.navigate(Routes.Player) }
                 )
             }
 
@@ -107,7 +108,7 @@ fun NewSettingsScreen(
                     title = stringResource(id = R.string.experimental),
                     textColor = textColor,
                     painterRes = R.drawable.experimental,
-                    onClick = { navController.navigate("Experiment") }
+                    onClick = { navController.navigate(Routes.Experiment) }
                 )
             }
 
