@@ -25,6 +25,7 @@ import com.github.soundpod.ui.screens.home.HomeScreen
 import com.github.soundpod.ui.screens.localplaylist.LocalPlaylistScreen
 import com.github.soundpod.ui.screens.playlist.PlaylistScreen
 import com.github.soundpod.ui.screens.search.SearchScreen
+import com.github.soundpod.ui.screens.settings.NewSettingsScreen
 import com.github.soundpod.ui.screens.settings.SettingsPage
 import com.github.soundpod.ui.screens.settings.SettingsScreen
 import com.github.soundpod.utils.homeScreenTabIndexKey
@@ -151,11 +152,13 @@ fun Navigation(
         }
 
         playerComposable(route = Routes.Settings::class) {
-            SettingsScreen(
-                pop = popDestination,
-                onGoToSettingsPage = { index ->
-                    navController.navigate(Routes.SettingsPage(index = index))
-                }
+            NewSettingsScreen(
+                navController = navController,
+                onBackClick = {navController.popBackStack()}
+//                pop = popDestination,
+//                onGoToSettingsPage = { index ->
+//                    navController.navigate(Routes.SettingsPage(index = index))
+//                }
             )
         }
 
