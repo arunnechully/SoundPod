@@ -1,8 +1,17 @@
+@file:OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+    ExperimentalAnimationApi::class
+)
+
 package com.github.soundpod.ui.navigation
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SheetState
@@ -25,29 +34,31 @@ import com.github.soundpod.ui.screens.home.HomeScreen
 import com.github.soundpod.ui.screens.localplaylist.LocalPlaylistScreen
 import com.github.soundpod.ui.screens.playlist.PlaylistScreen
 import com.github.soundpod.ui.screens.search.SearchScreen
-import com.github.soundpod.ui.screens.settings.newsettings.NewSettingsScreen
 import com.github.soundpod.ui.screens.settings.SettingsPage
 import com.github.soundpod.ui.screens.settings.newsettings.Appearance
 import com.github.soundpod.ui.screens.settings.newsettings.Experiment
 import com.github.soundpod.ui.screens.settings.newsettings.NewPlayerSettings
+import com.github.soundpod.ui.screens.settings.newsettings.NewSettingsScreen
 import com.github.soundpod.utils.homeScreenTabIndexKey
 import com.github.soundpod.utils.rememberPreference
 import kotlinx.coroutines.launch
-import soup.compose.material.motion.animation.rememberSlideDistance
 import kotlin.reflect.KClass
 
-@OptIn(
-    ExperimentalFoundationApi::class,
-    ExperimentalAnimationApi::class,
-    ExperimentalMaterial3Api::class
-)
+private fun defaultEnterTransition() =
+    slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn()
+private fun defaultExitTransition() =
+    slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut()
+private fun defaultPopEnterTransition() =
+    slideInHorizontally(initialOffsetX = { -1000 }) + fadeIn()
+private fun defaultPopExitTransition() =
+    slideOutHorizontally(targetOffsetX = { 1000 }) + fadeOut()
+
 @Composable
 fun Navigation(
     navController: NavHostController,
     sheetState: SheetState
 ) {
     val scope = rememberCoroutineScope()
-    val slideDistance = rememberSlideDistance()
     val (screenIndex, _) = rememberPreference(homeScreenTabIndexKey, defaultValue = 0)
 
     NavHost(
@@ -56,32 +67,10 @@ fun Navigation(
             index = screenIndex,
             defaultValue = { Routes.NewHome }
         )::class,
-        enterTransition = {
-            NavigationTransitions.enterTransition(
-                targetDestination = targetState.destination,
-                slideDistance = slideDistance
-            )
-        },
-        exitTransition = {
-            NavigationTransitions.exitTransition(
-                targetDestination = targetState.destination,
-                slideDistance = slideDistance
-            )
-        },
-        popEnterTransition = {
-            NavigationTransitions.popEnterTransition(
-                initialDestination = initialState.destination,
-                targetDestination = targetState.destination,
-                slideDistance = slideDistance
-            )
-        },
-        popExitTransition = {
-            NavigationTransitions.popExitTransition(
-                initialDestination = initialState.destination,
-                targetDestination = targetState.destination,
-                slideDistance = slideDistance
-            )
-        }
+        enterTransition = { defaultEnterTransition() },
+        exitTransition = { defaultExitTransition() },
+        popEnterTransition = { defaultPopEnterTransition() },
+        popExitTransition = { defaultPopExitTransition() }
     ) {
         val navigateToAlbum = { browseId: String ->
             navController.navigate(route = Routes.Album(id = browseId))
@@ -156,7 +145,7 @@ fun Navigation(
         playerComposable(route = Routes.Settings::class) {
             NewSettingsScreen(
                 navController = navController,
-                onBackClick = {navController.popBackStack()}
+                onBackClick = { navController.popBackStack() }
 //                pop = popDestination,
 //                onGoToSettingsPage = { index ->
 //                    navController.navigate(Routes.SettingsPage(index = index))
@@ -175,19 +164,19 @@ fun Navigation(
 
         playerComposable(route = Routes.Appearance::class) {
             Appearance(
-                onBackClick = {navController.popBackStack()}
+                onBackClick = { navController.popBackStack() }
             )
         }
 
         playerComposable(route = Routes.Player::class) {
             NewPlayerSettings(
-                onBackClick = {navController.popBackStack()}
+                onBackClick = { navController.popBackStack() }
             )
         }
 
         playerComposable(route = Routes.Experiment::class) {
             Experiment(
-                onBackClick = {navController.popBackStack()}
+                onBackClick = { navController.popBackStack() }
             )
         }
 
