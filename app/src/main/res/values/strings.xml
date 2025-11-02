@@ -195,4 +195,10 @@
     <string name="featured_on">Featured on</string>
     <string name="fans_might_also_like">Fans might also like</string>
     <string name="no_related_albums">No related albums were found</string>
+    <string name="appearance">Appearance\n</string>
+    <string name="privacy">Privacy</string>
+    <string name="backup_restore">Backup and restore</string>
+    <string name="storage">Storage</string>
+    <string name="more_settings">More Settings</string>
+    <string name="experimental">Experimental</string>
 </resources>
