@@ -53,7 +53,7 @@ fun SettingsPage(
                 SettingsSection.Cache -> CacheSettings()
                 SettingsSection.Database -> DatabaseSettings()
                 SettingsSection.Other -> OtherSettings()
-                SettingsSection.About -> About()
+                SettingsSection.About -> {}
             }
         }
     }
