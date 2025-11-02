@@ -185,7 +185,7 @@
     <string name="open_in_github">Abrir en GitHub</string>
     <string name="gestures">Gestos</string>
     <string name="player_gestures">Gestos en el reproductor</string>
-    <string name="miniplayer_gestures">Gestos en el minirreproductor</string>
+    <string name="mini_player_gestures">Gestos en el minirreproductor</string>
     <string name="list_gestures">Gestos en las listas</string>
     <string name="player_gestures_description">Activa gestos para pasar a la siguiente canción o volver a la anterior</string>
     <string name="list_gestures_description">Activa gestos para añadir a la cola o eliminar las canciones</string>

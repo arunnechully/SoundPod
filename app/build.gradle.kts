@@ -16,11 +16,11 @@ kotlin {
 }
 
 android {
-    namespace = "com.github.musicyou"
+    namespace = "com.github.soundpod"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.github.musicyou"
+        applicationId = "com.github.soundpod"
         minSdk = 23
         targetSdk = 36
         versionCode = 13

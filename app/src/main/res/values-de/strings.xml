@@ -181,7 +181,7 @@
     <string name="open_in_github">Open in GitHub</string>
     <string name="gestures">Gestures</string>
     <string name="player_gestures">Player gestures</string>
-    <string name="miniplayer_gestures">Miniplayer gestures</string>
+    <string name="mini_player_gestures">Miniplayer gestures</string>
     <string name="list_gestures">List gestures</string>
     <string name="player_gestures_description">Enable gestures to skip to the next or previous song</string>
     <string name="list_gestures_description">Enable gestures to enqueue or delete songs</string>

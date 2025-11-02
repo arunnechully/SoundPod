@@ -185,7 +185,7 @@
     <string name="open_in_github">Ouvrir dans GitHub</string>
     <string name="gestures">Gestes</string>
     <string name="player_gestures">Gestes du lecteur</string>
-    <string name="miniplayer_gestures">Gestes du mini-lecteur</string>
+    <string name="mini_player_gestures">Gestes du mini-lecteur</string>
     <string name="list_gestures">Liste des gestes</string>
     <string name="player_gestures_description">Activer les gestes pour passer au titre suivant ou précédent</string>
     <string name="list_gestures_description">Activer les gestes pour mettre en file d\'attente ou supprimer des titres</string>
