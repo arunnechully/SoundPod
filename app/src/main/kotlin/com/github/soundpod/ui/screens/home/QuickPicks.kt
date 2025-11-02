@@ -108,7 +108,7 @@ fun QuickPicks(
     }
 
     HomeScaffold(
-        title = R.string.quick_picks,
+        title = R.string.app_name,
         openSearch = openSearch,
         openSettings = openSettings
     ) {
