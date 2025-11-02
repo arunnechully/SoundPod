@@ -43,7 +43,22 @@ sealed class Routes {
     data object Player
 
     @Serializable
+    data object Privacy
+
+    @Serializable
+    data object Backup
+
+    @Serializable
+    data object Storage
+
+    @Serializable
+    data object More
+
+    @Serializable
     data object Experiment
+
+    @Serializable
+    data object About
     @Serializable
     data object Search
 

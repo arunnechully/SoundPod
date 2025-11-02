@@ -74,7 +74,7 @@ fun NewSettingsScreen(
                     title = stringResource(id = R.string.privacy),
                     textColor = textColor,
                     icon = Icons.Default.PrivacyTip,
-                    onClick = { navController.navigate("privacy") }
+                    onClick = { navController.navigate(Routes.Privacy) }
                 )
             }
 
@@ -85,13 +85,13 @@ fun NewSettingsScreen(
                     title = stringResource(id = R.string.backup_restore),
                     textColor = textColor,
                     icon = Icons.Default.Restore,
-                    onClick = { navController.navigate("backup") }
+                    onClick = { navController.navigate(Routes.Backup) }
                 )
                 SettingRow(
                     title = stringResource(id = R.string.storage),
                     textColor = textColor,
                     icon = Icons.Default.Storage,
-                    onClick = { navController.navigate("storage") }
+                    onClick = { navController.navigate(Routes.Storage) }
                 )
             }
 
@@ -102,7 +102,7 @@ fun NewSettingsScreen(
                     title = stringResource(id = R.string.more_settings),
                     textColor = textColor,
                     painterRes = R.drawable.more_settings,
-                    onClick = { navController.navigate("more") }
+                    onClick = { navController.navigate(Routes.More) }
                 )
                 SettingRow(
                     title = stringResource(id = R.string.experimental),
@@ -119,7 +119,7 @@ fun NewSettingsScreen(
                     title = "About",
                     textColor = textColor,
                     icon = Icons.Default.Info,
-                    onClick = { navController.navigate("about") }
+                    onClick = { navController.navigate(Routes.About) }
                 )
             }
         }

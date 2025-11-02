@@ -37,10 +37,15 @@ import com.github.soundpod.ui.screens.search.SearchScreen
 import com.github.soundpod.ui.screens.settings.SettingsPage
 import com.github.soundpod.ui.screens.settings.newsettings.Appearance
 import com.github.soundpod.ui.screens.settings.newsettings.Experiment
+import com.github.soundpod.ui.screens.settings.newsettings.MoreSettings
+import com.github.soundpod.ui.screens.settings.newsettings.NewAboutSettings
 import com.github.soundpod.ui.screens.settings.newsettings.NewPlayerSettings
 import com.github.soundpod.ui.screens.settings.newsettings.NewSettingsScreen
+import com.github.soundpod.ui.screens.settings.newsettings.Privacy
+import com.github.soundpod.ui.screens.settings.newsettings.Storage
 import com.github.soundpod.utils.homeScreenTabIndexKey
 import com.github.soundpod.utils.rememberPreference
+import com.github.soundpod.ui.screens.settings.newsettings.Backup
 import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
 
@@ -146,10 +151,6 @@ fun Navigation(
             NewSettingsScreen(
                 navController = navController,
                 onBackClick = { navController.popBackStack() }
-//                pop = popDestination,
-//                onGoToSettingsPage = { index ->
-//                    navController.navigate(Routes.SettingsPage(index = index))
-//                }
             )
         }
 
@@ -174,8 +175,38 @@ fun Navigation(
             )
         }
 
+        playerComposable(route = Routes.Privacy::class) {
+            Privacy(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        playerComposable(route = Routes.Backup::class) {
+            Backup(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        playerComposable(route = Routes.Storage::class) {
+            Storage(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        playerComposable(route = Routes.More::class) {
+            MoreSettings(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
         playerComposable(route = Routes.Experiment::class) {
             Experiment(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        playerComposable(route = Routes.About::class) {
+            NewAboutSettings (
                 onBackClick = { navController.popBackStack() }
             )
         }

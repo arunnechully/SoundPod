@@ -8,11 +8,11 @@ import com.github.soundpod.ui.components.SettingsScreenLayout
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Privacy(
+fun Storage(
     onBackClick: () -> Unit
 ) {
     SettingsScreenLayout(
-        title =stringResource(id = R.string.privacy),
+        title =stringResource(id = R.string.storage),
         onBackClick = onBackClick,
         content = {
 
