@@ -100,7 +100,7 @@ fun LocalPlaylistSongs(
         snackbarHost = {
             SnackbarHost(
                 hostState = snackbarHostState,
-                modifier = Modifier.padding(bottom = playerPadding - 16.dp)
+                modifier = Modifier.padding(bottom = (playerPadding - 16.dp).coerceAtLeast(0.dp))
             )
         }
     ) { paddingValues ->
