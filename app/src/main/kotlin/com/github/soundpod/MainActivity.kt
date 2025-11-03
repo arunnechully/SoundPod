@@ -9,9 +9,6 @@ import android.os.IBinder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -47,7 +44,6 @@ import com.github.innertube.requests.playlistPage
 import com.github.innertube.requests.song
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.service.PlayerService
-import com.github.soundpod.ui.components.BottomNavigation
 import com.github.soundpod.ui.navigation.Navigation
 import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.ui.screens.player.PlayerScaffold
@@ -113,17 +109,7 @@ class MainActivity : ComponentActivity() {
                     CompositionLocalProvider(value = LocalPlayerServiceBinder provides binder) {
                         val menuState = LocalMenuState.current
 
-                        Scaffold(
-//                            bottomBar = {
-//                                AnimatedVisibility(
-//                                    visible = playerState.targetValue != SheetValue.Expanded,
-//                                    enter = slideInVertically(initialOffsetY = { it / 2 }),
-//                                    exit = slideOutVertically(targetOffsetY = { it })
-//                                ) {
-//                                    BottomNavigation(navController = navController)
-//                                }
-//                            }
-                        ) { paddingValues ->
+                        Scaffold{ paddingValues ->
                             PlayerScaffold(
                                 navController = navController,
                                 sheetState = playerState,
