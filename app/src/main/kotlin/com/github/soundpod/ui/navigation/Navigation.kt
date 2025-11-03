@@ -8,6 +8,10 @@ package com.github.soundpod.ui.navigation
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -50,13 +54,41 @@ import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
 
 private fun defaultEnterTransition() =
-    slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn()
+    slideInHorizontally(
+        initialOffsetX = { it / 4 }, // 25% offset instead of full width
+        animationSpec = tween(
+            durationMillis = 220,
+            easing = LinearOutSlowInEasing
+        )
+    ) + fadeIn(animationSpec = tween(200))
+
 private fun defaultExitTransition() =
-    slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut()
+    slideOutHorizontally(
+        targetOffsetX = { -it / 4 },
+        animationSpec = tween(
+            durationMillis = 200,
+            easing = FastOutLinearInEasing
+        )
+    ) + fadeOut(animationSpec = tween(150))
+
 private fun defaultPopEnterTransition() =
-    slideInHorizontally(initialOffsetX = { -1000 }) + fadeIn()
+    slideInHorizontally(
+        initialOffsetX = { -it / 4 },
+        animationSpec = tween(
+            durationMillis = 200,
+            easing = LinearOutSlowInEasing
+        )
+    ) + fadeIn(animationSpec = tween(200))
+
 private fun defaultPopExitTransition() =
-    slideOutHorizontally(targetOffsetX = { 1000 }) + fadeOut()
+    slideOutHorizontally(
+        targetOffsetX = { it / 4 },
+        animationSpec = tween(
+            durationMillis = 180,
+            easing = FastOutSlowInEasing
+        )
+    ) + fadeOut(animationSpec = tween(150))
+
 
 @Composable
 fun Navigation(

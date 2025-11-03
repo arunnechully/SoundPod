@@ -35,8 +35,8 @@
     <string name="resume_playback_description">When a wired or bluetooth device is connected</string>
     <string name="skip_silence">Skip silence</string>
     <string name="skip_silence_description">Skip silent parts during playback</string>
-    <string name="loudness_normalization">Loudness normalization</string>
-    <string name="loudness_normalization_description">Adjust the volume to a fixed level</string>
+    <string name="loudness_normalization">Normalize Volume</string>
+    <string name="loudness_normalization_description">Keep consistent loudness across songs</string>
     <string name="equalizer">Equalizer</string>
     <string name="equalizer_description">Interact with the system equalizer</string>
     <string name="show_song_cover">Show song cover</string>

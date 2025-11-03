@@ -122,7 +122,7 @@ fun NewAboutSettings(
                         )
                     },
                     modifier = Modifier.clickable {
-                        uriHandler.openUri("https://github.com/DanielSevillano/music-you")
+                        uriHandler.openUri("https://github.com/arunnechully/SoundPod")
                     }
                 )
             }

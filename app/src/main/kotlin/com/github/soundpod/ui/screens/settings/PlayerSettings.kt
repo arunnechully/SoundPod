@@ -69,37 +69,37 @@ fun PlayerSettings() {
             }
         )
 
-        if (isAtLeastAndroid6) {
-            SwitchSettingEntry(
-                title = stringResource(id = R.string.resume_playback),
-                text = stringResource(id = R.string.resume_playback_description),
-                icon = Icons.Outlined.Replay,
-                isChecked = resumePlaybackWhenDeviceConnected,
-                onCheckedChange = {
-                    resumePlaybackWhenDeviceConnected = it
-                }
-            )
-        }
+//        if (isAtLeastAndroid6) {
+//            SwitchSettingEntry(
+//                title = stringResource(id = R.string.resume_playback),
+//                text = stringResource(id = R.string.resume_playback_description),
+//                icon = Icons.Outlined.Replay,
+//                isChecked = resumePlaybackWhenDeviceConnected,
+//                onCheckedChange = {
+//                    resumePlaybackWhenDeviceConnected = it
+//                }
+//            )
+//        }
 
-        SwitchSettingEntry(
-            title = stringResource(id = R.string.skip_silence),
-            text = stringResource(id = R.string.skip_silence_description),
-            icon = Icons.Outlined.FastForward,
-            isChecked = skipSilence,
-            onCheckedChange = {
-                skipSilence = it
-            }
-        )
+//        SwitchSettingEntry(
+//            title = stringResource(id = R.string.skip_silence),
+//            text = stringResource(id = R.string.skip_silence_description),
+//            icon = Icons.Outlined.FastForward,
+//            isChecked = skipSilence,
+//            onCheckedChange = {
+//                skipSilence = it
+//            }
+//        )
 
-        SwitchSettingEntry(
-            title = stringResource(id = R.string.loudness_normalization),
-            text = stringResource(id = R.string.loudness_normalization_description),
-            icon = Icons.AutoMirrored.Outlined.VolumeUp,
-            isChecked = volumeNormalization,
-            onCheckedChange = {
-                volumeNormalization = it
-            }
-        )
+//        SwitchSettingEntry(
+//            title = stringResource(id = R.string.loudness_normalization),
+//            text = stringResource(id = R.string.loudness_normalization_description),
+//            icon = Icons.AutoMirrored.Outlined.VolumeUp,
+//            isChecked = volumeNormalization,
+//            onCheckedChange = {
+//                volumeNormalization = it
+//            }
+//        )
 
         SettingsEntry(
             title = stringResource(id = R.string.equalizer),

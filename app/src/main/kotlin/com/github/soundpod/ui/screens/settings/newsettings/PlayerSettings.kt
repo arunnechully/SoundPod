@@ -27,6 +27,11 @@ import com.github.soundpod.ui.components.CustomStyledSlider
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.components.SwitchSetting
+import com.github.soundpod.utils.isAtLeastAndroid6
+import com.github.soundpod.utils.rememberPreference
+import com.github.soundpod.utils.resumePlaybackWhenDeviceConnectedKey
+import com.github.soundpod.utils.skipSilenceKey
+import com.github.soundpod.utils.volumeNormalizationKey
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,12 +42,16 @@ fun NewPlayerSettings(
     val isDarkTheme = isSystemInDarkTheme()
     val textColor = if (isDarkTheme) Color.White else Color.Black
 
-    var skipSilenceEnabled by remember { mutableStateOf(false) }
+    var skipSilence by rememberPreference(skipSilenceKey, false)
     var autoPauseEnabled by remember { mutableStateOf(false) }
+    var audioFocus by remember { mutableStateOf(false) }
     var playSpeed by remember { mutableFloatStateOf(1.0f) }
     var crossfade by remember { mutableFloatStateOf(5f) }
-    var normalizeEnabled by remember { mutableStateOf(false) }
-    var autoResume by remember { mutableStateOf(false) }
+    var volumeNormalization by rememberPreference(volumeNormalizationKey, false)
+    var resumePlaybackWhenDeviceConnected by rememberPreference(
+        resumePlaybackWhenDeviceConnectedKey,
+        false
+    )
 
     SettingsScreenLayout(
         title = stringResource(id = R.string.player),
@@ -70,18 +79,20 @@ fun NewPlayerSettings(
                 SwitchSetting(
                     textColor = textColor,
                     icon = Icons.Default.MusicOff,
-                    title = "Skip Silence",
-                    description = "Skip silent parts during playback",
-                    switchState = skipSilenceEnabled,
-                    onSwitchChange = { skipSilenceEnabled = it }
+                    title = stringResource(id = R.string.skip_silence),
+                    description = stringResource(id = R.string.skip_silence_description),
+                    switchState = skipSilence,
+                    onSwitchChange = {
+                        skipSilence = it
+                    }
                 )
                 SwitchSetting(
                     textColor = textColor,
                     painterRes = R.drawable.audio_focus,
                     title = "Audio Focus",
                     description = "Pause playback when other media is playing",
-                    switchState = true,
-                    onSwitchChange = {}
+                    switchState = audioFocus,
+                    onSwitchChange = { audioFocus = it }
                 )
                 SwitchSetting(
                     textColor = textColor,
@@ -91,14 +102,19 @@ fun NewPlayerSettings(
                     switchState = autoPauseEnabled,
                     onSwitchChange = { autoPauseEnabled = it }
                 )
-                SwitchSetting(
-                    textColor = textColor,
-                    painterRes = R.drawable.headphone,
-                    title = "Auto Resume",
-                    description = "Play automatically when headphones connect",
-                    switchState = autoResume,
-                    onSwitchChange = { autoResume = it }
-                )
+
+                if (isAtLeastAndroid6) {
+                    SwitchSetting(
+                        textColor = textColor,
+                        painterRes = R.drawable.headphone,
+                        title = stringResource(id = R.string.resume_playback),
+                        description = stringResource(id = R.string.resume_playback_description),
+                        switchState = resumePlaybackWhenDeviceConnected,
+                        onSwitchChange = {
+                            resumePlaybackWhenDeviceConnected = it
+                        }
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -136,10 +152,12 @@ fun NewPlayerSettings(
                 SwitchSetting(
                     textColor = textColor,
                     icon = Icons.AutoMirrored.Filled.VolumeUp,
-                    title = "Normalize Volume",
-                    description = "Keep consistent loudness across songs",
-                    switchState = normalizeEnabled,
-                    onSwitchChange = { normalizeEnabled = it }
+                    title = stringResource(id = R.string.loudness_normalization),
+                    description = stringResource(id = R.string.loudness_normalization_description),
+                    switchState = volumeNormalization,
+                    onSwitchChange = {
+                        volumeNormalization = it
+                    }
                 )
             }
 
