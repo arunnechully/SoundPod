@@ -1,8 +1,16 @@
-# SoundPod
+<h1 align="center">🎵 SoundPod</h1>
 
+<p align="center">
 An Android application for streaming music from YouTube Music.
+</p>
 
-![Repository preview](./screenshots/repository_preview.png)
+<p align="center">
+  <img src="./screenshots/repository_preview.png" 
+       alt="Repository preview" 
+       width="400"
+       style="border-radius: 15px;">
+</p>
+
 
 ## ✨ Features
 
