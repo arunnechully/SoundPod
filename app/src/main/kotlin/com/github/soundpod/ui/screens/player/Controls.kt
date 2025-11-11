@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.outlined.RepeatOne
 import androidx.compose.material.icons.outlined.SkipNext
 import androidx.compose.material.icons.outlined.SkipPrevious
 import androidx.compose.material3.FilledIconButton
@@ -40,12 +39,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import com.github.soundpod.Database
 import com.github.soundpod.LocalPlayerServiceBinder
+import com.github.soundpod.R
 import com.github.soundpod.models.Song
 import com.github.soundpod.query
 import com.github.soundpod.ui.components.SeekBar
@@ -53,6 +54,7 @@ import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.utils.forceSeekToNext
 import com.github.soundpod.utils.forceSeekToPrevious
 import com.github.soundpod.utils.formatAsDuration
+import com.github.soundpod.utils.queueLoopEnabledKey
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.trackLoopEnabledKey
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -72,6 +74,7 @@ fun Controls(
     binder?.player ?: return
 
     var trackLoopEnabled by rememberPreference(trackLoopEnabledKey, defaultValue = false)
+    var queueLoopEnabled by rememberPreference(queueLoopEnabledKey, defaultValue = false)
     var scrubbingPosition by remember(mediaId) { mutableStateOf<Long?>(null) }
     var likedAt by rememberSaveable { mutableStateOf<Long?>(null) }
     val shouldBePlayingTransition = updateTransition(shouldBePlaying, label = "shouldBePlaying")
@@ -261,14 +264,35 @@ fun Controls(
             }
 
             IconButton(
-                onClick = { trackLoopEnabled = !trackLoopEnabled },
+                onClick = {
+                    if (trackLoopEnabled) {
+                        trackLoopEnabled = false
+                    } else if (queueLoopEnabled) {
+                        queueLoopEnabled = false
+                        trackLoopEnabled = true
+                    } else {
+                        queueLoopEnabled = true
+                    }
+                },
                 modifier = Modifier.weight(1F)
             ) {
+                val repeatMode = when {
+                    trackLoopEnabled -> Player.REPEAT_MODE_ONE
+                    queueLoopEnabled -> Player.REPEAT_MODE_ALL
+                    else -> Player.REPEAT_MODE_OFF
+                }
+                val icon = when (repeatMode) {
+                    Player.REPEAT_MODE_ONE -> painterResource(R.drawable.repeat_one)
+                    Player.REPEAT_MODE_ALL -> painterResource(R.drawable.repeat)
+                    else -> painterResource(R.drawable.repeat_off)
+                }
+                val alpha = if (repeatMode == Player.REPEAT_MODE_OFF) Dimensions.lowOpacity else 1f
+
                 Icon(
-                    imageVector = Icons.Outlined.RepeatOne,
+                    painter = icon,
                     contentDescription = null,
                     modifier = Modifier
-                        .alpha(if (trackLoopEnabled) 1F else Dimensions.lowOpacity)
+                        .alpha(alpha)
                         .size(28.dp)
                 )
             }

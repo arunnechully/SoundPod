@@ -156,6 +156,15 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                 "Toggle like",
                 if (isLikedState.value) R.drawable.heart else R.drawable.heart_outline
             )
+            .addCustomAction(
+                LOOP_ACTION,
+                "Toggle loop",
+                when (player.repeatMode) {
+                    Player.REPEAT_MODE_ONE -> R.drawable.repeat_one
+                    Player.REPEAT_MODE_ALL -> R.drawable.repeat
+                    else -> R.drawable.repeat_off
+                }
+            )
 
     private val playbackStateMutex = Mutex()
 
@@ -711,6 +720,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                     preferences.getBoolean(queueLoopEnabledKey, false) -> Player.REPEAT_MODE_ALL
                     else -> Player.REPEAT_MODE_OFF
                 }
+                updatePlaybackState()
             }
         }
     }
@@ -1015,6 +1025,19 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         }
     }
 
+    private fun loopAction() {
+        val editor = preferences.edit()
+        when (player.repeatMode) {
+            Player.REPEAT_MODE_OFF -> editor.putBoolean(queueLoopEnabledKey, true)
+            Player.REPEAT_MODE_ALL -> {
+                editor.putBoolean(queueLoopEnabledKey, false)
+                editor.putBoolean(trackLoopEnabledKey, true)
+            }
+            Player.REPEAT_MODE_ONE -> editor.putBoolean(trackLoopEnabledKey, false)
+        }
+        editor.apply()
+    }
+
     private fun play() {
         if (player.playerError != null) player.prepare()
         else if (player.playbackState == Player.STATE_ENDED) player.seekToDefaultPosition(0)
@@ -1034,7 +1057,10 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
 
         override fun onCustomAction(action: String, extras: Bundle?) {
             super.onCustomAction(action, extras)
-            if (action == FAVORITE_ACTION) likeAction()
+            when (action) {
+                FAVORITE_ACTION -> likeAction()
+                LOOP_ACTION -> loopAction()
+            }
         }
     }
 
@@ -1083,5 +1109,6 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         const val SLEEP_TIMER_NOTIFICATION_CHANNEL_ID = "sleep_timer_channel_id"
 
         const val FAVORITE_ACTION = "FAVORITE"
+        const val LOOP_ACTION = "LOOP_ACTION"
     }
 }
