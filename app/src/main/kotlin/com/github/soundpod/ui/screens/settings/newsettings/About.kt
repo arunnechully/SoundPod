@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -45,8 +44,32 @@ import androidx.compose.ui.unit.dp
 import com.github.api.GitHub
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.R
+import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.styling.Dimensions
+
+fun extractVersion(text: String): String {
+    // Matches v1.2.3, 1.2.3, v1.2, 1.2, etc.
+    val regex = Regex("""v?(\d+(\.\d+)+)""")
+    return regex.find(text)?.value ?: "0"
+}
+
+fun isNewerVersion(latest: String, current: String): Boolean {
+    val latestParts = latest.replace("v", "").split(".")
+    val currentParts = current.replace("v", "").split(".")
+
+    val maxLength = maxOf(latestParts.size, currentParts.size)
+
+    for (i in 0 until maxLength) {
+        val latestNum = latestParts.getOrNull(i)?.toIntOrNull() ?: 0
+        val currentNum = currentParts.getOrNull(i)?.toIntOrNull() ?: 0
+
+        if (latestNum > currentNum) return true
+        if (latestNum < currentNum) return false
+    }
+
+    return false
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,8 +81,8 @@ fun NewAboutSettings(
     val playerPadding = LocalPlayerPadding.current
 
     var isShowingDialog by remember { mutableStateOf(false) }
-    var latestVersion: String? by rememberSaveable { mutableStateOf(null) }
-    var newVersionAvailable: Boolean? by rememberSaveable { mutableStateOf(null) }
+    var latestVersion by rememberSaveable { mutableStateOf<String?>(null) }
+    var newVersionAvailable by rememberSaveable { mutableStateOf<Boolean?>(null) }
 
     val currentVersion =
         context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "0"
@@ -80,7 +103,7 @@ fun NewAboutSettings(
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .width(125.dp)
-                        .aspectRatio(1F),
+                        .aspectRatio(1f),
                     tint = MaterialTheme.colorScheme.primary
                 )
 
@@ -94,7 +117,11 @@ fun NewAboutSettings(
                 )
 
                 Button(
-                    onClick = { isShowingDialog = true },
+                    onClick = {
+                        isShowingDialog = true
+                        latestVersion = null
+                        newVersionAvailable = null
+                    },
                     modifier = Modifier
                         .padding(top = 8.dp)
                         .align(Alignment.CenterHorizontally)
@@ -111,29 +138,34 @@ fun NewAboutSettings(
 
                 Spacer(modifier = Modifier.height(Dimensions.spacer + 8.dp))
 
-                ListItem(
-                    headlineContent = {
-                        Text(text = stringResource(id = R.string.github))
-                    },
-                    leadingContent = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.github),
-                            contentDescription = stringResource(id = R.string.github)
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        uriHandler.openUri("https://github.com/arunnechully/SoundPod")
-                    }
-                )
+                SettingsCard {
+                    ListItem(
+                        headlineContent = {
+                            Text(text = stringResource(id = R.string.github))
+                        },
+                        leadingContent = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.github),
+                                contentDescription = stringResource(id = R.string.github)
+                            )
+                        },
+                        modifier = Modifier.clickable {
+                            uriHandler.openUri("https://github.com/arunnechully/SoundPod")
+                        }
+                    )
+                }
             }
 
             if (isShowingDialog) {
+
                 LaunchedEffect(Unit) {
-                    if (newVersionAvailable == null || latestVersion == null) {
-                        latestVersion = GitHub.getLastestRelease()?.name
-                        latestVersion?.let {
-                            newVersionAvailable = it > currentVersion
-                        }
+                    val release = GitHub.getLastestRelease()
+                    val version = release?.name?.let { extractVersion(it) }
+
+                    latestVersion = version
+
+                    latestVersion?.let { latest ->
+                        newVersionAvailable = isNewerVersion(latest, currentVersion)
                     }
                 }
 
@@ -158,46 +190,52 @@ fun NewAboutSettings(
                         )
                     },
                     text = {
-                        if (newVersionAvailable == null) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 8.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
-                        } else if (newVersionAvailable == true) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .verticalScroll(rememberScrollState()),
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    text = stringResource(
-                                        id = R.string.version,
-                                        latestVersion ?: ""
-                                    ),
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-
-                                FilledTonalButton(
-                                    onClick = {
-                                        uriHandler.openUri("https://github.com/DanielSevillano/music-you/releases/latest")
-                                    }
+                        when (newVersionAvailable) {
+                            null -> {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 8.dp),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.github),
-                                        contentDescription = stringResource(id = R.string.github)
-                                    )
-
-                                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-
-                                    Text(text = stringResource(id = R.string.open_in_github))
+                                    CircularProgressIndicator()
                                 }
                             }
+
+                            true -> {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .verticalScroll(rememberScrollState()),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = stringResource(
+                                            id = R.string.version,
+                                            latestVersion ?: ""
+                                        ),
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+
+                                    FilledTonalButton(
+                                        onClick = {
+                                            uriHandler.openUri(
+                                                "https://github.com/arunnechully/SoundPod/releases/latest"
+                                            )
+                                        }
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.github),
+                                            contentDescription = stringResource(id = R.string.github)
+                                        )
+                                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                        Text(text = stringResource(id = R.string.open_in_github))
+                                    }
+                                }
+                            }
+
+                            false -> {}
                         }
                     }
                 )

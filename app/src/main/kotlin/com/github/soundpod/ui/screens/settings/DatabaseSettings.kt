@@ -165,7 +165,7 @@ fun DatabaseSettings() {
                 val dateFormat = SimpleDateFormat("yyyyMMddHHmmss", Locale.US)
 
                 try {
-                    backupLauncher.launch("musicyou_${dateFormat.format(Date())}.db")
+                    backupLauncher.launch("soundpod${dateFormat.format(Date())}.db")
                 } catch (_: ActivityNotFoundException) {
                     context.toast("Couldn't find an application to create documents")
                 }

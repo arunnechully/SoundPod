@@ -13,10 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.QueueMusic
-import androidx.compose.material.icons.automirrored.outlined.VolumeUp
 import androidx.compose.material.icons.outlined.Equalizer
-import androidx.compose.material.icons.outlined.FastForward
-import androidx.compose.material.icons.outlined.Replay
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -27,13 +24,9 @@ import androidx.compose.ui.unit.dp
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
-import com.github.soundpod.utils.isAtLeastAndroid6
 import com.github.soundpod.utils.persistentQueueKey
 import com.github.soundpod.utils.rememberPreference
-import com.github.soundpod.utils.resumePlaybackWhenDeviceConnectedKey
-import com.github.soundpod.utils.skipSilenceKey
 import com.github.soundpod.utils.toast
-import com.github.soundpod.utils.volumeNormalizationKey
 
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @ExperimentalAnimationApi
@@ -44,12 +37,6 @@ fun PlayerSettings() {
     val playerPadding = LocalPlayerPadding.current
 
     var persistentQueue by rememberPreference(persistentQueueKey, false)
-    var resumePlaybackWhenDeviceConnected by rememberPreference(
-        resumePlaybackWhenDeviceConnectedKey,
-        false
-    )
-    var skipSilence by rememberPreference(skipSilenceKey, false)
-    var volumeNormalization by rememberPreference(volumeNormalizationKey, false)
     val activityResultLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { }
 
@@ -68,38 +55,6 @@ fun PlayerSettings() {
                 persistentQueue = it
             }
         )
-
-//        if (isAtLeastAndroid6) {
-//            SwitchSettingEntry(
-//                title = stringResource(id = R.string.resume_playback),
-//                text = stringResource(id = R.string.resume_playback_description),
-//                icon = Icons.Outlined.Replay,
-//                isChecked = resumePlaybackWhenDeviceConnected,
-//                onCheckedChange = {
-//                    resumePlaybackWhenDeviceConnected = it
-//                }
-//            )
-//        }
-
-//        SwitchSettingEntry(
-//            title = stringResource(id = R.string.skip_silence),
-//            text = stringResource(id = R.string.skip_silence_description),
-//            icon = Icons.Outlined.FastForward,
-//            isChecked = skipSilence,
-//            onCheckedChange = {
-//                skipSilence = it
-//            }
-//        )
-
-//        SwitchSettingEntry(
-//            title = stringResource(id = R.string.loudness_normalization),
-//            text = stringResource(id = R.string.loudness_normalization_description),
-//            icon = Icons.AutoMirrored.Outlined.VolumeUp,
-//            isChecked = volumeNormalization,
-//            onCheckedChange = {
-//                volumeNormalization = it
-//            }
-//        )
 
         SettingsEntry(
             title = stringResource(id = R.string.equalizer),

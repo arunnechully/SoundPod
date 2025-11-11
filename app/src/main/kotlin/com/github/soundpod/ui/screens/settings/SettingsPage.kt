@@ -47,12 +47,12 @@ fun SettingsPage(
     ) { paddingValues ->
         Surface(modifier = Modifier.padding(top = paddingValues.calculateTopPadding())) {
             when (section) {
-                SettingsSection.General -> GeneralSettings()
+                SettingsSection.General -> {}
                 SettingsSection.Player -> PlayerSettings()
                 SettingsSection.Gestures -> GestureSettings()
-                SettingsSection.Cache -> CacheSettings()
+                SettingsSection.Cache -> {}
                 SettingsSection.Database -> DatabaseSettings()
-                SettingsSection.Other -> OtherSettings()
+                SettingsSection.Other -> {}
                 SettingsSection.About -> {}
             }
         }
