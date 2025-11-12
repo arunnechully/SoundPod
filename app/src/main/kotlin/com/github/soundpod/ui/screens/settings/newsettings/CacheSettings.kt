@@ -1,3 +1,5 @@
+@file:Suppress("AssignedValueIsNeverRead")
+
 package com.github.soundpod.ui.screens.settings.newsettings
 
 import android.text.format.Formatter
@@ -6,10 +8,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.HistoryToggleOff
+import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.MusicNote
 import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -38,7 +41,6 @@ import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.components.SwitchSetting
 import com.github.soundpod.ui.screens.settings.EnumValueSelectorSettingsEntry
-import com.github.soundpod.ui.screens.settings.SettingsEntry
 import com.github.soundpod.ui.screens.settings.SettingsInformation
 import com.github.soundpod.ui.screens.settings.SettingsProgress
 import com.github.soundpod.ui.styling.Dimensions
@@ -160,12 +162,12 @@ fun CacheSettings(
                         ).toFloat()
                     )
 
-//                    EnumValueSelectorSettingsEntry(
-//                        title = stringResource(id = R.string.max_size),
-//                        selectedValue = coilDiskCacheMaxSize,
-//                        onValueSelected = { coilDiskCacheMaxSize = it },
-//                        icon = Icons.Outlined.Image
-//                    )
+                    EnumValueSelectorSettingsEntry(
+                        title = stringResource(id = R.string.max_size),
+                        selectedValue = coilDiskCacheMaxSize,
+                        onValueSelected = { coilDiskCacheMaxSize = it },
+                        icon = Icons.Outlined.Image
+                    )
                 }
 
                 binder?.cache?.let { cache ->
@@ -197,12 +199,12 @@ fun CacheSettings(
                         }
                     )
 
-//                    EnumValueSelectorSettingsEntry(
-//                        title = stringResource(id = R.string.max_size),
-//                        selectedValue = exoPlayerDiskCacheMaxSize,
-//                        onValueSelected = { exoPlayerDiskCacheMaxSize = it },
-//                        icon = Icons.Outlined.MusicNote
-//                    )
+                    EnumValueSelectorSettingsEntry(
+                        title = stringResource(id = R.string.max_size),
+                        selectedValue = exoPlayerDiskCacheMaxSize,
+                        onValueSelected = { exoPlayerDiskCacheMaxSize = it },
+                        icon = Icons.Outlined.MusicNote
+                    )
                 }
             }
             SettingsInformation(text = stringResource(id = R.string.cache_information))
