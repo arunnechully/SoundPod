@@ -3,6 +3,7 @@ package com.github.soundpod.ui.screens.settings
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,14 +36,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.github.soundpod.Database
+import com.github.soundpod.Database.Companion.clearEvents
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.R
 import com.github.soundpod.enums.SettingsSection
+import com.github.soundpod.query
 import com.github.soundpod.ui.components.ValueSelectorDialog
+import com.github.soundpod.ui.screens.settings.newsettings.SettingColum
 import com.github.soundpod.ui.styling.Dimensions
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -133,6 +140,9 @@ inline fun <T> ValueSelectorSettingsEntry(
     crossinline valueText: (T) -> String = { it.toString() },
     noinline trailingContent: @Composable (() -> Unit)? = null
 ) {
+    val isDarkTheme = isSystemInDarkTheme()
+    val textColor = if (isDarkTheme) Color.White else Color.Black
+
     var isShowingDialog by remember { mutableStateOf(false) }
 
     if (isShowingDialog) {
@@ -146,10 +156,11 @@ inline fun <T> ValueSelectorSettingsEntry(
         )
     }
 
-    SettingsEntry(
-        title = title,
-        text = valueText(selectedValue),
+    SettingColum(
+        textColor = textColor,
         icon = icon,
+        title = title,
+        description = valueText(selectedValue),
         onClick = { isShowingDialog = true },
         isEnabled = isEnabled,
         trailingContent = trailingContent

@@ -47,14 +47,14 @@ fun Appearance(
                     painterRes = R.drawable.dark_mode,
                     title = "App Theme",
                     description = "Select App Theme",
-                    onClick = {}
+                    onClick = {},
                 )
                 SettingColum(
                     textColor = textColor,
                     painterRes = R.drawable.color_mode,
                     title = "Accent Color",
                     description = "Choose your preferred accent color",
-                    onClick = {}
+                    onClick = {},
                 )
             }
 
@@ -75,14 +75,14 @@ fun Appearance(
                     painterRes = R.drawable.wave,
                     title = "Progress Bar Style",
                     description = "Choose your preferred progress bar style",
-                    onClick = {}
+                    onClick = {},
                 )
                 SettingColum(
                     textColor = textColor,
                     icon = Icons.Default.BlurOn,
                     title = "Background Style",
                     description = "Choose your preferred background style",
-                    onClick = {}
+                    onClick = {},
                 )
             }
         }

@@ -178,6 +178,9 @@ fun SettingColum(
     title: String,
     description: String,
     onClick: () -> Unit,
+    isEnabled: Boolean = true,
+    trailingContent: @Composable (() -> Unit)? = null
+
 ) {
     Row(
         modifier = Modifier

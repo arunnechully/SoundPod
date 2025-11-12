@@ -95,7 +95,7 @@ fun Backup(
                         } catch (_: ActivityNotFoundException) {
                             context.toast("Couldn't find an application to create documents")
                         }
-                    }
+                    },
                 )
 
                 SettingColum(
@@ -115,7 +115,7 @@ fun Backup(
                         } catch (_: ActivityNotFoundException) {
                             context.toast("Couldn't find an application to open documents")
                         }
-                    }
+                    },
                 )
             }
 

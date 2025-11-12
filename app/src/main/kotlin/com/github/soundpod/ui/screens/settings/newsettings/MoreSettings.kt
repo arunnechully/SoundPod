@@ -68,7 +68,7 @@ fun MoreSettings(
     val textColor = if (isDarkTheme) Color.White else Color.Black
 
     val context = LocalContext.current
-    var quickPicksSource by rememberPreference(quickPicksSourceKey, QuickPicksSource.Trending)
+
     var isAndroidAutoEnabled by remember {
         val component = ComponentName(context, PlayerMediaBrowserService::class.java)
         val disabledFlag = PackageManager.COMPONENT_ENABLED_STATE_DISABLED
@@ -109,13 +109,6 @@ fun MoreSettings(
         content = {
 
             SettingsCard {
-                EnumValueSelectorSettingsEntry(
-                    title = stringResource(id = R.string.quick_picks_source),
-                    selectedValue = quickPicksSource,
-                    onValueSelected = { quickPicksSource = it },
-                    icon = Icons.AutoMirrored.Outlined.List,
-                    valueText = { context.getString(it.resourceId) }
-                )
 
                 if (!isAtLeastAndroid13) {
                     SwitchSettingEntry(

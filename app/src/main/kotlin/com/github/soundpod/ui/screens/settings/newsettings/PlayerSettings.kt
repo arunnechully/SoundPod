@@ -74,7 +74,7 @@ fun NewPlayerSettings(
                     icon = Icons.Default.Timer,
                     title = "Sleep Timer",
                     description = "Set playback duration",
-                    onClick = {}
+                    onClick = {},
                 )
                 SwitchSetting(
                     textColor = textColor,
