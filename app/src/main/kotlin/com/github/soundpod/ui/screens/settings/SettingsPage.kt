@@ -51,7 +51,7 @@ fun SettingsPage(
                 SettingsSection.Player -> PlayerSettings()
                 SettingsSection.Gestures -> GestureSettings()
                 SettingsSection.Cache -> {}
-                SettingsSection.Database -> DatabaseSettings()
+                SettingsSection.Database -> {}
                 SettingsSection.Other -> {}
                 SettingsSection.About -> {}
             }

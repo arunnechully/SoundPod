@@ -88,7 +88,7 @@ fun NewSettingsScreen(
                     onClick = { navController.navigate(Routes.Backup) }
                 )
                 SettingRow(
-                    title = stringResource(id = R.string.cache),
+                    title = stringResource(id = R.string.database),
                     textColor = textColor,
                     icon = Icons.Default.Storage,
                     onClick = { navController.navigate(Routes.Storage) }

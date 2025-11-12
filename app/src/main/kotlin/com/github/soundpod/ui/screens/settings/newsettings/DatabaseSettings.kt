@@ -142,6 +142,7 @@ fun CacheSettings(
                     val diskCacheSize = remember(diskCache) {
                         diskCache.size
                     }
+                    Spacer(modifier = Modifier.height(Dimensions.spacer))
 
                     Text(
                         text = stringResource(id = R.string.image_cache),
