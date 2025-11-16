@@ -10,7 +10,6 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-
     repositories {
         google()
         mavenCentral()
@@ -19,8 +18,12 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "SoundPod"
+
+// Modules
 include(":app")
 include(":innertube")
+include(":core:material-compat")
+include(":core:ui")
 include(":ktor-client-brotli")
 include(":kugou")
 include(":github")

@@ -88,6 +88,7 @@ dependencies {
     implementation(libs.room)
     implementation(libs.swipe)
     ksp(libs.room.compiler)
+    implementation(projects.core.ui)
     implementation(projects.github)
     implementation(projects.innertube)
     implementation(projects.kugou)

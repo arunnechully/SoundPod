@@ -57,7 +57,7 @@ fun PlayerScaffold(
                     }
                 ) { value ->
                     if (value == SheetValue.Expanded) {
-                        Player(
+                        NewPlayer(
                             onGoToAlbum = { browseId ->
                                 scope.launch { sheetState.partialExpand() }
                                 navController.navigate(
@@ -91,15 +91,16 @@ fun PlayerScaffold(
             scaffoldState = scaffoldState,
             sheetPeekHeight = 76.dp + 16.dp + scaffoldPadding.calculateBottomPadding(),
             sheetMaxWidth = Int.MAX_VALUE.dp,
-            sheetDragHandle = {
-                Surface(
-                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
-                    shape = MaterialTheme.shapes.extraLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                ) {
-                    Box(modifier = Modifier.size(width = 32.dp, height = 4.dp))
-                }
-            }
+            sheetDragHandle = null,
+//            sheetDragHandle = {
+//                Surface(
+//                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+//                    shape = MaterialTheme.shapes.extraLarge,
+//                    color = MaterialTheme.colorScheme.onSurfaceVariant
+//                ) {
+//                    Box(modifier = Modifier.size(width = 32.dp, height = 4.dp))
+//                }
+//            }
         ) {
             val bottomPadding = animateDpAsState(
                 targetValue = if (sheetState.currentValue == SheetValue.Hidden) scaffoldPadding.calculateBottomPadding() else scaffoldPadding.calculateBottomPadding() + 76.dp + 16.dp,
