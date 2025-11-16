@@ -48,7 +48,7 @@ inline fun rememberAppearance(
     vararg keys: Any = arrayOf(Unit),
     isDark: Boolean = isSystemInDarkTheme(),
     crossinline provide: (isSystemInDarkTheme: Boolean) -> Appearance
-) = rememberSaveable(keys, isCompositionLaunched(), isDark) {
+) = remember(keys, isDark) {
     mutableStateOf(provide(isDark))
 }
 
@@ -68,7 +68,7 @@ fun appearance(
         mode == ColorMode.Dark || (mode == ColorMode.System && isSystemInDarkTheme)
     }
 
-    val colorPalette = rememberSaveable(
+    val colorPalette = remember(
         source,
         darkness,
         isDark,

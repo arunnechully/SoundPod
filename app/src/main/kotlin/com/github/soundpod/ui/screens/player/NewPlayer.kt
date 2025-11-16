@@ -5,11 +5,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
@@ -74,9 +72,6 @@ fun NewPlayer(
             }
         )
     }
-    var isShowingLyrics by rememberSaveable { mutableStateOf(false) }
-    var fullScreenLyrics by remember { mutableStateOf(false) }
-    var isShowingStatsForNerds by rememberSaveable { mutableStateOf(false) }
 
     var shouldBePlaying by remember { mutableStateOf(binder.player.shouldBePlaying) }
 
@@ -104,32 +99,7 @@ fun NewPlayer(
             }
         }
     }
-    val thumbnailContent: @Composable (modifier: Modifier) -> Unit = { modifier ->
-//        Thumbnail(
-//            isShowingLyrics = isShowingLyrics,
-//            onShowLyrics = { isShowingLyrics = it },
-//            fullScreenLyrics = fullScreenLyrics,
-//            toggleFullScreenLyrics = { fullScreenLyrics = !fullScreenLyrics },
-//            isShowingStatsForNerds = isShowingStatsForNerds,
-//            onShowStatsForNerds = { isShowingStatsForNerds = it },
-//            modifier = modifier
-//        )
-    }
 
-    val controlsContent: @Composable (modifier: Modifier) -> Unit = { modifier ->
-//        Controls(
-//            mediaId = mediaItem.mediaId,
-//            title = mediaItem.mediaMetadata.title?.toString().orEmpty(),
-//            artist = mediaItem.mediaMetadata.artist?.toString().orEmpty(),
-//            shouldBePlaying = shouldBePlaying,
-//            position = positionAndDuration.first,
-//            duration = positionAndDuration.second,
-//            onGoToArtist = artistId?.let {
-//                { onGoToArtist(it) }
-//            },
-//            modifier = modifier
-//        )
-    }
     var showPlaylist by remember { mutableStateOf(false) }
 
     val mediaId = mediaItem.mediaId
@@ -137,8 +107,6 @@ fun NewPlayer(
     var scrubbingPosition by remember(mediaId) { mutableStateOf<Long?>(null) }
     val position = positionAndDuration.first
     val duration = positionAndDuration.second
-
-    var likedAt by rememberSaveable { mutableStateOf<Long?>(null) }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -175,8 +143,6 @@ fun NewPlayer(
                     )
 
                     PlayerMiddleControl(
-                        likedAt = likedAt,
-                        setLikedAt = {},
                         showPlaylist = showPlaylist,
                         onTogglePlaylist = { showPlaylist = it },
                         mediaId = mediaItem.mediaId

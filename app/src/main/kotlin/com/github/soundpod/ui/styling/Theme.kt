@@ -150,7 +150,7 @@ fun AppTheme(
     val appearance = appearance(
         source = ColorSource.Default,
         mode = if (darkTheme) ColorMode.Dark else ColorMode.Light,
-        darkness = Darkness.Normal,
+        darkness = if (usePureBlack && darkTheme) Darkness.AMOLED else Darkness.Normal,
         materialAccentColor = null,
         sampleBitmap = null,
         fontFamily = System,

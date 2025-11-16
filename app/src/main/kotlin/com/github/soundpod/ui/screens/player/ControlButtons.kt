@@ -30,10 +30,12 @@ import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,6 +69,7 @@ import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.seamlessPlay
 import com.github.soundpod.utils.toast
 import com.github.soundpod.utils.trackLoopEnabledKey
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 @Composable
 fun AnimatedIconButton(
@@ -230,15 +233,17 @@ fun MiniPlayerControl(
 
 @Composable
 fun PlayerMiddleControl(
-    likedAt: Long?,
-    setLikedAt: (Long?) -> Unit,
     showPlaylist: Boolean,
     onTogglePlaylist: (Boolean) -> Unit,
     mediaId: String
 ) {
     val binder = LocalPlayerServiceBinder.current
     val (colorPalette) = LocalAppearance.current
+    var likedAt by rememberSaveable { mutableStateOf<Long?>(null) }
 
+    LaunchedEffect(mediaId) {
+        Database.likedAt(mediaId).distinctUntilChanged().collect { likedAt = it }
+    }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,

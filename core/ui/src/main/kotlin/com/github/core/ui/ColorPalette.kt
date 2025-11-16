@@ -88,6 +88,18 @@ private fun lightColorPalette(accent: Hsl) = ColorPalette(
         saturation = accent.saturation.coerceAtMost(0.4f),
         lightness = 0.85f
     ),
+
+    iconColor = Color.Black,
+
+    // accent and onAccent
+    accent = Color.hsl(
+        hue = accent.hue,
+        saturation = accent.saturation.coerceAtMost(0.5f),
+        lightness = 0.5f
+    ),
+    onAccent = Color.White,
+
+    // next parameters are text colors
     text = Color.hsl(
         hue = accent.hue,
         saturation = accent.saturation.coerceAtMost(0.02f),
@@ -103,16 +115,11 @@ private fun lightColorPalette(accent: Hsl) = ColorPalette(
         saturation = accent.saturation.coerceAtMost(0.2f),
         lightness = 0.65f
     ),
-    accent = Color.hsl(
-        hue = accent.hue,
-        saturation = accent.saturation.coerceAtMost(0.5f),
-        lightness = 0.5f
-    ),
-    onAccent = Color.White,
+
     isDefault = false,
-    isDark = false,
-    iconColor = Color.Black
+    isDark = false
 )
+
 
 private fun darkColorPalette(accent: Hsl, darkness: Darkness) = ColorPalette(
     background0 = if (darkness == Darkness.Normal) Color.hsl(
@@ -130,6 +137,16 @@ private fun darkColorPalette(accent: Hsl, darkness: Darkness) = ColorPalette(
         saturation = accent.saturation.coerceAtMost(0.4f),
         lightness = 0.2f
     ) else Color.Black,
+
+    iconColor = Color.White,
+
+    accent = Color.hsl(
+        hue = accent.hue,
+        saturation = accent.saturation.coerceAtMost(if (darkness == Darkness.AMOLED) 0.4f else 0.5f),
+        lightness = 0.5f
+    ),
+    onAccent = Color.White,
+
     text = Color.hsl(
         hue = accent.hue,
         saturation = accent.saturation.coerceAtMost(0.02f),
@@ -145,16 +162,11 @@ private fun darkColorPalette(accent: Hsl, darkness: Darkness) = ColorPalette(
         saturation = accent.saturation.coerceAtMost(0.2f),
         lightness = 0.40f
     ),
-    accent = Color.hsl(
-        hue = accent.hue,
-        saturation = accent.saturation.coerceAtMost(if (darkness == Darkness.AMOLED) 0.4f else 0.5f),
-        lightness = 0.5f
-    ),
-    onAccent = Color.White,
+
     isDefault = false,
-    isDark = true,
-    iconColor = Color.White
+    isDark = true
 )
+
 
 fun accentColorOf(
     source: ColorSource,
