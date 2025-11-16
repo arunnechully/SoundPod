@@ -30,13 +30,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.github.soundpod.Database
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.ui.components.SeekBar
 import com.github.soundpod.ui.styling.Dimensions
+import com.github.soundpod.utils.DisposableListener
 import com.github.soundpod.utils.isLandscape
 import com.github.soundpod.utils.positionAndDurationState
+import com.github.soundpod.utils.shouldBePlaying
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -74,6 +78,24 @@ fun NewPlayer(
     var fullScreenLyrics by remember { mutableStateOf(false) }
     var isShowingStatsForNerds by rememberSaveable { mutableStateOf(false) }
 
+    var shouldBePlaying by remember { mutableStateOf(binder.player.shouldBePlaying) }
+
+    binder.player.DisposableListener {
+        object : Player.Listener {
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                nullableMediaItem = mediaItem
+            }
+
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                shouldBePlaying = binder.player.shouldBePlaying
+            }
+
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                shouldBePlaying = binder.player.shouldBePlaying
+            }
+        }
+    }
+
     LaunchedEffect(mediaItem) {
         withContext(Dispatchers.IO) {
             if (artistId == null) {
@@ -83,15 +105,15 @@ fun NewPlayer(
         }
     }
     val thumbnailContent: @Composable (modifier: Modifier) -> Unit = { modifier ->
-        Thumbnail(
-            isShowingLyrics = isShowingLyrics,
-            onShowLyrics = { isShowingLyrics = it },
-            fullScreenLyrics = fullScreenLyrics,
-            toggleFullScreenLyrics = { fullScreenLyrics = !fullScreenLyrics },
-            isShowingStatsForNerds = isShowingStatsForNerds,
-            onShowStatsForNerds = { isShowingStatsForNerds = it },
-            modifier = modifier
-        )
+//        Thumbnail(
+//            isShowingLyrics = isShowingLyrics,
+//            onShowLyrics = { isShowingLyrics = it },
+//            fullScreenLyrics = fullScreenLyrics,
+//            toggleFullScreenLyrics = { fullScreenLyrics = !fullScreenLyrics },
+//            isShowingStatsForNerds = isShowingStatsForNerds,
+//            onShowStatsForNerds = { isShowingStatsForNerds = it },
+//            modifier = modifier
+//        )
     }
 
     val controlsContent: @Composable (modifier: Modifier) -> Unit = { modifier ->
@@ -116,7 +138,7 @@ fun NewPlayer(
     val position = positionAndDuration.first
     val duration = positionAndDuration.second
 
-    val likedAt = null //todo
+    var likedAt by rememberSaveable { mutableStateOf<Long?>(null) }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -125,28 +147,7 @@ fun NewPlayer(
             modifier = Modifier.weight(1F)
         ) {
             if (isLandscape) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 32.dp)
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .weight(0.66f)
-                            .padding(bottom = 16.dp)
-                    ) {
-                        thumbnailContent(
-                            Modifier.padding(horizontal = 16.dp)
-                        )
-                    }
-
-                    controlsContent(
-                        Modifier
-                            .padding(vertical = 8.dp)
-                            .fillMaxHeight()
-                            .weight(1f)
-                    )
-                }
+                //todo
             } else {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -177,7 +178,8 @@ fun NewPlayer(
                         likedAt = likedAt,
                         setLikedAt = {},
                         showPlaylist = showPlaylist,
-                        onTogglePlaylist = { showPlaylist = it }
+                        onTogglePlaylist = { showPlaylist = it },
+                        mediaId = mediaItem.mediaId
                     )
 
                     SeekBar(
@@ -201,6 +203,22 @@ fun NewPlayer(
                         color = MaterialTheme.colorScheme.primary,
                         backgroundColor = MaterialTheme.colorScheme.primaryContainer,
                         shape = RoundedCornerShape(8.dp)
+                    )
+
+                    PlayerControlBottom(
+                        shouldBePlaying = shouldBePlaying,
+                        onPlayPauseClick = {
+                            if (shouldBePlaying) {
+                                binder.player.pause()
+                            } else {
+                                if (binder.player.playbackState == Player.STATE_IDLE) {
+                                    binder.player.prepare()
+                                } else if (binder.player.playbackState == Player.STATE_ENDED) {
+                                    binder.player.seekToDefaultPosition(0)
+                                }
+                                binder.player.play()
+                            }
+                        }
                     )
 
                 }

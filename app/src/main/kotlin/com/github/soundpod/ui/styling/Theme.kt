@@ -8,8 +8,16 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import com.github.core.ui.BuiltInFontFamily.System
+import com.github.core.ui.ColorMode
+import com.github.core.ui.ColorSource
+import com.github.core.ui.Darkness
+import com.github.core.ui.LocalAppearance
+import com.github.core.ui.appearance
 
 private val lightScheme = lightColorScheme(
     primary = primaryLight,
@@ -139,9 +147,23 @@ fun AppTheme(
         else -> OffsetWhiteColorScheme           // default light = off-white
     }
 
-    MaterialTheme(
-        colorScheme = baseColorScheme,
-        typography = Typography,
-        content = content
+    val appearance = appearance(
+        source = ColorSource.Default,
+        mode = if (darkTheme) ColorMode.Dark else ColorMode.Light,
+        darkness = Darkness.Normal,
+        materialAccentColor = null,
+        sampleBitmap = null,
+        fontFamily = System,
+        applyFontPadding = true,
+        thumbnailRoundness = 8.dp
     )
+
+    CompositionLocalProvider(LocalAppearance provides appearance) {
+        MaterialTheme(
+            colorScheme = baseColorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
+
 }

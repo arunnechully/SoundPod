@@ -12,6 +12,7 @@ import kotlinx.parcelize.Parceler
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.WriteWith
 import com.github.core.ui.utils.DpParceler
+import kotlinx.parcelize.IgnoredOnParcel
 
 typealias ParcelableColor = @WriteWith<ColorParceler> Color
 typealias ParcelableDp = @WriteWith<DpParceler> Dp
@@ -22,6 +23,7 @@ data class ColorPalette(
     val background0: ParcelableColor,
     val background1: ParcelableColor,
     val background2: ParcelableColor,
+    val iconColor: ParcelableColor,
     val accent: ParcelableColor,
     val onAccent: ParcelableColor,
     val black: ParcelableColor = Color(0xFF000000),
@@ -34,7 +36,7 @@ data class ColorPalette(
     val isDefault: Boolean,
     val isDark: Boolean
 ) : Parcelable {
-    @kotlinx.parcelize.IgnoredOnParcel
+    @IgnoredOnParcel
     val background3 by lazy { if (isDark) Color.Black else Color.White }
 
     companion object
@@ -46,6 +48,7 @@ val defaultLightPalette = ColorPalette(
     background0 = Color(0xFFFCFCFE),
     background1 = Color(0xfff8f8fc),
     background2 = Color(0xffeaeaf5),
+    iconColor = Color.Black,
     text = Color(0xff212121),
     textSecondary = Color(0xff656566),
     textDisabled = Color(0xff9d9d9d),
@@ -59,6 +62,7 @@ val defaultDarkPalette = ColorPalette(
     background0 = Color(0xFF171717),
     background1 = Color(0xff1f2029),
     background2 = Color(0xff2b2d3b),
+    iconColor = Color.White,
     text = Color(0xffe1e1e2),
     textSecondary = Color(0xffa3a4a6),
     textDisabled = Color(0xff6f6f73),
@@ -106,7 +110,8 @@ private fun lightColorPalette(accent: Hsl) = ColorPalette(
     ),
     onAccent = Color.White,
     isDefault = false,
-    isDark = false
+    isDark = false,
+    iconColor = Color.Black
 )
 
 private fun darkColorPalette(accent: Hsl, darkness: Darkness) = ColorPalette(
@@ -147,7 +152,8 @@ private fun darkColorPalette(accent: Hsl, darkness: Darkness) = ColorPalette(
     ),
     onAccent = Color.White,
     isDefault = false,
-    isDark = true
+    isDark = true,
+    iconColor = Color.White
 )
 
 fun accentColorOf(

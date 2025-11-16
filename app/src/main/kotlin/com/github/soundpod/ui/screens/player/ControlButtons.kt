@@ -12,10 +12,10 @@ import androidx.annotation.OptIn
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -37,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -45,17 +46,27 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.github.core.ui.LocalAppearance
+import com.github.core.ui.favoritesIcon
+import com.github.core.ui.surface
 import com.github.innertube.models.NavigationEndpoint
+import com.github.soundpod.Database
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.models.LocalMenuState
+import com.github.soundpod.models.Song
+import com.github.soundpod.query
 import com.github.soundpod.ui.components.BaseMediaItemMenu
+import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.utils.forceSeekToNext
 import com.github.soundpod.utils.forceSeekToPrevious
+import com.github.soundpod.utils.queueLoopEnabledKey
+import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.seamlessPlay
 import com.github.soundpod.utils.toast
+import com.github.soundpod.utils.trackLoopEnabledKey
 
 @Composable
 fun AnimatedIconButton(
@@ -95,7 +106,7 @@ fun PlayPauseButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-//    val (colorPalette) = LocalAppearance.current
+    val (colorPalette) = LocalAppearance.current
 
     AnimatedIconButton(
         onClick = onClick,
@@ -105,7 +116,7 @@ fun PlayPauseButton(
         Icon(
             painter = painterResource(id = if (playing) R.drawable.pause else R.drawable.play),
             contentDescription = null,
-//            tint = colorPalette.text,
+            tint = colorPalette.textSecondary,
             modifier = Modifier
                 .size(30.dp)
         )
@@ -116,8 +127,7 @@ fun PlayPauseButton(
 fun ShufflePlayButtons(
     onPlay: () -> Unit, onShuffle: () -> Unit, modifier: Modifier = Modifier
 ) {
-//    val (colorPalette, _) = LocalAppearance.current
-//    val surfaceColor = AppearancePreferences.getSurfaceColor()
+    val (colorPalette) = LocalAppearance.current
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -131,13 +141,13 @@ fun ShufflePlayButtons(
             modifier = Modifier
                 .size(32.dp)
                 .clip(shape = CircleShape)
-//                .background(surfaceColor)
+                .background(colorPalette.surface)
                 .clickable(onClick = onShuffle), contentAlignment = Alignment.Center
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.shuffle),
                 contentDescription = "Shuffle",
-//                tint = colorPalette.text,
+                tint = colorPalette.iconColor,
                 modifier = Modifier.size(18.dp)
 
             )
@@ -150,13 +160,13 @@ fun ShufflePlayButtons(
             modifier = Modifier
                 .size(32.dp)
                 .clip(shape = CircleShape)
-//                .background(surfaceColor)
+                .background(colorPalette.surface)
                 .clickable(onClick = onPlay), contentAlignment = Alignment.Center
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.play),
                 contentDescription = "Play",
-//                tint = colorPalette.text,
+                tint = colorPalette.iconColor,
                 modifier = Modifier.size(18.dp)
             )
         }
@@ -165,7 +175,7 @@ fun ShufflePlayButtons(
 
 @SuppressLint("SuspiciousIndentation")
 @Composable
-fun BottomPlayerControl(
+fun MiniPlayerControl(
     playing: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -185,7 +195,7 @@ fun BottomPlayerControl(
             Icon(
                 painter = painterResource(id = R.drawable.fast_backward),
                 contentDescription = null,
-                tint = colorPalette.text,
+                tint = colorPalette.iconColor,
                 modifier = Modifier.size(16.dp)
             )
         }
@@ -198,7 +208,7 @@ fun BottomPlayerControl(
             Icon(
                 painter = painterResource(id = if (playing) R.drawable.pause else R.drawable.play),
                 contentDescription = null,
-                tint = colorPalette.text,
+                tint = colorPalette.iconColor,
                 modifier = Modifier
                     .size(22.dp)
             )
@@ -211,7 +221,7 @@ fun BottomPlayerControl(
             Icon(
                 painter = painterResource(id = R.drawable.fast_forward),
                 contentDescription = null,
-                tint = colorPalette.text,
+                tint = colorPalette.iconColor,
                 modifier = Modifier.size(16.dp)
             )
         }
@@ -223,11 +233,12 @@ fun PlayerMiddleControl(
     likedAt: Long?,
     setLikedAt: (Long?) -> Unit,
     showPlaylist: Boolean,
-    onTogglePlaylist: (Boolean) -> Unit
+    onTogglePlaylist: (Boolean) -> Unit,
+    mediaId: String
 ) {
-    var showList by remember { mutableStateOf(false) }
-    val isDarkTheme = isSystemInDarkTheme()
-    val textColor = if (isDarkTheme) Color.White else Color.Black
+    val binder = LocalPlayerServiceBinder.current
+    val (colorPalette) = LocalAppearance.current
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -241,29 +252,44 @@ fun PlayerMiddleControl(
             Icon(
                 painter = painterResource(id = R.drawable.playlist),
                 contentDescription = "Playlist",
-                tint = textColor,
-                modifier = Modifier.size(24.dp)
-            )
-        }
-
-        AnimatedIconButton(onClick = {
-            setLikedAt(if (likedAt == null) System.currentTimeMillis() else null)
-        }) {
-            Icon(
-                painter = painterResource(id = if (likedAt == null) R.drawable.heart_outline else R.drawable.heart),
-                contentDescription = "Like",
-                tint = (if (likedAt == null) textColor else Color(0x00EA0838)),
+                tint = colorPalette.iconColor,
                 modifier = Modifier.size(24.dp)
             )
         }
 
         AnimatedIconButton(
-            onClick = { showList = true },
+            onClick = {
+                val currentMediaItem = binder?.player?.currentMediaItem
+                query {
+                    if (Database.like(
+                            mediaId,
+                            if (likedAt == null) System.currentTimeMillis() else null
+                        ) == 0
+                    ) {
+                        currentMediaItem
+                            ?.takeIf { it.mediaId == mediaId }
+                            ?.let {
+                                Database.insert(currentMediaItem, Song::toggleLike)
+                            }
+                    }
+                }
+            }
+        ) {
+            Icon(
+                painter = painterResource(id = if (likedAt == null) R.drawable.heart_outline else R.drawable.heart),
+                contentDescription = "Like",
+                tint = (if (likedAt == null) colorPalette.iconColor else colorPalette.favoritesIcon),
+                modifier = Modifier.size(24.dp)
+            )
+        }
+
+        AnimatedIconButton(
+            onClick = {/*todo*/},
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.add),
                 contentDescription = "Add",
-                tint = textColor,
+                tint = colorPalette.iconColor,
                 modifier = Modifier.size(28.dp)
             )
         }
@@ -276,95 +302,100 @@ fun PlayerMiddleControl(
 //    )
 }
 
-//@Composable
-//fun PlayerControlBottom(
-//    colorPalette: ColorPalette,
-//    shouldBePlaying: Boolean,
-//) {
-//    val binder = LocalPlayerServiceBinder.current
-//    var isShuffleActive by remember { mutableStateOf(false) }
-//    var trackLoopEnabled by remember { mutableStateOf(PlayerPreferences.trackLoopEnabled) }
-//    Row(
-//        verticalAlignment = Alignment.CenterVertically,
-//        horizontalArrangement = Arrangement.SpaceBetween,
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .padding(horizontal = 16.dp)
-//    ) {
-//        // Shuffle
-//        AnimatedIconButton(
-//            onClick = {
-//                isShuffleActive = !isShuffleActive
-//                binder?.player?.playRandomSong()
-//            }
-//        ) {
-//            Icon(
-//                painter = painterResource(id = R.drawable.shuffle),
-//                contentDescription = "Shuffle",
-//                tint = colorPalette.text,
-//                modifier = Modifier.size(24.dp)
-//            )
-//        }
-//
-//        // Previous
-//        AnimatedIconButton(
-//            onClick = { binder?.player?.forceSeekToPrevious() }
-//        ) {
-//            Icon(
-//                painter = painterResource(id = R.drawable.fast_backward),
-//                contentDescription = "Previous",
-//                tint = colorPalette.text,
-//                modifier = Modifier.size(18.dp)
-//            )
-//        }
-//
-//        // Play / Pause
-//        PlayPauseButton(
-//            playing = shouldBePlaying,
-//            onClick = {
-//                if (shouldBePlaying) binder?.player?.pause()
-//                else {
-//                    if (binder?.player?.playbackState == Player.STATE_IDLE) {
-//                        binder.player.prepare()
-//                    }
-//                    binder?.player?.play()
-//                    Modifier
-//                        .size(42.dp)
-//                }
-//            }
-//        )
-//
-//        // Next
-//        AnimatedIconButton(
-//            onClick = { binder?.player?.forceSeekToNext() },
-//        ) {
-//            Icon(
-//                painter = painterResource(id = R.drawable.fast_forward),
-//                contentDescription = "Next",
-//                tint = colorPalette.text,
-//                modifier = Modifier.size(18.dp)
-//            )
-//        }
-//
-//        // Repeat
-//        AnimatedIconButton(
-//            onClick = {
-//                val newValue = !trackLoopEnabled
-//                trackLoopEnabled = newValue
-//                PlayerPreferences.trackLoopEnabled = newValue
-//            }
-//        ) {
-//            Icon(
-//                painter = (if (trackLoopEnabled) painterResource(id = R.drawable.repeat_enabled) else painterResource(
-//                    id = R.drawable.repeat_disabled
-//                )),
-//                contentDescription = "Repeat",
-//                tint = colorPalette.text,
-//                modifier = Modifier.size(24.dp)
-//            )
-//        }
-//    }
-//}
+@Composable
+fun PlayerControlBottom(
+    shouldBePlaying: Boolean,
+    onPlayPauseClick: () -> Unit,
+) {
+    val binder = LocalPlayerServiceBinder.current
+    val (colorPalette) = LocalAppearance.current
+    var trackLoopEnabled by rememberPreference(trackLoopEnabledKey, defaultValue = false)
+    var queueLoopEnabled by rememberPreference(queueLoopEnabledKey, defaultValue = false)
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
+        // Shuffle
+        AnimatedIconButton(
+            onClick = {}
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.shuffle),
+                contentDescription = "Shuffle",
+                tint = colorPalette.iconColor,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+
+        // Previous
+        AnimatedIconButton(
+            onClick = { binder?.player?.forceSeekToPrevious() }
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.fast_backward),
+                contentDescription = "Previous",
+                tint = colorPalette.iconColor,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+
+        // Play / Pause
+        PlayPauseButton(
+            playing = shouldBePlaying,
+            onClick = onPlayPauseClick
+        )
+
+        // Next
+        AnimatedIconButton(
+            onClick = { binder?.player?.forceSeekToNext() },
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.fast_forward),
+                contentDescription = "Next",
+                tint = colorPalette.iconColor,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+
+        // Repeat
+        AnimatedIconButton(
+            onClick = {
+                if (trackLoopEnabled) {
+                    trackLoopEnabled = false
+                } else if (queueLoopEnabled) {
+                    queueLoopEnabled = false
+                    trackLoopEnabled = true
+                } else {
+                    queueLoopEnabled = true
+                }
+            }
+        ) {
+            val repeatMode = when {
+                trackLoopEnabled -> Player.REPEAT_MODE_ONE
+                queueLoopEnabled -> Player.REPEAT_MODE_ALL
+                else -> Player.REPEAT_MODE_OFF
+            }
+            val icon = when (repeatMode) {
+                Player.REPEAT_MODE_ONE -> painterResource(R.drawable.repeat_one)
+                Player.REPEAT_MODE_ALL -> painterResource(R.drawable.repeat)
+                else -> painterResource(R.drawable.repeat_off)
+            }
+            val alpha = if (repeatMode == Player.REPEAT_MODE_OFF) Dimensions.lowOpacity else 1f
+
+            Icon(
+                painter = icon,
+                contentDescription = null,
+                modifier = Modifier
+                    .alpha(alpha)
+                    .size(28.dp)
+            )
+        }
+    }
+}
 
 @OptIn(UnstableApi::class)
 @UnstableApi
@@ -374,7 +405,6 @@ fun PlayerTopControl(
     onGoToArtist: (String) -> Unit
 ) {
     val menuState = LocalMenuState.current
-    var showPlaylist by remember { mutableStateOf(false) }
 
     val binder = LocalPlayerServiceBinder.current
     binder?.player ?: return
@@ -416,7 +446,7 @@ fun PlayerTopControl(
         IconButton(
             onClick = {
                 val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
-                    putExtra(AudioEffect.EXTRA_AUDIO_SESSION, binder?.player?.audioSessionId)
+                    putExtra(AudioEffect.EXTRA_AUDIO_SESSION, binder.player?.audioSessionId)
                     putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
                     putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
                 }
