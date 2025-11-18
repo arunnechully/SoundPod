@@ -172,7 +172,8 @@ fun ListItemContainer(
                     .height(height = thumbnailHeight)
                     .aspectRatio(ratio = thumbnailAspectRatio)
                     .clip(MaterialTheme.shapes.medium)
-                    .background(color),
+                    .background(color)
+                ,
                 contentAlignment = Alignment.Center
             ) {
                 thumbnail(thumbnailHeight)

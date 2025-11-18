@@ -20,9 +20,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.ui.navigation.Routes
 import kotlinx.coroutines.launch
@@ -38,7 +40,7 @@ fun PlayerScaffold(
     val scope = rememberCoroutineScope()
     val layoutDirection = LocalLayoutDirection.current
     val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
-
+    val (colorPalette) = LocalAppearance.current
     Box(
         modifier = Modifier.windowInsetsPadding(
             WindowInsets(
@@ -92,15 +94,10 @@ fun PlayerScaffold(
             sheetPeekHeight = 76.dp + 16.dp + scaffoldPadding.calculateBottomPadding(),
             sheetMaxWidth = Int.MAX_VALUE.dp,
             sheetDragHandle = null,
-//            sheetDragHandle = {
-//                Surface(
-//                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
-//                    shape = MaterialTheme.shapes.extraLarge,
-//                    color = MaterialTheme.colorScheme.onSurfaceVariant
-//                ) {
-//                    Box(modifier = Modifier.size(width = 32.dp, height = 4.dp))
-//                }
-//            }
+
+            //change player background color
+            sheetContainerColor = colorPalette.background1
+
         ) {
             val bottomPadding = animateDpAsState(
                 targetValue = if (sheetState.currentValue == SheetValue.Hidden) scaffoldPadding.calculateBottomPadding() else scaffoldPadding.calculateBottomPadding() + 76.dp + 16.dp,

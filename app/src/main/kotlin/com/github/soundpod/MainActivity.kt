@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -128,11 +129,16 @@ class MainActivity : ComponentActivity() {
                                 sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
                                 dragHandle = {
                                     Surface(
-                                        modifier = Modifier.padding(vertical = 12.dp),
+                                        modifier = Modifier
+                                            .padding(vertical = 12.dp),
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         shape = MaterialTheme.shapes.extraLarge
                                     ) {
-                                        Box(modifier = Modifier.size(width = 32.dp, height = 4.dp))
+                                        Box(
+                                            modifier = Modifier
+                                            .size(width = 32.dp, height = 4.dp)
+                                        )
+
                                     }
                                 }
                             ) {

@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.media3.common.MediaItem
 import coil3.compose.AsyncImage
@@ -103,7 +104,9 @@ fun MediaSongItem(
         },
         onClick = onClick,
         onLongClick = onLongClick,
-        containerColor = BottomSheetDefaults.ContainerColor,
+
+        //MediaSongItem background
+        containerColor = Color.Transparent,
         thumbnail = { size ->
             Box {
                 AsyncImage(

@@ -16,6 +16,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -249,10 +250,10 @@ fun Thumbnail(
                 content = thumbnailContent
             )
         } else {
-            Box(
-                modifier = modifier.clip(shape = MaterialTheme.shapes.large),
-                content = thumbnailContent
-            )
+//            Box(
+//                modifier = modifier.clip(shape = MaterialTheme.shapes.large),
+//                content = thumbnailContent
+//            )
         }
     }
 }
