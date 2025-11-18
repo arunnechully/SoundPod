@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -96,7 +95,7 @@ fun NewThumbnail(
     var error by remember { mutableStateOf<PlaybackException?>(player.playerError) }
     var errorCounter by remember(error) { mutableIntStateOf(0) }
 
-    val (thumbnailSizeDp, thumbnailSizePx) = Dimensions.thumbnails.player.song.let {
+    val (thumbnailSizeDp) = Dimensions.thumbnails.player.song.let {
         it to (it - 64.dp).px
     }
     var likedAt by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -162,12 +161,6 @@ fun NewThumbnail(
             val duration = 500
             val initial = initialState
             val target = targetState
-
-            if (initial == null || target == null) return@AnimatedContent ContentTransform(
-                targetContentEnter = fadeIn(tween(duration)),
-                initialContentExit = fadeOut(tween(duration)),
-                sizeTransform = null
-            )
 
             val sizeTransform = SizeTransform(clip = false) { _, _ ->
                 tween(durationMillis = duration, delayMillis = duration)
