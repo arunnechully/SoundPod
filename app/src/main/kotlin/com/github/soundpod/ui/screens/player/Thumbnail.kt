@@ -250,10 +250,10 @@ fun Thumbnail(
                 content = thumbnailContent
             )
         } else {
-//            Box(
-//                modifier = modifier.clip(shape = MaterialTheme.shapes.large),
-//                content = thumbnailContent
-//            )
+            Box(
+                modifier = modifier.clip(shape = MaterialTheme.shapes.large),
+                content = thumbnailContent
+            )
         }
     }
 }

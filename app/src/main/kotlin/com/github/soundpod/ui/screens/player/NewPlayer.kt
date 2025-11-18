@@ -1,5 +1,6 @@
 package com.github.soundpod.ui.screens.player
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -7,10 +8,13 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomAppBarDefaults.windowInsets
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
@@ -23,6 +27,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -97,6 +102,10 @@ fun NewPlayer(
 
     var showPlaylist by remember { mutableStateOf(false) }
 
+    BackHandler(enabled = showPlaylist) {
+        showPlaylist = false
+    }
+
     val positionAndDuration by binder.player.positionAndDurationState()
 
     var isShowingLyrics by rememberSaveable { mutableStateOf(false) }
@@ -104,15 +113,15 @@ fun NewPlayer(
     var isShowingStatsForNerds by rememberSaveable { mutableStateOf(false) }
 
     val thumbnailContent: @Composable (modifier: Modifier) -> Unit = { modifier ->
-        Thumbnail(
-            isShowingLyrics = isShowingLyrics,
-            onShowLyrics = { isShowingLyrics = it },
-            fullScreenLyrics = fullScreenLyrics,
-            toggleFullScreenLyrics = { fullScreenLyrics = !fullScreenLyrics },
-            isShowingStatsForNerds = isShowingStatsForNerds,
-            onShowStatsForNerds = { isShowingStatsForNerds = it },
-            modifier = modifier
-        )
+//        NewThumbnail(
+//            isShowingLyrics = isShowingLyrics,
+//            onShowLyrics = { isShowingLyrics = it },
+//            fullScreenLyrics = fullScreenLyrics,
+//            toggleFullScreenLyrics = { fullScreenLyrics = !fullScreenLyrics },
+//            isShowingStatsForNerds = isShowingStatsForNerds,
+//            onShowStatsForNerds = { isShowingStatsForNerds = it },
+//            modifier = modifier
+//        )
     }
 
     if (isLandscape) {
@@ -157,14 +166,18 @@ fun NewPlayer(
                     ) {
                         Spacer(modifier = Modifier.height(30.dp))
 
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            thumbnailContent(
-                                Modifier.padding(horizontal = 32.dp, vertical = 8.dp)
-                            )
-                        }
+                        NewThumbnail(
+                            isShowingLyrics = isShowingLyrics,
+                            onShowLyrics = { isShowingLyrics = it },
+                            fullScreenLyrics = fullScreenLyrics,
+                            toggleFullScreenLyrics = { fullScreenLyrics = !fullScreenLyrics },
+                            isShowingStatsForNerds = isShowingStatsForNerds,
+                            onShowStatsForNerds = { isShowingStatsForNerds = it },
+                            modifier = Modifier
+                                .padding(horizontal = 24.dp)
+                                .fillMaxWidth(),
+                            mediaId = mediaItem.mediaId
+                        )
 
                         Spacer(modifier = Modifier.padding(vertical = 5.dp))
 
