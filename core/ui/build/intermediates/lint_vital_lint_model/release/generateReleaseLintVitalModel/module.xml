@@ -1,0 +1,19 @@
+<lint-module
+    format="1"
+    dir="/home/cureous/StudioProjects/SoundPod/core/ui"
+    name=":core:ui"
+    type="LIBRARY"
+    maven="SoundPod.core:ui:unspecified"
+    agpVersion="8.13.1"
+    buildFolder="build"
+    bootClassPath="/home/cureous/Android/Sdk/platforms/android-35/android.jar:/home/cureous/Android/Sdk/build-tools/35.0.0/core-lambda-stubs.jar"
+    javaSourceLevel="17"
+    compileTarget="android-35"
+    neverShrinking="true">
+  <lintOptions
+      abortOnError="true"
+      absolutePaths="true"
+      checkReleaseBuilds="true"
+      explainIssues="true"/>
+  <variant name="release"/>
+</lint-module>
