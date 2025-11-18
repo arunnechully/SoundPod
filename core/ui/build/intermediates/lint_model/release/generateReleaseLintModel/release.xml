@@ -1,8 +1,8 @@
 <variant
     name="release"
     package="com.github.core.ui"
-    minSdkVersion="21"
-    targetSdkVersion="21"
+    minSdkVersion="23"
+    targetSdkVersion="23"
     mergedManifest="build/intermediates/merged_manifest/release/processReleaseManifest/AndroidManifest.xml"
     manifestMergeReport="build/outputs/logs/manifest-merger-release-report.txt"
     proguardFiles="build/intermediates/default_proguard_files/global/proguard-android.txt-8.13.1"
@@ -26,6 +26,6 @@
       applicationId="com.github.core.ui"
       generatedSourceFolders="build/generated/ap_generated_sources/release/out"
       generatedResourceFolders="build/generated/res/resValues/release"
-      desugaredMethodsFiles="/home/cureous/.gradle/caches/8.14.3/transforms/9c7b0f216e89055ad992f84917821769/transformed/D8BackportedDesugaredMethods.txt">
+      desugaredMethodsFiles="/home/cureous/.gradle/caches/8.14.3/transforms/0cf117c126154340931147ea069d894f/transformed/D8BackportedDesugaredMethods.txt">
   </artifact>
 </variant>

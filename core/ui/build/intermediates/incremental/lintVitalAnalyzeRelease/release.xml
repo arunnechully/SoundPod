@@ -4,9 +4,9 @@
     minSdkVersion="23"
     targetSdkVersion="23"
     mergedManifest="build/intermediates/merged_manifest/release/processReleaseManifest/AndroidManifest.xml"
-    manifestMergeReport="build/outputs/logs/manifest-merger-release-report.txt"
     proguardFiles="build/intermediates/default_proguard_files/global/proguard-android.txt-8.13.1"
-    partialResultsDir="build/intermediates/lint_vital_partial_results/release/lintVitalAnalyzeRelease/out">
+    partialResultsDir="build/intermediates/lint_vital_partial_results/release/lintVitalAnalyzeRelease/out"
+    desugaredMethodsFiles="/home/cureous/.gradle/caches/8.14.3/transforms/0cf117c126154340931147ea069d894f/transformed/D8BackportedDesugaredMethods.txt">
   <buildFeatures
       namespacing="REQUIRED"/>
   <sourceProviders>

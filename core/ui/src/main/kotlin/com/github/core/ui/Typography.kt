@@ -19,6 +19,7 @@ import androidx.compose.ui.text.googlefonts.isAvailableOnDevice
 import androidx.compose.ui.unit.sp
 import kotlinx.parcelize.Parceler
 import kotlinx.parcelize.Parcelize
+import kotlinx.parcelize.RawValue
 import kotlinx.parcelize.parcelableCreator
 
 @Parcelize
@@ -60,10 +61,11 @@ data class Typography(
 @Parcelize
 @SuppressLint("ParcelCreator")
 data class SavedTypography(
-    val color: ParcelableColor,
-    val fontFamily: BuiltInFontFamily,
+    val color: @RawValue ParcelableColor,
+    val fontFamily: @RawValue BuiltInFontFamily,
     val includeFontPadding: Boolean
 ) : Parcelable
+
 
 private val googleFontsProvider = GoogleFont.Provider(
     providerAuthority = "com.google.android.gms.fonts",
