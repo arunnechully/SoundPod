@@ -74,12 +74,9 @@ fun PlayerScaffold(
                         Box(
                             modifier = Modifier.fillMaxHeight()
                         ) {
-                            MiniPlayer(
+                            NewMiniPlayer(
                                 openPlayer = {
                                     scope.launch { sheetState.expand() }
-                                },
-                                stopPlayer = {
-                                    scope.launch { sheetState.hide() }
                                 }
                             )
                         }
@@ -88,7 +85,7 @@ fun PlayerScaffold(
                 }
             },
             scaffoldState = scaffoldState,
-            sheetPeekHeight = 76.dp + 16.dp + scaffoldPadding.calculateBottomPadding(),
+            sheetPeekHeight = 40.dp + 29.dp + scaffoldPadding.calculateBottomPadding(),
             sheetMaxWidth = Int.MAX_VALUE.dp,
             sheetDragHandle = null,
 
