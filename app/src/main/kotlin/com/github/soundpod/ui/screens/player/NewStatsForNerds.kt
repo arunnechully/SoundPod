@@ -117,7 +117,7 @@ fun NewStatsForNerds(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.85f))
+            .background(Color.Black.copy(alpha = 0.45f))
             .clickable { onDismiss() }, // tap background to close
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center

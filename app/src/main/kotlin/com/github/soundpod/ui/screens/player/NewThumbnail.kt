@@ -207,7 +207,7 @@ fun NewThumbnail(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(20.dp))
+                .clip(RoundedCornerShape(25.dp))
                 .background(glassColor)
         ) {
 

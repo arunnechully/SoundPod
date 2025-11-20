@@ -203,7 +203,7 @@ fun Lyrics(
             modifier = Modifier
                 .clickable(onClick = onDismiss)
                 .fillMaxSize()
-                .background(Color.Black.copy(0.8f))
+                .background(Color.Black.copy(0.45f))
         ) {
             AnimatedVisibility(
                 visible = isError && text == null,

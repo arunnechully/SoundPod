@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -82,34 +83,59 @@ fun Player(
     binder?.player ?: return
 
     var shouldBePlaying by remember { mutableStateOf(binder.player.shouldBePlaying) }
+
+    // ---------- STATE: current media item from player ----------
     var nullableMediaItem by remember {
-        mutableStateOf(
-            binder.player.currentMediaItem,
-            neverEqualPolicy()
-        )
+        mutableStateOf(binder.player.currentMediaItem, neverEqualPolicy())
     }
 
-    binder.player.DisposableListener {
-        object : Player.Listener {
+// ---------- SINGLE listener (DisposableEffect) ----------
+    DisposableEffect(key1 = binder.player) {
+        val player = binder.player
+        val listener = object : Player.Listener {
+
+            // Fires for many timeline/queue changes (more reliable)
+            override fun onEvents(player: Player, events: Player.Events) {
+                nullableMediaItem = player.currentMediaItem
+            }
+
+            // Also handle transitions explicitly (harmless)
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 nullableMediaItem = mediaItem
             }
 
-            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-                shouldBePlaying = binder.player.shouldBePlaying
-            }
-
             override fun onPlaybackStateChanged(playbackState: Int) {
+                // keep shouldBePlaying in sync if you want
                 shouldBePlaying = binder.player.shouldBePlaying
             }
         }
+
+        player.addListener(listener)
+        onDispose { player.removeListener(listener) }
     }
 
+// ---------- early-return if no media item ----------
     val mediaItem = nullableMediaItem ?: return
+
+// ---------- compute nextSongTitle in composition (no remember caching with binder.player) ----------
+    val nextSongTitle = if (binder.player.hasNextMediaItem()) {
+        val nextIndex = try {
+            binder.player.nextMediaItemIndex
+        } catch (e: Throwable) {
+            -1
+        }
+
+        if (nextIndex >= 0 && nextIndex < binder.player.mediaItemCount) {
+            binder.player.getMediaItemAt(nextIndex)
+                .mediaMetadata.title?.toString().orEmpty()
+        } else {
+            stringResource(id = R.string.open_queue)
+        }
+    } else {
+        stringResource(id = R.string.open_queue)
+    }
+
     val positionAndDuration by binder.player.positionAndDurationState()
-    val nextSongTitle =
-        if (binder.player.hasNextMediaItem()) binder.player.getMediaItemAt(binder.player.nextMediaItemIndex).mediaMetadata.title.toString()
-        else stringResource(id = R.string.open_queue)
 
     var artistId: String? by remember(mediaItem) {
         mutableStateOf(

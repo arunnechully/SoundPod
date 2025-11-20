@@ -1,0 +1,14 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /home/cureous/StudioProjects/SoundPod/core/ui/src/main/AndroidManifest.xml:2:1-4:12
+INJECTED from /home/cureous/StudioProjects/SoundPod/core/ui/src/main/AndroidManifest.xml:2:1-4:12
+	package
+		INJECTED from /home/cureous/StudioProjects/SoundPod/core/ui/src/main/AndroidManifest.xml
+uses-sdk
+INJECTED from /home/cureous/StudioProjects/SoundPod/core/ui/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /home/cureous/StudioProjects/SoundPod/core/ui/src/main/AndroidManifest.xml
+INJECTED from /home/cureous/StudioProjects/SoundPod/core/ui/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /home/cureous/StudioProjects/SoundPod/core/ui/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /home/cureous/StudioProjects/SoundPod/core/ui/src/main/AndroidManifest.xml

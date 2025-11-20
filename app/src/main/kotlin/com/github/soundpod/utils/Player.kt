@@ -38,10 +38,31 @@ fun Player.shuffleQueue() {
 }
 
 fun Player.forcePlay(mediaItem: MediaItem) {
-    setMediaItem(mediaItem, true)
+    // If the item already exists in the playlist, just seek to it.
+    val existingIndex = (0 until mediaItemCount)
+        .firstOrNull { getMediaItemAt(it).mediaId == mediaItem.mediaId }
+
+    if (existingIndex != null) {
+        seekTo(existingIndex, C.TIME_UNSET)
+        playWhenReady = true
+        return
+    }
+
+    // If playlist is empty, start normally
+    if (mediaItemCount == 0) {
+        setMediaItem(mediaItem)
+        playWhenReady = true
+        prepare()
+        return
+    }
+
+    // Otherwise, add to END of queue and play it
+    addMediaItem(mediaItem)
+    val index = mediaItemCount - 1
+    seekTo(index, C.TIME_UNSET)
     playWhenReady = true
-    prepare()
 }
+
 
 fun Player.forcePlayAtIndex(mediaItems: List<MediaItem>, mediaItemIndex: Int) {
     if (mediaItems.isEmpty()) return
