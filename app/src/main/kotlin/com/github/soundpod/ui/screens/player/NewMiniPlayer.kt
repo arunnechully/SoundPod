@@ -1,8 +1,15 @@
 package com.github.soundpod.ui.screens.player
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -15,20 +22,31 @@ import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import coil3.compose.AsyncImage
+import com.github.core.ui.LocalAppearance
+import com.github.core.ui.collapsedPlayerProgressBar
 import com.github.soundpod.LocalPlayerServiceBinder
+import com.github.soundpod.R
+import com.github.soundpod.ui.modifier.fadingEdge
 import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.ui.styling.px
 import com.github.soundpod.utils.DisposableListener
+import com.github.soundpod.utils.positionAndDurationState
 import com.github.soundpod.utils.shouldBePlaying
 import com.github.soundpod.utils.thumbnail
+import kotlin.math.absoluteValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,28 +77,80 @@ fun NewMiniPlayer(
             }
         }
     }
-
+    val positionAndDuration by binder.player.positionAndDurationState()
     val mediaItem = nullableMediaItem ?: return
 
-        Column(
-            modifier = Modifier
-                .clickable(onClick = openPlayer)
-        )
-        {
+    val fadingEdge = Brush.horizontalGradient(
+        0f to Color.Transparent,
+        0.1f to Color.Black,
+        0.9f to Color.Black,
+        1f to Color.Transparent
+    )
+
+    val (colorPalette, typography) = LocalAppearance.current
+    Column(
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape = RoundedCornerShape(30.dp))
+            .clickable(onClick = openPlayer)
+            .height(64.dp)
+            .drawBehind {
+                // positionAndDuration: Pair<Long /*position*/, Long /*duration*/>
+                val position = positionAndDuration.first
+                val duration = positionAndDuration.second
+
+                val fraction = if (duration > 0L) {
+                    // use floats and clamp between 0..1
+                    (position.toFloat() / duration.toFloat()).coerceIn(0f, 1f)
+                } else {
+                    0f
+                }
+
+                val barWidth = size.width * fraction
+
+                // if the bar would be 0 width, skip drawing early
+                if (barWidth <= 0f) return@drawBehind
+
+                drawRect(
+                    color = colorPalette.collapsedPlayerProgressBar,
+                    topLeft = Offset.Zero,
+                    size = Size(width = barWidth, height = size.height)
+                )
+            }
+    )
+    {
             ListItem(
                 headlineContent = {
-                    Text(
-                        text = mediaItem.mediaMetadata.title?.toString() ?: "",
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fadingEdge(fadingEdge)
+                    ) {
+                        Text(
+                            text = mediaItem.mediaMetadata.title?.toString() ?: "",
+                            modifier = Modifier.basicMarquee(),
+                            maxLines = 1,
+                            overflow = TextOverflow.Clip
+                        )
+                    }
+
                 },
                 supportingContent = {
-                    Text(
-                        text = mediaItem.mediaMetadata.artist?.toString() ?: "",
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fadingEdge(fadingEdge)
+                    ) {
+                        Text(
+                            text = mediaItem.mediaMetadata.artist?.toString() ?: "",
+                            modifier = Modifier.basicMarquee(),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 },
                 leadingContent = {
                     AsyncImage(
@@ -89,7 +159,10 @@ fun NewMiniPlayer(
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .clip(MaterialTheme.shapes.extraLarge)
-                            .size(48.dp)
+                            .size(43.dp),
+                        placeholder = painterResource(id = R.drawable.app_icon),
+                        error = painterResource(id = R.drawable.app_icon),
+                        fallback = painterResource(id = R.drawable.app_icon)
                     )
                 },
                 trailingContent = {

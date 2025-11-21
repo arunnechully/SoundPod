@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.screens.player
+package com.github.soundpod.ui.screens.player.old
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDp

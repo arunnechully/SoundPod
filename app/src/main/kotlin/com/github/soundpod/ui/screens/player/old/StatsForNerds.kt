@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.screens.player
+package com.github.soundpod.ui.screens.player.old
 
 import android.text.format.Formatter
 import androidx.annotation.OptIn

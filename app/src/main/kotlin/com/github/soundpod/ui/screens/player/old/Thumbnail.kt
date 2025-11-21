@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.screens.player
+package com.github.soundpod.ui.screens.player.old
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
@@ -16,7 +16,6 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -49,6 +48,8 @@ import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.service.LoginRequiredException
 import com.github.soundpod.service.PlayableFormatNotFoundException
 import com.github.soundpod.service.UnplayableException
+import com.github.soundpod.ui.screens.player.Lyrics
+import com.github.soundpod.ui.screens.player.PlaybackError
 import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.ui.styling.px
 import com.github.soundpod.utils.DisposableListener
