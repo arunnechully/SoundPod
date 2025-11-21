@@ -10,12 +10,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -30,6 +26,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -41,9 +38,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -79,9 +78,11 @@ import com.github.soundpod.utils.formatAsDuration
 import com.github.soundpod.utils.queueLoopEnabledKey
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.seamlessPlay
+import com.github.soundpod.utils.shuffleQueue
 import com.github.soundpod.utils.toast
 import com.github.soundpod.utils.trackLoopEnabledKey
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 
 @Composable
 fun AnimatedIconButton(
@@ -131,7 +132,7 @@ fun PlayPauseButton(
         Icon(
             painter = painterResource(id = if (playing) R.drawable.pause else R.drawable.play),
             contentDescription = null,
-            tint = colorPalette.textSecondary,
+            tint = colorPalette.iconColor,
             modifier = Modifier
                 .size(30.dp)
         )
@@ -225,7 +226,7 @@ fun MiniPlayerControl(
                 contentDescription = null,
                 tint = colorPalette.iconColor,
                 modifier = Modifier
-                    .size(22.dp)
+                    .size(28.dp)
             )
         }
 
@@ -311,12 +312,6 @@ fun PlayerMiddleControl(
             )
         }
     }
-//    Addtolist(
-//        showSheet = showList,
-//        onDismiss = { showList = false },
-//        onAddToPlaylistClick = {},
-//        onCreatePlaylistClick = {},
-//    )
 }
 
 @Composable
@@ -325,6 +320,10 @@ fun PlayerControlBottom(
     onPlayPauseClick: () -> Unit,
 ) {
     val binder = LocalPlayerServiceBinder.current
+    val player = binder?.player ?: return
+    var mediaItemIndex by remember {
+        mutableIntStateOf(if (player.mediaItemCount == 0) -1 else player.currentMediaItemIndex)
+    }
     val (colorPalette) = LocalAppearance.current
     var trackLoopEnabled by rememberPreference(trackLoopEnabledKey, defaultValue = false)
     var queueLoopEnabled by rememberPreference(queueLoopEnabledKey, defaultValue = false)
@@ -338,7 +337,10 @@ fun PlayerControlBottom(
     ) {
         // Shuffle
         AnimatedIconButton(
-            onClick = {}
+            onClick = {
+                player.shuffleModeEnabled = !player.shuffleModeEnabled
+                player.shuffleQueue()
+            }
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.shuffle),
@@ -350,7 +352,7 @@ fun PlayerControlBottom(
 
         // Previous
         AnimatedIconButton(
-            onClick = { binder?.player?.forceSeekToPrevious() }
+            onClick = { binder.player.forceSeekToPrevious() }
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.fast_backward),
@@ -368,7 +370,7 @@ fun PlayerControlBottom(
 
         // Next
         AnimatedIconButton(
-            onClick = { binder?.player?.forceSeekToNext() },
+            onClick = { binder.player.forceSeekToNext() },
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.fast_forward),
@@ -463,7 +465,7 @@ fun PlayerTopControl(
         IconButton(
             onClick = {
                 val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
-                    putExtra(AudioEffect.EXTRA_AUDIO_SESSION, binder.player?.audioSessionId)
+                    putExtra(AudioEffect.EXTRA_AUDIO_SESSION, binder.player.audioSessionId)
                     putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
                     putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
                 }
@@ -525,6 +527,7 @@ fun PlayerSeekBar(
             .fillMaxWidth()
             .padding(horizontal = 18.dp)
     ) {
+
         SeekBar(
             value = scrubbingPosition ?: position,
             minimumValue = 0,
