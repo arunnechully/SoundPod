@@ -91,35 +91,28 @@ fun NewMiniPlayer(
     Column(
         verticalArrangement = Arrangement.Center,
         modifier = Modifier
-            .fillMaxWidth()
-            .clip(shape = RoundedCornerShape(30.dp))
-            .clickable(onClick = openPlayer)
-            .height(64.dp)
             .drawBehind {
-                // positionAndDuration: Pair<Long /*position*/, Long /*duration*/>
                 val position = positionAndDuration.first
                 val duration = positionAndDuration.second
 
                 val fraction = if (duration > 0L) {
-                    // use floats and clamp between 0..1
                     (position.toFloat() / duration.toFloat()).coerceIn(0f, 1f)
-                } else {
-                    0f
-                }
+                } else 0f
 
                 val barWidth = size.width * fraction
 
-                // if the bar would be 0 width, skip drawing early
-                if (barWidth <= 0f) return@drawBehind
-
-                drawRect(
-                    color = colorPalette.collapsedPlayerProgressBar,
-                    topLeft = Offset.Zero,
-                    size = Size(width = barWidth, height = size.height)
-                )
+                if (barWidth > 0f) {
+                    drawRect(
+                        color = colorPalette.collapsedPlayerProgressBar.copy(alpha = 0.5f),
+                        topLeft = Offset.Zero,
+                        size = Size(width = barWidth, height = size.height)
+                    )
+                }
             }
-    )
-    {
+            .fillMaxWidth()
+            .height(64.dp)
+            .clickable(onClick = openPlayer)
+    ){
             ListItem(
                 headlineContent = {
 

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -85,7 +86,7 @@ fun PlayerScaffold(
                             )
                         } else {
                             Box(
-                                modifier = Modifier.fillMaxHeight()
+                                modifier = Modifier.fillMaxWidth()
                             ) {
                                 NewMiniPlayer(
                                     openPlayer = {
