@@ -42,11 +42,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.github.api.GitHub
+import com.github.api.formatFileSize
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.R
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.styling.Dimensions
+import com.github.soundpod.utils.downloadApk
 
 fun extractVersion(text: String): String {
     // Matches v1.2.3, 1.2.3, v1.2, 1.2, etc.
@@ -83,7 +85,7 @@ fun NewAboutSettings(
     var isShowingDialog by remember { mutableStateOf(false) }
     var latestVersion by rememberSaveable { mutableStateOf<String?>(null) }
     var newVersionAvailable by rememberSaveable { mutableStateOf<Boolean?>(null) }
-
+    var apkUrl by rememberSaveable { mutableStateOf<String?>(null) }
     val currentVersion =
         context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "0"
 
@@ -158,16 +160,19 @@ fun NewAboutSettings(
 
             if (isShowingDialog) {
 
+                var apkAsset by rememberSaveable { mutableStateOf<com.github.api.Asset?>(null) }
+
+
                 LaunchedEffect(Unit) {
                     val release = GitHub.getLastestRelease()
-                    val version = release?.name?.let { extractVersion(it) }
-
-                    latestVersion = version
-
-                    latestVersion?.let { latest ->
-                        newVersionAvailable = isNewerVersion(latest, currentVersion)
-                    }
+                    apkAsset = release?.assets?.firstOrNull { it.name.endsWith(".apk") }
+                    apkUrl = apkAsset?.browserDownloadUrl
+                    latestVersion = release?.name?.let { extractVersion(it) }
+                    newVersionAvailable = isNewerVersion(latestVersion ?: "0", currentVersion)
                 }
+
+
+
 
                 AlertDialog(
                     onDismissRequest = { isShowingDialog = false },
@@ -210,6 +215,16 @@ fun NewAboutSettings(
                                     verticalArrangement = Arrangement.spacedBy(8.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
+                                    apkAsset?.let { asset ->
+                                        Text(
+                                            text = "File Size: ${formatFileSize(asset.size)}",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+
+
+
                                     Text(
                                         text = stringResource(
                                             id = R.string.version,
@@ -218,20 +233,21 @@ fun NewAboutSettings(
                                         style = MaterialTheme.typography.titleMedium
                                     )
 
-                                    FilledTonalButton(
-                                        onClick = {
-                                            uriHandler.openUri(
-                                                "https://github.com/arunnechully/SoundPod/releases/latest"
+                                        FilledTonalButton(
+                                            onClick = {
+                                                apkUrl?.let { url ->
+                                                    downloadApk(context, url)
+                                                }
+                                            }
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.download),
+                                                contentDescription = "Update Now"
                                             )
+                                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                            Text(text = "Update Now")
                                         }
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.github),
-                                            contentDescription = stringResource(id = R.string.github)
-                                        )
-                                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                        Text(text = stringResource(id = R.string.open_in_github))
-                                    }
+//                                    }
                                 }
                             }
 
