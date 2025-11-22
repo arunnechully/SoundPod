@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.outlined.Update
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -45,10 +47,18 @@ import com.github.api.GitHub
 import com.github.api.formatFileSize
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.R
+import com.github.soundpod.ui.common.autoCheckEnabled
+import com.github.soundpod.ui.common.setAutoCheckEnabled
+import com.github.soundpod.ui.common.setShowUpdateAlert
+import com.github.soundpod.ui.common.showUpdateAlert
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
+import com.github.soundpod.ui.components.SwitchSetting
 import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.utils.downloadApk
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 fun extractVersion(text: String): String {
     // Matches v1.2.3, 1.2.3, v1.2, 1.2, etc.
@@ -88,6 +98,17 @@ fun NewAboutSettings(
     var apkUrl by rememberSaveable { mutableStateOf<String?>(null) }
     val currentVersion =
         context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "0"
+
+    var autoCheckEnabled by rememberSaveable { mutableStateOf(true) }
+    var showAlertEnabled by rememberSaveable { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        autoCheckEnabled(context).collect { autoCheckEnabled = it }
+    }
+    LaunchedEffect(Unit) {
+        showUpdateAlert(context).collect { showAlertEnabled = it }
+    }
+
 
     SettingsScreenLayout(
         title = stringResource(id = R.string.about),
@@ -156,6 +177,37 @@ fun NewAboutSettings(
                         }
                     )
                 }
+
+                SwitchSetting(
+                    textColor = MaterialTheme.colorScheme.onSurface,
+                    icon = Icons.Default.Update,
+                    title = "Auto-check for updates",
+                    description = "Check for new versions silently in background",
+                    switchState = autoCheckEnabled,
+                    onSwitchChange = { enabled ->
+                        autoCheckEnabled = enabled
+                        CoroutineScope(Dispatchers.IO).launch {
+                            setAutoCheckEnabled(context, enabled)
+                        }
+                    }
+                )
+
+                Spacer(Modifier.height(8.dp))
+
+                SwitchSetting(
+                    textColor = MaterialTheme.colorScheme.onSurface,
+                    icon = Icons.Default.Notifications,
+                    title = "Show update alert",
+                    description = "Show popup on Home screen if a new version is available",
+                    switchState = showAlertEnabled,
+                    onSwitchChange = { enabled ->
+                        showAlertEnabled = enabled
+                        CoroutineScope(Dispatchers.IO).launch {
+                            setShowUpdateAlert(context, enabled)
+                        }
+                    }
+                )
+
             }
 
             if (isShowingDialog) {

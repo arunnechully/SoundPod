@@ -88,6 +88,7 @@ dependencies {
     implementation(libs.room)
     implementation(libs.swipe)
     implementation(libs.compose.lottie)
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
     ksp(libs.room.compiler)
     implementation(projects.core.ui)
     implementation(projects.github)
