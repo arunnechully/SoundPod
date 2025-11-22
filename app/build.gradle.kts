@@ -87,6 +87,7 @@ dependencies {
     implementation(libs.reorderable)
     implementation(libs.room)
     implementation(libs.swipe)
+    implementation(libs.compose.lottie)
     ksp(libs.room.compiler)
     implementation(projects.core.ui)
     implementation(projects.github)

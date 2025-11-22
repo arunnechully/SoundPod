@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.Cache
 import androidx.media3.datasource.cache.CacheSpan
+import com.github.core.ui.LocalAppearance
 import com.github.innertube.Innertube
 import com.github.innertube.requests.player
 import com.github.soundpod.Database
@@ -65,7 +66,7 @@ fun NewStatsForNerds(
     var format by remember {
         mutableStateOf<Format?>(null)
     }
-
+    val (colorPalette) = LocalAppearance.current
     LaunchedEffect(mediaId) {
         Database.format(mediaId).distinctUntilChanged().collectLatest { currentFormat ->
             if (currentFormat?.itag == null) {
@@ -117,7 +118,7 @@ fun NewStatsForNerds(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.45f))
+            .background(colorPalette.background3.copy(alpha = 0.45f))
             .clickable { onDismiss() }, // tap background to close
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -125,7 +126,7 @@ fun NewStatsForNerds(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.5f))
+                .background(colorPalette.background3.copy(alpha = 0.5f))
                 .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)

@@ -2,6 +2,7 @@ package com.github.soundpod.ui.screens.player
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -18,11 +19,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerPadding
+import com.github.soundpod.ui.appearance.ThemedLottieBackground
 import com.github.soundpod.ui.navigation.Routes
 import kotlinx.coroutines.launch
 
@@ -39,7 +42,8 @@ fun PlayerScaffold(
     val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
     val (colorPalette) = LocalAppearance.current
     Box(
-        modifier = Modifier.windowInsetsPadding(
+        modifier = Modifier
+            .windowInsetsPadding(
             WindowInsets(
                 left = scaffoldPadding.calculateLeftPadding(layoutDirection),
                 right = scaffoldPadding.calculateRightPadding(layoutDirection)
@@ -55,32 +59,42 @@ fun PlayerScaffold(
                         if (value == SheetValue.Expanded) 0 else 1
                     }
                 ) { value ->
-                    if (value == SheetValue.Expanded) {
-                        NewPlayer(
-                            onGoToAlbum = { browseId ->
-                                scope.launch { sheetState.partialExpand() }
-                                navController.navigate(
-                                    route = Routes.Album(id = browseId)
-                                )
-                            },
-                            onGoToArtist = { browseId ->
-                                scope.launch { sheetState.partialExpand() }
-                                navController.navigate(
-                                    route = Routes.Artist(id = browseId)
-                                )
-                            }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                    ) {
+                        ThemedLottieBackground(
+                            animationNumber = 3,
+                            modifier = Modifier.matchParentSize()
                         )
-                    } else {
-                        Box(
-                            modifier = Modifier.fillMaxHeight()
-                        ) {
-                            NewMiniPlayer(
-                                openPlayer = {
-                                    scope.launch { sheetState.expand() }
+
+                        if (value == SheetValue.Expanded) {
+                            NewPlayer(
+                                onGoToAlbum = { browseId ->
+                                    scope.launch { sheetState.partialExpand() }
+                                    navController.navigate(
+                                        route = Routes.Album(id = browseId)
+                                    )
+                                },
+                                onGoToArtist = { browseId ->
+                                    scope.launch { sheetState.partialExpand() }
+                                    navController.navigate(
+                                        route = Routes.Artist(id = browseId)
+                                    )
                                 }
                             )
-                        }
+                        } else {
+                            Box(
+                                modifier = Modifier.fillMaxHeight()
+                            ) {
+                                NewMiniPlayer(
+                                    openPlayer = {
+                                        scope.launch { sheetState.expand() }
+                                    }
+                                )
+                            }
 
+                        }
                     }
                 }
             },
@@ -88,9 +102,7 @@ fun PlayerScaffold(
             sheetPeekHeight = 40.dp + 20.dp + scaffoldPadding.calculateBottomPadding(),
             sheetMaxWidth = Int.MAX_VALUE.dp,
             sheetDragHandle = null,
-
-            //change player background color
-            sheetContainerColor = colorPalette.background1
+            sheetContainerColor = Color.Transparent
 
         ) {
             val bottomPadding = animateDpAsState(

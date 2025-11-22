@@ -20,11 +20,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import com.github.soundpod.LocalPlayerServiceBinder
+import com.github.soundpod.ui.modifier.fadingEdge
 import com.github.soundpod.utils.DisposableListener
 
 @Composable
@@ -47,6 +51,13 @@ fun PlayerMediaItem(
         }
     }
 
+    val fadingEdge = Brush.horizontalGradient(
+        0f to Color.Transparent,
+        0.1f to Color.Black,
+        0.9f to Color.Black,
+        1f to Color.Transparent
+    )
+
     val mediaItem = currentItem ?: return
 
     Column(
@@ -60,7 +71,9 @@ fun PlayerMediaItem(
         Text(
             text = mediaItem.mediaMetadata.title?.toString().orEmpty(),
             modifier = Modifier.basicMarquee(),
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.ExtraBold
+            ),
             maxLines = 1
         )
 
@@ -74,6 +87,8 @@ fun PlayerMediaItem(
                     enabled = onGoToArtist != null,
                     onClick = onGoToArtist ?: {}
                 )
+                .fadingEdge(fadingEdge)
+                .basicMarquee()
                 .padding(horizontal = 8.dp, vertical = 4.dp)   // bigger hitbox
         ) {
             Text(
