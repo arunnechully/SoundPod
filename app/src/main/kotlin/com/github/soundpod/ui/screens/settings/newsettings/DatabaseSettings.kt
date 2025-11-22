@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.outlined.DeleteSweep
+import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.outlined.HistoryToggleOff
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.MusicNote
@@ -37,6 +37,7 @@ import com.github.soundpod.enums.CoilDiskCacheMaxSize
 import com.github.soundpod.enums.ExoPlayerDiskCacheMaxSize
 import com.github.soundpod.enums.QuickPicksSource
 import com.github.soundpod.query
+import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.components.SwitchSetting
@@ -102,7 +103,7 @@ fun CacheSettings(
 
                 SettingColum(
                     textColor = textColor,
-                    icon = Icons.Outlined.DeleteSweep,
+                    icon = IconSource.Vector(Icons.Default.DeleteSweep),
                     title = stringResource(id = R.string.clear_search_history),
                     description = if (queriesCount > 0) {
                         stringResource(id = R.string.delete_search_queries, queriesCount)
@@ -117,13 +118,13 @@ fun CacheSettings(
                     title = stringResource(id = R.string.quick_picks_source),
                     selectedValue = quickPicksSource,
                     onValueSelected = { quickPicksSource = it },
-                    icon = Icons.Default.AutoAwesome,
+                    icon = IconSource.Vector( Icons.Default.AutoAwesome),
                     valueText = { context.getString(it.resourceId) }
                 )
 
                 SettingColum(
                     textColor = textColor,
-                    icon = Icons.Outlined.RestartAlt,
+                    icon = IconSource.Vector(Icons.Outlined.RestartAlt),
                     title = stringResource(id = R.string.reset_quick_picks),
                     description = if (eventsCount > 0) {
                         stringResource(id = R.string.delete_playback_events, eventsCount)
@@ -167,7 +168,7 @@ fun CacheSettings(
                         title = stringResource(id = R.string.max_size),
                         selectedValue = coilDiskCacheMaxSize,
                         onValueSelected = { coilDiskCacheMaxSize = it },
-                        icon = Icons.Outlined.Image
+                        icon = IconSource.Vector(Icons.Outlined.Image)
                     )
                 }
 
@@ -204,7 +205,7 @@ fun CacheSettings(
                         title = stringResource(id = R.string.max_size),
                         selectedValue = exoPlayerDiskCacheMaxSize,
                         onValueSelected = { exoPlayerDiskCacheMaxSize = it },
-                        icon = Icons.Outlined.MusicNote
+                        icon = IconSource.Vector(Icons.Outlined.MusicNote)
                     )
                 }
             }

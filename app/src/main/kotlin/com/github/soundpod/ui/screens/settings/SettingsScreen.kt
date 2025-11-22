@@ -16,7 +16,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,12 +40,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.github.soundpod.Database
-import com.github.soundpod.Database.Companion.clearEvents
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.R
 import com.github.soundpod.enums.SettingsSection
-import com.github.soundpod.query
+import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.ValueSelectorDialog
 import com.github.soundpod.ui.screens.settings.newsettings.SettingColum
 import com.github.soundpod.ui.styling.Dimensions
@@ -112,7 +109,7 @@ inline fun <reified T : Enum<T>> EnumValueSelectorSettingsEntry(
     title: String,
     selectedValue: T,
     crossinline onValueSelected: (T) -> Unit,
-    icon: ImageVector,
+    icon: IconSource,
     isEnabled: Boolean = true,
     crossinline valueText: (T) -> String = Enum<T>::name,
     noinline trailingContent: @Composable (() -> Unit)? = null
@@ -135,7 +132,7 @@ inline fun <T> ValueSelectorSettingsEntry(
     selectedValue: T,
     values: List<T>,
     crossinline onValueSelected: (T) -> Unit,
-    icon: ImageVector,
+    icon: IconSource,
     isEnabled: Boolean = true,
     crossinline valueText: (T) -> String = { it.toString() },
     noinline trailingContent: @Composable (() -> Unit)? = null

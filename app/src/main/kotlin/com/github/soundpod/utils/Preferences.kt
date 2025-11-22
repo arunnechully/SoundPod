@@ -34,6 +34,8 @@ const val searchResultScreenTabIndexKey = "searchResultScreenTabIndex"
 const val artistScreenTabIndexKey = "artistScreenTabIndex"
 const val pauseSearchHistoryKey = "pauseSearchHistory"
 const val quickPicksSourceKey = "quickPicksSource"
+
+const val appTheme = "appTheme"
 const val navigationLabelsVisibilityKey = "navigationLabelsVisibility"
 const val listGesturesEnabledKey = "listGesturesEnabled"
 const val playerGesturesEnabledKey = "songGesturesEnabled"

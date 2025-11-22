@@ -11,12 +11,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.github.soundpod.Database
 import com.github.soundpod.R
 import com.github.soundpod.internal
 import com.github.soundpod.query
 import com.github.soundpod.service.PlayerService
+import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.screens.settings.SettingsInformation
@@ -84,7 +86,7 @@ fun Backup(
             SettingsCard {
                 SettingColum(
                     textColor = textColor,
-                    painterRes = R.drawable.backup,
+                    icon = IconSource.Icon( painterResource(id = R.drawable.backup)),
                     title = stringResource(id = R.string.backup),
                     description = stringResource(id = R.string.backup_description),
                     onClick = {
@@ -100,7 +102,7 @@ fun Backup(
 
                 SettingColum(
                     textColor = textColor,
-                    icon = Icons.Default.Restore,
+                    icon = IconSource.Vector(Icons.Default.Restore),
                     title = stringResource(id = R.string.restore),
                     description = stringResource(id = R.string.restore_description),
                     onClick = {

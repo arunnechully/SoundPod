@@ -33,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.github.soundpod.R
+import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.navigation.Routes
@@ -173,53 +174,50 @@ fun SettingRow(
 @Composable
 fun SettingColum(
     textColor: Color,
-    icon: ImageVector? = null,
-    painterRes: Int? = null,
+    icon: IconSource? = null,
     title: String,
     description: String,
     onClick: () -> Unit,
     isEnabled: Boolean = true,
     trailingContent: @Composable (() -> Unit)? = null
-
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(enabled = isEnabled, onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
 
-        if (icon != null) {
-            Icon(
-                imageVector = icon,
+        when (icon) {
+            is IconSource.Vector -> Icon(
+                imageVector = icon.imageVector,
                 contentDescription = title,
                 tint = textColor,
                 modifier = Modifier.size(28.dp)
             )
-        } else if (painterRes != null) {
-            Icon(
-                painter = painterResource(id = painterRes),
+
+            is IconSource.Icon -> Icon(
+                painter = icon.painter,
                 contentDescription = title,
                 tint = textColor,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(28.dp),
             )
+
+            null -> {}
         }
 
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                color = textColor
-            )
+        Column(Modifier.weight(1f)) {
+            Text(text = title, style = MaterialTheme.typography.bodyLarge, color = textColor)
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,
                 color = textColor.copy(alpha = 0.7f)
             )
         }
+
+        trailingContent?.invoke()
     }
 }
+

@@ -23,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.github.soundpod.R
+import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.CustomStyledSlider
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
@@ -71,7 +72,7 @@ fun NewPlayerSettings(
             SettingsCard {
                 SettingColum(
                     textColor = textColor,
-                    icon = Icons.Default.Timer,
+                    icon = IconSource.Vector(Icons.Default.Timer),
                     title = "Sleep Timer",
                     description = "Set playback duration",
                     onClick = {},

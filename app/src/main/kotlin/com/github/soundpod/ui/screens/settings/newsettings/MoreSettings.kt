@@ -13,10 +13,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.outlined.AddLink
 import androidx.compose.material.icons.outlined.Battery0Bar
-import androidx.compose.material.icons.outlined.DirectionsCar
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Stars
@@ -38,12 +36,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.github.soundpod.R
-import com.github.soundpod.enums.QuickPicksSource
 import com.github.soundpod.service.PlayerMediaBrowserService
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.components.SwitchSetting
-import com.github.soundpod.ui.screens.settings.EnumValueSelectorSettingsEntry
 import com.github.soundpod.ui.screens.settings.SettingsEntry
 import com.github.soundpod.ui.screens.settings.SettingsInformation
 import com.github.soundpod.ui.screens.settings.SwitchSettingEntry
@@ -54,7 +50,6 @@ import com.github.soundpod.utils.isAtLeastAndroid6
 import com.github.soundpod.utils.isIgnoringBatteryOptimizations
 import com.github.soundpod.utils.isInvincibilityEnabledKey
 import com.github.soundpod.utils.isShowingThumbnailInLockscreenKey
-import com.github.soundpod.utils.quickPicksSourceKey
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.toast
 
