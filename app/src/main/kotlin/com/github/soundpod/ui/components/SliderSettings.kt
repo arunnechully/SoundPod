@@ -21,15 +21,20 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.core.ui.LocalAppearance
+import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,10 +43,16 @@ fun SliderSettingsItem(
     value: Float,
     onValueChange: (Float) -> Unit,
     valueRange: ClosedFloatingPointRange<Float>,
-    valueLabel: (Float) -> String
+    valueLabel: (Float) -> String,
+    hapticStep: Float = 0.05f,
+    hapticUseIntegerStep: Boolean = false,
+    hapticUseFloatStep: Boolean = false,
+    hapticFloatStep: Float = 0.1f
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isDragging by interactionSource.collectIsDraggedAsState()
+    var lastValue by remember { mutableFloatStateOf(value) }
+    val haptic = LocalHapticFeedback.current
 
     val thumbAlpha by animateFloatAsState(
         targetValue = if (isDragging) 0f else 1f,
@@ -77,7 +88,37 @@ fun SliderSettingsItem(
 
         Slider(
             value = value,
-            onValueChange = onValueChange,
+            onValueChange = { newValue ->
+
+                if (hapticUseIntegerStep) {
+                    // 1 tick per whole number
+                    val currentInt = newValue.toInt()
+                    if (currentInt != lastValue.toInt()) {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        lastValue = newValue
+                    }
+
+                } else if (hapticUseFloatStep) {
+
+                    val diff = abs(newValue - lastValue)
+                    if (diff >= hapticFloatStep) {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        lastValue = newValue
+                    }
+
+                } else {
+                    // percent-based fallback
+                    val fullRange = valueRange.endInclusive - valueRange.start
+                    val percentMoved = abs(newValue - lastValue) / fullRange
+
+                    if (percentMoved >= hapticStep) {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        lastValue = newValue
+                    }
+                }
+
+                onValueChange(newValue)
+            },
             valueRange = valueRange,
             interactionSource = interactionSource,
             modifier = Modifier.fillMaxWidth(),

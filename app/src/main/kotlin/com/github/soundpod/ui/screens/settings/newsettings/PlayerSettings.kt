@@ -39,6 +39,7 @@ import com.github.soundpod.utils.volumeNormalizationKey
 import kotlinx.coroutines.flow.flowOf
 import java.util.Locale
 
+@Suppress("AssignedValueIsNeverRead", "KotlinUnreachableCode")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewPlayerSettings(
@@ -143,10 +144,12 @@ fun NewPlayerSettings(
                     value = playSpeed,
                     onValueChange = { playSpeed = it },
                     valueRange = 0.5f..2.0f,
-                    valueLabel = {
-                        String.format(Locale.US, "%.1fx", it)
-                    }
+                    valueLabel = { String.format(Locale.US, "%.1fx", it) },
+                    hapticUseIntegerStep = false,
+                    hapticUseFloatStep = true,
+                    hapticFloatStep = 0.1f
                 )
+
 
                 SliderSettingsItem(
                     label = "Crossfade between tracks",
@@ -156,7 +159,9 @@ fun NewPlayerSettings(
                     valueLabel = {
                         val seconds = it.toInt()
                         if (seconds == 0) "Off" else "$seconds seconds"
-                    }
+                    },
+                    hapticStep = 1f,
+                    hapticUseIntegerStep = true
                 )
 
                 SwitchSetting(

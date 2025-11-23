@@ -15,6 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
@@ -29,6 +31,8 @@ fun SwitchSetting(
     onSwitchChange: (Boolean) -> Unit
 ) {
     val (colorPalette) = LocalAppearance.current
+    val haptic = LocalHapticFeedback.current
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -69,8 +73,13 @@ fun SwitchSetting(
 
         Switch(
             checked = switchState,
-            onCheckedChange = onSwitchChange,
-            colors = SwitchDefaults.colors(checkedTrackColor = colorPalette.accent)
+            onCheckedChange = { checked ->
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onSwitchChange(checked)
+            },
+            colors = SwitchDefaults.colors(
+                checkedTrackColor = colorPalette.accent
+            )
         )
     }
 }
