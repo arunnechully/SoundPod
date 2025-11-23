@@ -11,27 +11,32 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
+import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.components.SliderSettingsItem
 import com.github.soundpod.ui.components.SwitchSetting
+import com.github.soundpod.ui.screens.player.SleepTimer
 import com.github.soundpod.utils.isAtLeastAndroid6
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.resumePlaybackWhenDeviceConnectedKey
 import com.github.soundpod.utils.skipSilenceKey
 import com.github.soundpod.utils.volumeNormalizationKey
+import kotlinx.coroutines.flow.flowOf
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,6 +55,11 @@ fun NewPlayerSettings(
         resumePlaybackWhenDeviceConnectedKey,
         false
     )
+    val binder = LocalPlayerServiceBinder.current
+    var isShowingSleepTimerDialog by rememberSaveable { mutableStateOf(false) }
+    val sleepTimerMillisLeft by (binder?.sleepTimerMillisLeft
+        ?: flowOf(null))
+        .collectAsState(initial = null)
 
     SettingsScreenLayout(
         title = stringResource(id = R.string.player),
@@ -71,7 +81,7 @@ fun NewPlayerSettings(
                     icon = IconSource.Vector(Icons.Default.Timer),
                     title = "Sleep Timer",
                     description = "Set playback duration",
-                    onClick = {},
+                    onClick = { isShowingSleepTimerDialog = true },
                 )
                 SwitchSetting(
                     icon = Icons.Default.MusicOff,
@@ -108,6 +118,13 @@ fun NewPlayerSettings(
                         }
                     )
                 }
+            }
+
+            if (isShowingSleepTimerDialog) {
+                SleepTimer(
+                    sleepTimerMillisLeft = sleepTimerMillisLeft,
+                    onDismiss = { isShowingSleepTimerDialog = false }
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))

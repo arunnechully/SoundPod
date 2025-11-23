@@ -30,14 +30,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.remember
@@ -80,6 +81,7 @@ import com.github.soundpod.utils.shuffleQueue
 import com.github.soundpod.utils.toast
 import com.github.soundpod.utils.trackLoopEnabledKey
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOf
 
 @Composable
 fun AnimatedIconButton(
@@ -318,9 +320,6 @@ fun PlayerControlBottom(
 ) {
     val binder = LocalPlayerServiceBinder.current
     val player = binder?.player ?: return
-    var mediaItemIndex by remember {
-        mutableIntStateOf(if (player.mediaItemCount == 0) -1 else player.currentMediaItemIndex)
-    }
     val (colorPalette) = LocalAppearance.current
     var trackLoopEnabled by rememberPreference(trackLoopEnabledKey, defaultValue = false)
     var queueLoopEnabled by rememberPreference(queueLoopEnabledKey, defaultValue = false)
@@ -439,6 +438,11 @@ fun PlayerTopControl(
 
     val mediaItem = nullableMediaItem ?: return
 
+    var isShowingSleepTimerDialog by rememberSaveable { mutableStateOf(false) }
+    val sleepTimerMillisLeft by (binder.sleepTimerMillisLeft
+        ?: flowOf(null))
+        .collectAsState(initial = null)
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -459,6 +463,32 @@ fun PlayerTopControl(
         }
 
         Spacer(modifier = Modifier.weight(0.7f))
+
+        if (sleepTimerMillisLeft != null) {
+
+            Text(
+                text = formatTime(sleepTimerMillisLeft ?: 0L),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable {
+                        isShowingSleepTimerDialog = true
+                    }
+                    .padding(horizontal = 10.dp, vertical = 4.dp)
+            )
+
+        } else {
+
+            IconButton(
+                onClick = { isShowingSleepTimerDialog = true },
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Timer,
+                    contentDescription = null,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+        }
 
         IconButton(
             onClick = {
@@ -508,7 +538,21 @@ fun PlayerTopControl(
             )
         }
     }
+    if (isShowingSleepTimerDialog) {
+        SleepTimer(
+            sleepTimerMillisLeft = sleepTimerMillisLeft,
+            onDismiss = { isShowingSleepTimerDialog = false }
+        )
+    }
 }
+
+fun formatTime(ms: Long): String {
+    val totalSeconds = ms / 1000
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return "%02d:%02d".format(minutes, seconds)
+}
+
 
 @Composable
 fun PlayerSeekBar(

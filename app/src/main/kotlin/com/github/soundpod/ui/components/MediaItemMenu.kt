@@ -275,6 +275,9 @@ fun MediaItemMenu(
     onRemoveFromQuickPicks: (() -> Unit)? = null,
     onShare: () -> Unit
 ) {
+    val binder = LocalPlayerServiceBinder.current
+    binder?.player ?: return
+
     val density = LocalDensity.current
 
     var isViewingPlaylists by remember {
