@@ -9,8 +9,8 @@ enum class AppThemeColor(
     Dark(
         resourceId = R.string.dark_theme,
     ),
-    White(
-        resourceId = R.string.white_theme,
+    Light(
+        resourceId = R.string.light_theme,
     ),
     System(
         resourceId = R.string.System_default,

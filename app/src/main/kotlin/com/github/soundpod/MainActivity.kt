@@ -9,6 +9,7 @@ import android.os.IBinder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -43,15 +44,18 @@ import androidx.navigation.compose.rememberNavController
 import com.github.innertube.Innertube
 import com.github.innertube.requests.playlistPage
 import com.github.innertube.requests.song
+import com.github.soundpod.enums.AppThemeColor
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.service.PlayerService
 import com.github.soundpod.ui.navigation.Navigation
 import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.ui.screens.player.PlayerScaffold
 import com.github.soundpod.ui.styling.AppTheme
+import com.github.soundpod.utils.appTheme
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlay
 import com.github.soundpod.utils.intent
+import com.github.soundpod.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -102,7 +106,19 @@ class MainActivity : ComponentActivity() {
                 skipHiddenState = false
             )
 
-            AppTheme {
+            val appTheme by rememberPreference(appTheme, AppThemeColor.System)
+
+            val darkTheme = when (appTheme) {
+                AppThemeColor.System -> isSystemInDarkTheme()
+                AppThemeColor.Dark -> true
+                AppThemeColor.Light -> false
+            }
+
+            AppTheme(
+                darkTheme = darkTheme,
+                usePureBlack = false,
+                useMaterialNeutral = false,
+            ) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()

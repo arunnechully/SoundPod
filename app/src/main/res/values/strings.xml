@@ -201,11 +201,12 @@
     <string name="storage_and_cache" translatable="false">Storage and cache</string>
     <string name="more_settings" translatable="false">More Settings</string>
     <string name="experimental" translatable="false">Experimental</string>
-    <string name="theme">Theme</string>
-    <string name="app_theme">App Theme</string>
-    <string name="app_theme_description">Select App Theme</string>
-    <string name="dark_theme">Dark Theme</string>
-    <string name="white_theme">White Theme</string>
-    <string name="System_default">System Default</string>
-    <string name="accent_color">Accent Color</string>
+    <string name="theme" translatable="false">Theme</string>
+    <string name="app_theme" translatable="false">App Theme</string>
+    <string name="app_theme_description" translatable="false">Select App Theme</string>
+    <string name="dark_theme" translatable="false">Dark Theme</string>
+    <string name="light_theme" translatable="false">Light Theme</string>
+    <string name="System_default" translatable="false">System Default</string>
+    <string name="accent_color" translatable="false">Accent Color</string>
+    <string name="source_code" translatable="false">View Source Code</string>
 </resources>

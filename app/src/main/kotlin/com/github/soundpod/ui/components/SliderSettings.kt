@@ -39,18 +39,16 @@ val ValueTextColor = Color(0xFFF08A6E) // The value text is also salmon
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CustomStyledSlider(
+fun SliderSettingsItem(
     label: String,
     value: Float,
     onValueChange: (Float) -> Unit,
     valueRange: ClosedFloatingPointRange<Float>,
     valueLabel: (Float) -> String
 ) {
-    // --- 1. Interaction State for animations ---
     val interactionSource = remember { MutableInteractionSource() }
     val isDragging by interactionSource.collectIsDraggedAsState()
 
-    // --- 2. Animate values based on drag state ---
     val thumbAlpha by animateFloatAsState(
         targetValue = if (isDragging) 0f else 1f,
         label = "ThumbAlpha"
@@ -59,14 +57,12 @@ fun CustomStyledSlider(
         targetValue = if (isDragging) 28.dp else 10.dp, // Expands from 10dp to 16dp
         label = "TrackHeight"
     )
-    // ---------------------------------------------
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 12.dp)
     ) {
-        // --- Labels ---
         Text(
             text = label,
             color = LightTextColor,

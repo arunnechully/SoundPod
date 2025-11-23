@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.github.core.ui.LocalAppearance
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,13 +31,11 @@ fun SettingsScreenLayout(
     onBackClick: () -> Unit,
     content: @Composable () -> Unit
 ) {
-    val isDarkTheme = isSystemInDarkTheme()
-    val containerColor = if (isDarkTheme) Color.Black else Color(0xFFF6F6F8)
-    val textColor = if (isDarkTheme) Color.White else Color.Black
+    val (colorPalette) = LocalAppearance.current
     val scrollState = rememberScrollState()
 
     Scaffold(
-        containerColor = containerColor,
+        containerColor = colorPalette.background3,
         topBar = {
             TopAppBar(
                 title = { Text(title) },
@@ -46,13 +45,13 @@ fun SettingsScreenLayout(
                             imageVector = Icons.Default.ChevronLeft,
                             contentDescription = "Back",
                             modifier = Modifier.size(32.dp),
-                            tint = textColor
+                            tint = colorPalette.text
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = containerColor,
-                    titleContentColor = textColor
+                    containerColor = colorPalette.background3,
+                    titleContentColor = colorPalette.text
                 )
             )
         }

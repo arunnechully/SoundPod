@@ -93,7 +93,6 @@ fun CacheSettings(
             SettingsCard {
 
                 SwitchSetting(
-                    textColor = textColor,
                     icon = Icons.Outlined.HistoryToggleOff,
                     title = stringResource(id = R.string.pause_search_history),
                     description = stringResource(id = R.string.pause_search_history_description),
@@ -102,7 +101,6 @@ fun CacheSettings(
                 )
 
                 SettingColum(
-                    textColor = textColor,
                     icon = IconSource.Vector(Icons.Default.DeleteSweep),
                     title = stringResource(id = R.string.clear_search_history),
                     description = if (queriesCount > 0) {
@@ -123,7 +121,6 @@ fun CacheSettings(
                 )
 
                 SettingColum(
-                    textColor = textColor,
                     icon = IconSource.Vector(Icons.Outlined.RestartAlt),
                     title = stringResource(id = R.string.reset_quick_picks),
                     description = if (eventsCount > 0) {

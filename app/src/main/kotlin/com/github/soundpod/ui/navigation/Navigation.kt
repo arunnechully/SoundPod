@@ -143,7 +143,7 @@ fun Navigation(
             )
         }
 
-        composable(route = Routes.Artist::class) { navBackStackEntry ->
+        playerComposable(route = Routes.Artist::class) { navBackStackEntry ->
             val route: Routes.Artist = navBackStackEntry.toRoute()
 
             ArtistScreen(
@@ -157,7 +157,7 @@ fun Navigation(
             )
         }
 
-        composable(route = Routes.Album::class) { navBackStackEntry ->
+        playerComposable(route = Routes.Album::class) { navBackStackEntry ->
             val route: Routes.Album = navBackStackEntry.toRoute()
 
             AlbumScreen(
@@ -168,7 +168,7 @@ fun Navigation(
             )
         }
 
-        composable(route = Routes.Playlist::class) { navBackStackEntry ->
+        playerComposable(route = Routes.Playlist::class) { navBackStackEntry ->
             val route: Routes.Playlist = navBackStackEntry.toRoute()
 
             PlaylistScreen(
@@ -179,7 +179,7 @@ fun Navigation(
             )
         }
 
-        composable(route = Routes.Settings::class) {
+        playerComposable(route = Routes.Settings::class) {
             NewSettingsScreen(
                 navController = navController,
                 onBackClick = { navController.popBackStack() }
@@ -195,55 +195,55 @@ fun Navigation(
 //            )
 //        }
 
-        composable(route = Routes.Appearance::class) {
+        playerComposable(route = Routes.Appearance::class) {
             Appearance(
                 onBackClick = { navController.popBackStack() }
             )
         }
 
-        composable(route = Routes.Player::class) {
+        playerComposable(route = Routes.Player::class) {
             NewPlayerSettings(
                 onBackClick = { navController.popBackStack() }
             )
         }
 
-        composable(route = Routes.Privacy::class) {
+        playerComposable(route = Routes.Privacy::class) {
             Privacy(
                 onBackClick = { navController.popBackStack() }
             )
         }
 
-        composable(route = Routes.Backup::class) {
+        playerComposable(route = Routes.Backup::class) {
             Backup(
                 onBackClick = { navController.popBackStack() }
             )
         }
 
-        composable(route = Routes.Storage::class) {
+        playerComposable(route = Routes.Storage::class) {
             CacheSettings(
                 onBackClick = { navController.popBackStack() }
             )
         }
 
-        composable(route = Routes.More::class) {
+        playerComposable(route = Routes.More::class) {
             MoreSettings(
                 onBackClick = { navController.popBackStack() }
             )
         }
 
-        composable(route = Routes.Experiment::class) {
+        playerComposable(route = Routes.Experiment::class) {
             Experiment(
                 onBackClick = { navController.popBackStack() }
             )
         }
 
-        composable(route = Routes.About::class) {
+        playerComposable(route = Routes.About::class) {
             NewAboutSettings (
                 onBackClick = { navController.popBackStack() }
             )
         }
 
-        composable(route = Routes.Search::class) {
+        playerComposable(route = Routes.Search::class) {
             SearchScreen(
                 pop = popDestination,
                 onAlbumClick = navigateToAlbum,
@@ -254,7 +254,7 @@ fun Navigation(
             )
         }
 
-        composable(route = Routes.BuiltInPlaylist::class) { navBackStackEntry ->
+        playerComposable(route = Routes.BuiltInPlaylist::class) { navBackStackEntry ->
             val route: Routes.BuiltInPlaylist = navBackStackEntry.toRoute()
 
             BuiltInPlaylistScreen(
@@ -265,7 +265,7 @@ fun Navigation(
             )
         }
 
-        composable(route = Routes.LocalPlaylist::class) { navBackStackEntry ->
+        playerComposable(route = Routes.LocalPlaylist::class) { navBackStackEntry ->
             val route: Routes.LocalPlaylist = navBackStackEntry.toRoute()
 
             LocalPlaylistScreen(

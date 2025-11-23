@@ -38,28 +38,32 @@ data class ColorPalette(
 ) : Parcelable {
     @IgnoredOnParcel
     val background3 by lazy { if (isDark) Color.Black else Color.White }
+    @IgnoredOnParcel
+    val baseColor by lazy { if (isDark) Color(0xFF1E1E1E) else Color(0xFFFFFFFF) }
 
+    @IgnoredOnParcel
+    val boxColor by lazy { if (isDark) Color(0xFF1E1E1E) else Color(0xffe1e1e2) }
     companion object
 }
 
 private val defaultAccentColor = Color(0xff3e44ce).hsl
 
-val defaultLightPalette = ColorPalette(
-    background0 = Color(0xFFFCFCFE),
-    background1 = Color(0xfff8f8fc),
-    background2 = Color(0xffeaeaf5),
-    iconColor = Color.Black,
-    text = Color(0xff212121),
-    textSecondary = Color(0xff656566),
-    textDisabled = Color(0xff9d9d9d),
-    accent = defaultAccentColor.color,
-    onAccent = Color.White,
-    isDefault = true,
-    isDark = false
-)
+//val defaultLightPalette = ColorPalette(
+//    background0 = Color(0xFFFFFFFF),
+//    background1 = Color(0xfff8f8fc),
+//    background2 = Color(0xffeaeaf5),
+//    iconColor = Color.Black,
+//    text = Color(0xff212121),
+//    textSecondary = Color(0xff656566),
+//    textDisabled = Color(0xff9d9d9d),
+//    accent = defaultAccentColor.color,
+//    onAccent = Color.White,
+//    isDefault = true,
+//    isDark = false
+//)
 
 val defaultDarkPalette = ColorPalette(
-    background0 = Color(0xFF171717),
+    background0 = Color(0xFF1E1E1E),
     background1 = Color(0xff1f2029),
     background2 = Color(0xff2b2d3b),
     iconColor = Color.White,

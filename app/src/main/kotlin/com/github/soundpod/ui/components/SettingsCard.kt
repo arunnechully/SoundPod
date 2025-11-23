@@ -10,20 +10,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.github.core.ui.LocalAppearance
 
 @Composable
 fun SettingsCard(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val isDarkTheme = isSystemInDarkTheme()
-    val backgroundColor = if (isDarkTheme) Color(0xFF1E1E1E) else Color(0xFFFFFFFF)
+
+    val (colorPalette) = LocalAppearance.current
 
     Surface(
         modifier = modifier
             .fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        color = backgroundColor,
+        color = colorPalette.boxColor,
         tonalElevation = 3.dp,
         shadowElevation = 2.dp
     ) {

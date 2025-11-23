@@ -154,7 +154,6 @@ inline fun <T> ValueSelectorSettingsEntry(
     }
 
     SettingColum(
-        textColor = textColor,
         icon = icon,
         title = title,
         description = valueText(selectedValue),

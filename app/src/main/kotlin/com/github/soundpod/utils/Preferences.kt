@@ -4,7 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.SnapshotMutationPolicy
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -65,53 +66,107 @@ val Context.preferences: SharedPreferences
 @Composable
 fun rememberPreference(key: String, defaultValue: Boolean): MutableState<Boolean> {
     val context = LocalContext.current
-    return remember {
-        mutableStatePreferenceOf(context.preferences.getBoolean(key, defaultValue)) {
-            context.preferences.edit { putBoolean(key, it) }
+    val preferences = context.preferences
+    val state = remember { mutableStateOf(preferences.getBoolean(key, defaultValue)) }
+
+    DisposableEffect(key) {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPrefs, changedKey ->
+            if (changedKey == key) {
+                state.value = sharedPrefs.getBoolean(key, defaultValue)
+            }
+        }
+        preferences.registerOnSharedPreferenceChangeListener(listener)
+        onDispose {
+            preferences.unregisterOnSharedPreferenceChangeListener(listener)
         }
     }
+
+    LaunchedEffect(state.value) {
+        if (state.value != preferences.getBoolean(key, defaultValue)) {
+            preferences.edit { putBoolean(key, state.value) }
+        }
+    }
+
+    return state
 }
 
 @Composable
 fun rememberPreference(key: String, defaultValue: Int): MutableState<Int> {
     val context = LocalContext.current
-    return remember {
-        mutableStatePreferenceOf(context.preferences.getInt(key, defaultValue)) {
-            context.preferences.edit { putInt(key, it) }
+    val preferences = context.preferences
+    val state = remember { mutableStateOf(preferences.getInt(key, defaultValue)) }
+
+    DisposableEffect(key) {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPrefs, changedKey ->
+            if (changedKey == key) {
+                state.value = sharedPrefs.getInt(key, defaultValue)
+            }
+        }
+        preferences.registerOnSharedPreferenceChangeListener(listener)
+        onDispose {
+            preferences.unregisterOnSharedPreferenceChangeListener(listener)
         }
     }
+
+    LaunchedEffect(state.value) {
+        if (state.value != preferences.getInt(key, defaultValue)) {
+            preferences.edit { putInt(key, state.value) }
+        }
+    }
+
+    return state
 }
 
 @Composable
 fun rememberPreference(key: String, defaultValue: String): MutableState<String> {
     val context = LocalContext.current
-    return remember {
-        mutableStatePreferenceOf(context.preferences.getString(key, null) ?: defaultValue) {
-            context.preferences.edit { putString(key, it) }
+    val preferences = context.preferences
+    val state = remember { mutableStateOf(preferences.getString(key, null) ?: defaultValue) }
+
+    DisposableEffect(key) {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPrefs, changedKey ->
+            if (changedKey == key) {
+                state.value = sharedPrefs.getString(key, null) ?: defaultValue
+            }
+        }
+        preferences.registerOnSharedPreferenceChangeListener(listener)
+        onDispose {
+            preferences.unregisterOnSharedPreferenceChangeListener(listener)
         }
     }
+
+    LaunchedEffect(state.value) {
+        if (state.value != (preferences.getString(key, null) ?: defaultValue)) {
+            preferences.edit { putString(key, state.value) }
+        }
+    }
+
+    return state
 }
 
 @Composable
 inline fun <reified T : Enum<T>> rememberPreference(key: String, defaultValue: T): MutableState<T> {
     val context = LocalContext.current
-    return remember {
-        mutableStatePreferenceOf(context.preferences.getEnum(key, defaultValue)) {
-            context.preferences.edit { putEnum(key, it) }
+    val preferences = context.preferences
+    val state = remember { mutableStateOf(preferences.getEnum(key, defaultValue)) }
+
+    DisposableEffect(key) {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPrefs, changedKey ->
+            if (changedKey == key) {
+                state.value = sharedPrefs.getEnum(key, defaultValue)
+            }
+        }
+        preferences.registerOnSharedPreferenceChangeListener(listener)
+        onDispose {
+            preferences.unregisterOnSharedPreferenceChangeListener(listener)
         }
     }
-}
 
-inline fun <T> mutableStatePreferenceOf(
-    value: T,
-    crossinline onStructuralInequality: (newValue: T) -> Unit
-) =
-    mutableStateOf(
-        value = value,
-        policy = object : SnapshotMutationPolicy<T> {
-            override fun equivalent(a: T, b: T): Boolean {
-                val areEquals = a == b
-                if (!areEquals) onStructuralInequality(b)
-                return areEquals
-            }
-        })
+    LaunchedEffect(state.value) {
+        if (state.value != preferences.getEnum(key, defaultValue)) {
+            preferences.edit { putEnum(key, state.value) }
+        }
+    }
+
+    return state
+}

@@ -37,6 +37,7 @@ fun Appearance(
 
     val context = LocalContext.current
     var apptheme by rememberPreference(appTheme, AppThemeColor.System)
+
     SettingsScreenLayout(
         title = stringResource(id = R.string.appearance),
         onBackClick = onBackClick,
@@ -63,16 +64,7 @@ fun Appearance(
                     valueText = { context.getString(it.resourceId) }
                 )
 
-//                SettingColum(
-//                    textColor = textColor,
-//                    icon = IconSource.Icon( painterResource(id = R.drawable.dark_mode)),
-//                    title = stringResource(id = R.string.app_theme),
-//                    description = stringResource(id = R.string.app_theme_description),
-//                    onClick = {},
-//                )
-
                 SettingColum(
-                    textColor = textColor,
                     icon = IconSource.Icon( painterResource(id = R.drawable.color_mode)),
                     title = "Accent Color",
                     description = "Choose your preferred accent color",
@@ -93,14 +85,12 @@ fun Appearance(
 
             SettingsCard{
                 SettingColum(
-                    textColor = textColor,
                     icon = IconSource.Icon( painterResource(id = R.drawable.wave)),
                     title = "Progress Bar Style",
                     description = "Choose your preferred progress bar style",
                     onClick = {},
                 )
                 SettingColum(
-                    textColor = textColor,
                     icon = IconSource.Vector(Icons.Default.BlurOn),
                     title = "Background Style",
                     description = "Choose your preferred background style",

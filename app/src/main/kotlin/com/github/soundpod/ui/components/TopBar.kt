@@ -75,7 +75,7 @@ fun TopBar(
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = containerColor,
+            containerColor = Color.Transparent,
             titleContentColor = if (isDarkTheme) Color.White else Color.Black
         )
     )

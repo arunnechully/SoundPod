@@ -24,7 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.github.soundpod.R
 import com.github.soundpod.ui.common.IconSource
-import com.github.soundpod.ui.components.CustomStyledSlider
+import com.github.soundpod.ui.components.SliderSettingsItem
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.components.SwitchSetting
@@ -71,14 +71,12 @@ fun NewPlayerSettings(
 
             SettingsCard {
                 SettingColum(
-                    textColor = textColor,
                     icon = IconSource.Vector(Icons.Default.Timer),
                     title = "Sleep Timer",
                     description = "Set playback duration",
                     onClick = {},
                 )
                 SwitchSetting(
-                    textColor = textColor,
                     icon = Icons.Default.MusicOff,
                     title = stringResource(id = R.string.skip_silence),
                     description = stringResource(id = R.string.skip_silence_description),
@@ -88,7 +86,6 @@ fun NewPlayerSettings(
                     }
                 )
                 SwitchSetting(
-                    textColor = textColor,
                     painterRes = R.drawable.audio_focus,
                     title = "Audio Focus",
                     description = "Pause playback when other media is playing",
@@ -96,7 +93,6 @@ fun NewPlayerSettings(
                     onSwitchChange = { audioFocus = it }
                 )
                 SwitchSetting(
-                    textColor = textColor,
                     icon = Icons.Default.Pause,
                     title = "Auto Pause",
                     description = "Pause playback when volume is muted",
@@ -106,7 +102,6 @@ fun NewPlayerSettings(
 
                 if (isAtLeastAndroid6) {
                     SwitchSetting(
-                        textColor = textColor,
                         painterRes = R.drawable.headphone,
                         title = stringResource(id = R.string.resume_playback),
                         description = stringResource(id = R.string.resume_playback_description),
@@ -129,7 +124,7 @@ fun NewPlayerSettings(
             Spacer(modifier = Modifier.height(8.dp))
 
             SettingsCard {
-                CustomStyledSlider(
+                SliderSettingsItem(
                     label = "Play speed",
                     value = playSpeed,
                     onValueChange = { playSpeed = it },
@@ -139,7 +134,7 @@ fun NewPlayerSettings(
                     }
                 )
 
-                CustomStyledSlider(
+                SliderSettingsItem(
                     label = "Crossfade between tracks",
                     value = crossfade,
                     onValueChange = { crossfade = it },
@@ -151,7 +146,6 @@ fun NewPlayerSettings(
                 )
 
                 SwitchSetting(
-                    textColor = textColor,
                     icon = Icons.AutoMirrored.Filled.VolumeUp,
                     title = stringResource(id = R.string.loudness_normalization),
                     description = stringResource(id = R.string.loudness_normalization_description),

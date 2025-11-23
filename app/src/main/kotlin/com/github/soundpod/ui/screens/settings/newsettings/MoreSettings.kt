@@ -116,7 +116,6 @@ fun MoreSettings(
                 }
 
                 SwitchSetting(
-                    textColor = textColor,
                     painterRes = R.drawable.android_auto,
                     title = stringResource(id = R.string.android_auto),
                     description = stringResource(id = R.string.android_auto_description),

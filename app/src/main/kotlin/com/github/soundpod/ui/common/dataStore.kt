@@ -3,7 +3,9 @@ package com.github.soundpod.ui.common
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.github.core.ui.ColorMode
 import kotlinx.coroutines.flow.map
 
 val Context.updateDataStore by preferencesDataStore("update_prefs")
@@ -11,6 +13,9 @@ val Context.updateDataStore by preferencesDataStore("update_prefs")
 object UpdatePrefs {
     val AUTO_CHECK_ENABLED = booleanPreferencesKey("auto_check_enabled")
     val SHOW_UPDATE_ALERT = booleanPreferencesKey("show_update_alert")
+
+    val THEME_KEY = stringPreferencesKey("theme_preference")
+
 }
 
 fun autoCheckEnabled(context: Context) =
@@ -32,5 +37,17 @@ suspend fun setAutoCheckEnabled(context: Context, value: Boolean) {
 suspend fun setShowUpdateAlert(context: Context, value: Boolean) {
     context.updateDataStore.edit {
         it[UpdatePrefs.SHOW_UPDATE_ALERT] = value
+    }
+}
+
+fun themePreference(context: Context) =
+    context.updateDataStore.data.map {
+        val value = it[UpdatePrefs.THEME_KEY] ?: ColorMode.System.name
+        ColorMode.valueOf(value)
+    }
+
+suspend fun setThemePreference(context: Context, mode: ColorMode) {
+    context.updateDataStore.edit {
+        it[UpdatePrefs.THEME_KEY] = mode.name
     }
 }

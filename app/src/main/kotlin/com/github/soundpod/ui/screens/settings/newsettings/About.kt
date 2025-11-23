@@ -102,12 +102,22 @@ fun NewAboutSettings(
     var autoCheckEnabled by rememberSaveable { mutableStateOf(true) }
     var showAlertEnabled by rememberSaveable { mutableStateOf(true) }
 
+    var settingsLoaded by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
-        autoCheckEnabled(context).collect { autoCheckEnabled = it }
+        autoCheckEnabled(context).collect {
+            autoCheckEnabled = it
+            settingsLoaded = true
+        }
     }
+
     LaunchedEffect(Unit) {
-        showUpdateAlert(context).collect { showAlertEnabled = it }
+        showUpdateAlert(context).collect {
+            showAlertEnabled = it
+            settingsLoaded = true
+        }
     }
+
 
 
     SettingsScreenLayout(
@@ -164,7 +174,7 @@ fun NewAboutSettings(
                 SettingsCard {
                     ListItem(
                         headlineContent = {
-                            Text(text = stringResource(id = R.string.github))
+                            Text(text = stringResource(id = R.string.source_code))
                         },
                         leadingContent = {
                             Icon(
@@ -178,35 +188,37 @@ fun NewAboutSettings(
                     )
                 }
 
-                SwitchSetting(
-                    textColor = MaterialTheme.colorScheme.onSurface,
-                    icon = Icons.Default.Update,
-                    title = "Auto-check for updates",
-                    description = "Check for new versions silently in background",
-                    switchState = autoCheckEnabled,
-                    onSwitchChange = { enabled ->
-                        autoCheckEnabled = enabled
-                        CoroutineScope(Dispatchers.IO).launch {
-                            setAutoCheckEnabled(context, enabled)
-                        }
-                    }
-                )
+                Spacer(modifier = Modifier.height(16.dp))
 
-                Spacer(Modifier.height(8.dp))
+                SettingsCard {
+                    if (settingsLoaded) {
+                        SwitchSetting(
+                            icon = Icons.Default.Update,
+                            title = "Auto-check for updates",
+                            description = "Check for new versions silently in background",
+                            switchState = autoCheckEnabled,
+                            onSwitchChange = { enabled ->
+                                autoCheckEnabled = enabled
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    setAutoCheckEnabled(context, enabled)
+                                }
+                            }
+                        )
 
-                SwitchSetting(
-                    textColor = MaterialTheme.colorScheme.onSurface,
-                    icon = Icons.Default.Notifications,
-                    title = "Show update alert",
-                    description = "Show popup on Home screen if a new version is available",
-                    switchState = showAlertEnabled,
-                    onSwitchChange = { enabled ->
-                        showAlertEnabled = enabled
-                        CoroutineScope(Dispatchers.IO).launch {
-                            setShowUpdateAlert(context, enabled)
-                        }
+                        SwitchSetting(
+                            icon = Icons.Default.Notifications,
+                            title = "Show update alert",
+                            description = "Show popup on Home screen if a new version is available",
+                            switchState = showAlertEnabled,
+                            onSwitchChange = { enabled ->
+                                showAlertEnabled = enabled
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    setShowUpdateAlert(context, enabled)
+                                }
+                            }
+                        )
                     }
-                )
+                }
 
             }
 

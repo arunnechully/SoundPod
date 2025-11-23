@@ -85,7 +85,6 @@ fun Backup(
 
             SettingsCard {
                 SettingColum(
-                    textColor = textColor,
                     icon = IconSource.Icon( painterResource(id = R.drawable.backup)),
                     title = stringResource(id = R.string.backup),
                     description = stringResource(id = R.string.backup_description),
@@ -101,7 +100,6 @@ fun Backup(
                 )
 
                 SettingColum(
-                    textColor = textColor,
                     icon = IconSource.Vector(Icons.Default.Restore),
                     title = stringResource(id = R.string.restore),
                     description = stringResource(id = R.string.restore_description),
