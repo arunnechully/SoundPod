@@ -1,6 +1,5 @@
 package com.github.soundpod.ui.screens.settings.newsettings
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
@@ -12,12 +11,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
 import com.github.soundpod.enums.AppThemeColor
 import com.github.soundpod.ui.common.IconSource
@@ -32,9 +31,7 @@ import com.github.soundpod.utils.rememberPreference
 fun Appearance(
     onBackClick: () -> Unit
 ) {
-    val isDarkTheme = isSystemInDarkTheme()
-    val textColor = if (isDarkTheme) Color.White else Color.Black
-
+    val (colorPalette) = LocalAppearance.current
     val context = LocalContext.current
     var apptheme by rememberPreference(appTheme, AppThemeColor.System)
 
@@ -49,7 +46,7 @@ fun Appearance(
                 text = stringResource(id = R.string.theme),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.ExtraBold,
-                color = textColor.copy(alpha = 0.7f)
+                color = colorPalette.text.copy(alpha = 0.7f)
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -78,7 +75,7 @@ fun Appearance(
                 text = "Animations",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.ExtraBold,
-                color = textColor.copy(alpha = 0.7f)
+                color = colorPalette.text.copy(alpha = 0.7f)
             )
 
             Spacer(modifier = Modifier.height(8.dp))

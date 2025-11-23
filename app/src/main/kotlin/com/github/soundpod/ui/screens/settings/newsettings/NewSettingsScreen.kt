@@ -164,7 +164,7 @@ fun SettingRow(
 fun SettingColum(
     icon: IconSource? = null,
     title: String,
-    description: String,
+    description: String? = null,
     onClick: () -> Unit,
     isEnabled: Boolean = true,
     trailingContent: @Composable (() -> Unit)? = null
@@ -199,12 +199,18 @@ fun SettingColum(
         }
 
         Column(Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.bodyLarge, color = colorPalette.text)
             Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = colorPalette.text.copy(alpha = 0.7f)
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = colorPalette.text
             )
+            if (description != null) {
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colorPalette.text.copy(alpha = 0.7f)
+                )
+            }
         }
 
         trailingContent?.invoke()

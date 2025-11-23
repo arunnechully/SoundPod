@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.core.ui.LocalAppearance
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,10 +30,7 @@ fun TopBar(
     onSearch: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
-    val isDarkTheme = isSystemInDarkTheme()
-    val iconColor = if (isDarkTheme) Color.White else Color.Black
-    val containerColor = if (isDarkTheme) Color.Black else Color(0xFFF6F6F8)
-
+    val (colorPalette) = LocalAppearance.current
     TopAppBar(
         title = {
             Text(
@@ -53,12 +51,12 @@ fun TopBar(
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = "Search",
-                    tint = iconColor
+                    tint = colorPalette.text
                 )
 
                 Text(
                     text = "Search",
-                    color = iconColor,
+                    color = colorPalette.text,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -70,13 +68,13 @@ fun TopBar(
                 Icon(
                     imageVector = Icons.Default.Settings,
                     contentDescription = "Settings",
-                    tint = iconColor
+                    tint = colorPalette.text
                 )
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
-            titleContentColor = if (isDarkTheme) Color.White else Color.Black
+            titleContentColor = colorPalette.text
         )
     )
 }

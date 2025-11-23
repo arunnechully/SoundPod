@@ -46,21 +46,21 @@ data class ColorPalette(
     companion object
 }
 
-private val defaultAccentColor = Color(0xff3e44ce).hsl
+private val defaultAccentColor = Color(0xFFF08A6E).hsl
 
-//val defaultLightPalette = ColorPalette(
-//    background0 = Color(0xFFFFFFFF),
-//    background1 = Color(0xfff8f8fc),
-//    background2 = Color(0xffeaeaf5),
-//    iconColor = Color.Black,
-//    text = Color(0xff212121),
-//    textSecondary = Color(0xff656566),
-//    textDisabled = Color(0xff9d9d9d),
-//    accent = defaultAccentColor.color,
-//    onAccent = Color.White,
-//    isDefault = true,
-//    isDark = false
-//)
+val defaultLightPalette = ColorPalette(
+    background0 = Color(0xFFFFFFFF),
+    background1 = Color(0xfff8f8fc),
+    background2 = Color(0xffeaeaf5),
+    iconColor = Color.Black,
+    text = Color(0xff212121),
+    textSecondary = Color(0xff656566),
+    textDisabled = Color(0xff9d9d9d),
+    accent = defaultAccentColor.color,
+    onAccent = Color.White,
+    isDefault = true,
+    isDark = false
+)
 
 val defaultDarkPalette = ColorPalette(
     background0 = Color(0xFF1E1E1E),

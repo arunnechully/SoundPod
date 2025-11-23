@@ -29,13 +29,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-// --- Define the colors from your image ---
-val SalmonColor = Color(0xFFF08A6E)
-val DarkGrayColor = Color(0xFF3D3D3D)
-val AlmostBlackColor = Color(0xFF000000) // For the thumb center
-val LightTextColor = Color(0xFFE0E0E0)
-val ValueTextColor = Color(0xFFF08A6E) // The value text is also salmon
+import com.github.core.ui.LocalAppearance
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,9 +48,11 @@ fun SliderSettingsItem(
         label = "ThumbAlpha"
     )
     val trackHeight by animateDpAsState(
-        targetValue = if (isDragging) 28.dp else 10.dp, // Expands from 10dp to 16dp
+        targetValue = if (isDragging) 28.dp else 10.dp,
         label = "TrackHeight"
     )
+
+    val (colorPalette) = LocalAppearance.current
 
     Column(
         modifier = Modifier
@@ -65,40 +61,37 @@ fun SliderSettingsItem(
     ) {
         Text(
             text = label,
-            color = LightTextColor,
+            color = colorPalette.text,
             fontSize = 18.sp,
             fontWeight = FontWeight.Medium
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = valueLabel(value),
-            color = ValueTextColor,
+            color = colorPalette.accent,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
         Spacer(modifier = Modifier.height(4.dp))
 
-        // --- Custom Slider ---
         Slider(
             value = value,
             onValueChange = onValueChange,
             valueRange = valueRange,
-            interactionSource = interactionSource, // --- 3. Pass interactionSource ---
+            interactionSource = interactionSource,
             modifier = Modifier.fillMaxWidth(),
 
-            // --- Custom Thumb ---
             thumb = {
                 Box(
                     modifier = Modifier
-                        .graphicsLayer { alpha = thumbAlpha } // --- 4. Apply animated alpha ---
+                        .graphicsLayer { alpha = thumbAlpha }
                         .size(24.dp)
-                        .background(AlmostBlackColor, CircleShape)
-                        .border(3.dp, SalmonColor, CircleShape)
+                        .background(colorPalette.background3, CircleShape)
+                        .border(3.dp, colorPalette.accent, CircleShape)
                 )
             },
 
-            // --- Custom Track ---
             track = { sliderState ->
                 val range = sliderState.valueRange.endInclusive - sliderState.valueRange.start
                 val fraction = if (range == 0f) {
@@ -111,13 +104,13 @@ fun SliderSettingsItem(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(trackHeight)
-                        .background(DarkGrayColor, CircleShape)
+                        .background(colorPalette.onAccent, CircleShape)
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxHeight()
                             .fillMaxWidth(fraction)
-                            .background(SalmonColor, CircleShape)
+                            .background(colorPalette.accent, CircleShape)
                     )
                 }
             },
