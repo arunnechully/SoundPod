@@ -50,7 +50,7 @@ fun SettingsScreenLayout(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = colorPalette.background3,
+                    containerColor = Color.Transparent,
                     titleContentColor = colorPalette.text
                 )
             )

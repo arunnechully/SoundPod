@@ -3,7 +3,6 @@ package com.github.soundpod.ui.screens.settings
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,7 +34,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
@@ -44,6 +42,7 @@ import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.R
 import com.github.soundpod.enums.SettingsSection
 import com.github.soundpod.ui.common.IconSource
+import com.github.soundpod.ui.components.ThemeSelectorDialog
 import com.github.soundpod.ui.components.ValueSelectorDialog
 import com.github.soundpod.ui.screens.settings.newsettings.SettingColum
 import com.github.soundpod.ui.styling.Dimensions
@@ -137,20 +136,20 @@ inline fun <T> ValueSelectorSettingsEntry(
     crossinline valueText: (T) -> String = { it.toString() },
     noinline trailingContent: @Composable (() -> Unit)? = null
 ) {
-    val isDarkTheme = isSystemInDarkTheme()
-    val textColor = if (isDarkTheme) Color.White else Color.Black
-
     var isShowingDialog by remember { mutableStateOf(false) }
 
     if (isShowingDialog) {
-        ValueSelectorDialog(
-            onDismiss = { isShowingDialog = false },
+        ThemeSelectorDialog(
             title = title,
             selectedValue = selectedValue,
             values = values,
-            onValueSelected = onValueSelected,
+            onValueSelected = {
+                onValueSelected(it)
+            },
+            onDismiss = { isShowingDialog = false },
             valueText = valueText
         )
+
     }
 
     SettingColum(

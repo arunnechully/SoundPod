@@ -1,6 +1,5 @@
 package com.github.soundpod.ui.screens.player
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -22,8 +20,8 @@ import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -46,7 +44,6 @@ import com.github.soundpod.utils.DisposableListener
 import com.github.soundpod.utils.positionAndDurationState
 import com.github.soundpod.utils.shouldBePlaying
 import com.github.soundpod.utils.thumbnail
-import kotlin.math.absoluteValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,10 +84,13 @@ fun NewMiniPlayer(
         1f to Color.Transparent
     )
 
-    val (colorPalette, typography) = LocalAppearance.current
+    val (colorPalette) = LocalAppearance.current
+
     Column(
         verticalArrangement = Arrangement.Center,
         modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape = MaterialTheme.shapes.extraLarge)
             .drawBehind {
                 val position = positionAndDuration.first
                 val duration = positionAndDuration.second
@@ -109,8 +109,8 @@ fun NewMiniPlayer(
                     )
                 }
             }
-            .fillMaxWidth()
-            .height(64.dp)
+
+            .height(65.dp)
             .clickable(onClick = openPlayer)
     ){
             ListItem(

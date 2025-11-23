@@ -45,13 +45,14 @@ fun PlayerScaffold(
     Box(
         modifier = Modifier
             .windowInsetsPadding(
-            WindowInsets(
-                left = scaffoldPadding.calculateLeftPadding(layoutDirection),
-                right = scaffoldPadding.calculateRightPadding(layoutDirection)
+                WindowInsets(
+                    left = scaffoldPadding.calculateLeftPadding(layoutDirection),
+                    right = scaffoldPadding.calculateRightPadding(layoutDirection)
+                )
             )
-        )
     ) {
         BottomSheetScaffold(
+            sheetShape = MaterialTheme.shapes.extraLarge,
             sheetContent = {
                 AnimatedContent(
                     targetState = sheetState.targetValue,

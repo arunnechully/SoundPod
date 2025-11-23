@@ -128,7 +128,8 @@ fun NewPlayer(
 
             PlayerTopControl(
                 onGoToAlbum = onGoToAlbum,
-                onGoToArtist = onGoToArtist
+                onGoToArtist = onGoToArtist,
+                onBack = {},
             )
 
             Box(Modifier.weight(1f)) {
