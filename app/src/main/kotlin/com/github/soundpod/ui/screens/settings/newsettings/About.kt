@@ -186,8 +186,8 @@ fun NewAboutSettings(
                     if (settingsLoaded) {
                         SwitchSetting(
                             icon = Icons.Default.Update,
-                            title = "Auto-check for updates",
-                            description = "Check for new versions silently in background",
+                            title = stringResource(id = R.string.autocheck),
+                            description = stringResource(id = R.string.autocheck_description),
                             switchState = autoCheckEnabled,
                             onSwitchChange = { enabled ->
                                 autoCheckEnabled = enabled
@@ -199,8 +199,8 @@ fun NewAboutSettings(
 
                         SwitchSetting(
                             icon = Icons.Default.Notifications,
-                            title = "Show update alert",
-                            description = "Show popup on Home screen if a new version is available",
+                            title = stringResource(id = R.string.update_alert),
+                            description = stringResource(id = R.string.update_alert_desription),
                             switchState = showAlertEnabled,
                             onSwitchChange = { enabled ->
                                 showAlertEnabled = enabled
@@ -289,21 +289,20 @@ fun NewAboutSettings(
                                         style = MaterialTheme.typography.titleMedium
                                     )
 
-                                        FilledTonalButton(
-                                            onClick = {
-                                                apkUrl?.let { url ->
-                                                    downloadApk(context, url)
-                                                }
+                                    FilledTonalButton(
+                                        onClick = {
+                                            apkUrl?.let { url ->
+                                                downloadApk(context, url)
                                             }
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(id = R.drawable.download),
-                                                contentDescription = "Update Now"
-                                            )
-                                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                            Text(text = "Update Now")
                                         }
-//                                    }
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.download),
+                                            contentDescription = "Update Now"
+                                        )
+                                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                        Text(text = "Update Now")
+                                    }
                                 }
                             }
 

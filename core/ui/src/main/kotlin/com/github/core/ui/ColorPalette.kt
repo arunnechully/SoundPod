@@ -38,11 +38,13 @@ data class ColorPalette(
 ) : Parcelable {
     @IgnoredOnParcel
     val background3 by lazy { if (isDark) Color.Black else Color.White }
-    @IgnoredOnParcel
-    val baseColor by lazy { if (isDark) Color(0xFF1E1E1E) else Color(0xFFFFFFFF) }
 
     @IgnoredOnParcel
-    val boxColor by lazy { if (isDark) Color(0xFF1E1E1E) else Color(0xffe1e1e2) }
+    val background4 by lazy { if (isDark) Color.Black else Color(0xFFF6F6F8) }
+    @IgnoredOnParcel
+    val baseColor by lazy { if (isDark) Color(0xFF1E1E1E) else Color.White }
+    @IgnoredOnParcel
+    val boxColor by lazy { if (isDark) Color(0xFF1E1E1E) else Color.White  }
     companion object
 }
 

@@ -25,8 +25,8 @@ fun SettingsCard(
             .fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         color = colorPalette.boxColor,
-        tonalElevation = 3.dp,
-        shadowElevation = 2.dp
+//        tonalElevation = 3.dp,
+//        shadowElevation = 2.dp
     ) {
         Column(
             modifier = Modifier

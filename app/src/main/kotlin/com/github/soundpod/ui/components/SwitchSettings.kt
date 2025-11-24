@@ -14,12 +14,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
+import com.github.core.ui.surface
 
 @Composable
 fun SwitchSetting(
@@ -78,7 +80,9 @@ fun SwitchSetting(
                 onSwitchChange(checked)
             },
             colors = SwitchDefaults.colors(
-                checkedTrackColor = colorPalette.accent
+                checkedTrackColor = colorPalette.accent,
+                checkedThumbColor = colorPalette.onAccent,
+                uncheckedThumbColor = colorPalette.onAccent
             )
         )
     }

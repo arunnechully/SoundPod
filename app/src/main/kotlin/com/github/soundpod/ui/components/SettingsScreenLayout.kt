@@ -35,7 +35,7 @@ fun SettingsScreenLayout(
     val scrollState = rememberScrollState()
 
     Scaffold(
-        containerColor = colorPalette.background3,
+        containerColor = colorPalette.background4,
         topBar = {
             TopAppBar(
                 title = { Text(title) },

@@ -32,11 +32,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.github.soundpod.R
 import com.github.soundpod.service.PlayerMediaBrowserService
+import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.components.SwitchSetting
@@ -99,19 +101,19 @@ fun MoreSettings(
 
 
     SettingsScreenLayout(
-        title =stringResource(id = R.string.more_settings),
+        title = stringResource(id = R.string.more_settings),
         onBackClick = onBackClick,
         content = {
 
             SettingsCard {
 
                 if (!isAtLeastAndroid13) {
-                    SwitchSettingEntry(
-                        title = stringResource(id = R.string.show_song_cover),
-                        text = stringResource(id = R.string.show_song_cover_description),
+                    SwitchSetting(
                         icon = Icons.Outlined.Image,
-                        isChecked = isShowingThumbnailInLockscreen,
-                        onCheckedChange = { isShowingThumbnailInLockscreen = it }
+                        title = stringResource(id = R.string.show_song_cover),
+                        description = stringResource(id = R.string.show_song_cover_description),
+                        switchState = isShowingThumbnailInLockscreen,
+                        onSwitchChange = { isShowingThumbnailInLockscreen = it }
                     )
                 }
 
@@ -128,7 +130,6 @@ fun MoreSettings(
                     }
                 )
 
-                /* Dialog */
                 if (showInfoDialog) {
                     AlertDialog(
                         onDismissRequest = { showInfoDialog = false },
@@ -158,91 +159,89 @@ fun MoreSettings(
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.labelLarge
             )
+            SettingsCard {
+                SettingColum(
+                    icon = IconSource.Vector(Icons.Outlined.Battery0Bar),
+                    title = stringResource(id = R.string.ignore_battery_optimizations),
+                    description = if (isIgnoringBatteryOptimizations) {
+                        stringResource(id = R.string.already_unrestricted)
+                    } else {
+                        stringResource(id = R.string.disable_background_restrictions)
+                    },
+                    onClick = {
+                        if (!isAtLeastAndroid6) return@SettingColum
 
-            SettingsEntry(
-                title = stringResource(id = R.string.ignore_battery_optimizations),
-                text = if (isIgnoringBatteryOptimizations) {
-                    stringResource(id = R.string.already_unrestricted)
-                } else {
-                    stringResource(id = R.string.disable_background_restrictions)
-                },
-                icon = Icons.Outlined.Battery0Bar,
-                onClick = {
-                    if (!isAtLeastAndroid6) return@SettingsEntry
-
-                    try {
-                        activityResultLauncher.launch(
-                            Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                                data = "package:${context.packageName}".toUri()
-                            }
-                        )
-                    } catch (_: ActivityNotFoundException) {
                         try {
                             activityResultLauncher.launch(
-                                Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                                Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                                    data = "package:${context.packageName}".toUri()
+                                }
                             )
                         } catch (_: ActivityNotFoundException) {
-                            context.toast("Couldn't find battery optimization settings, please whitelist Music You manually")
+                            try {
+                                activityResultLauncher.launch(
+                                    Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                                )
+                            } catch (_: ActivityNotFoundException) {
+                                context.toast("Couldn't find battery optimization settings, please whitelist Music You manually")
+                            }
                         }
-                    }
-                },
-                isEnabled = !isIgnoringBatteryOptimizations
-            )
+                    },
+                    isEnabled = !isIgnoringBatteryOptimizations
+                )
 
-            SwitchSettingEntry(
-                title = stringResource(id = R.string.service_lifetime),
-                text = stringResource(id = R.string.service_lifetime_description),
-                icon = Icons.Outlined.Stars,
-                isChecked = isInvincibilityEnabled,
-                onCheckedChange = { isInvincibilityEnabled = it }
-            )
-
+                SwitchSetting(
+                    icon = Icons.Outlined.Stars,
+                    title = stringResource(id = R.string.service_lifetime),
+                    description = stringResource(id = R.string.service_lifetime_description),
+                    switchState = isInvincibilityEnabled,
+                    onSwitchChange = { isInvincibilityEnabled = it }
+                )
+            }
             SettingsInformation(
                 text = stringResource(id = R.string.service_lifetime_information) +
                         if (isAtLeastAndroid12) "\n" + stringResource(id = R.string.service_lifetime_information_plus) else ""
             )
-
-            if (isAtLeastAndroid13) {
-                val intent = Intent(
-                    Settings.ACTION_APP_LOCALE_SETTINGS,
-                    "package:${context.packageName}".toUri()
-                )
-
-                SettingsEntry(
-                    title = stringResource(id = R.string.app_language),
-                    text = stringResource(id = R.string.configure_app_language),
-                    icon = Icons.Outlined.Language,
-                    onClick = {
-                        try {
-                            context.startActivity(intent)
-                        } catch (_: ActivityNotFoundException) {
-                            context.toast("Couldn't find app language settings, please configure them manually")
+            SettingsCard {
+                if (isAtLeastAndroid13) {
+                    val intent = Intent(
+                        Settings.ACTION_APP_LOCALE_SETTINGS,
+                        "package:${context.packageName}".toUri()
+                    )
+                    SettingColum(
+                        icon = IconSource.Vector(Icons.Outlined.Language),
+                        title = stringResource(id = R.string.app_language),
+                        description = stringResource(id = R.string.configure_app_language),
+                        onClick = {
+                            try {
+                                context.startActivity(intent)
+                            } catch (_: ActivityNotFoundException) {
+                                context.toast("Couldn't find app language settings, please configure them manually")
+                            }
                         }
-                    }
-                )
-            }
+                    )
+                }
 
 
-            if (isAtLeastAndroid12) {
-                val intent = Intent(
-                    Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS,
-                    "package:${context.packageName}".toUri()
-                )
-
-                SettingsEntry(
-                    title = stringResource(id = R.string.open_supported_links_by_default),
-                    text = stringResource(id = R.string.configure_supported_links),
-                    icon = Icons.Outlined.AddLink,
-                    onClick = {
-                        try {
-                            context.startActivity(intent)
-                        } catch (_: Exception) {
-                            context.toast("Couldn't find supported links settings, please configure them manually")
+                if (isAtLeastAndroid12) {
+                    val intent = Intent(
+                        Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS,
+                        "package:${context.packageName}".toUri()
+                    )
+                    SettingColum(
+                        icon = IconSource.Vector(Icons.Outlined.AddLink),
+                        title = stringResource(id = R.string.open_supported_links_by_default),
+                        description = stringResource(id = R.string.configure_supported_links),
+                        onClick = {
+                            try {
+                                context.startActivity(intent)
+                            } catch (_: Exception) {
+                                context.toast("Couldn't find supported links settings, please configure them manually")
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
-
         }
     )
 }

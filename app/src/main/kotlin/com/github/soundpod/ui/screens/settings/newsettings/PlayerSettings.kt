@@ -39,7 +39,7 @@ import com.github.soundpod.utils.volumeNormalizationKey
 import kotlinx.coroutines.flow.flowOf
 import java.util.Locale
 
-@Suppress("AssignedValueIsNeverRead", "KotlinUnreachableCode")
+@Suppress("AssignedValueIsNeverRead")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewPlayerSettings(

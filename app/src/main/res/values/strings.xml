@@ -209,4 +209,8 @@
     <string name="System_default" translatable="false">System Default</string>
     <string name="accent_color" translatable="false">Accent Color</string>
     <string name="source_code" translatable="false">View Source Code</string>
+    <string name="autocheck">Auto check for updates</string>
+    <string name="autocheck_description">Automatically check for new versions in background</string>
+    <string name="update_alert">Show update alert</string>
+    <string name="update_alert_desription">Show popup on Home screen if a new version is available</string>
 </resources>
