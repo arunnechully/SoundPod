@@ -1,30 +1,31 @@
 [versions]
-activity = "1.11.0"
+activity = "1.12.0"
 agp = "8.13.1"
 brotli = "0.1.2"
 coil = "3.3.0"
-compose-bom = "2025.10.00"
+compose-bom = "2025.11.01"
 compose-shimmer = "1.3.3"
-core-splashscreen = "1.0.1"
+core-splashscreen = "1.2.0"
+datastore-preferences = "1.2.0"
 desugaring = "2.1.5"
 kotlin = "2.1.21"
 kotlin-coroutines = "1.10.2"
 kotlin-ksp = "2.1.21-2.0.2"
-lifecycle = "2.9.4"
-ktor = "3.3.1"
+lifecycle = "2.10.0"
+ktor = "3.3.2"
 material-motion = "2.0.1"
 media = "1.7.1"
 media3 = "1.8.0"
-navigation = "2.9.5"
+navigation = "2.9.6"
 reorderable = "3.0.0"
-room = "2.8.2"
+room = "2.8.4"
 swipe = "1.3.0"
 core-ktx = "1.17.0"
 junit = "4.13.2"
-junit-version = "1.1.5"
-espresso-core = "3.5.1"
-appcompat = "1.6.1"
-material = "1.10.0"
+junit-version = "1.3.0"
+espresso-core = "3.7.0"
+appcompat = "1.7.1"
+material = "1.13.0"
 detekt = "1.23.8"
 
 [libraries]
@@ -43,6 +44,7 @@ compose-shimmer = { group = "com.valentinilk.shimmer", name = "compose-shimmer",
 compose-ui = { group = "androidx.compose.ui", name = "ui" }
 compose-ui-util = { group = "androidx.compose.ui", name = "ui-util" }
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
+datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore-preferences" }
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugaring" }
 kotlin-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlin-coroutines" }
 ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
@@ -66,10 +68,10 @@ espresso-core = { group = "androidx.test.espresso", name = "espresso-core", vers
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
-detekt_compose = { module = "io.nlopez.compose.rules:detekt", version = "0.4.27" }
+detekt_compose = { module = "io.nlopez.compose.rules:detekt", version = "0.4.28" }
 detekt_formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 palette = { module = "androidx.palette:palette", version = "1.0.0" }
-compose_lottie = { module = "com.airbnb.android:lottie-compose", version = "6.6.7" }
+compose_lottie = { module = "com.airbnb.android:lottie-compose", version = "6.7.1" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

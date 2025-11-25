@@ -24,7 +24,7 @@ android {
         minSdk = 23
         targetSdk = 36
         versionCode = 13
-        versionName = "1.0.4"
+        versionName = "1.0.5"
     }
 
     splits {
@@ -88,7 +88,7 @@ dependencies {
     implementation(libs.room)
     implementation(libs.swipe)
     implementation(libs.compose.lottie)
-    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation(libs.datastore.preferences)
     ksp(libs.room.compiler)
     implementation(projects.core.ui)
     implementation(projects.github)
