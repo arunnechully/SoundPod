@@ -502,17 +502,16 @@ interface Database {
     ],
 )
 @TypeConverters(Converters::class)
-abstract class DatabaseInitializer protected constructor() : RoomDatabase() {
+abstract class DatabaseInitializer() : RoomDatabase() {
     abstract val database: Database
 
     companion object {
         lateinit var Instance: DatabaseInitializer
 
-        context(Context)
-        operator fun invoke() {
+        operator fun invoke(context: Context) {
             if (!::Instance.isInitialized) {
                 Instance = Room
-                    .databaseBuilder(this@Context, DatabaseInitializer::class.java, "data.db")
+                    .databaseBuilder(context, DatabaseInitializer::class.java, "data.db")
                     .addMigrations(
                         From8To9Migration(),
                         From10To11Migration(),
@@ -710,5 +709,5 @@ fun transaction(block: () -> Unit) = with(DatabaseInitializer.Instance) {
     }
 }
 
-val RoomDatabase.path: String?
+val RoomDatabase.databasePath: String?
     get() = openHelper.writableDatabase.path

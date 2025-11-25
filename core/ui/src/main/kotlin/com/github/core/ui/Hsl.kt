@@ -8,6 +8,8 @@ import androidx.core.graphics.ColorUtils
 @Suppress("NOTHING_TO_INLINE")
 @JvmInline
 value class Hsl(@PublishedApi internal val raw: FloatArray) {
+
+    @Suppress("unused")
     object Saver : androidx.compose.runtime.saveable.Saver<Hsl, FloatArray> {
         override fun restore(value: FloatArray) = value.hsl
         override fun SaverScope.save(value: Hsl) = value.raw
@@ -34,7 +36,11 @@ value class Hsl(@PublishedApi internal val raw: FloatArray) {
 }
 
 val FloatArray.hsl get() = Hsl(raw = this)
-val Color.hsl
-    get() = FloatArray(3)
-        .apply { ColorUtils.colorToHSL(this@Color.toArgb(), this) }
-        .hsl
+
+val Color.hsl: Hsl
+    get() {
+        val argb = toArgb()
+        return FloatArray(3)
+            .apply { ColorUtils.colorToHSL(argb, this) }
+            .hsl
+    }
