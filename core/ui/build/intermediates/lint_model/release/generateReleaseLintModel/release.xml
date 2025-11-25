@@ -26,6 +26,6 @@
       applicationId="com.github.core.ui"
       generatedSourceFolders="build/generated/ap_generated_sources/release/out"
       generatedResourceFolders="build/generated/res/resValues/release"
-      desugaredMethodsFiles="/home/cureous/.gradle/caches/8.14.3/transforms/0cf117c126154340931147ea069d894f/transformed/D8BackportedDesugaredMethods.txt">
+      desugaredMethodsFiles="/home/cureous/.gradle/caches/8.14.3/transforms/ce41c7e10c0565ef8d8770bd2e8a1e73/transformed/D8BackportedDesugaredMethods.txt">
   </artifact>
 </variant>
