@@ -78,12 +78,6 @@ fun NewPlayerSettings(
             Spacer(modifier = Modifier.height(8.dp))
 
             SettingsCard {
-                SettingColum(
-                    icon = IconSource.Vector(Icons.Default.Timer),
-                    title = "Sleep Timer",
-                    description = "Set playback duration",
-                    onClick = { isShowingSleepTimerDialog = true },
-                )
                 SwitchSetting(
                     icon = Icons.Default.MusicOff,
                     title = stringResource(id = R.string.skip_silence),
@@ -119,13 +113,6 @@ fun NewPlayerSettings(
                         }
                     )
                 }
-            }
-
-            if (isShowingSleepTimerDialog) {
-                SleepTimer(
-                    sleepTimerMillisLeft = sleepTimerMillisLeft,
-                    onDismiss = { isShowingSleepTimerDialog = false }
-                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))

@@ -18,12 +18,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
+import com.github.soundpod.enums.AccentColorSource
 import com.github.soundpod.enums.AppThemeColor
+import com.github.soundpod.enums.ProgressBar
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.screens.settings.EnumValueSelectorSettingsEntry
+import com.github.soundpod.utils.accentColorSource
 import com.github.soundpod.utils.appTheme
+import com.github.soundpod.utils.progressBarStyle
 import com.github.soundpod.utils.rememberPreference
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,6 +38,8 @@ fun Appearance(
     val (colorPalette) = LocalAppearance.current
     val context = LocalContext.current
     var apptheme by rememberPreference(appTheme, AppThemeColor.System)
+    var accentColorSource by rememberPreference(accentColorSource, AccentColorSource.Default )
+    var progressBarStyle by rememberPreference(progressBarStyle, ProgressBar.Default )
 
     SettingsScreenLayout(
         title = stringResource(id = R.string.appearance),
@@ -61,11 +67,12 @@ fun Appearance(
                     valueText = { context.getString(it.resourceId) }
                 )
 
-                SettingColum(
+                EnumValueSelectorSettingsEntry(
+                    title = stringResource(id = R.string.accent_color),
+                    selectedValue = accentColorSource,
+                    onValueSelected = { accentColorSource = it },
                     icon = IconSource.Icon( painterResource(id = R.drawable.color_mode)),
-                    title = "Accent Color",
-                    description = "Choose your preferred accent color",
-                    onClick = {},
+                    valueText = { context.getString(it.resourceId) }
                 )
             }
 
@@ -81,12 +88,15 @@ fun Appearance(
             Spacer(modifier = Modifier.height(8.dp))
 
             SettingsCard{
-                SettingColum(
+
+                EnumValueSelectorSettingsEntry(
+                    title = stringResource(id = R.string.progress_bar_style),
+                    selectedValue = progressBarStyle,
+                    onValueSelected = { progressBarStyle = it },
                     icon = IconSource.Icon( painterResource(id = R.drawable.wave)),
-                    title = "Progress Bar Style",
-                    description = "Choose your preferred progress bar style",
-                    onClick = {},
+                    valueText = { context.getString(it.resourceId) }
                 )
+
                 SettingColum(
                     icon = IconSource.Vector(Icons.Default.BlurOn),
                     title = "Background Style",

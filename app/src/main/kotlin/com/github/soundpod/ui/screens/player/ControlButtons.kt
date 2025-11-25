@@ -66,6 +66,7 @@ import com.github.innertube.models.NavigationEndpoint
 import com.github.soundpod.Database
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
+import com.github.soundpod.enums.ProgressBar
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.models.Song
 import com.github.soundpod.query
@@ -562,9 +563,40 @@ fun PlayerSeekBar(
     mediaId: String,
     position: Long,
     duration: Long,
+    progressBarStyle: ProgressBar
 ) {
     val binder = LocalPlayerServiceBinder.current
     binder?.player ?: return
+
+    when (progressBarStyle) {
+
+        ProgressBar.Default -> {
+            PlayerSeekBarDefault(
+                mediaId = mediaId,
+                position = position,
+                duration = duration
+            )
+        }
+
+        ProgressBar.Animated -> {
+            PlayerSeekBarAnimated(
+                mediaId = mediaId,
+                position = position,
+                duration = duration
+            )
+        }
+    }
+}
+
+@Composable
+private fun PlayerSeekBarDefault(
+    mediaId: String,
+    position: Long,
+    duration: Long
+) {
+    val binder = LocalPlayerServiceBinder.current
+    binder?.player ?: return
+
     var scrubbingPosition by remember(mediaId) { mutableStateOf<Long?>(null) }
 
     Column(
@@ -577,15 +609,11 @@ fun PlayerSeekBar(
             value = scrubbingPosition ?: position,
             minimumValue = 0,
             maximumValue = duration,
-            onDragStart = {
-                scrubbingPosition = it
-            },
+            onDragStart = { scrubbingPosition = it },
             onDrag = { delta ->
                 scrubbingPosition = if (duration != C.TIME_UNSET) {
                     scrubbingPosition?.plus(delta)?.coerceIn(0, duration)
-                } else {
-                    null
-                }
+                } else null
             },
             onDragEnd = {
                 scrubbingPosition?.let(binder.player::seekTo)
@@ -596,9 +624,7 @@ fun PlayerSeekBar(
             shape = RoundedCornerShape(8.dp)
         )
 
-        Spacer(
-            modifier = Modifier.height(8.dp)
-        )
+        Spacer(Modifier.height(8.dp))
 
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -608,16 +634,64 @@ fun PlayerSeekBar(
             Text(
                 text = formatAsDuration(scrubbingPosition ?: position),
                 style = MaterialTheme.typography.labelMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                maxLines = 1
             )
 
             if (duration != C.TIME_UNSET) {
                 Text(
                     text = formatAsDuration(duration),
                     style = MaterialTheme.typography.labelMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PlayerSeekBarAnimated(
+    mediaId: String,
+    position: Long,
+    duration: Long
+) {
+    val binder = LocalPlayerServiceBinder.current
+    binder?.player ?: return
+
+    var scrubbingPosition by remember(mediaId) { mutableStateOf<Float?>(null) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp)
+    ) {
+
+        AnimatedSeekbar(
+            value = scrubbingPosition ?: position.toFloat(),
+            onValueChange = { scrubbingPosition = it },
+            onValueChangeFinished = {
+                scrubbingPosition?.let { binder.player.seekTo(it.toLong()) }
+                scrubbingPosition = null
+            },
+            valueRange = 0f..duration.toFloat(),
+            isPlaying = binder.player.isPlaying
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = formatAsDuration((scrubbingPosition ?: position.toFloat()).toLong()),
+                style = MaterialTheme.typography.labelMedium
+            )
+
+            if (duration != C.TIME_UNSET) {
+                Text(
+                    text = formatAsDuration(duration),
+                    style = MaterialTheme.typography.labelMedium
                 )
             }
         }

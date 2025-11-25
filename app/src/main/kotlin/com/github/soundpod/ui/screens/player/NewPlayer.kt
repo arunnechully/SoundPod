@@ -31,10 +31,13 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.github.soundpod.Database
 import com.github.soundpod.LocalPlayerServiceBinder
+import com.github.soundpod.enums.ProgressBar
 import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.utils.DisposableListener
 import com.github.soundpod.utils.isLandscape
 import com.github.soundpod.utils.positionAndDurationState
+import com.github.soundpod.utils.progressBarStyle
+import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.shouldBePlaying
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -108,6 +111,10 @@ fun NewPlayer(
     var isShowingLyrics by rememberSaveable { mutableStateOf(false) }
     var fullScreenLyrics by remember { mutableStateOf(false) }
     var isShowingStatsForNerds by rememberSaveable { mutableStateOf(false) }
+
+    val progressBarStyleState = rememberPreference(progressBarStyle, ProgressBar.Default)
+    val progressBarStyle = progressBarStyleState.value
+
 
     if (isLandscape) {
         //todo
@@ -190,6 +197,7 @@ fun NewPlayer(
                 mediaId = mediaItem.mediaId,
                 position = positionAndDuration.first,
                 duration = positionAndDuration.second,
+                progressBarStyle = progressBarStyle
             )
 
             Spacer(modifier = Modifier.height(Dimensions.spacer))

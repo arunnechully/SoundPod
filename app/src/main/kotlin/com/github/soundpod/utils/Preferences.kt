@@ -37,6 +37,8 @@ const val pauseSearchHistoryKey = "pauseSearchHistory"
 const val quickPicksSourceKey = "quickPicksSource"
 
 const val appTheme = "appTheme"
+const val accentColorSource = "accentColorSource"
+const val progressBarStyle = "progressBarStyle"
 const val navigationLabelsVisibilityKey = "navigationLabelsVisibility"
 const val listGesturesEnabledKey = "listGesturesEnabled"
 const val playerGesturesEnabledKey = "songGesturesEnabled"

@@ -104,7 +104,7 @@ fun PlayerScaffold(
             sheetPeekHeight = 40.dp + 20.dp + scaffoldPadding.calculateBottomPadding(),
             sheetMaxWidth = Int.MAX_VALUE.dp,
             sheetDragHandle = null,
-            sheetContainerColor = Color.Transparent
+            sheetContainerColor = colorPalette.background3
 
         ) {
             val bottomPadding = animateDpAsState(
