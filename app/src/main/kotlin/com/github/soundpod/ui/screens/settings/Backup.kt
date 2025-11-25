@@ -1,15 +1,13 @@
-package com.github.soundpod.ui.screens.settings.newsettings
+package com.github.soundpod.ui.screens.settings
 
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -21,7 +19,6 @@ import com.github.soundpod.service.PlayerService
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
-import com.github.soundpod.ui.screens.settings.SettingsInformation
 import com.github.soundpod.utils.intent
 import com.github.soundpod.utils.toast
 import java.io.FileInputStream
@@ -37,9 +34,6 @@ import kotlin.system.exitProcess
 fun Backup(
     onBackClick: () -> Unit
 ) {
-    val isDarkTheme = isSystemInDarkTheme()
-    val textColor = if (isDarkTheme) Color.White else Color.Black
-
     val context = LocalContext.current
 
     val backupLauncher =

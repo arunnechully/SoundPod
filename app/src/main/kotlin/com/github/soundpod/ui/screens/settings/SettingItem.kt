@@ -1,119 +1,143 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
-package com.github.soundpod.ui.screens.settings.newsettings
+package com.github.soundpod.ui.screens.settings
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ColorLens
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.PrivacyTip
-import androidx.compose.material.icons.filled.Restore
-import androidx.compose.material.icons.filled.Storage
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.github.core.ui.LocalAppearance
-import com.github.soundpod.R
 import com.github.soundpod.ui.common.IconSource
-import com.github.soundpod.ui.components.SettingsCard
-import com.github.soundpod.ui.components.SettingsScreenLayout
-import com.github.soundpod.ui.navigation.Routes
+import com.github.soundpod.ui.components.ThemeSelectorDialog
 
 @Composable
-fun NewSettingsScreen(
-    navController: NavController,
-    onBackClick: () -> Unit
+inline fun <reified T : Enum<T>> EnumValueSelectorSettingsEntry(
+    title: String,
+    selectedValue: T,
+    crossinline onValueSelected: (T) -> Unit,
+    icon: IconSource,
+    isEnabled: Boolean = true,
+    crossinline valueText: (T) -> String = Enum<T>::name,
+    noinline trailingContent: @Composable (() -> Unit)? = null
 ) {
-    SettingsScreenLayout(
-        title = stringResource(id = R.string.settings),
-        onBackClick = onBackClick,
-        content = {
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            SettingsCard {
-                SettingRow(
-                    title = stringResource(id = R.string.appearance),
-                    icon = Icons.Default.ColorLens,
-                    onClick = { navController.navigate(Routes.Appearance) }
-                )
-                SettingRow(
-                    title = stringResource(id = R.string.player),
-                    icon = Icons.Default.PlayArrow,
-                    onClick = { navController.navigate(Routes.Player) }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            SettingsCard {
-                SettingRow(
-                    title = stringResource(id = R.string.privacy),
-                    icon = Icons.Default.PrivacyTip,
-                    onClick = { navController.navigate(Routes.Privacy) }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            SettingsCard {
-                SettingRow(
-                    title = stringResource(id = R.string.backup_restore),
-                    icon = Icons.Default.Restore,
-                    onClick = { navController.navigate(Routes.Backup) }
-                )
-                SettingRow(
-                    title = stringResource(id = R.string.database),
-                    icon = Icons.Default.Storage,
-                    onClick = { navController.navigate(Routes.Storage) }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            SettingsCard {
-                SettingRow(
-                    title = stringResource(id = R.string.more_settings),
-                    painterRes = R.drawable.more_settings,
-                    onClick = { navController.navigate(Routes.More) }
-                )
-                SettingRow(
-                    title = stringResource(id = R.string.experimental),
-                    painterRes = R.drawable.experimental,
-                    onClick = { navController.navigate(Routes.Experiment) }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            SettingsCard {
-                SettingRow(
-                    title = "About",
-                    icon = Icons.Default.Info,
-                    onClick = { navController.navigate(Routes.About) }
-                )
-            }
-        }
+    ValueSelectorSettingsEntry(
+        title = title,
+        selectedValue = selectedValue,
+        values = enumValues<T>().toList(),
+        onValueSelected = onValueSelected,
+        icon = icon,
+        isEnabled = isEnabled,
+        valueText = valueText,
+        trailingContent = trailingContent,
     )
 }
+
+@Composable
+inline fun <T> ValueSelectorSettingsEntry(
+    title: String,
+    selectedValue: T,
+    values: List<T>,
+    crossinline onValueSelected: (T) -> Unit,
+    icon: IconSource,
+    isEnabled: Boolean = true,
+    crossinline valueText: (T) -> String = { it.toString() },
+    noinline trailingContent: @Composable (() -> Unit)? = null
+) {
+    var isShowingDialog by remember { mutableStateOf(false) }
+
+    if (isShowingDialog) {
+        ThemeSelectorDialog(
+            title = title,
+            selectedValue = selectedValue,
+            values = values,
+            onValueSelected = {
+                onValueSelected(it)
+            },
+            onDismiss = { isShowingDialog = false },
+            valueText = valueText
+        )
+
+    }
+
+    SettingColum(
+        icon = icon,
+        title = title,
+        description = valueText(selectedValue),
+        onClick = { isShowingDialog = true },
+        isEnabled = isEnabled,
+        trailingContent = trailingContent
+    )
+}
+
+@Composable
+fun SettingsInformation(
+    text: String,
+) {
+    Column(
+        modifier = Modifier
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.Info,
+            contentDescription = null
+        )
+
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
+@Composable
+fun SettingsProgress(text: String, progress: Float) {
+    Column(
+        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Row(
+            modifier = Modifier.width(240.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelLarge
+            )
+
+            Text(
+                text = "${(progress * 100).toInt()}%",
+                style = MaterialTheme.typography.labelMedium
+            )
+        }
+
+        LinearProgressIndicator(
+            progress = { progress },
+            modifier = Modifier.clip(RoundedCornerShape(8.dp)),
+        )
+    }
+}
+
 
 @Composable
 fun SettingRow(
@@ -216,4 +240,3 @@ fun SettingColum(
         trailingContent?.invoke()
     }
 }
-

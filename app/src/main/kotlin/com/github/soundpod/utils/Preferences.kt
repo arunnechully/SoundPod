@@ -34,6 +34,8 @@ const val homeScreenTabIndexKey = "homeScreenTabIndex"
 const val searchResultScreenTabIndexKey = "searchResultScreenTabIndex"
 const val artistScreenTabIndexKey = "artistScreenTabIndex"
 const val pauseSearchHistoryKey = "pauseSearchHistory"
+
+const val pauseSongCacheKey = "pauseSongCache"
 const val quickPicksSourceKey = "quickPicksSource"
 
 const val appTheme = "appTheme"

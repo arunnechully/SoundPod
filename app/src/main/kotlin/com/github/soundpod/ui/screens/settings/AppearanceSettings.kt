@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.screens.settings.newsettings
+package com.github.soundpod.ui.screens.settings
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -24,7 +24,6 @@ import com.github.soundpod.enums.ProgressBar
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
-import com.github.soundpod.ui.screens.settings.EnumValueSelectorSettingsEntry
 import com.github.soundpod.utils.accentColorSource
 import com.github.soundpod.utils.appTheme
 import com.github.soundpod.utils.progressBarStyle

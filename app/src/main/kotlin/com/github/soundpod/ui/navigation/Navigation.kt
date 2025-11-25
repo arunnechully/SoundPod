@@ -30,7 +30,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.github.soundpod.enums.BuiltInPlaylist
-import com.github.soundpod.enums.SettingsSection
 import com.github.soundpod.ui.screens.album.AlbumScreen
 import com.github.soundpod.ui.screens.artist.ArtistScreen
 import com.github.soundpod.ui.screens.builtinplaylist.BuiltInPlaylistScreen
@@ -38,18 +37,17 @@ import com.github.soundpod.ui.screens.home.HomeScreen
 import com.github.soundpod.ui.screens.localplaylist.LocalPlaylistScreen
 import com.github.soundpod.ui.screens.playlist.PlaylistScreen
 import com.github.soundpod.ui.screens.search.SearchScreen
-import com.github.soundpod.ui.screens.settings.SettingsPage
-import com.github.soundpod.ui.screens.settings.newsettings.Appearance
-import com.github.soundpod.ui.screens.settings.newsettings.Experiment
-import com.github.soundpod.ui.screens.settings.newsettings.MoreSettings
-import com.github.soundpod.ui.screens.settings.newsettings.NewAboutSettings
-import com.github.soundpod.ui.screens.settings.newsettings.NewPlayerSettings
-import com.github.soundpod.ui.screens.settings.newsettings.NewSettingsScreen
-import com.github.soundpod.ui.screens.settings.newsettings.Privacy
-import com.github.soundpod.ui.screens.settings.newsettings.CacheSettings
+import com.github.soundpod.ui.screens.settings.Appearance
+import com.github.soundpod.ui.screens.settings.Backup
+import com.github.soundpod.ui.screens.settings.CacheSettings
+import com.github.soundpod.ui.screens.settings.Experiment
+import com.github.soundpod.ui.screens.settings.MoreSettings
+import com.github.soundpod.ui.screens.settings.NewAboutSettings
+import com.github.soundpod.ui.screens.settings.NewPlayerSettings
+import com.github.soundpod.ui.screens.settings.SettingsScreen
+import com.github.soundpod.ui.screens.settings.Privacy
 import com.github.soundpod.utils.homeScreenTabIndexKey
 import com.github.soundpod.utils.rememberPreference
-import com.github.soundpod.ui.screens.settings.newsettings.Backup
 import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
 
@@ -180,7 +178,7 @@ fun Navigation(
         }
 
         playerComposable(route = Routes.Settings::class) {
-            NewSettingsScreen(
+            SettingsScreen(
                 navController = navController,
                 onBackClick = { navController.popBackStack() }
             )

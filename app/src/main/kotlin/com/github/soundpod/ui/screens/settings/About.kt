@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.screens.settings.newsettings
+package com.github.soundpod.ui.screens.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,6 +41,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.github.api.Asset
 import com.github.api.GitHub
 import com.github.api.formatFileSize
 import com.github.soundpod.LocalPlayerPadding
@@ -216,7 +217,7 @@ fun NewAboutSettings(
 
             if (isShowingDialog) {
 
-                var apkAsset by rememberSaveable { mutableStateOf<com.github.api.Asset?>(null) }
+                var apkAsset by rememberSaveable { mutableStateOf<Asset?>(null) }
 
 
                 LaunchedEffect(Unit) {

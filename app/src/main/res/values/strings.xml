@@ -219,4 +219,6 @@
     <string name="progress_bar_style">Progress Bar Style</string>
     <string name="background_style">Background Style</string>
     <string name="animated">Animated</string>
+    <string name="pause_song_cache">Pause song cache</string>
+    <string name="pause_song_cache_description">Pause the song caching process</string>
 </resources>

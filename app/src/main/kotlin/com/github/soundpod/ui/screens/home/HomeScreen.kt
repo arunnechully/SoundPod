@@ -40,8 +40,8 @@ import com.github.soundpod.ui.common.showUpdateAlert
 import com.github.soundpod.ui.components.HorizontalTabs
 import com.github.soundpod.ui.components.TopBar
 import com.github.soundpod.ui.navigation.Routes
-import com.github.soundpod.ui.screens.settings.newsettings.extractVersion
-import com.github.soundpod.ui.screens.settings.newsettings.isNewerVersion
+import com.github.soundpod.ui.screens.settings.extractVersion
+import com.github.soundpod.ui.screens.settings.isNewerVersion
 import com.github.soundpod.utils.downloadApk
 
 @Composable
