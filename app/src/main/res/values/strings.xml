@@ -212,7 +212,7 @@
     <string name="autocheck">Auto check for updates</string>
     <string name="autocheck_description">Automatically check for new versions in background</string>
     <string name="update_alert">Show update alert</string>
-    <string name="update_alert_desription">Show popup on Home screen if a new version is available</string>
+    <string name="update_alert_desription">Get a notification new version is available</string>
     <string name="defualt">Default</string>
     <string name="dynamic">Dynamic</string>
     <string name="material_you">MaterialYou</string>
