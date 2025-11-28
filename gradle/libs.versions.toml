@@ -29,6 +29,7 @@ espresso-core = "3.7.0"
 appcompat = "1.7.1"
 material = "1.13.0"
 detekt = "1.23.8"
+work-runtime-ktx = "2.11.0"
 
 [libraries]
 brotli = { group = "org.brotli", name = "dec", version.ref = "brotli" }
@@ -74,6 +75,7 @@ detekt_compose = { module = "io.nlopez.compose.rules:detekt", version = "0.4.28"
 detekt_formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 palette = { module = "androidx.palette:palette", version = "1.0.0" }
 compose_lottie = { module = "com.airbnb.android:lottie-compose", version = "6.7.1" }
+work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work-runtime-ktx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

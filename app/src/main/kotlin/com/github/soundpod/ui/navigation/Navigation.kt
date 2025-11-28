@@ -42,7 +42,7 @@ import com.github.soundpod.ui.screens.settings.Backup
 import com.github.soundpod.ui.screens.settings.CacheSettings
 import com.github.soundpod.ui.screens.settings.Experiment
 import com.github.soundpod.ui.screens.settings.MoreSettings
-import com.github.soundpod.ui.screens.settings.NewAboutSettings
+import com.github.soundpod.ui.screens.settings.AboutSettings
 import com.github.soundpod.ui.screens.settings.NewPlayerSettings
 import com.github.soundpod.ui.screens.settings.SettingsScreen
 import com.github.soundpod.ui.screens.settings.Privacy
@@ -236,7 +236,7 @@ fun Navigation(
         }
 
         playerComposable(route = Routes.About::class) {
-            NewAboutSettings (
+            AboutSettings (
                 onBackClick = { navController.popBackStack() }
             )
         }

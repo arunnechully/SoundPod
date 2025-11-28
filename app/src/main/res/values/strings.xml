@@ -221,4 +221,6 @@
     <string name="animated">Animated</string>
     <string name="pause_song_cache">Pause song cache</string>
     <string name="pause_song_cache_description">Pause the song caching process</string>
+    <string name="suggest_an_idea">Suggest an Idea</string>
+    <string name="report_a_bug">Report a bug</string>
 </resources>

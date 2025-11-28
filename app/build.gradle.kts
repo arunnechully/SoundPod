@@ -89,6 +89,7 @@ dependencies {
     implementation(libs.swipe)
     implementation(libs.compose.lottie)
     implementation(libs.datastore.preferences)
+    implementation(libs.work.runtime.ktx)
     ksp(libs.room.compiler)
     implementation(projects.core.ui)
     implementation(projects.github)

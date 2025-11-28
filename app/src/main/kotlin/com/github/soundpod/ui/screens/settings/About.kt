@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.outlined.Update
@@ -55,37 +56,15 @@ import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.components.SwitchSetting
 import com.github.soundpod.ui.styling.Dimensions
+import com.github.soundpod.utils.VersionUtils
 import com.github.soundpod.utils.downloadApk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-fun extractVersion(text: String): String {
-    // Matches v1.2.3, 1.2.3, v1.2, 1.2, etc.
-    val regex = Regex("""v?(\d+(\.\d+)+)""")
-    return regex.find(text)?.value ?: "0"
-}
-
-fun isNewerVersion(latest: String, current: String): Boolean {
-    val latestParts = latest.replace("v", "").split(".")
-    val currentParts = current.replace("v", "").split(".")
-
-    val maxLength = maxOf(latestParts.size, currentParts.size)
-
-    for (i in 0 until maxLength) {
-        val latestNum = latestParts.getOrNull(i)?.toIntOrNull() ?: 0
-        val currentNum = currentParts.getOrNull(i)?.toIntOrNull() ?: 0
-
-        if (latestNum > currentNum) return true
-        if (latestNum < currentNum) return false
-    }
-
-    return false
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewAboutSettings(
+fun AboutSettings(
     onBackClick: () -> Unit
 ) {
     val uriHandler = LocalUriHandler.current
@@ -128,7 +107,7 @@ fun NewAboutSettings(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 16.dp + playerPadding)
+                    .padding(top = 8.dp, bottom = 16.dp )
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.app_icon),
@@ -179,6 +158,25 @@ fun NewAboutSettings(
                             uriHandler.openUri("https://github.com/arunnechully/SoundPod")
                         },
                     )
+                    SettingColum(
+                        icon = IconSource.Icon(painterResource(id = R.drawable.idea)),
+                        title = stringResource(id = R.string.suggest_an_idea),
+                        onClick = {
+                            uriHandler.openUri(
+                                "https://github.com/arunnechully/SoundPod/issues/new?template=feature_request.md"
+                            )
+                        },
+                    )
+
+                    SettingColum(
+                        icon = IconSource.Icon(painterResource(id = R.drawable.bug)),
+                        title = stringResource(id = R.string.report_a_bug),
+                        onClick = {
+                            uriHandler.openUri(
+                                "https://github.com/arunnechully/SoundPod/issues/new?template=bug_report.md"
+                            )
+                        },
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -224,8 +222,9 @@ fun NewAboutSettings(
                     val release = GitHub.getLastestRelease()
                     apkAsset = release?.assets?.firstOrNull { it.name.endsWith(".apk") }
                     apkUrl = apkAsset?.browserDownloadUrl
-                    latestVersion = release?.name?.let { extractVersion(it) }
-                    newVersionAvailable = isNewerVersion(latestVersion ?: "0", currentVersion)
+
+                    latestVersion = release?.name?.let { VersionUtils.extractVersion(it) }
+                    newVersionAvailable = VersionUtils.isNewerVersion(latestVersion ?: "0", currentVersion)
                 }
 
 

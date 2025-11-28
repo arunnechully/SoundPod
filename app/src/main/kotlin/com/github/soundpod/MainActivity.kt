@@ -33,7 +33,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -41,12 +40,17 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.navigation.compose.rememberNavController
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.github.innertube.Innertube
 import com.github.innertube.requests.playlistPage
 import com.github.innertube.requests.song
 import com.github.soundpod.enums.AppThemeColor
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.service.PlayerService
+import com.github.soundpod.ui.common.UpdateCheckWorker
 import com.github.soundpod.ui.navigation.Navigation
 import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.ui.screens.player.PlayerScaffold
@@ -61,6 +65,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
     private val serviceConnection = object : ServiceConnection {
@@ -86,6 +91,8 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        setupUpdateWorker()
 
         val launchedFromNotification = intent?.extras?.getBoolean("expandPlayerBottomSheet") == true
         data = intent?.data ?: intent?.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
@@ -139,6 +146,13 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
+                        LaunchedEffect(Unit) {
+                            if (intent?.getBooleanExtra("NAVIGATE_TO_ABOUT", false) == true) {
+                                navController.navigate(Routes.About)
+                                intent.removeExtra("NAVIGATE_TO_ABOUT")
+                            }
+                        }
+
                         if (menuState.isDisplayed) {
                             ModalBottomSheet(
                                 onDismissRequest = menuState::hide,
@@ -152,7 +166,7 @@ class MainActivity : ComponentActivity() {
                                     ) {
                                         Box(
                                             modifier = Modifier
-                                            .size(width = 32.dp, height = 4.dp)
+                                                .size(width = 32.dp, height = 4.dp)
                                         )
 
                                     }
@@ -239,11 +253,34 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
+
+        if (intent.getBooleanExtra("NAVIGATE_TO_ABOUT", false)) {
+
+            setIntent(intent)
+        }
     }
 
     override fun onStop() {
         unbindService(serviceConnection)
         super.onStop()
+    }
+
+    private fun setupUpdateWorker() {
+        val workRequest = PeriodicWorkRequestBuilder<UpdateCheckWorker>(
+            1, TimeUnit.DAYS
+        )
+            .setConstraints(
+                androidx.work.Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+            )
+            .build()
+
+        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+            "UpdateCheckWork",
+            ExistingPeriodicWorkPolicy.KEEP,
+            workRequest
+        )
     }
 }
 
