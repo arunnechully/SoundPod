@@ -1,5 +1,6 @@
 package com.github.soundpod.ui.screens.settings
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -25,6 +26,9 @@ import com.github.soundpod.ui.components.SettingsScreenLayout
 fun Experiment(
     onBackClick: () -> Unit
 ) {
+
+    BackHandler(onBack = onBackClick)
+
     SettingsScreenLayout(
         title = stringResource(id = R.string.experimental),
         onBackClick = onBackClick,

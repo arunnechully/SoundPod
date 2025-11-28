@@ -21,13 +21,12 @@ import com.github.soundpod.R
 import com.github.soundpod.enums.ArtistSortBy
 import com.github.soundpod.enums.SortOrder
 import com.github.soundpod.models.Artist
-import com.github.soundpod.ui.components.HomeScaffold
 import com.github.soundpod.ui.components.SortingHeader
 import com.github.soundpod.ui.items.LocalArtistItem
 import com.github.soundpod.utils.artistSortByKey
 import com.github.soundpod.utils.artistSortOrderKey
 import com.github.soundpod.utils.rememberPreference
-import com.github.soundpod.viewmodels.HomeArtistsViewModel
+import com.github.soundpod.viewmodels.home.HomeArtistsViewModel
 
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi

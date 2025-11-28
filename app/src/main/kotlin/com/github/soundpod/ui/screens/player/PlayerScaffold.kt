@@ -2,7 +2,6 @@ package com.github.soundpod.ui.screens.player
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -18,9 +17,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -36,12 +35,25 @@ fun PlayerScaffold(
     navController: NavController,
     sheetState: SheetState,
     scaffoldPadding: PaddingValues,
+    showPlayer: Boolean,
     content: @Composable () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val layoutDirection = LocalLayoutDirection.current
     val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
     val (colorPalette) = LocalAppearance.current
+
+    val targetPeekHeight = if (showPlayer) {
+        40.dp + 20.dp + scaffoldPadding.calculateBottomPadding()
+    } else {
+        0.dp
+    }
+
+    val animatedPeekHeight by animateDpAsState(
+        targetValue = targetPeekHeight,
+        label = "peekHeight"
+    )
+
     Box(
         modifier = Modifier
             .windowInsetsPadding(
@@ -62,8 +74,7 @@ fun PlayerScaffold(
                     }
                 ) { value ->
                     Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
+                        modifier = Modifier.fillMaxHeight()
                     ) {
                         ThemedLottieBackground(
                             animationNumber = 3,
@@ -95,20 +106,25 @@ fun PlayerScaffold(
                                     }
                                 )
                             }
-
                         }
                     }
                 }
             },
             scaffoldState = scaffoldState,
-            sheetPeekHeight = 40.dp + 20.dp + scaffoldPadding.calculateBottomPadding(),
+            sheetPeekHeight = animatedPeekHeight,
             sheetMaxWidth = Int.MAX_VALUE.dp,
             sheetDragHandle = null,
             sheetContainerColor = colorPalette.background3
 
         ) {
+            val targetPadding = if (showPlayer && sheetState.currentValue != SheetValue.Hidden) {
+                scaffoldPadding.calculateBottomPadding() + 76.dp + 16.dp
+            } else {
+                scaffoldPadding.calculateBottomPadding()
+            }
+
             val bottomPadding = animateDpAsState(
-                targetValue = if (sheetState.currentValue == SheetValue.Hidden) scaffoldPadding.calculateBottomPadding() else scaffoldPadding.calculateBottomPadding() + 76.dp + 16.dp,
+                targetValue = targetPadding,
                 label = "padding"
             )
 

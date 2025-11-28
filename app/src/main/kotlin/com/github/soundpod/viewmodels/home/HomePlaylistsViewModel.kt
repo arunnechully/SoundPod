@@ -1,4 +1,4 @@
-package com.github.soundpod.viewmodels
+package com.github.soundpod.viewmodels.home
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

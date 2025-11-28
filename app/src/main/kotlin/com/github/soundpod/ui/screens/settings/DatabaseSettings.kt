@@ -3,6 +3,7 @@
 package com.github.soundpod.ui.screens.settings
 
 import android.text.format.Formatter
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
@@ -82,6 +83,8 @@ fun CacheSettings(
     var quickPicksSource by rememberPreference(quickPicksSourceKey, QuickPicksSource.Trending)
 
     val (colorPalette) = LocalAppearance.current
+
+    BackHandler(onBack = onBackClick)
 
     SettingsScreenLayout(
         title = stringResource(id = R.string.database),

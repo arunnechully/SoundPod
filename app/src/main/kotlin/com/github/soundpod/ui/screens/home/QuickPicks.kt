@@ -1,9 +1,9 @@
 package com.github.soundpod.ui.screens.home
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -39,6 +39,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -69,9 +70,10 @@ import com.github.soundpod.utils.forcePlay
 import com.github.soundpod.utils.isLandscape
 import com.github.soundpod.utils.quickPicksSourceKey
 import com.github.soundpod.utils.rememberPreference
-import com.github.soundpod.viewmodels.QuickPicksViewModel
+import com.github.soundpod.viewmodels.home.QuickPicksViewModel
 import kotlinx.coroutines.launch
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
 @Composable
@@ -100,72 +102,41 @@ fun QuickPicks(
         viewModel.loadQuickPicks(quickPicksSource = quickPicksSource)
     }
 
-    BoxWithConstraints {
-        val quickPicksLazyGridItemWidthFactor =
-            if (isLandscape && maxWidth * 0.475f >= 320.dp) 0.475f else 0.9f
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
 
-        val itemInHorizontalGridWidth = maxWidth * quickPicksLazyGridItemWidthFactor
+    val quickPicksLazyGridItemWidthFactor =
+        if (isLandscape && screenWidth * 0.475f >= 320.dp) 0.475f else 0.9f
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(top = 4.dp, bottom = 16.dp + playerPadding)
-        ) {
-            viewModel.relatedPageResult?.getOrNull()?.let { related ->
-                Text(
-                    text = stringResource(id = R.string.quick_picks),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = sectionTextModifier
-                )
+    val itemInHorizontalGridWidth = screenWidth * quickPicksLazyGridItemWidthFactor
 
-                LazyHorizontalGrid(
-                    state = quickPicksLazyGridState,
-                    rows = GridCells.Fixed(count = 4),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height((songThumbnailSizeDp + Dimensions.itemsVerticalPadding * 2) * 4)
-                ) {
-                    viewModel.trending?.let { song ->
-                        item {
-                            LocalSongItem(
-                                modifier = Modifier
-                                    .animateItem()
-                                    .width(itemInHorizontalGridWidth),
-                                song = song,
-                                onClick = {
-                                    val mediaItem = song.asMediaItem
-                                    binder?.stopRadio()
-                                    binder?.player?.forcePlay(mediaItem)
-                                    binder?.setupRadio(
-                                        NavigationEndpoint.Endpoint.Watch(videoId = mediaItem.mediaId)
-                                    )
-                                },
-                                onLongClick = {
-                                    menuState.display {
-                                        NonQueuedMediaItemMenu(
-                                            onDismiss = menuState::hide,
-                                            mediaItem = song.asMediaItem,
-                                            onRemoveFromQuickPicks = {
-                                                query {
-                                                    Database.clearEventsFor(song.id)
-                                                }
-                                            },
-                                            onGoToAlbum = onAlbumClick,
-                                            onGoToArtist = onArtistClick
-                                        )
-                                    }
-                                }
-                            )
-                        }
-                    }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(top = 4.dp, bottom = 16.dp + playerPadding)
+    ) {
+        val result = viewModel.relatedPageResult
+        val related = result?.getOrNull()
+        val error = result?.exceptionOrNull()
 
-                    items(
-                        items = related.songs?.dropLast(if (viewModel.trending == null) 0 else 1)
-                            ?: emptyList(),
-                        key = Innertube.SongItem::key
-                    ) { song ->
-                        SongItem(
+        if (related != null) {
+            Text(
+                text = stringResource(id = R.string.quick_picks),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = sectionTextModifier
+            )
+
+            LazyHorizontalGrid(
+                state = quickPicksLazyGridState,
+                rows = GridCells.Fixed(count = 4),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height((songThumbnailSizeDp + Dimensions.itemsVerticalPadding * 2) * 4)
+            ) {
+                viewModel.trending?.let { song ->
+                    item {
+                        LocalSongItem(
                             modifier = Modifier
                                 .animateItem()
                                 .width(itemInHorizontalGridWidth),
@@ -183,6 +154,11 @@ fun QuickPicks(
                                     NonQueuedMediaItemMenu(
                                         onDismiss = menuState::hide,
                                         mediaItem = song.asMediaItem,
+                                        onRemoveFromQuickPicks = {
+                                            query {
+                                                Database.clearEventsFor(song.id)
+                                            }
+                                        },
                                         onGoToAlbum = onAlbumClick,
                                         onGoToArtist = onArtistClick
                                     )
@@ -192,128 +168,161 @@ fun QuickPicks(
                     }
                 }
 
-                related.albums?.let { albums ->
-                    Spacer(modifier = Modifier.height(Dimensions.spacer))
-
-                    Text(
-                        text = stringResource(id = R.string.related_albums),
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = sectionTextModifier
-                    )
-
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 8.dp)
-                    ) {
-                        items(
-                            items = albums,
-                            key = Innertube.AlbumItem::key
-                        ) { album ->
-                            AlbumItem(
-                                modifier = Modifier.widthIn(max = itemSize),
-                                album = album,
-                                onClick = { onAlbumClick(album.key) }
-                            )
-                        }
-                    }
-                }
-
-                related.artists?.let { artists ->
-                    Spacer(modifier = Modifier.height(Dimensions.spacer))
-
-                    Text(
-                        text = stringResource(id = R.string.similar_artists),
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = sectionTextModifier
-                    )
-
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 8.dp)
-                    ) {
-                        items(
-                            items = artists,
-                            key = Innertube.ArtistItem::key,
-                        ) { artist ->
-                            ArtistItem(
-                                modifier = Modifier.widthIn(max = itemSize),
-                                artist = artist,
-                                onClick = { onArtistClick(artist.key) }
-                            )
-                        }
-                    }
-                }
-
-                related.playlists?.let { playlists ->
-                    Spacer(modifier = Modifier.height(Dimensions.spacer))
-
-                    Text(
-                        text = stringResource(id = R.string.recommended_playlists),
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = sectionTextModifier
-                    )
-
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 8.dp)
-                    ) {
-                        items(
-                            items = playlists,
-                            key = Innertube.PlaylistItem::key,
-                        ) { playlist ->
-                            PlaylistItem(
-                                modifier = Modifier.widthIn(max = itemSize),
-                                playlist = playlist,
-                                onClick = { onPlaylistClick(playlist.key) }
-                            )
-                        }
-                    }
-                }
-
-                Unit
-            } ?: viewModel.relatedPageResult?.exceptionOrNull()?.let {
-                Text(
-                    text = stringResource(id = R.string.home_error),
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .padding(all = 16.dp)
-                )
-
-                Row(
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Button(
+                items(
+                    items = related.songs?.dropLast(if (viewModel.trending == null) 0 else 1)
+                        ?: emptyList(),
+                    key = Innertube.SongItem::key
+                ) { song ->
+                    SongItem(
+                        modifier = Modifier
+                            .animateItem()
+                            .width(itemInHorizontalGridWidth),
+                        song = song,
                         onClick = {
-                            scope.launch {
-                                viewModel.loadQuickPicks(quickPicksSource)
+                            val mediaItem = song.asMediaItem
+                            binder?.stopRadio()
+                            binder?.player?.forcePlay(mediaItem)
+                            binder?.setupRadio(
+                                NavigationEndpoint.Endpoint.Watch(videoId = mediaItem.mediaId)
+                            )
+                        },
+                        onLongClick = {
+                            menuState.display {
+                                NonQueuedMediaItemMenu(
+                                    onDismiss = menuState::hide,
+                                    mediaItem = song.asMediaItem,
+                                    onGoToAlbum = onAlbumClick,
+                                    onGoToArtist = onArtistClick
+                                )
                             }
                         }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Refresh,
-                            contentDescription = stringResource(id = R.string.retry)
+                    )
+                }
+            }
+
+            related.albums?.let { albums ->
+                Spacer(modifier = Modifier.height(Dimensions.spacer))
+
+                Text(
+                    text = stringResource(id = R.string.related_albums),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = sectionTextModifier
+                )
+
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 8.dp)
+                ) {
+                    items(
+                        items = albums,
+                        key = Innertube.AlbumItem::key
+                    ) { album ->
+                        AlbumItem(
+                            modifier = Modifier.widthIn(max = itemSize),
+                            album = album,
+                            onClick = { onAlbumClick(album.key) }
                         )
-
-                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-
-                        Text(text = stringResource(id = R.string.retry))
-                    }
-
-                    FilledTonalButton(
-                        onClick = onOfflinePlaylistClick
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.DownloadForOffline,
-                            contentDescription = stringResource(id = R.string.offline)
-                        )
-
-                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-
-                        Text(text = stringResource(id = R.string.offline))
                     }
                 }
-            } ?: ShimmerHost {
+            }
+
+            related.artists?.let { artists ->
+                Spacer(modifier = Modifier.height(Dimensions.spacer))
+
+                Text(
+                    text = stringResource(id = R.string.similar_artists),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = sectionTextModifier
+                )
+
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 8.dp)
+                ) {
+                    items(
+                        items = artists,
+                        key = Innertube.ArtistItem::key,
+                    ) { artist ->
+                        ArtistItem(
+                            modifier = Modifier.widthIn(max = itemSize),
+                            artist = artist,
+                            onClick = { onArtistClick(artist.key) }
+                        )
+                    }
+                }
+            }
+
+            related.playlists?.let { playlists ->
+                Spacer(modifier = Modifier.height(Dimensions.spacer))
+
+                Text(
+                    text = stringResource(id = R.string.recommended_playlists),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = sectionTextModifier
+                )
+
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 8.dp)
+                ) {
+                    items(
+                        items = playlists,
+                        key = Innertube.PlaylistItem::key,
+                    ) { playlist ->
+                        PlaylistItem(
+                            modifier = Modifier.widthIn(max = itemSize),
+                            playlist = playlist,
+                            onClick = { onPlaylistClick(playlist.key) }
+                        )
+                    }
+                }
+            }
+        } else if (error != null) {
+
+            Text(
+                text = stringResource(id = R.string.home_error),
+                style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(all = 16.dp)
+            )
+
+            Row(
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    onClick = {
+                        scope.launch {
+                            viewModel.loadQuickPicks(quickPicksSource)
+                        }
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Refresh,
+                        contentDescription = stringResource(id = R.string.retry)
+                    )
+
+                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+
+                    Text(text = stringResource(id = R.string.retry))
+                }
+
+                FilledTonalButton(
+                    onClick = onOfflinePlaylistClick
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.DownloadForOffline,
+                        contentDescription = stringResource(id = R.string.offline)
+                    )
+
+                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+
+                    Text(text = stringResource(id = R.string.offline))
+                }
+            }
+        } else {
+
+            ShimmerHost {
                 TextPlaceholder(modifier = sectionTextModifier)
 
                 repeat(4) {
@@ -327,7 +336,7 @@ fun QuickPicks(
                 Row(
                     modifier = Modifier.padding(start = 8.dp)
                 ) {
-                    repeat(2) {
+                    repeat(4) {
                         ItemPlaceholder(modifier = Modifier.widthIn(max = itemSize))
                     }
                 }
@@ -339,7 +348,7 @@ fun QuickPicks(
                 Row(
                     modifier = Modifier.padding(start = 8.dp)
                 ) {
-                    repeat(2) {
+                    repeat(4) {
                         ItemPlaceholder(
                             modifier = Modifier.widthIn(max = itemSize),
                             shape = CircleShape
@@ -354,7 +363,7 @@ fun QuickPicks(
                 Row(
                     modifier = Modifier.padding(start = 8.dp)
                 ) {
-                    repeat(2) {
+                    repeat(4) {
                         ItemPlaceholder(modifier = Modifier.widthIn(max = itemSize))
                     }
                 }

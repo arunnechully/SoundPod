@@ -1,12 +1,7 @@
 package com.github.soundpod.ui.screens.home
 
 import androidx.annotation.OptIn
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,12 +15,8 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.PlaylistPlay
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Shuffle
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
@@ -55,7 +46,6 @@ import com.github.soundpod.models.ActionInfo
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.models.Song
 import com.github.soundpod.query
-import com.github.soundpod.ui.components.HomeScaffold
 import com.github.soundpod.ui.components.SortingHeader
 import com.github.soundpod.ui.components.SwipeToActionBox
 import com.github.soundpod.ui.components.InHistoryMediaItemMenu
@@ -65,11 +55,10 @@ import com.github.soundpod.ui.styling.overlay
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.enqueue
 import com.github.soundpod.utils.forcePlayAtIndex
-import com.github.soundpod.utils.forcePlayFromBeginning
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.songSortByKey
 import com.github.soundpod.utils.songSortOrderKey
-import com.github.soundpod.viewmodels.HomeSongsViewModel
+import com.github.soundpod.viewmodels.home.HomeSongsViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)

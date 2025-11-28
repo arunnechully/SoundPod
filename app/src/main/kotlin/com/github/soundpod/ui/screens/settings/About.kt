@@ -1,5 +1,6 @@
 package com.github.soundpod.ui.screens.settings
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -79,6 +80,8 @@ fun AboutSettings(
     var showAlertEnabled by rememberSaveable { mutableStateOf(true) }
 
     var settingsLoaded by remember { mutableStateOf(false) }
+
+    BackHandler(onBack = onBackClick)
 
     LaunchedEffect(Unit) {
         autoCheckEnabled(context).collect {

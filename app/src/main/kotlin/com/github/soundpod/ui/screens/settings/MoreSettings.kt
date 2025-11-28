@@ -6,6 +6,7 @@ import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.Settings
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Spacer
@@ -92,6 +93,8 @@ fun MoreSettings(
         false
     )
     val (colorPalette) = LocalAppearance.current
+
+    BackHandler(onBack = onBackClick)
 
     SettingsScreenLayout(
         title = stringResource(id = R.string.more_settings),

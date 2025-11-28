@@ -36,7 +36,8 @@ fun TopBar(
             Text(
                 text = "SoundPod",
                 fontSize = 22.sp,
-                fontWeight = FontWeight.ExtraBold
+                fontWeight = FontWeight.ExtraBold,
+                color = colorPalette.text
             )
         },
         actions = {

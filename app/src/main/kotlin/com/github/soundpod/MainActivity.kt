@@ -39,6 +39,8 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
@@ -121,63 +123,78 @@ class MainActivity : ComponentActivity() {
                 AppThemeColor.Light -> false
             }
 
-            AppTheme(
-                darkTheme = darkTheme,
-                usePureBlack = false,
-                useMaterialNeutral = false,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) {
-                    CompositionLocalProvider(value = LocalPlayerServiceBinder provides binder) {
-                        val menuState = LocalMenuState.current
 
-                        Scaffold{ paddingValues ->
-                            PlayerScaffold(
-                                navController = navController,
-                                sheetState = playerState,
-                                scaffoldPadding = paddingValues
-                            ) {
-                                Navigation(
-                                    navController = navController,
-                                    sheetState = playerState
+                    AppTheme(
+                        darkTheme = darkTheme,
+                        usePureBlack = false,
+                        useMaterialNeutral = false,
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            CompositionLocalProvider(value = LocalPlayerServiceBinder provides binder) {
+                                val menuState = LocalMenuState.current
+
+                                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                                val currentDestination = navBackStackEntry?.destination
+
+                                val settingsRoutes = listOf(
+                                    Routes.Settings::class,
+                                    Routes.Appearance::class,
+                                    Routes.Player::class,
+                                    Routes.Privacy::class,
+                                    Routes.Backup::class,
+                                    Routes.Storage::class,
+                                    Routes.More::class,
+                                    Routes.Experiment::class,
+                                    Routes.About::class
                                 )
-                            }
-                        }
 
-                        LaunchedEffect(Unit) {
-                            if (intent?.getBooleanExtra("NAVIGATE_TO_ABOUT", false) == true) {
-                                navController.navigate(Routes.About)
-                                intent.removeExtra("NAVIGATE_TO_ABOUT")
-                            }
-                        }
+                                val showPlayer = settingsRoutes.none { route ->
+                                    currentDestination?.hasRoute(route) == true
+                                }
 
-                        if (menuState.isDisplayed) {
-                            ModalBottomSheet(
-                                onDismissRequest = menuState::hide,
-                                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-                                dragHandle = {
-                                    Surface(
-                                        modifier = Modifier
-                                            .padding(vertical = 12.dp),
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        shape = MaterialTheme.shapes.extraLarge
+                                Scaffold { paddingValues ->
+                                    PlayerScaffold(
+                                        navController = navController,
+                                        sheetState = playerState,
+                                        scaffoldPadding = paddingValues,
+                                        showPlayer = showPlayer
                                     ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(width = 32.dp, height = 4.dp)
+                                        Navigation(
+                                            navController = navController,
+                                            sheetState = playerState
                                         )
-
                                     }
                                 }
-                            ) {
-                                menuState.content()
+
+                                LaunchedEffect(Unit) {
+                                    if (intent?.getBooleanExtra("NAVIGATE_TO_ABOUT", false) == true) {
+                                        navController.navigate(Routes.About)
+                                        intent.removeExtra("NAVIGATE_TO_ABOUT")
+                                    }
+                                }
+
+                                if (menuState.isDisplayed) {
+                                    ModalBottomSheet(
+                                        onDismissRequest = menuState::hide,
+                                        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                                        dragHandle = {
+                                            Surface(
+                                                modifier = Modifier.padding(vertical = 12.dp),
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                shape = MaterialTheme.shapes.extraLarge
+                                            ) {
+                                                Box(modifier = Modifier.size(width = 32.dp, height = 4.dp))
+                                            }
+                                        }
+                                    ) {
+                                        menuState.content()
+                                    }
+                                }
                             }
                         }
                     }
-                }
-            }
 
             DisposableEffect(binder?.player) {
                 val player = binder?.player ?: return@DisposableEffect onDispose { }

@@ -31,7 +31,6 @@ import com.github.soundpod.enums.PlaylistSortBy
 import com.github.soundpod.enums.SortOrder
 import com.github.soundpod.models.Playlist
 import com.github.soundpod.query
-import com.github.soundpod.ui.components.HomeScaffold
 import com.github.soundpod.ui.components.SortingHeader
 import com.github.soundpod.ui.components.TextFieldDialog
 import com.github.soundpod.ui.items.BuiltInPlaylistItem
@@ -39,7 +38,7 @@ import com.github.soundpod.ui.items.LocalPlaylistItem
 import com.github.soundpod.utils.playlistSortByKey
 import com.github.soundpod.utils.playlistSortOrderKey
 import com.github.soundpod.utils.rememberPreference
-import com.github.soundpod.viewmodels.HomePlaylistsViewModel
+import com.github.soundpod.viewmodels.home.HomePlaylistsViewModel
 
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi

@@ -21,13 +21,12 @@ import com.github.soundpod.R
 import com.github.soundpod.enums.AlbumSortBy
 import com.github.soundpod.enums.SortOrder
 import com.github.soundpod.models.Album
-import com.github.soundpod.ui.components.HomeScaffold
 import com.github.soundpod.ui.components.SortingHeader
 import com.github.soundpod.ui.items.LocalAlbumItem
 import com.github.soundpod.utils.albumSortByKey
 import com.github.soundpod.utils.albumSortOrderKey
 import com.github.soundpod.utils.rememberPreference
-import com.github.soundpod.viewmodels.HomeAlbumsViewModel
+import com.github.soundpod.viewmodels.home.HomeAlbumsViewModel
 
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi

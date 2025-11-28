@@ -2,6 +2,7 @@ package com.github.soundpod.ui.screens.settings
 
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
@@ -71,6 +72,8 @@ fun Backup(
                 exitProcess(0)
             }
         }
+
+    BackHandler(onBack = onBackClick)
 
     SettingsScreenLayout(
         title = stringResource(id = R.string.backup_restore),

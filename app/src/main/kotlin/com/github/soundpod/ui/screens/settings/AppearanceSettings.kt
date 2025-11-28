@@ -1,5 +1,6 @@
 package com.github.soundpod.ui.screens.settings
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
@@ -39,6 +40,8 @@ fun Appearance(
     var apptheme by rememberPreference(appTheme, AppThemeColor.System)
     var accentColorSource by rememberPreference(accentColorSource, AccentColorSource.Default )
     var progressBarStyle by rememberPreference(progressBarStyle, ProgressBar.Default )
+
+    BackHandler(onBack = onBackClick)
 
     SettingsScreenLayout(
         title = stringResource(id = R.string.appearance),

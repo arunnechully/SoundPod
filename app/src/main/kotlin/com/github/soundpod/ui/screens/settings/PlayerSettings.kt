@@ -1,5 +1,6 @@
 package com.github.soundpod.ui.screens.settings
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
@@ -37,7 +38,7 @@ import java.util.Locale
 @Suppress("AssignedValueIsNeverRead")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewPlayerSettings(
+fun PlayerSettings(
     onBackClick: () -> Unit
 ) {
     val (colorPalette) = LocalAppearance.current
@@ -52,6 +53,8 @@ fun NewPlayerSettings(
         false
     )
     var persistentQueue by rememberPreference(persistentQueueKey, false)
+
+    BackHandler(onBack = onBackClick)
 
     SettingsScreenLayout(
         title = stringResource(id = R.string.player),

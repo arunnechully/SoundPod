@@ -8,14 +8,6 @@ package com.github.soundpod.ui.navigation
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.FastOutLinearInEasing
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SheetState
@@ -43,49 +35,13 @@ import com.github.soundpod.ui.screens.settings.CacheSettings
 import com.github.soundpod.ui.screens.settings.Experiment
 import com.github.soundpod.ui.screens.settings.MoreSettings
 import com.github.soundpod.ui.screens.settings.AboutSettings
-import com.github.soundpod.ui.screens.settings.NewPlayerSettings
+import com.github.soundpod.ui.screens.settings.PlayerSettings
 import com.github.soundpod.ui.screens.settings.SettingsScreen
 import com.github.soundpod.ui.screens.settings.Privacy
 import com.github.soundpod.utils.homeScreenTabIndexKey
 import com.github.soundpod.utils.rememberPreference
 import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
-
-private fun defaultEnterTransition() =
-    slideInHorizontally(
-        initialOffsetX = { it / 4 }, // 25% offset instead of full width
-        animationSpec = tween(
-            durationMillis = 220,
-            easing = LinearOutSlowInEasing
-        )
-    ) + fadeIn(animationSpec = tween(200))
-
-private fun defaultExitTransition() =
-    slideOutHorizontally(
-        targetOffsetX = { -it / 4 },
-        animationSpec = tween(
-            durationMillis = 200,
-            easing = FastOutLinearInEasing
-        )
-    ) + fadeOut(animationSpec = tween(150))
-
-private fun defaultPopEnterTransition() =
-    slideInHorizontally(
-        initialOffsetX = { -it / 4 },
-        animationSpec = tween(
-            durationMillis = 200,
-            easing = LinearOutSlowInEasing
-        )
-    ) + fadeIn(animationSpec = tween(200))
-
-private fun defaultPopExitTransition() =
-    slideOutHorizontally(
-        targetOffsetX = { it / 4 },
-        animationSpec = tween(
-            durationMillis = 180,
-            easing = FastOutSlowInEasing
-        )
-    ) + fadeOut(animationSpec = tween(150))
 
 
 @Composable
@@ -102,10 +58,10 @@ fun Navigation(
             index = screenIndex,
             defaultValue = { Routes.NewHome }
         )::class,
-        enterTransition = { defaultEnterTransition() },
-        exitTransition = { defaultExitTransition() },
-        popEnterTransition = { defaultPopEnterTransition() },
-        popExitTransition = { defaultPopExitTransition() }
+        enterTransition = { Transitions.enter() },
+        exitTransition = { Transitions.exit() },
+        popEnterTransition = { Transitions.popEnter() },
+        popExitTransition = { Transitions.popExit() }
     ) {
         val navigateToAlbum = { browseId: String ->
             navController.navigate(route = Routes.Album(id = browseId))
@@ -177,65 +133,62 @@ fun Navigation(
             )
         }
 
-        playerComposable(route = Routes.Settings::class) {
+        composable(
+            route = Routes.Settings::class,
+            enterTransition = { Transitions.enter() },
+            exitTransition = { Transitions.exit() },
+            popEnterTransition = { Transitions.popEnter() },
+            popExitTransition = { Transitions.popExit() }
+        ) {
             SettingsScreen(
                 navController = navController,
                 onBackClick = { navController.popBackStack() }
             )
         }
-//
-//        composable(route = Routes.SettingsPage::class) { navBackStackEntry ->
-//            val route: Routes.SettingsPage = navBackStackEntry.toRoute()
-//
-//            SettingsPage(
-//                section = SettingsSection.entries[route.index],
-//                pop = popDestination
-//            )
-//        }
 
-        playerComposable(route = Routes.Appearance::class) {
+        composable(route = Routes.Appearance::class) {
             Appearance(
                 onBackClick = { navController.popBackStack() }
             )
         }
 
-        playerComposable(route = Routes.Player::class) {
-            NewPlayerSettings(
+        composable(route = Routes.Player::class) {
+            PlayerSettings(
                 onBackClick = { navController.popBackStack() }
             )
         }
 
-        playerComposable(route = Routes.Privacy::class) {
+        composable(route = Routes.Privacy::class) {
             Privacy(
                 onBackClick = { navController.popBackStack() }
             )
         }
 
-        playerComposable(route = Routes.Backup::class) {
+        composable(route = Routes.Backup::class) {
             Backup(
                 onBackClick = { navController.popBackStack() }
             )
         }
 
-        playerComposable(route = Routes.Storage::class) {
+        composable(route = Routes.Storage::class) {
             CacheSettings(
                 onBackClick = { navController.popBackStack() }
             )
         }
 
-        playerComposable(route = Routes.More::class) {
+        composable(route = Routes.More::class) {
             MoreSettings(
                 onBackClick = { navController.popBackStack() }
             )
         }
 
-        playerComposable(route = Routes.Experiment::class) {
+        composable(route = Routes.Experiment::class) {
             Experiment(
                 onBackClick = { navController.popBackStack() }
             )
         }
 
-        playerComposable(route = Routes.About::class) {
+        composable(route = Routes.About::class) {
             AboutSettings (
                 onBackClick = { navController.popBackStack() }
             )
@@ -252,7 +205,7 @@ fun Navigation(
             )
         }
 
-        playerComposable(route = Routes.BuiltInPlaylist::class) { navBackStackEntry ->
+        composable(route = Routes.BuiltInPlaylist::class) { navBackStackEntry ->
             val route: Routes.BuiltInPlaylist = navBackStackEntry.toRoute()
 
             BuiltInPlaylistScreen(
@@ -263,7 +216,7 @@ fun Navigation(
             )
         }
 
-        playerComposable(route = Routes.LocalPlaylist::class) { navBackStackEntry ->
+        composable(route = Routes.LocalPlaylist::class) { navBackStackEntry ->
             val route: Routes.LocalPlaylist = navBackStackEntry.toRoute()
 
             LocalPlaylistScreen(
