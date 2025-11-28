@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.outlined.Update
@@ -45,7 +44,6 @@ import androidx.compose.ui.unit.dp
 import com.github.api.Asset
 import com.github.api.GitHub
 import com.github.api.formatFileSize
-import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.R
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.common.autoCheckEnabled
@@ -69,7 +67,6 @@ fun AboutSettings(
 ) {
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
-    val playerPadding = LocalPlayerPadding.current
 
     var isShowingDialog by remember { mutableStateOf(false) }
     var latestVersion by rememberSaveable { mutableStateOf<String?>(null) }
