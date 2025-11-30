@@ -28,6 +28,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -52,7 +53,7 @@ import com.github.soundpod.enums.AppThemeColor
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.service.PlayerService
 import com.github.soundpod.ui.common.UpdateCheckWorker
-import com.github.soundpod.ui.navigation.Navigation
+import com.github.soundpod.ui.navigation.MainNavigation
 import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.ui.screens.player.PlayerScaffold
 import com.github.soundpod.ui.styling.AppTheme
@@ -102,6 +103,8 @@ class MainActivity : ComponentActivity() {
             val context = LocalContext.current
             val navController = rememberNavController()
             val scope = rememberCoroutineScope()
+            var isPlayerVisible by remember { mutableStateOf(false) }
+
             val playerState = rememberStandardBottomSheetState(
                 initialValue = SheetValue.PartiallyExpanded,
                 confirmValueChange = { value ->
@@ -133,9 +136,9 @@ class MainActivity : ComponentActivity() {
                             navController = navController,
                             sheetState = playerState,
                             scaffoldPadding = PaddingValues(0.dp),
-                            showPlayer = true
+                            showPlayer = isPlayerVisible
                         ) {
-                            Navigation(
+                            MainNavigation(
                                 navController = navController,
                                 sheetState = playerState,
                                 onNavigateToSettings = {
@@ -169,7 +172,9 @@ class MainActivity : ComponentActivity() {
             DisposableEffect(binder?.player) {
                 val player = binder?.player ?: return@DisposableEffect onDispose { }
 
-                if (player.currentMediaItem != null) {
+                isPlayerVisible = player.currentMediaItem != null
+
+                if (isPlayerVisible) {
                     if (launchedFromNotification) {
                         intent.replaceExtras(Bundle())
                         scope.launch { playerState.expand() }
@@ -178,9 +183,21 @@ class MainActivity : ComponentActivity() {
 
                 val listener = object : Player.Listener {
                     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED && mediaItem != null)
-                            if (mediaItem.mediaMetadata.extras?.getBoolean("isFromPersistentQueue") != true) scope.launch { playerState.expand() }
-                            else scope.launch { playerState.partialExpand() }
+                        isPlayerVisible = mediaItem != null
+
+                        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED && mediaItem != null) {
+                            if (mediaItem.mediaMetadata.extras?.getBoolean("isFromPersistentQueue") != true) {
+                                scope.launch { playerState.expand() }
+                            }
+                        }
+                    }
+
+                    override fun onEvents(player: Player, events: Player.Events) {
+                        if (events.contains(Player.EVENT_TIMELINE_CHANGED)) {
+                            if (player.mediaItemCount == 0) {
+                                isPlayerVisible = false
+                            }
+                        }
                     }
                 }
 
@@ -242,7 +259,6 @@ class MainActivity : ComponentActivity() {
 
         if (intent.getBooleanExtra("NAVIGATE_TO_ABOUT", false)) {
             val settingsIntent = Intent(this, SettingsActivity::class.java).apply {
-                // You can pass an extra here if you want SettingsActivity to jump to "About"
                 // putExtra("OPEN_ABOUT", true)
             }
             startActivity(settingsIntent)

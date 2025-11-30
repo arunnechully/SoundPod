@@ -5,14 +5,11 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.Album
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.BookmarkAdd
-import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.MusicNote
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.runtime.Composable
@@ -47,7 +44,7 @@ import kotlinx.coroutines.withContext
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
 @Composable
-fun OldAlbumScreen(
+fun AlbumScreen(
     browseId: String,
     pop: () -> Unit,
     onAlbumClick: (String) -> Unit,

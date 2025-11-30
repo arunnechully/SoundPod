@@ -10,18 +10,18 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 
 object Transitions {
-    private val OneUiEasing = CubicBezierEasing(0.22f, 0.25f, 0.0f, 1.0f)
+    private val UiEasing = CubicBezierEasing(0.22f, 0.25f, 0.0f, 1.0f)
     private const val DURATION = 400
 
     fun enter(): EnterTransition = slideInHorizontally(
         initialOffsetX = { (it * 1.1).toInt() },
-        animationSpec = tween(DURATION, easing = OneUiEasing)
+        animationSpec = tween(DURATION, easing = UiEasing)
     ) + fadeIn(
         animationSpec = tween(200)
     )
     fun exit(): ExitTransition = slideOutHorizontally(
         targetOffsetX = { (-it * 0.25).toInt() },
-        animationSpec = tween(DURATION, easing = OneUiEasing)
+        animationSpec = tween(DURATION, easing = UiEasing)
     ) + fadeOut(
         animationSpec = tween(DURATION),
         targetAlpha = 0.8f 
@@ -29,7 +29,7 @@ object Transitions {
 
     fun popEnter(): EnterTransition = slideInHorizontally(
         initialOffsetX = { (-it * 0.25).toInt() },
-        animationSpec = tween(DURATION, easing = OneUiEasing)
+        animationSpec = tween(DURATION, easing = UiEasing)
     ) + fadeIn(
         animationSpec = tween(DURATION),
         initialAlpha = 0.8f
@@ -37,7 +37,7 @@ object Transitions {
 
     fun popExit(): ExitTransition = slideOutHorizontally(
         targetOffsetX = { (it * 1.1).toInt() },
-        animationSpec = tween(DURATION, easing = OneUiEasing)
+        animationSpec = tween(DURATION, easing = UiEasing)
     ) + fadeOut(
         animationSpec = tween(200)
     )

@@ -68,28 +68,28 @@ fun AlbumSongs(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         item(key = "thumbnail") {
-//            CoverScaffold(
-//                primaryButton = ActionInfo(
-//                    enabled = songs.isNotEmpty(),
-//                    onClick = {
-//                        binder?.stopRadio()
-//                        binder?.player?.forcePlayFromBeginning(
-//                            songs.shuffled().map(Song::asMediaItem)
-//                        )
-//                    },
-//                    icon = Icons.Outlined.Shuffle,
-//                    description = R.string.shuffle
-//                ),
-//                secondaryButton = ActionInfo(
-//                    enabled = songs.isNotEmpty(),
-//                    onClick = {
-//                        binder?.player?.enqueue(songs.map(Song::asMediaItem))
-//                    },
-//                    icon = Icons.AutoMirrored.Outlined.PlaylistPlay,
-//                    description = R.string.enqueue
-//                ),
-//                content = thumbnailContent
-//            )
+            CoverScaffold(
+                primaryButton = ActionInfo(
+                    enabled = songs.isNotEmpty(),
+                    onClick = {
+                        binder?.stopRadio()
+                        binder?.player?.forcePlayFromBeginning(
+                            songs.shuffled().map(Song::asMediaItem)
+                        )
+                    },
+                    icon = Icons.Outlined.Shuffle,
+                    description = R.string.shuffle
+                ),
+                secondaryButton = ActionInfo(
+                    enabled = songs.isNotEmpty(),
+                    onClick = {
+                        binder?.player?.enqueue(songs.map(Song::asMediaItem))
+                    },
+                    icon = Icons.AutoMirrored.Outlined.PlaylistPlay,
+                    description = R.string.enqueue
+                ),
+                content = thumbnailContent
+            )
         }
 
         item(key = "spacer") {

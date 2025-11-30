@@ -29,27 +29,21 @@ import com.github.soundpod.ui.screens.home.HomeScreen
 import com.github.soundpod.ui.screens.localplaylist.LocalPlaylistScreen
 import com.github.soundpod.ui.screens.playlist.PlaylistScreen
 import com.github.soundpod.ui.screens.search.SearchScreen
-import com.github.soundpod.utils.homeScreenTabIndexKey
-import com.github.soundpod.utils.rememberPreference
 import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
 
 
 @Composable
-fun MusicNavigation(
+fun MainNavigation(
     navController: NavHostController,
     sheetState: SheetState,
     onNavigateToSettings: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    val (screenIndex, _) = rememberPreference(homeScreenTabIndexKey, defaultValue = 0)
 
     NavHost(
         navController = navController,
-        startDestination = TopDestinations.routes.getOrElse(
-            index = screenIndex,
-            defaultValue = { Routes.NewHome }
-        )::class,
+        startDestination = Routes.Home,
         enterTransition = { Transitions.enter() },
         exitTransition = { Transitions.exit() },
         popEnterTransition = { Transitions.popEnter() },
@@ -83,7 +77,7 @@ fun MusicNavigation(
             }
         }
 
-        playerComposable(route = Routes.NewHome::class) {
+        playerComposable(route = Routes.Home::class) {
             HomeScreen(
                 navController = navController,
                 onSettingsClick = onNavigateToSettings
@@ -112,7 +106,7 @@ fun MusicNavigation(
                 pop = popDestination,
                 onAlbumClick = navigateToAlbum,
                 onGoToArtist = navigateToArtist,
-                onBack = {navController.popBackStack()}
+//                onBack = {navController.popBackStack()}
             )
         }
 

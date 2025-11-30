@@ -67,7 +67,7 @@ import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun AlbumScreen(
+fun TodoAlbumScreen(
     browseId: String,
     pop: () -> Unit,
     onAlbumClick: (String) -> Unit,
