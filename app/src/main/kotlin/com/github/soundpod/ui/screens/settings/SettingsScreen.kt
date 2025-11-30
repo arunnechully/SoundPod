@@ -9,12 +9,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.github.soundpod.R
+import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.viewmodels.SettingsViewModel
@@ -41,13 +43,13 @@ fun SettingsScreen(
                         if (option.icon != null) {
                             SettingRow(
                                 title = stringResource(id = option.title),
-                                icon = option.icon,
+                                icon = IconSource.Vector(option.icon),
                                 onClick = { navController.navigate(option.route) }
                             )
                         } else if (option.iconRes != null) {
                             SettingRow(
                                 title = stringResource(id = option.title),
-                                painterRes = option.iconRes,
+                                icon = IconSource.Icon(painterResource(option.iconRes)),
                                 onClick = { navController.navigate(option.route) }
                             )
                         }

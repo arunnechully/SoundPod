@@ -23,7 +23,7 @@ import com.github.soundpod.ui.components.SettingsScreenLayout
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Experiment(
+fun ExperimentSettings(
     onBackClick: () -> Unit
 ) {
 

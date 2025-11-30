@@ -18,11 +18,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
+import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.components.SliderSettingsItem
@@ -74,7 +76,7 @@ fun PlayerSettings(
             SettingsCard {
 
                 SwitchSetting(
-                    icon = Icons.AutoMirrored.Outlined.QueueMusic,
+                    icon = IconSource.Vector(Icons.AutoMirrored.Outlined.QueueMusic),
                     title = stringResource(id = R.string.persistent_queue),
                     description = stringResource(id = R.string.persistent_queue_description),
                     switchState = persistentQueue,
@@ -84,7 +86,7 @@ fun PlayerSettings(
                 )
 
                 SwitchSetting(
-                    icon = Icons.Default.MusicOff,
+                    icon = IconSource.Vector(Icons.Default.MusicOff),
                     title = stringResource(id = R.string.skip_silence),
                     description = stringResource(id = R.string.skip_silence_description),
                     switchState = skipSilence,
@@ -93,14 +95,14 @@ fun PlayerSettings(
                     }
                 )
                 SwitchSetting(
-                    painterRes = R.drawable.audio_focus,
+                    icon = IconSource.Icon(painterResource(R.drawable.audio_focus)),
                     title = "Audio Focus",
                     description = "Pause playback when other media is playing",
                     switchState = audioFocus,
                     onSwitchChange = { audioFocus = it }
                 )
                 SwitchSetting(
-                    icon = Icons.Default.Pause,
+                    icon = IconSource.Vector(Icons.Default.Pause),
                     title = "Auto Pause",
                     description = "Pause playback when volume is muted",
                     switchState = autoPauseEnabled,
@@ -109,7 +111,7 @@ fun PlayerSettings(
 
                 if (isAtLeastAndroid6) {
                     SwitchSetting(
-                        painterRes = R.drawable.headphone,
+                        icon = IconSource.Icon(painterResource(R.drawable.headphone)),
                         title = stringResource(id = R.string.resume_playback),
                         description = stringResource(id = R.string.resume_playback_description),
                         switchState = resumePlaybackWhenDeviceConnected,
@@ -157,7 +159,7 @@ fun PlayerSettings(
                 )
 
                 SwitchSetting(
-                    icon = Icons.AutoMirrored.Filled.VolumeUp,
+                    icon = IconSource.Vector(Icons.AutoMirrored.Filled.VolumeUp),
                     title = stringResource(id = R.string.loudness_normalization),
                     description = stringResource(id = R.string.loudness_normalization_description),
                     switchState = volumeNormalization,

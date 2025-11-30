@@ -32,7 +32,7 @@ import com.github.soundpod.utils.rememberPreference
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Appearance(
+fun AppearanceSettings(
     onBackClick: () -> Unit
 ) {
     val (colorPalette) = LocalAppearance.current

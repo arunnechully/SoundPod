@@ -32,7 +32,7 @@ import kotlin.system.exitProcess
 @SuppressLint("RestrictedApi")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Backup(
+fun BackupSettings(
     onBackClick: () -> Unit
 ) {
     val context = LocalContext.current

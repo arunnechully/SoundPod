@@ -23,8 +23,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.ui.common.IconSource
@@ -35,7 +33,7 @@ inline fun <reified T : Enum<T>> EnumValueSelectorSettingsEntry(
     title: String,
     selectedValue: T,
     crossinline onValueSelected: (T) -> Unit,
-    icon: IconSource,
+    icon: IconSource? = null,
     isEnabled: Boolean = true,
     crossinline valueText: (T) -> String = Enum<T>::name,
     noinline trailingContent: @Composable (() -> Unit)? = null
@@ -58,7 +56,7 @@ inline fun <T> ValueSelectorSettingsEntry(
     selectedValue: T,
     values: List<T>,
     crossinline onValueSelected: (T) -> Unit,
-    icon: IconSource,
+    icon: IconSource? = null,
     isEnabled: Boolean = true,
     crossinline valueText: (T) -> String = { it.toString() },
     noinline trailingContent: @Composable (() -> Unit)? = null
@@ -142,8 +140,7 @@ fun SettingsProgress(text: String, progress: Float) {
 @Composable
 fun SettingRow(
     title: String,
-    icon: ImageVector? = null,
-    painterRes: Int? = null,
+    icon: IconSource? = null,
     onClick: () -> Unit
 ) {
     val (colorPalette) = LocalAppearance.current
@@ -157,20 +154,22 @@ fun SettingRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
 
-        if (icon != null) {
-            Icon(
-                imageVector = icon,
+        when (icon) {
+            is IconSource.Vector -> Icon(
+                imageVector = icon.imageVector,
                 contentDescription = title,
                 tint = colorPalette.text,
                 modifier = Modifier.size(28.dp)
             )
-        } else if (painterRes != null) {
-            Icon(
-                painter = painterResource(id = painterRes),
+
+            is IconSource.Icon -> Icon(
+                painter = icon.painter,
                 contentDescription = title,
                 tint = colorPalette.text,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(28.dp),
             )
+
+            null -> {}
         }
 
         Column {

@@ -8,9 +8,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.outlined.Cached
-import androidx.compose.material.icons.outlined.HistoryToggleOff
 import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.ManageHistory
 import androidx.compose.material.icons.outlined.MusicNote
 import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -102,7 +102,7 @@ fun CacheSettings(
                 )
 
                 SwitchSetting(
-                    icon = Icons.Outlined.HistoryToggleOff,
+                    icon = IconSource.Vector(Icons.Outlined.ManageHistory),
                     title = stringResource(id = R.string.pause_search_history),
                     description = stringResource(id = R.string.pause_search_history_description),
                     switchState = pauseSearchHistory,
@@ -110,7 +110,7 @@ fun CacheSettings(
                 )
 
                 SwitchSetting(
-                    painterRes = R.drawable.database,
+                    icon = IconSource.Icon( painterResource(id = R.drawable.database)),
                     title = stringResource(id = R.string.pause_song_cache),
                     description = stringResource(id = R.string.pause_song_cache_description),
                     switchState = pauseSongCache,

@@ -29,15 +29,6 @@ import com.github.soundpod.ui.screens.home.HomeScreen
 import com.github.soundpod.ui.screens.localplaylist.LocalPlaylistScreen
 import com.github.soundpod.ui.screens.playlist.PlaylistScreen
 import com.github.soundpod.ui.screens.search.SearchScreen
-import com.github.soundpod.ui.screens.settings.Appearance
-import com.github.soundpod.ui.screens.settings.Backup
-import com.github.soundpod.ui.screens.settings.CacheSettings
-import com.github.soundpod.ui.screens.settings.Experiment
-import com.github.soundpod.ui.screens.settings.MoreSettings
-import com.github.soundpod.ui.screens.settings.AboutSettings
-import com.github.soundpod.ui.screens.settings.PlayerSettings
-import com.github.soundpod.ui.screens.settings.SettingsScreen
-import com.github.soundpod.ui.screens.settings.Privacy
 import com.github.soundpod.utils.homeScreenTabIndexKey
 import com.github.soundpod.utils.rememberPreference
 import kotlinx.coroutines.launch
@@ -45,9 +36,10 @@ import kotlin.reflect.KClass
 
 
 @Composable
-fun Navigation(
+fun MusicNavigation(
     navController: NavHostController,
-    sheetState: SheetState
+    sheetState: SheetState,
+    onNavigateToSettings: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val (screenIndex, _) = rememberPreference(homeScreenTabIndexKey, defaultValue = 0)
@@ -93,7 +85,8 @@ fun Navigation(
 
         playerComposable(route = Routes.NewHome::class) {
             HomeScreen(
-                navController = navController
+                navController = navController,
+                onSettingsClick = onNavigateToSettings
             )
         }
 
@@ -118,7 +111,8 @@ fun Navigation(
                 browseId = route.id,
                 pop = popDestination,
                 onAlbumClick = navigateToAlbum,
-                onGoToArtist = navigateToArtist
+                onGoToArtist = navigateToArtist,
+                onBack = {navController.popBackStack()}
             )
         }
 
@@ -130,67 +124,6 @@ fun Navigation(
                 pop = popDestination,
                 onGoToAlbum = navigateToAlbum,
                 onGoToArtist = navigateToArtist
-            )
-        }
-
-        composable(
-            route = Routes.Settings::class,
-            enterTransition = { Transitions.enter() },
-            exitTransition = { Transitions.exit() },
-            popEnterTransition = { Transitions.popEnter() },
-            popExitTransition = { Transitions.popExit() }
-        ) {
-            SettingsScreen(
-                navController = navController,
-                onBackClick = { navController.popBackStack() }
-            )
-        }
-
-        composable(route = Routes.Appearance::class) {
-            Appearance(
-                onBackClick = { navController.popBackStack() }
-            )
-        }
-
-        composable(route = Routes.Player::class) {
-            PlayerSettings(
-                onBackClick = { navController.popBackStack() }
-            )
-        }
-
-        composable(route = Routes.Privacy::class) {
-            Privacy(
-                onBackClick = { navController.popBackStack() }
-            )
-        }
-
-        composable(route = Routes.Backup::class) {
-            Backup(
-                onBackClick = { navController.popBackStack() }
-            )
-        }
-
-        composable(route = Routes.Storage::class) {
-            CacheSettings(
-                onBackClick = { navController.popBackStack() }
-            )
-        }
-
-        composable(route = Routes.More::class) {
-            MoreSettings(
-                onBackClick = { navController.popBackStack() }
-            )
-        }
-
-        composable(route = Routes.Experiment::class) {
-            Experiment(
-                onBackClick = { navController.popBackStack() }
-            )
-        }
-
-        composable(route = Routes.About::class) {
-            AboutSettings (
-                onBackClick = { navController.popBackStack() }
             )
         }
 

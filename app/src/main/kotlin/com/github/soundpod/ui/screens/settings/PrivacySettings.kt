@@ -9,7 +9,7 @@ import com.github.soundpod.ui.components.SettingsScreenLayout
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Privacy(
+fun PrivacySettings(
     onBackClick: () -> Unit
 ) {
     BackHandler(onBack = onBackClick)

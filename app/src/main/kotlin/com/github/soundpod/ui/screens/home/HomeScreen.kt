@@ -26,7 +26,8 @@ import com.github.soundpod.ui.navigation.Routes
 
 @Composable
 fun HomeScreen(
-    navController: NavController
+    navController: NavController,
+    onSettingsClick: () -> Unit
 ) {
 
 
@@ -46,7 +47,7 @@ fun HomeScreen(
     ) {
         TopBar(
             onSearch = { navController.navigate(route = Routes.Search) },
-            onSettingsClick = { navController.navigate(route = Routes.Settings) },
+            onSettingsClick = onSettingsClick,
         )
 
         Spacer(modifier = Modifier.padding(vertical = 2.dp))

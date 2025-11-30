@@ -16,6 +16,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.github.innertube.Innertube
 import com.github.soundpod.Database
@@ -56,6 +58,7 @@ fun PlaylistItem(
 fun BuiltInPlaylistItem(
     modifier: Modifier = Modifier,
     icon: ImageVector,
+    iconSize: Dp = 32.dp,
     name: String,
     onClick: () -> Unit
 ) {
@@ -66,6 +69,7 @@ fun BuiltInPlaylistItem(
     ) {
         Icon(
             imageVector = icon,
+            modifier = Modifier.size(iconSize),
             contentDescription = name,
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )

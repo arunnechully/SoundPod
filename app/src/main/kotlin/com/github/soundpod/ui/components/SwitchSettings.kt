@@ -14,21 +14,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
-import com.github.core.ui.surface
+import com.github.soundpod.ui.common.IconSource
 
 @Composable
 fun SwitchSetting(
     title: String,
     description: String,
-    icon: ImageVector? = null,
-    painterRes: Int? = null,
+    icon: IconSource,
     switchState: Boolean,
     onSwitchChange: (Boolean) -> Unit
 ) {
@@ -42,20 +38,21 @@ fun SwitchSetting(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (icon != null) {
-            Icon(
-                imageVector = icon,
+        when (icon) {
+            is IconSource.Vector -> Icon(
+                imageVector = icon.imageVector,
                 contentDescription = title,
                 tint = colorPalette.text,
                 modifier = Modifier.size(28.dp)
             )
-        } else if (painterRes != null) {
-            Icon(
-                painter = painterResource(id = painterRes),
+
+            is IconSource.Icon -> Icon(
+                painter = icon.painter,
                 contentDescription = title,
                 tint = colorPalette.text,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(28.dp),
             )
+
         }
 
         Column(

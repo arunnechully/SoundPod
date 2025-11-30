@@ -31,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -105,7 +106,7 @@ fun MoreSettings(
 
                 if (!isAtLeastAndroid13) {
                     SwitchSetting(
-                        icon = Icons.Outlined.Image,
+                        icon = IconSource.Vector(Icons.Outlined.Image),
                         title = stringResource(id = R.string.show_song_cover),
                         description = stringResource(id = R.string.show_song_cover_description),
                         switchState = isShowingThumbnailInLockscreen,
@@ -114,7 +115,7 @@ fun MoreSettings(
                 }
 
                 SwitchSetting(
-                    painterRes = R.drawable.android_auto,
+                    icon = IconSource.Icon(painterResource(id= R.drawable.android_auto)),
                     title = stringResource(id = R.string.android_auto),
                     description = stringResource(id = R.string.android_auto_description),
                     switchState = isAndroidAutoEnabled,
@@ -239,7 +240,7 @@ fun MoreSettings(
                 )
 
                 SwitchSetting(
-                    icon = Icons.Outlined.Stars,
+                    icon = IconSource.Vector(Icons.Outlined.Stars),
                     title = stringResource(id = R.string.service_lifetime),
                     description = stringResource(id = R.string.service_lifetime_description),
                     switchState = isInvincibilityEnabled,

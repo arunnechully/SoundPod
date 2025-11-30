@@ -184,7 +184,7 @@ fun AboutSettings(
                 SettingsCard {
                     if (settingsLoaded) {
                         SwitchSetting(
-                            icon = Icons.Default.Update,
+                            icon = IconSource.Vector(Icons.Default.Update),
                             title = stringResource(id = R.string.autocheck),
                             description = stringResource(id = R.string.autocheck_description),
                             switchState = autoCheckEnabled,
@@ -197,7 +197,7 @@ fun AboutSettings(
                         )
 
                         SwitchSetting(
-                            icon = Icons.Default.Notifications,
+                            icon = IconSource.Vector(Icons.Default.Notifications),
                             title = stringResource(id = R.string.update_alert),
                             description = stringResource(id = R.string.update_alert_desription),
                             switchState = showAlertEnabled,
