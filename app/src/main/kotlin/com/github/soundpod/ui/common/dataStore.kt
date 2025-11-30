@@ -6,7 +6,9 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.github.core.ui.ColorMode
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.io.File
 
 val Context.updateDataStore by preferencesDataStore("update_prefs")
 
@@ -50,4 +52,27 @@ suspend fun setThemePreference(context: Context, mode: ColorMode) {
     context.updateDataStore.edit {
         it[UpdatePrefs.THEME_KEY] = mode.name
     }
+}
+
+private val SEAMLESS_UPDATE_ENABLED = booleanPreferencesKey("seamless_update_enabled")
+
+fun seamlessUpdateEnabled(context: Context): Flow<Boolean> = context.updateDataStore.data
+    .map { preferences ->
+        preferences[SEAMLESS_UPDATE_ENABLED] ?: false
+    }
+suspend fun setSeamlessUpdateEnabled(context: Context, enabled: Boolean) {
+    context.updateDataStore.edit { preferences ->
+        preferences[SEAMLESS_UPDATE_ENABLED] = enabled
+    }
+}
+
+sealed class UpdateStatus {
+    object Checking : UpdateStatus()
+    object UpToDate : UpdateStatus()
+    data class Available(val version: String, val downloadUrl: String, val size: Long) : UpdateStatus()
+    data class Downloading(val progress: Float) : UpdateStatus()
+    data class ReadyToInstall(val file: File) : UpdateStatus()
+    data class DownloadedToPublic(val file: File) : UpdateStatus()
+    object Installing : UpdateStatus()
+    object Error : UpdateStatus()
 }
