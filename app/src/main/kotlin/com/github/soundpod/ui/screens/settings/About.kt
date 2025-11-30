@@ -166,10 +166,10 @@ fun AboutSettings(
                                     isSeamless = seamlessUpdateEnabled,
                                     onProgress = { updateStatus = UpdateStatus.Downloading(it) },
                                     onFinished = { file ->
-                                        if (seamlessUpdateEnabled) {
-                                            updateStatus = UpdateStatus.ReadyToInstall(file)
+                                        updateStatus = if (seamlessUpdateEnabled) {
+                                            UpdateStatus.ReadyToInstall(file)
                                         } else {
-                                            updateStatus = UpdateStatus.DownloadedToPublic(file)
+                                            UpdateStatus.DownloadedToPublic(file)
                                         }
                                     },
                                     onError = { updateStatus = UpdateStatus.Error }
