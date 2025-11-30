@@ -9,7 +9,7 @@ import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Storage
 import androidx.lifecycle.ViewModel
 import com.github.soundpod.R
-import com.github.soundpod.ui.navigation.Routes
+import com.github.soundpod.ui.navigation.SettingsDestinations
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -30,12 +30,12 @@ class SettingsViewModel : ViewModel() {
                     SettingOption(
                         title = R.string.appearance,
                         icon = Icons.Default.ColorLens,
-                        route = Routes.Appearance
+                        screenId = SettingsDestinations.APPEARANCE
                     ),
                     SettingOption(
                         title = R.string.player,
                         icon = Icons.Default.PlayArrow,
-                        route = Routes.Player
+                        screenId = SettingsDestinations.PLAYER
                     )
                 )
             ),
@@ -45,7 +45,7 @@ class SettingsViewModel : ViewModel() {
                     SettingOption(
                         title = R.string.privacy,
                         icon = Icons.Default.PrivacyTip,
-                        route = Routes.Privacy
+                        screenId = SettingsDestinations.PRIVACY
                     )
                 )
             ),
@@ -55,12 +55,12 @@ class SettingsViewModel : ViewModel() {
                     SettingOption(
                         title = R.string.backup_restore,
                         icon = Icons.Default.Restore,
-                        route = Routes.Backup
+                        screenId = SettingsDestinations.BACKUP
                     ),
                     SettingOption(
                         title = R.string.database,
                         icon = Icons.Default.Storage,
-                        route = Routes.Storage
+                        screenId = SettingsDestinations.DATABASE
                     )
                 )
             ),
@@ -70,12 +70,12 @@ class SettingsViewModel : ViewModel() {
                     SettingOption(
                         title = R.string.more_settings,
                         iconRes = R.drawable.more_settings,
-                        route = Routes.More
+                        screenId = SettingsDestinations.MORE
                     ),
                     SettingOption(
                         title = R.string.experimental,
                         iconRes = R.drawable.experimental,
-                        route = Routes.Experiment
+                        screenId = SettingsDestinations.EXPERIMENT
                     )
                 )
             ),
@@ -85,7 +85,7 @@ class SettingsViewModel : ViewModel() {
                     SettingOption(
                         title = R.string.about,
                         icon = Icons.Default.Info,
-                        route = Routes.About
+                        screenId = SettingsDestinations.ABOUT
                     )
                 )
             )

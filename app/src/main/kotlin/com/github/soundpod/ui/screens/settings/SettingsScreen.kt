@@ -14,7 +14,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import com.github.soundpod.R
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
@@ -23,8 +22,8 @@ import com.github.soundpod.viewmodels.SettingsViewModel
 
 @Composable
 fun SettingsScreen(
-    navController: NavController,
     onBackClick: () -> Unit,
+    onOptionClick: (String) -> Unit,
     viewModel: SettingsViewModel = viewModel()
 ) {
     val sections by viewModel.sections.collectAsStateWithLifecycle()
@@ -44,13 +43,13 @@ fun SettingsScreen(
                             SettingRow(
                                 title = stringResource(id = option.title),
                                 icon = IconSource.Vector(option.icon),
-                                onClick = { navController.navigate(option.route) }
+                                onClick = { onOptionClick(option.screenId) }
                             )
                         } else if (option.iconRes != null) {
                             SettingRow(
                                 title = stringResource(id = option.title),
                                 icon = IconSource.Icon(painterResource(option.iconRes)),
-                                onClick = { navController.navigate(option.route) }
+                                onClick = { onOptionClick(option.screenId) }
                             )
                         }
                     }

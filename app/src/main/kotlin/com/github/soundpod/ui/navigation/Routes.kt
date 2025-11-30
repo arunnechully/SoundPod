@@ -4,22 +4,7 @@ import kotlinx.serialization.Serializable
 
 sealed class Routes {
     @Serializable
-    data object NewHome
-
-    @Serializable
     data object Home
-
-    @Serializable
-    data object Songs
-
-    @Serializable
-    data object Artists
-
-    @Serializable
-    data object Albums
-
-    @Serializable
-    data object Playlists
 
     @Serializable
     data class Artist(val id: String)
@@ -31,34 +16,8 @@ sealed class Routes {
     data class Playlist(val id: String)
 
     @Serializable
-    data object Settings
-
-    @Serializable
-    data class SettingsPage(val index: Int)
-
-    @Serializable
-    data object Appearance
-
-    @Serializable
     data object Player
 
-    @Serializable
-    data object Privacy
-
-    @Serializable
-    data object Backup
-
-    @Serializable
-    data object Storage
-
-    @Serializable
-    data object More
-
-    @Serializable
-    data object Experiment
-
-    @Serializable
-    data object About
     @Serializable
     data object Search
 
@@ -67,4 +26,18 @@ sealed class Routes {
 
     @Serializable
     data class LocalPlaylist(val id: Long)
+}
+
+
+//settings screen moved to activity.launch
+object SettingsDestinations {
+    const val MAIN = "settings_main"
+    const val APPEARANCE = "settings_appearance"
+    const val PLAYER = "settings_player"
+    const val PRIVACY = "settings_privacy"
+    const val BACKUP = "settings_backup"
+    const val DATABASE = "settings_database"
+    const val MORE = "settings_more"
+    const val EXPERIMENT = "settings_experiment"
+    const val ABOUT = "settings_about"
 }

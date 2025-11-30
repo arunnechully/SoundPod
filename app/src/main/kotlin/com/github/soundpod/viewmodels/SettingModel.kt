@@ -8,7 +8,7 @@ data class SettingOption(
     @StringRes val title: Int,
     val icon: ImageVector? = null,
     @DrawableRes val iconRes: Int? = null,
-    val route: Any
+    val screenId: String
 )
 
 data class SettingsSection(

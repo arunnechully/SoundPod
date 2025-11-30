@@ -11,6 +11,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -50,8 +52,9 @@ import com.github.soundpod.enums.AppThemeColor
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.service.PlayerService
 import com.github.soundpod.ui.common.UpdateCheckWorker
-import com.github.soundpod.ui.navigation.RootNavigation
+import com.github.soundpod.ui.navigation.Navigation
 import com.github.soundpod.ui.navigation.Routes
+import com.github.soundpod.ui.screens.player.PlayerScaffold
 import com.github.soundpod.ui.styling.AppTheme
 import com.github.soundpod.utils.appTheme
 import com.github.soundpod.utils.asMediaItem
@@ -96,19 +99,15 @@ class MainActivity : ComponentActivity() {
         data = intent?.data ?: intent?.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
 
         setContent {
+            val context = LocalContext.current
             val navController = rememberNavController()
             val scope = rememberCoroutineScope()
             val playerState = rememberStandardBottomSheetState(
-                initialValue = SheetValue.Hidden,
+                initialValue = SheetValue.PartiallyExpanded,
                 confirmValueChange = { value ->
-                    if (value == SheetValue.Hidden) {
-                        binder?.stopRadio()
-                        binder?.player?.clearMediaItems()
-                    }
-
-                    return@rememberStandardBottomSheetState true
+                    value != SheetValue.Hidden
                 },
-                skipHiddenState = false
+                skipHiddenState = true
             )
 
             val appTheme by rememberPreference(appTheme, AppThemeColor.System)
@@ -118,7 +117,6 @@ class MainActivity : ComponentActivity() {
                 AppThemeColor.Dark -> true
                 AppThemeColor.Light -> false
             }
-
 
             AppTheme(
                 darkTheme = darkTheme,
@@ -131,9 +129,21 @@ class MainActivity : ComponentActivity() {
                     CompositionLocalProvider(value = LocalPlayerServiceBinder provides binder) {
                         val menuState = LocalMenuState.current
 
-                        RootNavigation(
-                            mainActivityIntent = intent
-                        )
+                        PlayerScaffold(
+                            navController = navController,
+                            sheetState = playerState,
+                            scaffoldPadding = PaddingValues(0.dp),
+                            showPlayer = true
+                        ) {
+                            Navigation(
+                                navController = navController,
+                                sheetState = playerState,
+                                onNavigateToSettings = {
+                                    val intent = Intent(context, SettingsActivity::class.java)
+                                    context.startActivity(intent)
+                                }
+                            )
+                        }
 
                         if (menuState.isDisplayed) {
                             ModalBottomSheet(
@@ -159,12 +169,11 @@ class MainActivity : ComponentActivity() {
             DisposableEffect(binder?.player) {
                 val player = binder?.player ?: return@DisposableEffect onDispose { }
 
-                if (player.currentMediaItem == null) scope.launch { playerState.hide() }
-                else {
+                if (player.currentMediaItem != null) {
                     if (launchedFromNotification) {
                         intent.replaceExtras(Bundle())
                         scope.launch { playerState.expand() }
-                    } else scope.launch { playerState.partialExpand() }
+                    }
                 }
 
                 val listener = object : Player.Listener {
@@ -232,9 +241,13 @@ class MainActivity : ComponentActivity() {
         data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
 
         if (intent.getBooleanExtra("NAVIGATE_TO_ABOUT", false)) {
-
-            setIntent(intent)
+            val settingsIntent = Intent(this, SettingsActivity::class.java).apply {
+                // You can pass an extra here if you want SettingsActivity to jump to "About"
+                // putExtra("OPEN_ABOUT", true)
+            }
+            startActivity(settingsIntent)
         }
+        setIntent(intent)
     }
 
     override fun onStop() {
