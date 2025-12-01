@@ -14,7 +14,7 @@ data class Release(
 @Serializable
 data class Asset(
     val name: String,
-    val size: Long,  // <-- FIXED
+    val size: Long,
     @SerialName("browser_download_url")
     val browserDownloadUrl: String
 )

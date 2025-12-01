@@ -1,18 +1,10 @@
 package com.github.soundpod.ui.screens.settings
 
-import android.app.DownloadManager
-import android.content.ActivityNotFoundException
-import android.content.Context
 import android.content.Intent
-import android.database.Cursor
 import android.os.Build
-import android.os.Environment
 import android.provider.Settings
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,9 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material3.AlertDialog
@@ -47,15 +37,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
-import com.github.api.GitHub
 import com.github.soundpod.R
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.common.UpdateStatus
-import com.github.soundpod.ui.common.autoCheckEnabled
 import com.github.soundpod.ui.common.seamlessUpdateEnabled
 import com.github.soundpod.ui.common.setSeamlessUpdateEnabled
 import com.github.soundpod.ui.common.setShowUpdateAlert
@@ -63,15 +50,13 @@ import com.github.soundpod.ui.common.showUpdateAlert
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.components.SwitchSetting
+import com.github.soundpod.ui.components.UpdateMessage
 import com.github.soundpod.ui.styling.Dimensions
-import com.github.soundpod.utils.VersionUtils
+import com.github.soundpod.utils.checkForUpdates
+import com.github.soundpod.utils.downloadAndInstall
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.io.File
-import java.net.HttpURLConnection
-import java.net.URL
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,8 +74,6 @@ fun AboutSettings(
     var updateStatus by remember { mutableStateOf<UpdateStatus>(UpdateStatus.Checking) }
     var seamlessUpdateEnabled by remember { mutableStateOf(false) }
     var showPermissionDialog by remember { mutableStateOf(false) }
-
-    var autoCheckEnabled by rememberSaveable { mutableStateOf(true) }
     var showAlertEnabled by rememberSaveable { mutableStateOf(true) }
 
     BackHandler(onBack = onBackClick)
@@ -103,10 +86,7 @@ fun AboutSettings(
             }
         }
     }
-
-    // Load Settings
     LaunchedEffect(Unit) {
-        launch { autoCheckEnabled(context).collect { autoCheckEnabled = it } }
         launch { showUpdateAlert(context).collect { showAlertEnabled = it } }
         launch(Dispatchers.IO) {
             checkForUpdates(currentVersion) { updateStatus = it }
@@ -117,7 +97,6 @@ fun AboutSettings(
             }
         }
     }
-
     SettingsScreenLayout(
         title = stringResource(id = R.string.about),
         onBackClick = onBackClick,
@@ -155,7 +134,6 @@ fun AboutSettings(
                 )
                 UpdateMessage(
                     status = updateStatus,
-                    currentVersion = currentVersion,
                     onUpdateClick = { downloadUrl ->
                         scope.launch(Dispatchers.IO) {
                             downloadAndInstall(
@@ -173,16 +151,6 @@ fun AboutSettings(
                                 onError = { updateStatus = UpdateStatus.Error }
                             )
                         }
-                    },
-                    onInstallClick = { file ->
-                        updateStatus = UpdateStatus.Installing
-                        scope.launch {
-                            delay(1500)
-                            installApkInternal(context, file)
-                        }
-                    },
-                    onOpenFolderClick = { file ->
-                        openPublicFile(context, file)
                     }
                 )
 
@@ -278,238 +246,5 @@ fun AboutSettings(
                 TextButton(onClick = { }) { Text("Cancel") }
             }
         )
-    }
-}
-
-@Composable
-fun UpdateMessage(
-    status: UpdateStatus,
-    currentVersion: String,
-    onUpdateClick: (String) -> Unit,
-    onInstallClick: (File) -> Unit,
-    onOpenFolderClick: (File) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-//        Column(modifier = Modifier.weight(1f)) {
-//            Text("App Updates", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-//            Spacer(modifier = Modifier.height(4.dp))
-        val statusText = when (status) {
-            is UpdateStatus.Checking -> "Checking..."
-            is UpdateStatus.UpToDate -> "The latest version is already installed"
-            is UpdateStatus.Available -> "Version ${status.version} available"
-            is UpdateStatus.Downloading -> "Downloading..."
-            is UpdateStatus.Installing -> "Installing..."
-            is UpdateStatus.ReadyToInstall -> "Ready to install"
-            is UpdateStatus.DownloadedToPublic -> "Saved to Downloads"
-            is UpdateStatus.Error -> "Update failed"
-        }
-        Text(
-            statusText,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-//        }
-
-//        Spacer(modifier = Modifier.width(12.dp))
-
-//        Box(contentAlignment = Alignment.Center) {
-//            when (status) {
-//                is UpdateStatus.Checking -> CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-//                is UpdateStatus.UpToDate -> {}
-//                is UpdateStatus.Available -> {
-//                    Button(onClick = { onUpdateClick(status.downloadUrl) }, modifier = Modifier.height(36.dp), contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 8.dp)) {
-//                        Text("Update")
-//                    }
-//                }
-//                is UpdateStatus.Downloading -> {
-//                    val progressAnimated by animateFloatAsState(targetValue = status.progress, label = "progress")
-//                    Box(contentAlignment = Alignment.Center) {
-//                        CircularProgressIndicator(progress = { 1f }, modifier = Modifier.size(48.dp), color = MaterialTheme.colorScheme.surfaceVariant)
-//                        CircularProgressIndicator(progress = { progressAnimated }, modifier = Modifier.size(48.dp))
-//                        Text("${(status.progress * 100).toInt()}%", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-//                    }
-//                }
-//                is UpdateStatus.ReadyToInstall -> {
-//                    Button(onClick = { onInstallClick(status.file) }) { Text("Install") }
-//                }
-//                is UpdateStatus.DownloadedToPublic -> {
-//                    Button(onClick = { onOpenFolderClick(status.file) }) {
-//                        Icon(Icons.Default.Folder, null, modifier = Modifier.size(18.dp))
-//                        Spacer(Modifier.width(8.dp))
-//                        Text("Open")
-//                    }
-//                }
-//                is UpdateStatus.Installing -> CircularProgressIndicator(modifier = Modifier.size(48.dp))
-//                is UpdateStatus.Error -> Icon(Icons.Default.Error, null, tint = MaterialTheme.colorScheme.error)
-//            }
-//        }
-    }
-}
-
-suspend fun checkForUpdates(currentVersion: String, onResult: (UpdateStatus) -> Unit) {
-    try {
-        val release = GitHub.getLastestRelease()
-        val latestVersion = release?.name?.let { VersionUtils.extractVersion(it) }
-        val apkAsset = release?.assets?.firstOrNull { it.name.endsWith(".apk") }
-
-        if (latestVersion != null && apkAsset != null) {
-            if (VersionUtils.isNewerVersion(latestVersion, currentVersion)) {
-                onResult(
-                    UpdateStatus.Available(
-                        latestVersion,
-                        apkAsset.browserDownloadUrl,
-                        apkAsset.size
-                    )
-                )
-            } else {
-                onResult(UpdateStatus.UpToDate)
-            }
-        } else {
-            onResult(UpdateStatus.Error)
-        }
-    } catch (e: Exception) {
-        e.printStackTrace()
-        onResult(UpdateStatus.Error)
-    }
-}
-
-suspend fun downloadAndInstall(
-    context: Context,
-    urlString: String,
-    isSeamless: Boolean,
-    onProgress: (Float) -> Unit,
-    onFinished: (File) -> Unit,
-    onError: () -> Unit
-) {
-    if (isSeamless) {
-        try {
-            val url = URL(urlString)
-            val connection = url.openConnection() as HttpURLConnection
-            connection.connect()
-            if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-                onError(); return
-            }
-
-            val file = File(context.externalCacheDir, "update.apk")
-            if (file.exists()) file.delete()
-
-            val fileLength = connection.contentLength
-            val input = connection.inputStream
-            val output = file.outputStream()
-            val data = ByteArray(4096)
-            var total: Long = 0
-            var count: Int
-            while (input.read(data).also { count = it } != -1) {
-                total += count.toLong()
-                if (fileLength > 0) onProgress(total.toFloat() / fileLength)
-                output.write(data, 0, count)
-            }
-            output.flush(); output.close(); input.close()
-            onFinished(file)
-        } catch (e: Exception) {
-            e.printStackTrace(); onError()
-        }
-    } else {
-        downloadViaDownloadManager(context, urlString, onProgress, onFinished, onError)
-    }
-}
-
-suspend fun downloadViaDownloadManager(
-    context: Context,
-    urlString: String,
-    onProgress: (Float) -> Unit,
-    onFinished: (File) -> Unit,
-    onError: () -> Unit
-) {
-    try {
-        val request = DownloadManager.Request(urlString.toUri())
-            .setTitle("SoundPod Update")
-            .setDescription("Downloading latest version...")
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            .setDestinationInExternalPublicDir(
-                Environment.DIRECTORY_DOWNLOADS,
-                "SoundPod-Update.apk"
-            )
-            .setAllowedOverMetered(true)
-            .setAllowedOverRoaming(true)
-
-        val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        val downloadId = downloadManager.enqueue(request)
-
-        var downloading = true
-        while (downloading) {
-            val query = DownloadManager.Query().setFilterById(downloadId)
-            val cursor: Cursor = downloadManager.query(query)
-            if (cursor.moveToFirst()) {
-                val idxBytes =
-                    cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
-                val idxTotal = cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
-                val idxStatus = cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS)
-
-                val bytesDownloaded = cursor.getInt(idxBytes)
-                val bytesTotal = cursor.getInt(idxTotal)
-                val status = cursor.getInt(idxStatus)
-
-                if (bytesTotal > 0) onProgress(bytesDownloaded.toFloat() / bytesTotal.toFloat())
-
-                if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                    downloading = false
-                    val publicFile = File(
-                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                        "SoundPod-Update.apk"
-                    )
-                    onFinished(publicFile)
-                } else if (status == DownloadManager.STATUS_FAILED) {
-                    downloading = false
-                    onError()
-                }
-            }
-            cursor.close()
-            delay(500)
-        }
-    } catch (e: Exception) {
-        e.printStackTrace(); onError()
-    }
-}
-
-fun installApkInternal(context: Context, file: File) {
-    try {
-        val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, "application/vnd.android.package-archive")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        context.startActivity(intent)
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
-}
-
-fun openPublicFile(context: Context, file: File) {
-    try {
-        val intent = Intent(DownloadManager.ACTION_VIEW_DOWNLOADS)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(intent)
-    } catch (_: ActivityNotFoundException) {
-        // Fallback
-        try {
-            val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, "application/vnd.android.package-archive")
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            context.startActivity(intent)
-        } catch (_: Exception) {
-            Toast.makeText(context, "Saved to Downloads: SoundPod-Update.apk", Toast.LENGTH_LONG)
-                .show()
-        }
     }
 }
