@@ -227,4 +227,6 @@
     <string name="seamless_update_description">Install updates directly from app</string>
     <string name="enable_seamless_update">Enable Seamless Updates?</string>
     <string name="enable_seamless_update_description">To install updates internally, SoundPod needs permission to install unknown apps.\\n\\nOtherwise, updates will be saved to your Downloads folder.</string>
+    <string name="permissions">Permissions</string>
+    <string name="notifications">Notifications</string>
 </resources>

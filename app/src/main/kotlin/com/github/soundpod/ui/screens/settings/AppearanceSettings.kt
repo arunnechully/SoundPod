@@ -37,7 +37,7 @@ fun AppearanceSettings(
 ) {
     val (colorPalette) = LocalAppearance.current
     val context = LocalContext.current
-    var apptheme by rememberPreference(appTheme, AppThemeColor.System)
+    var appThemeColor by rememberPreference(appTheme, AppThemeColor.System)
     var accentColorSource by rememberPreference(accentColorSource, AccentColorSource.Default )
     var progressBarStyle by rememberPreference(progressBarStyle, ProgressBar.Default )
 
@@ -63,8 +63,8 @@ fun AppearanceSettings(
 
                 EnumValueSelectorSettingsEntry(
                     title = stringResource(id = R.string.app_theme),
-                    selectedValue = apptheme,
-                    onValueSelected = { apptheme = it },
+                    selectedValue = appThemeColor,
+                    onValueSelected = { appThemeColor = it },
                     icon = IconSource.Icon( painterResource(id = R.drawable.dark_mode)),
                     valueText = { context.getString(it.resourceId) }
                 )

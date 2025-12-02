@@ -188,16 +188,25 @@ fun SettingColum(
     icon: IconSource? = null,
     title: String,
     description: String? = null,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)? = null,
     isEnabled: Boolean = true,
     trailingContent: @Composable (() -> Unit)? = null
 ) {
     val (colorPalette) = LocalAppearance.current
 
+    val clickModifier = if (onClick != null) {
+        Modifier.clickable(
+            enabled = isEnabled,
+            onClick = onClick
+        )
+    } else {
+        Modifier
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(enabled = isEnabled, onClick = onClick)
+            .then(clickModifier)
             .padding(horizontal = 12.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
