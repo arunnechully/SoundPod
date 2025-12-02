@@ -180,7 +180,7 @@
     <string name="hidden">Hidden</string>
     <string name="check_for_updates">Check for updates</string>
     <string name="checking_for_updates">Checking for updates</string>
-    <string name="new_version_available">New version available</string>
+    <string name="new_version_available">A new version is available</string>
     <string name="no_updates_available">No updates available</string>
     <string name="version">Version %s</string>
     <string name="open_in_github">Open in GitHub</string>
@@ -225,4 +225,6 @@
     <string name="report_a_bug">Report a bug</string>
     <string name="seamless_update">Seamless Update</string>
     <string name="seamless_update_description">Install updates directly from app</string>
+    <string name="enable_seamless_update">Enable Seamless Updates?</string>
+    <string name="enable_seamless_update_description">To install updates internally, SoundPod needs permission to install unknown apps.\\n\\nOtherwise, updates will be saved to your Downloads folder.</string>
 </resources>

@@ -1,14 +1,17 @@
 package com.github.soundpod
 
+import android.Manifest
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -55,6 +58,7 @@ import com.github.soundpod.service.PlayerService
 import com.github.soundpod.ui.github.UpdateCheckWorker
 import com.github.soundpod.ui.navigation.MainNavigation
 import com.github.soundpod.ui.navigation.Routes
+import com.github.soundpod.ui.navigation.SettingsDestinations
 import com.github.soundpod.ui.screens.player.PlayerScaffold
 import com.github.soundpod.ui.styling.AppTheme
 import com.github.soundpod.utils.appTheme
@@ -80,7 +84,9 @@ class MainActivity : ComponentActivity() {
             binder = null
         }
     }
-
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ){}
     private var binder by mutableStateOf<PlayerService.Binder?>(null)
     private var data by mutableStateOf<Uri?>(null)
 
@@ -98,8 +104,15 @@ class MainActivity : ComponentActivity() {
         if (updateFile.exists()) {
             updateFile.delete()
         }
+        externalCacheDir?.listFiles()?.forEach {
+            if (it.name.startsWith("update_") && it.name.endsWith(".apk")) it.delete()
+        }
 
         enableEdgeToEdge()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
 
         setupUpdateWorker()
 
@@ -264,9 +277,10 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
 
+
         if (intent.getBooleanExtra("NAVIGATE_TO_ABOUT", false)) {
             val settingsIntent = Intent(this, SettingsActivity::class.java).apply {
-                // putExtra("OPEN_ABOUT", true)
+                putExtra("SCREEN_ID", SettingsDestinations.ABOUT)
             }
             startActivity(settingsIntent)
         }

@@ -60,7 +60,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@Suppress("AssignedValueIsNeverRead")
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutSettings(
@@ -140,7 +140,7 @@ fun AboutSettings(
                 )
                 if (status is UpdateStatus.Available) {
                     Text(
-                        text = "A new version is available",
+                        text = stringResource(id = R.string.new_version_available),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -187,7 +187,6 @@ fun AboutSettings(
 
                 Spacer(modifier = Modifier.height(Dimensions.spacer + 8.dp))
 
-                // Links
                 SettingsCard {
                     SettingColum(
                         icon = IconSource.Icon(painterResource(id = R.drawable.github)),
@@ -207,8 +206,6 @@ fun AboutSettings(
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-
-                // Settings
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -261,8 +258,8 @@ fun AboutSettings(
         AlertDialog(
             onDismissRequest = { showPermissionDialog = false },
             icon = { Icon(Icons.Outlined.Security, null) },
-            title = { Text("Enable Seamless Updates?") },
-            text = { Text("To install updates internally, SoundPod needs permission to install unknown apps.\n\nOtherwise, updates will be saved to your Downloads folder.") },
+            title = { Text(stringResource(id = R.string.enable_seamless_update)) },
+            text = { Text(stringResource(id = R.string.enable_seamless_update_description)) },
             confirmButton = {
                 TextButton(onClick = {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -274,7 +271,7 @@ fun AboutSettings(
                 }) { Text(stringResource(id = R.string.settings)) }
             },
             dismissButton = {
-                TextButton(onClick = { showPermissionDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showPermissionDialog = false }) { Text(stringResource(id = R.string.cancel)) }
             }
         )
     }
