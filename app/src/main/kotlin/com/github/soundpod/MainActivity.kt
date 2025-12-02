@@ -52,7 +52,7 @@ import com.github.innertube.requests.song
 import com.github.soundpod.enums.AppThemeColor
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.service.PlayerService
-import com.github.soundpod.ui.common.UpdateCheckWorker
+import com.github.soundpod.ui.github.UpdateCheckWorker
 import com.github.soundpod.ui.navigation.MainNavigation
 import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.ui.screens.player.PlayerScaffold
@@ -67,6 +67,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
@@ -92,6 +93,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        val updateFile = File(externalCacheDir, "update.apk")
+        if (updateFile.exists()) {
+            updateFile.delete()
+        }
+
         enableEdgeToEdge()
 
         setupUpdateWorker()

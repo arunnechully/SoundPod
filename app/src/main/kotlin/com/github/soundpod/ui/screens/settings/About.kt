@@ -50,14 +50,17 @@ import com.github.soundpod.ui.common.showUpdateAlert
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.components.SwitchSetting
-import com.github.soundpod.ui.components.UpdateMessage
+import com.github.soundpod.ui.github.UpdateMessage
 import com.github.soundpod.ui.styling.Dimensions
-import com.github.soundpod.utils.checkForUpdates
-import com.github.soundpod.utils.downloadAndInstall
+import com.github.soundpod.ui.github.checkForUpdates
+import com.github.soundpod.ui.github.downloadAndInstall
+import com.github.soundpod.ui.github.installApkInternal
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+@Suppress("AssignedValueIsNeverRead")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutSettings(
@@ -75,25 +78,37 @@ fun AboutSettings(
     var seamlessUpdateEnabled by remember { mutableStateOf(false) }
     var showPermissionDialog by remember { mutableStateOf(false) }
     var showAlertEnabled by rememberSaveable { mutableStateOf(true) }
-
+    val status = updateStatus
     BackHandler(onBack = onBackClick)
 
     // Re-check permission on Resume
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        if (seamlessUpdateEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (!context.packageManager.canRequestPackageInstalls()) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val hasPermission = context.packageManager.canRequestPackageInstalls()
+
+            if (showPermissionDialog && hasPermission) {
+                showPermissionDialog = false
+                seamlessUpdateEnabled = true
+                scope.launch(Dispatchers.IO) {
+                    setSeamlessUpdateEnabled(context, true)
+                    checkForUpdates(context, currentVersion, true) { updateStatus = it }
+                }
+            }
+
+            if (seamlessUpdateEnabled && !hasPermission) {
                 seamlessUpdateEnabled = false
+                scope.launch(Dispatchers.IO) {
+                    setSeamlessUpdateEnabled(context, false)
+                }
             }
         }
     }
     LaunchedEffect(Unit) {
         launch { showUpdateAlert(context).collect { showAlertEnabled = it } }
-        launch(Dispatchers.IO) {
-            checkForUpdates(currentVersion) { updateStatus = it }
-        }
         launch {
             seamlessUpdateEnabled(context).collect { savedValue ->
                 seamlessUpdateEnabled = savedValue
+                checkForUpdates(context, currentVersion, savedValue) { updateStatus = it }
             }
         }
     }
@@ -123,8 +138,16 @@ fun AboutSettings(
                         .padding(top = 8.dp),
                     textAlign = TextAlign.Center
                 )
-
-                Text(
+                if (status is UpdateStatus.Available) {
+                    Text(
+                        text = "A new version is available",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        textAlign = TextAlign.Center
+                    )
+                } else Text(
                     text = "Version $currentVersion",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
@@ -132,6 +155,7 @@ fun AboutSettings(
                         .padding(top = 8.dp),
                     textAlign = TextAlign.Center
                 )
+
                 UpdateMessage(
                     status = updateStatus,
                     onUpdateClick = { downloadUrl ->
@@ -151,7 +175,14 @@ fun AboutSettings(
                                 onError = { updateStatus = UpdateStatus.Error }
                             )
                         }
-                    }
+                    },
+                    onInstallClick = { file ->
+                        updateStatus = UpdateStatus.Installing
+                        scope.launch {
+                            delay(1500)
+                            installApkInternal(context, file)
+                        }
+                    },
                 )
 
                 Spacer(modifier = Modifier.height(Dimensions.spacer + 8.dp))
@@ -228,7 +259,7 @@ fun AboutSettings(
 
     if (showPermissionDialog) {
         AlertDialog(
-            onDismissRequest = { },
+            onDismissRequest = { showPermissionDialog = false },
             icon = { Icon(Icons.Outlined.Security, null) },
             title = { Text("Enable Seamless Updates?") },
             text = { Text("To install updates internally, SoundPod needs permission to install unknown apps.\n\nOtherwise, updates will be saved to your Downloads folder.") },
@@ -240,10 +271,10 @@ fun AboutSettings(
                         }
                         context.startActivity(intent)
                     }
-                }) { Text("Settings") }
+                }) { Text(stringResource(id = R.string.settings)) }
             },
             dismissButton = {
-                TextButton(onClick = { }) { Text("Cancel") }
+                TextButton(onClick = { showPermissionDialog = false }) { Text("Cancel") }
             }
         )
     }

@@ -1,4 +1,4 @@
-package com.github.soundpod.utils
+package com.github.soundpod.ui.github
 
 import android.app.DownloadManager
 import android.content.ActivityNotFoundException
@@ -29,31 +29,35 @@ fun downloadApk(context: Context, url: String): Long {
     val manager = context.getSystemService(DownloadManager::class.java)
     return manager.enqueue(request)
 }
-suspend fun checkForUpdates(currentVersion: String, onResult: (UpdateStatus) -> Unit) {
+suspend fun checkForUpdates(context: Context, currentVersion: String, isSeamless: Boolean, onResult: (UpdateStatus) -> Unit) {
     try {
         val release = GitHub.getLastestRelease()
         val latestVersion = release?.name?.let { VersionUtils.extractVersion(it) }
         val apkAsset = release?.assets?.firstOrNull { it.name.endsWith(".apk") }
 
         if (latestVersion != null && apkAsset != null) {
-            if (VersionUtils.isNewerVersion(latestVersion, currentVersion)) {
-                onResult(
-                    UpdateStatus.Available(
-                        latestVersion,
-                        apkAsset.browserDownloadUrl,
-                        apkAsset.size
-                    )
-                )
+            val isNew = VersionUtils.isNewerVersion(latestVersion, currentVersion)
+            if (isNew) {
+                val fileName = "SoundPod_v$latestVersion.apk"
+                val existingFile = if (isSeamless) {
+                    File(context.externalCacheDir, "update.apk") // Keep internal generic for simplicity
+                } else {
+                    File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName)
+                }
+
+                if (existingFile.exists() && existingFile.length() > 0) {
+                    if (isSeamless) onResult(UpdateStatus.ReadyToInstall(existingFile))
+                    else onResult(UpdateStatus.DownloadedToPublic(existingFile))
+                } else {
+                    onResult(UpdateStatus.Available(latestVersion, apkAsset.browserDownloadUrl, apkAsset.size))
+                }
             } else {
                 onResult(UpdateStatus.UpToDate)
             }
         } else {
             onResult(UpdateStatus.Error)
         }
-    } catch (e: Exception) {
-        e.printStackTrace()
-        onResult(UpdateStatus.Error)
-    }
+    } catch (e: Exception) { e.printStackTrace(); onResult(UpdateStatus.Error) }
 }
 
 suspend fun downloadAndInstall(

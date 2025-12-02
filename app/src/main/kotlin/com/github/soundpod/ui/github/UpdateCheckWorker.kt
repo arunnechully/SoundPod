@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.common
+package com.github.soundpod.ui.github
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -12,7 +12,8 @@ import androidx.work.WorkerParameters
 import com.github.api.GitHub
 import com.github.soundpod.MainActivity
 import com.github.soundpod.R
-import com.github.soundpod.utils.VersionUtils
+import com.github.soundpod.ui.common.autoCheckEnabled
+import com.github.soundpod.ui.common.showUpdateAlert
 import kotlinx.coroutines.flow.first
 
 class UpdateCheckWorker(
@@ -63,7 +64,6 @@ class UpdateCheckWorker(
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
 
-            // KEY POINT: Pass a flag to tell UI to open About Screen
             putExtra("NAVIGATE_TO_ABOUT", true)
         }
 

@@ -1,4 +1,6 @@
-package com.github.soundpod.ui.components
+@file:Suppress("AssignedValueIsNeverRead")
+
+package com.github.soundpod.ui.github
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,11 +28,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.github.api.formatFileSize
 import com.github.soundpod.ui.common.UpdateStatus
+import com.github.soundpod.ui.components.LoadingAnimation
+import java.io.File
 
 @Composable
 fun UpdateMessage(
     status: UpdateStatus,
-    onUpdateClick: (String) -> Unit
+    onUpdateClick: (String) -> Unit,
+    onInstallClick: (File) -> Unit,
 ) {
     var showUpdateDialog by remember { mutableStateOf(false) }
     var ignoreFutureUpdates by remember { mutableStateOf(false) }
@@ -54,9 +59,23 @@ fun UpdateMessage(
             ) {
                 Text("Update Now")
             }
+        } else if (status is UpdateStatus.Downloading) {
+            DownloadProgressBar(status)
+        }
+        else if (status is UpdateStatus.ReadyToInstall) {
+            Button(
+                onClick = {onInstallClick(status.file) },
+                shape = RoundedCornerShape(50),
+                modifier = Modifier.height(40.dp)
+            ) {
+                Text("Install")
+            }
         } else {
             val statusText = when (status) {
                 is UpdateStatus.UpToDate -> "The latest version is already installed"
+                is UpdateStatus.Installing -> "Installing..."
+                is UpdateStatus.DownloadedToPublic -> "Update manually from Downloads"
+                is UpdateStatus.Error -> "Update failed"
                 else -> ""
             }
 
@@ -72,7 +91,7 @@ fun UpdateMessage(
 
     if (showUpdateDialog && status is UpdateStatus.Available) {
         AlertDialog(
-            onDismissRequest = {},
+            onDismissRequest = { showUpdateDialog  = false},
             title = {
                 Text(text = "New Update Available")
             },
@@ -136,7 +155,7 @@ fun UpdateMessage(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { }) {
+                TextButton(onClick = {showUpdateDialog = false}) {
                     Text("Cancel")
                 }
             }
