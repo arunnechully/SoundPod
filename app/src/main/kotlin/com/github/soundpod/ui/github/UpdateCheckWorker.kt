@@ -16,7 +16,6 @@ import androidx.work.WorkerParameters
 import com.github.api.GitHub
 import com.github.soundpod.R
 import com.github.soundpod.SettingsActivity
-import com.github.soundpod.ui.common.autoCheckEnabled
 import com.github.soundpod.ui.common.showUpdateAlert
 import com.github.soundpod.ui.navigation.SettingsDestinations
 import kotlinx.coroutines.flow.first
@@ -27,10 +26,10 @@ class UpdateCheckWorker(
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val isAutoCheckEnabled = autoCheckEnabled(context).first()
+
         val isShowAlertEnabled = showUpdateAlert(context).first()
 
-        if (!isAutoCheckEnabled || !isShowAlertEnabled) {
+        if (!isShowAlertEnabled) {
             return Result.success()
         }
 
