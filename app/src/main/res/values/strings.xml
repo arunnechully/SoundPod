@@ -243,4 +243,5 @@
     <string name="new_search_screen_description">Try the experimental search layout. Some features may be unstable.</string>
     <string name="_search_history">No recent searches</string>
     <string name="no_search_history">No recent searches</string>
+    <string name="tracks">Tracks</string>
 </resources>

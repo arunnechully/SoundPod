@@ -191,11 +191,13 @@ fun NewSearchScreen(
         Spacer(modifier = Modifier.height(6.dp))
 
         if (confirmedSearchQuery != null) {
-            SearchResults(
-                query = confirmedSearchQuery!!,
+            OnlineSearch(
+                query = textFieldValue.text,
                 onAlbumClick = onAlbumClick,
                 onArtistClick = onArtistClick,
-                onPlaylistClick = onPlaylistClick
+                onViewAllClick = {
+                    performSearch(textFieldValue.text)
+                }
             )
         }
         else if (textFieldValue.text.isNotEmpty()) {
