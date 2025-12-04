@@ -13,7 +13,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
@@ -22,12 +25,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.github.soundpod.enums.BuiltInPlaylist
+import com.github.soundpod.ui.common.newSearchLayoutEnabled
 import com.github.soundpod.ui.screens.album.AlbumScreen
 import com.github.soundpod.ui.screens.artist.ArtistScreen
 import com.github.soundpod.ui.screens.builtinplaylist.BuiltInPlaylistScreen
 import com.github.soundpod.ui.screens.home.HomeScreen
 import com.github.soundpod.ui.screens.localplaylist.LocalPlaylistScreen
 import com.github.soundpod.ui.screens.playlist.PlaylistScreen
+import com.github.soundpod.ui.screens.search.NewSearchScreen
 import com.github.soundpod.ui.screens.search.SearchScreen
 import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
@@ -122,14 +127,29 @@ fun MainNavigation(
         }
 
         playerComposable(route = Routes.Search::class) {
-            SearchScreen(
-                pop = popDestination,
-                onAlbumClick = navigateToAlbum,
-                onArtistClick = navigateToArtist,
-                onPlaylistClick = { browseId ->
-                    navController.navigate(route = Routes.Playlist(id = browseId))
-                }
-            )
+            val context = LocalContext.current
+            val useNewLayout by newSearchLayoutEnabled(context).collectAsState(initial = false)
+
+            if (useNewLayout) {
+                NewSearchScreen(
+                    initialTextInput = "",
+                    navController = navController,
+                    onAlbumClick = navigateToAlbum,
+                    onArtistClick = navigateToArtist,
+                    onPlaylistClick = { browseId ->
+                        navController.navigate(route = Routes.Playlist(id = browseId))
+                    }
+                )
+            } else {
+                SearchScreen(
+                    pop = popDestination,
+                    onAlbumClick = navigateToAlbum,
+                    onArtistClick = navigateToArtist,
+                    onPlaylistClick = { browseId ->
+                        navController.navigate(route = Routes.Playlist(id = browseId))
+                    }
+                )
+            }
         }
 
         composable(route = Routes.BuiltInPlaylist::class) { navBackStackEntry ->

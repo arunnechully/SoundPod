@@ -229,4 +229,18 @@
     <string name="enable_seamless_update_description">To install updates internally, SoundPod needs permission to install unknown apps.\\n\\nOtherwise, updates will be saved to your Downloads folder.</string>
     <string name="permissions">Permissions</string>
     <string name="notifications">Notifications</string>
+    <string name="update_now">Update Now</string>
+    <string name="latest_version_installed">The latest version is already installed</string>
+    <string name="installing_update">Installing update....</string>
+    <string name="update_manually">Update manually from Downloads</string>
+    <string name="update_failed">Update failed</string>
+    <string name="updates_available">New Update Available</string>
+    <string name="download_and_update"><![CDATA[Download & Update]]></string>
+    <string name="install">Install</string>
+    <string name="search_placeholder">No Search History Found</string>
+    <string name="search_history">Recent Search</string>
+    <string name="new_search_screen">New search screen</string>
+    <string name="new_search_screen_description">Try the experimental search layout. Some features may be unstable.</string>
+    <string name="_search_history">No recent searches</string>
+    <string name="no_search_history">No recent searches</string>
 </resources>

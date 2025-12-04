@@ -5,16 +5,13 @@ package com.github.soundpod.ui.github
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -25,8 +22,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.github.api.formatFileSize
+import com.github.soundpod.R
 import com.github.soundpod.ui.common.UpdateStatus
 import com.github.soundpod.ui.components.LoadingAnimation
 import java.io.File
@@ -38,7 +37,6 @@ fun UpdateMessage(
     onInstallClick: (File) -> Unit,
 ) {
     var showUpdateDialog by remember { mutableStateOf(false) }
-    var ignoreFutureUpdates by remember { mutableStateOf(false) }
 
     Row(
         modifier = Modifier
@@ -57,7 +55,7 @@ fun UpdateMessage(
                 shape = RoundedCornerShape(50),
                 modifier = Modifier.height(40.dp)
             ) {
-                Text("Update Now")
+                Text(stringResource(id = R.string.update_now))
             }
         } else if (status is UpdateStatus.Downloading) {
             DownloadProgressBar(status)
@@ -68,14 +66,14 @@ fun UpdateMessage(
                 shape = RoundedCornerShape(50),
                 modifier = Modifier.height(40.dp)
             ) {
-                Text("Install")
+                Text(stringResource(id = R.string.install))
             }
         } else {
             val statusText = when (status) {
-                is UpdateStatus.UpToDate -> "The latest version is already installed"
-                is UpdateStatus.Installing -> "Installing..."
-                is UpdateStatus.DownloadedToPublic -> "Update manually from Downloads"
-                is UpdateStatus.Error -> "Update failed"
+                is UpdateStatus.UpToDate -> stringResource(id = R.string.latest_version_installed)
+                is UpdateStatus.Installing -> stringResource(id = R.string.installing_update)
+                is UpdateStatus.DownloadedToPublic -> stringResource(id = R.string.update_manually)
+                is UpdateStatus.Error -> stringResource(id = R.string.update_failed)
                 else -> ""
             }
 
@@ -93,7 +91,7 @@ fun UpdateMessage(
         AlertDialog(
             onDismissRequest = { showUpdateDialog  = false},
             title = {
-                Text(text = "New Update Available")
+                Text(text = stringResource(id = R.string.updates_available))
             },
             text = {
                 Column {
@@ -109,54 +107,18 @@ fun UpdateMessage(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // TODO: Implement Changelog fetching here later
-                    Text(
-                        text = "What's New:",
-                        style = MaterialTheme.typography.titleSmall
-                    )
-                    Text(
-                        text = "• Bug fixes and improvements\n• Performance enhancements",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // "Remove for future" Checkbox
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Checkbox(
-                            checked = ignoreFutureUpdates,
-                            onCheckedChange = { ignoreFutureUpdates = it }
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Skip this version", // "Remove for future" logic
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
                 }
             },
             confirmButton = {
                 Button(
-                    onClick = {
-                        // TODO: If ignoreFutureUpdates is true, save preference to DataStore
-                        if (!ignoreFutureUpdates) {
-                            onUpdateClick(status.downloadUrl)
-                        }
-                    }
+                    onClick = {onUpdateClick(status.downloadUrl)}
                 ) {
-                    Text("Download & Update")
+                    Text(stringResource(id = R.string.download_and_update))
                 }
             },
             dismissButton = {
                 TextButton(onClick = {showUpdateDialog = false}) {
-                    Text("Cancel")
+                    Text(stringResource(id = R.string.cancel))
                 }
             }
         )

@@ -15,7 +15,7 @@ val Context.updateDataStore by preferencesDataStore("update_prefs")
 object UpdatePrefs {
     val AUTO_CHECK_ENABLED = booleanPreferencesKey("auto_check_enabled")
     val SHOW_UPDATE_ALERT = booleanPreferencesKey("show_update_alert")
-
+    val NEW_SEARCH_LAYOUT = booleanPreferencesKey("new_search_layout")
     val THEME_KEY = stringPreferencesKey("theme_preference")
 
 }
@@ -53,6 +53,18 @@ suspend fun setThemePreference(context: Context, mode: ColorMode) {
         it[UpdatePrefs.THEME_KEY] = mode.name
     }
 }
+
+fun newSearchLayoutEnabled(context: Context) =
+    context.updateDataStore.data.map {
+        it[UpdatePrefs.NEW_SEARCH_LAYOUT] ?: false // Default is FALSE (Old Layout)
+    }
+
+suspend fun setNewSearchLayoutEnabled(context: Context, value: Boolean) {
+    context.updateDataStore.edit {
+        it[UpdatePrefs.NEW_SEARCH_LAYOUT] = value
+    }
+}
+
 
 private val SEAMLESS_UPDATE_ENABLED = booleanPreferencesKey("seamless_update_enabled")
 

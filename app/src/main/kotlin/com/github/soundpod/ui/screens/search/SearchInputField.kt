@@ -4,6 +4,7 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -49,7 +50,7 @@ fun SearchInputField(
                 }
             ) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                    imageVector = Icons.Default.ChevronLeft,
                     contentDescription = null
                 )
             }
