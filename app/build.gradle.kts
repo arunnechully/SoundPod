@@ -88,6 +88,7 @@ dependencies {
     implementation(libs.reorderable)
     implementation(libs.room)
     implementation(libs.swipe)
+    implementation(libs.palette.ktx)
     implementation(libs.compose.lottie)
     implementation(libs.datastore.preferences)
     implementation(libs.work.runtime.ktx)

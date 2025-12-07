@@ -70,6 +70,7 @@ fun PlayerMediaItem(
         // TITLE
         Text(
             text = mediaItem.mediaMetadata.title?.toString().orEmpty(),
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.basicMarquee(),
             style = MaterialTheme.typography.titleMedium.copy(
                 fontWeight = FontWeight.ExtraBold
@@ -93,6 +94,7 @@ fun PlayerMediaItem(
         ) {
             Text(
                 text = mediaItem.mediaMetadata.artist?.toString().orEmpty(),
+                color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.bodyLarge,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

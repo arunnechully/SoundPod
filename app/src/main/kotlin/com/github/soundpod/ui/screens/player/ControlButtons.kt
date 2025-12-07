@@ -405,6 +405,7 @@ fun PlayerControlBottom(
 
             Icon(
                 painter = icon,
+                tint = colorPalette.iconColor,
                 contentDescription = null,
                 modifier = Modifier
                     .alpha(alpha)
@@ -423,7 +424,7 @@ fun PlayerTopControl(
     onBack: () -> Unit
 ) {
     val menuState = LocalMenuState.current
-
+    val (colorPalette) = LocalAppearance.current
     val binder = LocalPlayerServiceBinder.current
     binder?.player ?: return
 
@@ -458,6 +459,7 @@ fun PlayerTopControl(
         ){
             Icon(
                 painter = painterResource(id = R.drawable.arrow_down),
+                tint = colorPalette.iconColor,
                 contentDescription = null,
                 modifier = Modifier
                     .size(22.dp)
@@ -470,6 +472,7 @@ fun PlayerTopControl(
 
             Text(
                 text = formatTime(sleepTimerMillisLeft ?: 0L),
+                color =colorPalette.text,
                 style = MaterialTheme.typography.bodyMedium.copy(
                     fontWeight = FontWeight.Bold
                 ),
@@ -488,6 +491,7 @@ fun PlayerTopControl(
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Timer,
+                    tint = colorPalette.iconColor,
                     contentDescription = null,
                     modifier = Modifier.size(22.dp)
                 )
@@ -511,6 +515,7 @@ fun PlayerTopControl(
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.equalizer),
+                tint = colorPalette.iconColor,
                 contentDescription = null,
                 modifier = Modifier
                     .size(18.dp)
@@ -536,6 +541,7 @@ fun PlayerTopControl(
         ) {
             Icon(
                 imageVector = Icons.Outlined.MoreVert,
+                tint = colorPalette.iconColor,
                 contentDescription = null,
                 modifier = Modifier
                     .size(28.dp)
@@ -633,6 +639,7 @@ private fun PlayerSeekBarDefault(
         ) {
             Text(
                 text = formatAsDuration(scrubbingPosition ?: position),
+                color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.labelMedium,
                 maxLines = 1
             )
@@ -640,6 +647,7 @@ private fun PlayerSeekBarDefault(
             if (duration != C.TIME_UNSET) {
                 Text(
                     text = formatAsDuration(duration),
+                    color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.labelMedium,
                     maxLines = 1
                 )
@@ -685,12 +693,14 @@ private fun PlayerSeekBarAnimated(
         ) {
             Text(
                 text = formatAsDuration((scrubbingPosition ?: position.toFloat()).toLong()),
+                color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.labelMedium
             )
 
             if (duration != C.TIME_UNSET) {
                 Text(
                     text = formatAsDuration(duration),
+                    color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.labelMedium
                 )
             }

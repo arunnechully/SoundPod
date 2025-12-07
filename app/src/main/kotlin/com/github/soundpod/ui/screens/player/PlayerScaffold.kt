@@ -77,7 +77,7 @@ fun PlayerScaffold(
                         modifier = Modifier.fillMaxHeight()
                     ) {
                         ThemedLottieBackground(
-                            animationNumber = 3,
+                            animationNumber = 1,
                             modifier = Modifier.matchParentSize()
                         )
 
