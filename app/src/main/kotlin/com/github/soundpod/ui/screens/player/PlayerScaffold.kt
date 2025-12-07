@@ -51,7 +51,6 @@ fun PlayerScaffold(
     val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
     val (colorPalette) = LocalAppearance.current
 
-    // 1. Get Player & Artwork State
     val binder = LocalPlayerServiceBinder.current
     val player = binder?.player
 
@@ -59,7 +58,6 @@ fun PlayerScaffold(
         mutableStateOf(player?.currentMediaItem?.mediaMetadata?.artworkUri?.toString())
     }
 
-    // 2. Listen for Song Changes (Instant Updates)
     DisposableEffect(player) {
         val listener = object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -95,8 +93,7 @@ fun PlayerScaffold(
     ) {
         BottomSheetScaffold(
             sheetShape = MaterialTheme.shapes.extraLarge,
-            // 3. Make Sheet Transparent (Critical for Backgrounds)
-            sheetContainerColor = Color.Transparent,
+            sheetContainerColor = MaterialTheme.colorScheme.background,
             sheetContent = {
 
                 // 4. Use the Smart Background Wrapper
@@ -112,7 +109,7 @@ fun PlayerScaffold(
                         Box(
                             modifier = Modifier.fillMaxHeight()
                         ) {
-                            // Note: We removed the hardcoded ThemedLottieBackground here
+                            // Note: removed the hardcoded ThemedLottieBackground here
                             // because it's now handled inside PlayerBackground based on settings.
 
                             if (value == SheetValue.Expanded) {
