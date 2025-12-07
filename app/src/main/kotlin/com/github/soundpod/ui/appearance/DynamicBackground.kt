@@ -23,24 +23,25 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.github.core.ui.LocalAppearance
+import kotlin.math.max
 
 @Composable
 fun DynamicBackground(
     thumbnailUrl: String?,
     modifier: Modifier = Modifier,
+    animate: Boolean = true,
+    useGradient: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
     val (colorPalette) = LocalAppearance.current
     val isDark = isSystemInDarkTheme()
 
-    // Initialize with current theme background
     var targetColor by remember { mutableStateOf(colorPalette.background3) }
 
     LaunchedEffect(thumbnailUrl, isDark, colorPalette) {
         targetColor = if (thumbnailUrl != null) {
-            // FIX: Pass the CURRENT theme background as the default fallback
-            extractDominantColor(context, thumbnailUrl, colorPalette.background0)
+            extractDominantColor(context, thumbnailUrl, colorPalette.background1)
         } else {
             colorPalette.background1
         }
@@ -52,41 +53,63 @@ fun DynamicBackground(
         label = "ColorShift"
     )
 
-    // ... (Rest of the animation code is the same) ...
-    val infiniteTransition = rememberInfiniteTransition(label = "Breathing")
-    val breatheScale by infiniteTransition.animateFloat(
-        initialValue = 0.8f, targetValue = 1.1f,
-        animationSpec = infiniteRepeatable(tween(6000), RepeatMode.Reverse), label = "Scale"
-    )
-    val breatheAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.5f, targetValue = 0.7f,
-        animationSpec = infiniteRepeatable(tween(6000), RepeatMode.Reverse), label = "Alpha"
-    )
+    val breatheScale by if (animate && useGradient) {
+        val infiniteTransition = rememberInfiniteTransition(label = "Breathing")
+        infiniteTransition.animateFloat(
+            initialValue = 0.8f, targetValue = 1.1f,
+            animationSpec = infiniteRepeatable(tween(6000), RepeatMode.Reverse), label = "Scale"
+        )
+    } else {
+        remember { mutableStateOf(1f) }
+    }
+
+    val breatheAlpha by if (animate && useGradient) {
+        val infiniteTransition = rememberInfiniteTransition(label = "Breathing")
+        infiniteTransition.animateFloat(
+            initialValue = 0.5f, targetValue = 0.7f,
+            animationSpec = infiniteRepeatable(tween(6000), RepeatMode.Reverse), label = "Alpha"
+        )
+    } else {
+        remember { mutableStateOf(1f) }
+    }
 
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
-            .background(colorPalette.background3) // Updates immediately on theme switch
+            .background(colorPalette.background3)
     ) {
-        val width = constraints.maxWidth.toFloat()
-        val height = constraints.maxHeight.toFloat()
-        val currentRadius = (height * 0.9f) * breatheScale
+        if (useGradient) {
+            // MODE A: Radial Gradient (For Full Player)
+            val width = constraints.maxWidth.toFloat()
+            val height = constraints.maxHeight.toFloat()
+            val primaryDimension = max(width, height)
+            val currentRadius = (primaryDimension * 0.9f) * breatheScale
 
-        val fusionBrush = Brush.radialGradient(
-            colors = listOf(
-                animatedColor.copy(alpha = breatheAlpha),
-                animatedColor.copy(alpha = 0.2f),
-                Color.Transparent
-            ),
-            center = Offset(x = width / 2, y = height * 1.15f),
-            radius = currentRadius
-        )
+            val fusionBrush = Brush.radialGradient(
+                colors = listOf(
+                    animatedColor.copy(alpha = breatheAlpha),
+                    animatedColor.copy(alpha = 0.2f),
+                    Color.Transparent
+                ),
+                center = Offset(x = width / 2, y = height * 1.15f),
+                radius = currentRadius
+            )
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(fusionBrush)
-        )
+            Box(modifier = Modifier.fillMaxSize().background(fusionBrush))
+
+        } else {
+            // MODE B: Solid Color (For Mini Player)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(animatedColor)
+                    // --- DIMMING FIX ---
+                    // Overlay a semi-transparent black layer to darken the color
+                    // Increase alpha (e.g. 0.4f or 0.5f) if you want it even darker.
+                    .background(colorPalette.background3.copy(alpha = 0.5f))
+            )
+        }
+
         content()
     }
 }

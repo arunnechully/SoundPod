@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
@@ -24,7 +25,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -37,7 +37,7 @@ import com.github.core.ui.LocalAppearance
 import com.github.core.ui.collapsedPlayerProgressBar
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
-import com.github.soundpod.ui.modifier.fadingEdge
+import com.github.soundpod.ui.appearance.DynamicBackground
 import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.ui.styling.px
 import com.github.soundpod.utils.DisposableListener
@@ -76,51 +76,46 @@ fun NewMiniPlayer(
     }
     val positionAndDuration by binder.player.positionAndDurationState()
     val mediaItem = nullableMediaItem ?: return
-
-    val fadingEdge = Brush.horizontalGradient(
-        0f to Color.Transparent,
-        0.1f to Color.Black,
-        0.9f to Color.Black,
-        1f to Color.Transparent
-    )
-
     val (colorPalette) = LocalAppearance.current
 
-    Column(
-        verticalArrangement = Arrangement.Center,
+    // --- WRAPPER START ---
+    DynamicBackground(
+        thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString(),
+        animate = false,      // No breathing
+        useGradient = false,  // SOLID FILL (No fading to transparent)
         modifier = Modifier
             .fillMaxWidth()
-            .clip(shape = MaterialTheme.shapes.extraLarge)
-            .drawBehind {
-                val position = positionAndDuration.first
-                val duration = positionAndDuration.second
-
-                val fraction = if (duration > 0L) {
-                    (position.toFloat() / duration.toFloat()).coerceIn(0f, 1f)
-                } else 0f
-
-                val barWidth = size.width * fraction
-
-                if (barWidth > 0f) {
-                    drawRect(
-                        color = colorPalette.collapsedPlayerProgressBar.copy(alpha = 0.5f),
-                        topLeft = Offset.Zero,
-                        size = Size(width = barWidth, height = size.height)
-                    )
-                }
-            }
-
             .height(65.dp)
+            .clip(shape = MaterialTheme.shapes.extraLarge)
             .clickable(onClick = openPlayer)
-    ){
+    ) {
+        Column(
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .drawBehind {
+                    val position = positionAndDuration.first
+                    val duration = positionAndDuration.second
+
+                    val fraction = if (duration > 0L) {
+                        (position.toFloat() / duration.toFloat()).coerceIn(0f, 1f)
+                    } else 0f
+
+                    val barWidth = size.width * fraction
+
+                    if (barWidth > 0f) {
+                        drawRect(
+                            color = colorPalette.collapsedPlayerProgressBar.copy(alpha = 0.5f),
+                            topLeft = Offset.Zero,
+                            size = Size(width = barWidth, height = size.height)
+                        )
+                    }
+                }
+        ) {
             ListItem(
                 headlineContent = {
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .fadingEdge(fadingEdge)
-                    ) {
+                    // Removed .fadingEdge modifier to prevent black smudges
+                    Box(modifier = Modifier.fillMaxWidth()) {
                         Text(
                             text = mediaItem.mediaMetadata.title?.toString() ?: "",
                             modifier = Modifier.basicMarquee(),
@@ -128,15 +123,9 @@ fun NewMiniPlayer(
                             overflow = TextOverflow.Clip
                         )
                     }
-
                 },
                 supportingContent = {
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .fadingEdge(fadingEdge)
-                    ) {
+                    Box(modifier = Modifier.fillMaxWidth()) {
                         Text(
                             text = mediaItem.mediaMetadata.artist?.toString() ?: "",
                             modifier = Modifier.basicMarquee(),
@@ -179,4 +168,5 @@ fun NewMiniPlayer(
                 )
             )
         }
+    }
 }

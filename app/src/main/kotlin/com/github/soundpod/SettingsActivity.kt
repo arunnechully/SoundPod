@@ -75,7 +75,13 @@ class SettingsActivity : ComponentActivity() {
                                 onOptionClick = { routeId -> launchSubScreen(routeId) }
                             )
                         }
-                        SettingsDestinations.APPEARANCE -> AppearanceSettings(onBackClick = { finish() })
+
+                        SettingsDestinations.APPEARANCE -> AppearanceSettings(
+                            onBackClick = { finish() },
+                            onBackgroundClick = { launchSubScreen(SettingsDestinations.BACKGROUND) }
+                        )
+
+                        SettingsDestinations.BACKGROUND -> BackgroundSettings(onBackClick = { finish() })
                         SettingsDestinations.PLAYER -> PlayerSettings(onBackClick = { finish() })
                         SettingsDestinations.PRIVACY -> PrivacySettings(onBackClick = { finish() })
                         SettingsDestinations.BACKUP -> BackupSettings(onBackClick = { finish() })

@@ -30,10 +30,12 @@ import com.github.soundpod.utils.appTheme
 import com.github.soundpod.utils.progressBarStyle
 import com.github.soundpod.utils.rememberPreference
 
+@Suppress("AssignedValueIsNeverRead")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppearanceSettings(
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onBackgroundClick: () -> Unit
 ) {
     val (colorPalette) = LocalAppearance.current
     val context = LocalContext.current
@@ -103,7 +105,7 @@ fun AppearanceSettings(
                     icon = IconSource.Vector(Icons.Default.BlurOn),
                     title = "Background Style",
                     description = "Choose your preferred background style",
-                    onClick = {},
+                    onClick = onBackgroundClick
                 )
             }
         }

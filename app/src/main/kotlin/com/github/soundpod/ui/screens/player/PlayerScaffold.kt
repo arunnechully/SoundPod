@@ -17,15 +17,23 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.navigation.NavController
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerPadding
-import com.github.soundpod.ui.appearance.ThemedLottieBackground
+import com.github.soundpod.LocalPlayerServiceBinder
+import com.github.soundpod.ui.appearance.PlayerBackground // <--- Import this
 import com.github.soundpod.ui.navigation.Routes
 import kotlinx.coroutines.launch
 
@@ -42,6 +50,28 @@ fun PlayerScaffold(
     val layoutDirection = LocalLayoutDirection.current
     val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
     val (colorPalette) = LocalAppearance.current
+
+    // 1. Get Player & Artwork State
+    val binder = LocalPlayerServiceBinder.current
+    val player = binder?.player
+
+    var currentArtworkUrl by remember {
+        mutableStateOf(player?.currentMediaItem?.mediaMetadata?.artworkUri?.toString())
+    }
+
+    // 2. Listen for Song Changes (Instant Updates)
+    DisposableEffect(player) {
+        val listener = object : Player.Listener {
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                currentArtworkUrl = mediaItem?.mediaMetadata?.artworkUri?.toString()
+            }
+            override fun onMediaMetadataChanged(mediaMetadata: androidx.media3.common.MediaMetadata) {
+                currentArtworkUrl = mediaMetadata.artworkUri?.toString()
+            }
+        }
+        player?.addListener(listener)
+        onDispose { player?.removeListener(listener) }
+    }
 
     val targetPeekHeight = if (showPlayer) {
         40.dp + 20.dp + scaffoldPadding.calculateBottomPadding()
@@ -65,46 +95,51 @@ fun PlayerScaffold(
     ) {
         BottomSheetScaffold(
             sheetShape = MaterialTheme.shapes.extraLarge,
+            // 3. Make Sheet Transparent (Critical for Backgrounds)
+            sheetContainerColor = Color.Transparent,
             sheetContent = {
-                AnimatedContent(
-                    targetState = sheetState.targetValue,
-                    label = "player",
-                    contentKey = { value ->
-                        if (value == SheetValue.Expanded) 0 else 1
-                    }
-                ) { value ->
-                    Box(
-                        modifier = Modifier.fillMaxHeight()
-                    ) {
-                        ThemedLottieBackground(
-                            animationNumber = 1,
-                            modifier = Modifier.matchParentSize()
-                        )
 
-                        if (value == SheetValue.Expanded) {
-                            NewPlayer(
-                                onGoToAlbum = { browseId ->
-                                    scope.launch { sheetState.partialExpand() }
-                                    navController.navigate(
-                                        route = Routes.Album(id = browseId)
-                                    )
-                                },
-                                onGoToArtist = { browseId ->
-                                    scope.launch { sheetState.partialExpand() }
-                                    navController.navigate(
-                                        route = Routes.Artist(id = browseId)
-                                    )
-                                }
-                            )
-                        } else {
-                            Box(
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                NewMiniPlayer(
-                                    openPlayer = {
-                                        scope.launch { sheetState.expand() }
+                // 4. Use the Smart Background Wrapper
+                PlayerBackground(thumbnailUrl = currentArtworkUrl) {
+
+                    AnimatedContent(
+                        targetState = sheetState.targetValue,
+                        label = "player",
+                        contentKey = { value ->
+                            if (value == SheetValue.Expanded) 0 else 1
+                        }
+                    ) { value ->
+                        Box(
+                            modifier = Modifier.fillMaxHeight()
+                        ) {
+                            // Note: We removed the hardcoded ThemedLottieBackground here
+                            // because it's now handled inside PlayerBackground based on settings.
+
+                            if (value == SheetValue.Expanded) {
+                                NewPlayer(
+                                    onGoToAlbum = { browseId ->
+                                        scope.launch { sheetState.partialExpand() }
+                                        navController.navigate(
+                                            route = Routes.Album(id = browseId)
+                                        )
+                                    },
+                                    onGoToArtist = { browseId ->
+                                        scope.launch { sheetState.partialExpand() }
+                                        navController.navigate(
+                                            route = Routes.Artist(id = browseId)
+                                        )
                                     }
                                 )
+                            } else {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    NewMiniPlayer(
+                                        openPlayer = {
+                                            scope.launch { sheetState.expand() }
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
@@ -113,9 +148,7 @@ fun PlayerScaffold(
             scaffoldState = scaffoldState,
             sheetPeekHeight = animatedPeekHeight,
             sheetMaxWidth = Int.MAX_VALUE.dp,
-            sheetDragHandle = null,
-            sheetContainerColor = colorPalette.background3
-
+            sheetDragHandle = null
         ) {
             val targetPadding = if (showPlayer && sheetState.currentValue != SheetValue.Hidden) {
                 scaffoldPadding.calculateBottomPadding() + 76.dp + 16.dp
