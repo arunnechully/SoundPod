@@ -41,11 +41,10 @@ fun NewSearchInputField(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(64.dp) // Standard Toolbar Height
+            .height(64.dp)
             .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 1. Back Button (Left)
         IconButton(onClick = pop) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -56,12 +55,10 @@ fun NewSearchInputField(
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        // 2. The Input Field (Center)
         Box(
             modifier = Modifier.weight(1f),
             contentAlignment = Alignment.CenterStart
         ) {
-            // Placeholder Text
             if (textFieldState.text.isEmpty()) {
                 Text(
                     text = stringResource(id = R.string.search),
@@ -73,7 +70,6 @@ fun NewSearchInputField(
                 )
             }
 
-            // Actual Input Field
             BasicTextField(
                 state = textFieldState,
                 textStyle = TextStyle(
@@ -81,7 +77,7 @@ fun NewSearchInputField(
                     color = colorPalette.text,
                     fontWeight = FontWeight.Normal
                 ),
-                cursorBrush = SolidColor(colorPalette.accent), // Custom Cursor Color
+                cursorBrush = SolidColor(colorPalette.accent),
                 lineLimits = androidx.compose.foundation.text.input.TextFieldLineLimits.SingleLine,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 onKeyboardAction = {
@@ -91,7 +87,6 @@ fun NewSearchInputField(
             )
         }
 
-        // 3. Clear Button (Right - Only shows when typing)
         if (textFieldState.text.isNotEmpty()) {
             IconButton(onClick = { textFieldState.clearText() }) {
                 Icon(
@@ -101,8 +96,6 @@ fun NewSearchInputField(
                 )
             }
         } else {
-            // Optional: Add an invisible spacer to keep alignment if needed,
-            // or just let the text field take the space.
             Spacer(modifier = Modifier.width(48.dp))
         }
     }

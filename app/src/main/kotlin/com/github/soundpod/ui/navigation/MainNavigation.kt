@@ -32,6 +32,7 @@ import com.github.soundpod.ui.screens.builtinplaylist.BuiltInPlaylistScreen
 import com.github.soundpod.ui.screens.home.HomeScreen
 import com.github.soundpod.ui.screens.localplaylist.LocalPlaylistScreen
 import com.github.soundpod.ui.screens.playlist.PlaylistScreen
+import com.github.soundpod.ui.screens.search.NewSearchResult
 import com.github.soundpod.ui.screens.search.NewSearchScreen
 import com.github.soundpod.ui.screens.search.SearchScreen
 import kotlinx.coroutines.launch
@@ -86,6 +87,14 @@ fun MainNavigation(
             HomeScreen(
                 navController = navController,
                 onSettingsClick = onNavigateToSettings
+            )
+        }
+
+        composable("${Routes.SearchResult}/{type}") { backStackEntry ->
+            val type = backStackEntry.arguments?.getString("type")
+            NewSearchResult(
+                navController = navController,
+                resultType = type
             )
         }
 

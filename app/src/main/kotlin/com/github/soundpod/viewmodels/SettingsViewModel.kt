@@ -1,8 +1,11 @@
 package com.github.soundpod.viewmodels
 
 import android.app.Application
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.soundpod.R
@@ -13,6 +16,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+data class SettingOption(
+    @param:StringRes val title: Int,
+    val icon: ImageVector? = null,
+    @get:DrawableRes val iconRes: Int? = null,
+    val screenId: String
+)
+
+data class SettingsSection(
+    val options: List<SettingOption>
+)
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val context = application.applicationContext

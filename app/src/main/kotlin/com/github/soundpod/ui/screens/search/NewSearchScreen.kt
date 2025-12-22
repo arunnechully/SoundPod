@@ -63,6 +63,7 @@ import com.github.soundpod.models.SearchQuery
 import com.github.soundpod.query
 import com.github.soundpod.ui.components.LoadingAnimation
 import com.github.soundpod.ui.components.SettingsCard
+import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.utils.pauseSearchHistoryKey
 import com.github.soundpod.utils.preferences
 import kotlinx.coroutines.delay
@@ -195,8 +196,9 @@ fun NewSearchScreen(
                 query = textFieldValue.text,
                 onAlbumClick = onAlbumClick,
                 onArtistClick = onArtistClick,
-                onViewAllClick = {
-                    performSearch(textFieldValue.text)
+                onViewAllClick = { category ->
+                    // category will be "Songs", "Albums", etc.
+                    navController.navigate("${Routes.SearchResult}/$category")
                 }
             )
         }

@@ -48,7 +48,7 @@ fun OnlineSearch(
     query: String,
     onAlbumClick: (String) -> Unit,
     onArtistClick: (String) -> Unit,
-    onViewAllClick: () -> Unit
+    onViewAllClick: (String) -> Unit
 ) {
     val (colorPalette) = LocalAppearance.current
     val binder = LocalPlayerServiceBinder.current
@@ -149,7 +149,7 @@ fun OnlineSearch(
                             horizontalArrangement = Arrangement.Center
                         ) {
                             TextButton(
-                                onClick = onViewAllClick,
+                                onClick = { onViewAllClick("Songs") },
                                 colors = ButtonDefaults.textButtonColors(
                                     contentColor = colorPalette.text
                                 ),

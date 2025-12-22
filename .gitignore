@@ -3,9 +3,16 @@
 /local.properties
 .idea
 .DS_Store
-/build
+
+# CHANGED: Removed leading slash to match ALL build folders
+build/
+
 /captures
 .externalNativeBuild
 .cxx
 local.properties
 .kotlin
+
+# Recommended additions
+*.apk
+*.aab

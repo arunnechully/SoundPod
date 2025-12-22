@@ -22,6 +22,8 @@ sealed class Routes {
     data object Search
 
     @Serializable
+    data object SearchResult
+    @Serializable
     data class BuiltInPlaylist(val index: Int)
 
     @Serializable
