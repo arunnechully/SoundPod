@@ -191,17 +191,19 @@ fun NewSearchScreen(
 
         Spacer(modifier = Modifier.height(6.dp))
 
+// Inside NewSearchScreen.kt
+
         if (confirmedSearchQuery != null) {
             OnlineSearch(
                 query = textFieldValue.text,
                 onAlbumClick = onAlbumClick,
                 onArtistClick = onArtistClick,
                 onViewAllClick = { category ->
-                    // category will be "Songs", "Albums", etc.
-                    navController.navigate("${Routes.SearchResult}/$category")
+                    navController.navigate("${Routes.SearchResult}/${textFieldValue.text}/$category")
                 }
             )
         }
+
         else if (textFieldValue.text.isNotEmpty()) {
             SettingsCard {
                 if (isLoadingSuggestions) {

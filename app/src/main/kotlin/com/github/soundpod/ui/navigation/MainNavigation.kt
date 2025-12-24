@@ -21,8 +21,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import androidx.navigation.toRoute
 import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.ui.common.newSearchLayoutEnabled
@@ -90,10 +92,19 @@ fun MainNavigation(
             )
         }
 
-        composable("${Routes.SearchResult}/{type}") { backStackEntry ->
+        composable(
+            route = "${Routes.SearchResult}/{query}/{type}",
+            arguments = listOf(
+                navArgument("query") { type = NavType.StringType },
+                navArgument("type") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val query = backStackEntry.arguments?.getString("query") ?: ""
             val type = backStackEntry.arguments?.getString("type")
+
             NewSearchResult(
                 navController = navController,
+                query = query, // Pass the query here
                 resultType = type
             )
         }

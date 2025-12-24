@@ -1,4 +1,4 @@
-<h1 align="center">🎵 SoundPod</h1>
+<h1 align="center">SoundPod</h1>
 
 <p align="center">
 An Android application for streaming music from YouTube Music.
@@ -7,7 +7,7 @@ An Android application for streaming music from YouTube Music.
 <p align="center">
   <img src="./screenshots/repository_preview.png" 
        alt="Repository preview" 
-       width="400"
+       width="1024"
        style="border-radius: 15px;">
 </p>
 

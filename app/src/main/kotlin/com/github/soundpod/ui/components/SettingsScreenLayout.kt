@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp // Import Dp
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
 
@@ -29,6 +30,8 @@ import com.github.core.ui.LocalAppearance
 fun SettingsScreenLayout(
     title: String,
     onBackClick: () -> Unit,
+    scrollable: Boolean = true,
+    horizontalPadding: Dp = 14.dp, // <--- 1. Add Default Parameter
     content: @Composable () -> Unit
 ) {
     val (colorPalette) = LocalAppearance.current
@@ -60,9 +63,9 @@ fun SettingsScreenLayout(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 14.dp)
+                .padding(horizontal = horizontalPadding) // <--- 2. Use the variable
                 .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
-                .verticalScroll(scrollState)
+                .then(if (scrollable) Modifier.verticalScroll(scrollState) else Modifier)
         ) {
             content()
         }

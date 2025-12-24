@@ -45,12 +45,14 @@ fun SettingsScreen(
                                 icon = IconSource.Vector(option.icon),
                                 onClick = { onOptionClick(option.screenId) }
                             )
-                        } else if (option.iconRes != null) {
-                            SettingRow(
-                                title = stringResource(id = option.title),
-                                icon = IconSource.Icon(painterResource(option.iconRes)),
-                                onClick = { onOptionClick(option.screenId) }
-                            )
+                        } else {
+                            option.iconRes?.let { iconResId ->
+                                SettingRow(
+                                    title = stringResource(id = option.title),
+                                    icon = IconSource.Icon(painterResource(iconResId)),
+                                    onClick = { onOptionClick(option.screenId) }
+                                )
+                            }
                         }
                     }
                 }
