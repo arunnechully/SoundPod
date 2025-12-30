@@ -1,6 +1,7 @@
 package com.github.soundpod.ui.screens.album
 
 import android.content.Intent
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.rememberPagerState
@@ -109,6 +110,10 @@ fun AlbumScreen(
 
     val thumbnailContent =
         adaptiveThumbnailContent(album?.timestamp == null, album?.thumbnailUrl)
+
+    BackHandler(enabled = true) {
+        pop()
+    }
 
     TabScaffold(
         pagerState = pagerState,

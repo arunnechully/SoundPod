@@ -104,7 +104,7 @@ fun MainNavigation(
 
             NewSearchResult(
                 navController = navController,
-                query = query, // Pass the query here
+                query = query,
                 resultType = type
             )
         }

@@ -1,6 +1,7 @@
 package com.github.soundpod.ui.screens.artist
 
 import android.content.Intent
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.rememberPagerState
@@ -91,6 +92,10 @@ fun ArtistScreen(
         isLoading = viewModel.artist?.timestamp == null,
         url = viewModel.artist?.thumbnailUrl
     )
+
+    BackHandler(enabled = true) {
+        pop()
+    }
 
     TabScaffold(
         pagerState = pagerState,
