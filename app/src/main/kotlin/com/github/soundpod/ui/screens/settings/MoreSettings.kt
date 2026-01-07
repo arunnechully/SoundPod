@@ -122,7 +122,7 @@ fun MoreSettings(
                     onSwitchChange = { enabled ->
                         isAndroidAutoEnabled = enabled
                         if (enabled) {
-                            showInfoDialog = true      // Only show when switching ON
+                            showInfoDialog = true
                         }
                     }
                 )

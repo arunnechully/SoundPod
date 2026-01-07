@@ -244,4 +244,8 @@
     <string name="_search_history">No recent searches</string>
     <string name="no_search_history">No recent searches</string>
     <string name="tracks">Tracks</string>
+    <string name="localbackup">Local backup</string>
+    <string name="cloud_backup">Cloud Backup</string>
+    <string name="sync_to_cloud">Sync to Cloud</string>
+    <string name="cloud_restore">Restore from Cloud</string>
 </resources>
