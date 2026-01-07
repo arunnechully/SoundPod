@@ -31,6 +31,7 @@ import com.github.soundpod.ui.common.newSearchLayoutEnabled
 import com.github.soundpod.ui.screens.album.AlbumScreen
 import com.github.soundpod.ui.screens.artist.ArtistScreen
 import com.github.soundpod.ui.screens.builtinplaylist.BuiltInPlaylistScreen
+import com.github.soundpod.ui.screens.builtinplaylist.NewBuiltInPlaylistScreen
 import com.github.soundpod.ui.screens.home.HomeScreen
 import com.github.soundpod.ui.screens.localplaylist.LocalPlaylistScreen
 import com.github.soundpod.ui.screens.playlist.PlaylistScreen
@@ -175,7 +176,7 @@ fun MainNavigation(
         composable(route = Routes.BuiltInPlaylist::class) { navBackStackEntry ->
             val route: Routes.BuiltInPlaylist = navBackStackEntry.toRoute()
 
-            BuiltInPlaylistScreen(
+            NewBuiltInPlaylistScreen(
                 builtInPlaylist = BuiltInPlaylist.entries[route.index],
                 pop = popDestination,
                 onGoToAlbum = navigateToAlbum,

@@ -1,5 +1,6 @@
 package com.github.soundpod.ui.screens.localplaylist
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxSize
@@ -64,6 +65,10 @@ fun LocalPlaylistScreen(
 
     LaunchedEffect(Unit) {
         Database.playlist(playlistId).filterNotNull().collect { playlist = it }
+    }
+
+    BackHandler(enabled = true) {
+        pop()
     }
 
     Scaffold(

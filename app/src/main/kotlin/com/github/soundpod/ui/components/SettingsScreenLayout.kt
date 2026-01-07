@@ -31,7 +31,25 @@ fun SettingsScreenLayout(
     title: String,
     onBackClick: () -> Unit,
     scrollable: Boolean = true,
-    horizontalPadding: Dp = 14.dp, // <--- 1. Add Default Parameter
+    horizontalPadding: Dp = 14.dp,
+    content: @Composable () -> Unit
+) {
+    SettingsScreenLayout(
+        title = { Text(title) },
+        onBackClick = onBackClick,
+        scrollable = scrollable,
+        horizontalPadding = horizontalPadding,
+        content = content
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreenLayout(
+    title: @Composable () -> Unit,
+    onBackClick: () -> Unit,
+    scrollable: Boolean = true,
+    horizontalPadding: Dp = 14.dp,
     content: @Composable () -> Unit
 ) {
     val (colorPalette) = LocalAppearance.current
@@ -41,7 +59,7 @@ fun SettingsScreenLayout(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text(title) },
+                title = title,
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
@@ -63,7 +81,7 @@ fun SettingsScreenLayout(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = horizontalPadding) // <--- 2. Use the variable
+                .padding(horizontal = horizontalPadding)
                 .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
                 .then(if (scrollable) Modifier.verticalScroll(scrollState) else Modifier)
         ) {

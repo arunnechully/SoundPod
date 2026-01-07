@@ -1,5 +1,6 @@
 package com.github.soundpod.ui.screens.builtinplaylist
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,6 +35,10 @@ fun BuiltInPlaylistScreen(
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
+    BackHandler(enabled = true) {
+        pop()
+    }
+
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -65,7 +70,7 @@ fun BuiltInPlaylistScreen(
                 .fillMaxSize()
                 .padding(top = paddingValues.calculateTopPadding())
         ) {
-            BuiltInPlaylistSongs(
+            NewBuiltInPlaylistSongs(
                 builtInPlaylist = builtInPlaylist,
                 onGoToAlbum = onGoToAlbum,
                 onGoToArtist = onGoToArtist

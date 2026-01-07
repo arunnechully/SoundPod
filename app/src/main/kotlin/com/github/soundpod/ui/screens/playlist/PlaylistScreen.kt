@@ -1,6 +1,7 @@
 package com.github.soundpod.ui.screens.playlist
 
 import android.content.Intent
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxSize
@@ -64,6 +65,10 @@ fun PlaylistScreen(
         playlistPage = withContext(Dispatchers.IO) {
             Innertube.playlistPage(browseId = browseId)?.completed()?.getOrNull()
         }
+    }
+
+    BackHandler(enabled = true) {
+        pop()
     }
 
     Scaffold(
