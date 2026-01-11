@@ -1,13 +1,6 @@
 package com.github.soundpod.ui.screens.search
 
-import android.app.Activity
-import android.content.ActivityNotFoundException
-import android.content.Intent
-import android.speech.RecognizerIntent
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -66,9 +59,9 @@ import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.utils.pauseSearchHistoryKey
 import com.github.soundpod.utils.preferences
+import com.github.soundpod.utils.rememberVoiceSearchLauncher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
-import java.util.Locale
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @Composable
@@ -76,8 +69,7 @@ fun NewSearchScreen(
     initialTextInput: String = "",
     navController: NavController,
     onAlbumClick: (String) -> Unit,
-    onArtistClick: (String) -> Unit,
-    onPlaylistClick: (String) -> Unit
+    onArtistClick: (String) -> Unit
 ) {
     BackHandler { navController.popBackStack() }
 
@@ -105,33 +97,12 @@ fun NewSearchScreen(
         }
     }
 
-    val voiceLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val data = result.data
-            val results = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-            val spokenText = results?.firstOrNull() ?: ""
-            if (spokenText.isNotBlank()) {
-                performSearch(spokenText)
-            }
+    val launchVoiceSearch = rememberVoiceSearchLauncher(
+        context = context,
+        onSpeechResult = { spokenText ->
+            performSearch(spokenText)
         }
-    }
-
-    val launchVoiceSearch = remember {
-        {
-            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
-                putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak now")
-            }
-            try {
-                voiceLauncher.launch(intent)
-            } catch (_: ActivityNotFoundException) {
-                Toast.makeText(context, "Voice search not available", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
+    )
 
     LaunchedEffect(textFieldValue.text) {
         if (!context.preferences.getBoolean(pauseSearchHistoryKey, false)) {

@@ -30,7 +30,6 @@ import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.ui.common.newSearchLayoutEnabled
 import com.github.soundpod.ui.screens.album.AlbumScreen
 import com.github.soundpod.ui.screens.artist.ArtistScreen
-import com.github.soundpod.ui.screens.builtinplaylist.BuiltInPlaylistScreen
 import com.github.soundpod.ui.screens.builtinplaylist.NewBuiltInPlaylistScreen
 import com.github.soundpod.ui.screens.home.HomeScreen
 import com.github.soundpod.ui.screens.localplaylist.LocalPlaylistScreen
@@ -156,10 +155,7 @@ fun MainNavigation(
                     initialTextInput = "",
                     navController = navController,
                     onAlbumClick = navigateToAlbum,
-                    onArtistClick = navigateToArtist,
-                    onPlaylistClick = { browseId ->
-                        navController.navigate(route = Routes.Playlist(id = browseId))
-                    }
+                    onArtistClick = navigateToArtist
                 )
             } else {
                 SearchScreen(
