@@ -40,7 +40,12 @@ const val quickPicksSourceKey = "quickPicksSource"
 
 const val appTheme = "appTheme"
 const val accentColorSource = "accentColorSource"
+
+const val swipeActionRight = "swipeActionRight"
+
+const val swipeActionLeft = "swipeActionLeft"
 const val progressBarStyle = "progressBarStyle"
+
 const val navigationLabelsVisibilityKey = "navigationLabelsVisibility"
 const val listGesturesEnabledKey = "listGesturesEnabled"
 const val playerGesturesEnabledKey = "songGesturesEnabled"

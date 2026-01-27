@@ -24,7 +24,6 @@ import com.github.soundpod.models.Song
 import com.github.soundpod.models.SongWithContentLength
 import com.github.soundpod.ui.components.InHistoryMediaItemMenu
 import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
-import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.items.LocalSongItem
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlayAtIndex

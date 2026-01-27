@@ -248,4 +248,13 @@
     <string name="cloud_backup">Cloud Backup</string>
     <string name="sync_to_cloud">Sync to Cloud</string>
     <string name="cloud_restore">Restore from Cloud</string>
+    <string name="swipe_actions">Swipe actions</string>
+    <string name="swipe_actions_description">Enable swipe actions in playlist</string>
+    <string name="swipe_right">Swipe right</string>
+    <string name="swipe_left">Swipe left</string>
+    <string name="customise">Customise</string>
+    <string name="ok">OK</string>
+    <string name="off">Off</string>
+    <string name="add_to_favorites">Add to Favorites</string>
+    <string name="add_to_blocklist">Add to Blocklist</string>
 </resources>

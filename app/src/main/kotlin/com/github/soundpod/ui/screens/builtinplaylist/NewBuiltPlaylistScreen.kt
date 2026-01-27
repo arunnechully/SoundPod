@@ -24,10 +24,10 @@ fun NewBuiltInPlaylistScreen(
     onGoToAlbum: (String) -> Unit,
     onGoToArtist: (String) -> Unit
 ) {
-
     BackHandler(enabled = true) {
         pop()
     }
+
     SettingsScreenLayout(
         title = {
             Text(
@@ -44,7 +44,7 @@ fun NewBuiltInPlaylistScreen(
         onBackClick = pop,
     ) {
         SettingsCard {
-            NewBuiltInPlaylistSongs(
+            BuiltInPlaylistSongs(
                 builtInPlaylist = builtInPlaylist,
                 onGoToAlbum = onGoToAlbum,
                 onGoToArtist = onGoToArtist

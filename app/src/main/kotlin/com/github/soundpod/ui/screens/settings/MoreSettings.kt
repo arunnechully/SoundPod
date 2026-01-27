@@ -11,7 +11,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddLink
 import androidx.compose.material.icons.outlined.Battery0Bar
@@ -20,6 +20,7 @@ import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Stars
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
+import com.github.soundpod.enums.SwipeActions
 import com.github.soundpod.service.PlayerMediaBrowserService
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
@@ -51,8 +53,11 @@ import com.github.soundpod.utils.isIgnoringBatteryOptimizations
 import com.github.soundpod.utils.isInvincibilityEnabledKey
 import com.github.soundpod.utils.isShowingThumbnailInLockscreenKey
 import com.github.soundpod.utils.rememberPreference
+import com.github.soundpod.utils.swipeActionLeft
+import com.github.soundpod.utils.swipeActionRight
 import com.github.soundpod.utils.toast
 
+@Suppress("AssignedValueIsNeverRead")
 @SuppressLint("BatteryLife")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,6 +106,15 @@ fun MoreSettings(
         title = stringResource(id = R.string.more_settings),
         onBackClick = onBackClick,
         content = {
+            Spacer(modifier = Modifier.height(Dimensions.spacer))
+
+            Text(
+                text = stringResource(id = R.string.general),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.ExtraBold,
+                color = colorPalette.text.copy(alpha = 0.7f)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
 
             SettingsCard {
 
@@ -146,15 +160,6 @@ fun MoreSettings(
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(Dimensions.spacer))
-
-            Text(
-                text = stringResource(id = R.string.general),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.ExtraBold,
-                color = colorPalette.text.copy(alpha = 0.7f)
-            )
-
             Spacer(modifier = Modifier.height(8.dp))
 
             SettingsCard {
@@ -195,6 +200,47 @@ fun MoreSettings(
                         }
                     )
                 }
+            }
+
+            Spacer(modifier = Modifier.height(Dimensions.spacer))
+
+            Text(
+                text = stringResource(id = R.string.gestures),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.ExtraBold,
+                color = colorPalette.text.copy(alpha = 0.7f)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            var swipeActionRight by rememberPreference(swipeActionRight, SwipeActions.Off )
+            var swipeActionLeft by rememberPreference(swipeActionLeft, SwipeActions.Off )
+            val trailingIcon = @Composable {
+                Icon(
+                    painter = painterResource(id = R.drawable.chevron_forward),
+                    contentDescription = stringResource(id = R.string.customise),
+                    tint = colorPalette.text.copy(alpha = 0.5f),
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            SettingsCard {
+                EnumValueSelectorSettingsEntry(
+                    title = stringResource(id = R.string.swipe_right),
+                    selectedValue = swipeActionRight,
+                    onValueSelected = { swipeActionRight = it },
+                    icon = IconSource.Icon( painterResource(id = R.drawable.swipe_right)),
+                    valueText = { context.getString(it.resourceId) },
+                    trailingContent = trailingIcon
+                )
+
+                EnumValueSelectorSettingsEntry(
+                    title = stringResource(id = R.string.swipe_left),
+                    selectedValue = swipeActionLeft,
+                    onValueSelected = { swipeActionLeft = it },
+                    icon = IconSource.Icon( painterResource(id = R.drawable.swipe_left)),
+                    valueText = { context.getString(it.resourceId) },
+                    trailingContent = trailingIcon
+                )
             }
 
             Spacer(modifier = Modifier.height(Dimensions.spacer))
