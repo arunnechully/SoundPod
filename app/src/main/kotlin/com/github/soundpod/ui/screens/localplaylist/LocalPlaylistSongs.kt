@@ -34,10 +34,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.github.soundpod.Database
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.models.ActionInfo
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.models.Song
@@ -45,9 +45,9 @@ import com.github.soundpod.models.SongPlaylistMap
 import com.github.soundpod.query
 import com.github.soundpod.transaction
 import com.github.soundpod.ui.components.CoverScaffold
+import com.github.soundpod.ui.components.InPlaylistMediaItemMenu
 import com.github.soundpod.ui.components.PlaylistThumbnail
 import com.github.soundpod.ui.components.SwipeToActionBox
-import com.github.soundpod.ui.components.InPlaylistMediaItemMenu
 import com.github.soundpod.ui.items.LocalSongItem
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.enqueue
@@ -73,7 +73,7 @@ fun LocalPlaylistSongs(
     var playlistSongs: List<Song> by remember { mutableStateOf(emptyList()) }
 
     LaunchedEffect(Unit) {
-        Database.playlistSongs(playlistId).filterNotNull().collect { playlistSongs = it }
+        db.playlistSongs(playlistId).filterNotNull().collect { playlistSongs = it }
     }
 
     val lazyListState = rememberLazyListState()
@@ -83,7 +83,7 @@ fun LocalPlaylistSongs(
         }
 
         query {
-            Database.move(
+            db.move(
                 playlistId = playlistId,
                 fromPosition = from.index - 2,
                 toPosition = to.index - 2
@@ -165,13 +165,13 @@ fun LocalPlaylistSongs(
                         destructiveAction = ActionInfo(
                             onClick = {
                                 transaction {
-                                    Database.move(
+                                    db.move(
                                         playlistId = playlistId,
                                         fromPosition = index,
                                         toPosition = Int.MAX_VALUE
                                     )
 
-                                    Database.delete(
+                                    db.delete(
                                         SongPlaylistMap(
                                             songId = song.id,
                                             playlistId = playlistId,
@@ -194,7 +194,7 @@ fun LocalPlaylistSongs(
                                         val songCount = playlistSongs.size
 
                                         transaction {
-                                            Database.insert(
+                                            db.insert(
                                                 SongPlaylistMap(
                                                     songId = song.id,
                                                     playlistId = playlistId,
@@ -202,7 +202,7 @@ fun LocalPlaylistSongs(
                                                 )
                                             )
 
-                                            Database.move(
+                                            db.move(
                                                 playlistId = playlistId,
                                                 fromPosition = songCount,
                                                 toPosition = index

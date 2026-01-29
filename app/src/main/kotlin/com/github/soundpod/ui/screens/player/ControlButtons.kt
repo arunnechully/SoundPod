@@ -54,7 +54,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.C
 import androidx.media3.common.Player
@@ -63,9 +62,9 @@ import com.github.core.ui.LocalAppearance
 import com.github.core.ui.favoritesIcon
 import com.github.core.ui.surface
 import com.github.innertube.models.NavigationEndpoint
-import com.github.soundpod.Database
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.enums.ProgressBar
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.models.Song
@@ -256,7 +255,7 @@ fun PlayerMiddleControl(
     var likedAt by rememberSaveable { mutableStateOf<Long?>(null) }
 
     LaunchedEffect(mediaId) {
-        Database.likedAt(mediaId).distinctUntilChanged().collect { likedAt = it }
+        db.likedAt(mediaId).distinctUntilChanged().collect { likedAt = it }
     }
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -280,7 +279,7 @@ fun PlayerMiddleControl(
             onClick = {
                 val currentMediaItem = binder?.player?.currentMediaItem
                 query {
-                    if (Database.like(
+                    if (db.like(
                             mediaId,
                             if (likedAt == null) System.currentTimeMillis() else null
                         ) == 0
@@ -288,7 +287,7 @@ fun PlayerMiddleControl(
                         currentMediaItem
                             ?.takeIf { it.mediaId == mediaId }
                             ?.let {
-                                Database.insert(currentMediaItem, Song::toggleLike)
+                                db.insert(currentMediaItem, Song::toggleLike)
                             }
                     }
                 }

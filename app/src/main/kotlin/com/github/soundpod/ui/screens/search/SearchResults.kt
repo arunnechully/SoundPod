@@ -34,10 +34,10 @@ import androidx.compose.ui.unit.dp
 import com.github.innertube.Innertube
 import com.github.innertube.requests.searchPage
 import com.github.innertube.utils.from
-import com.github.soundpod.Database
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.enums.SongSortBy
 import com.github.soundpod.enums.SortOrder
 import com.github.soundpod.models.ActionInfo
@@ -45,9 +45,9 @@ import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.models.Section
 import com.github.soundpod.models.Song
 import com.github.soundpod.ui.components.ChipScaffold
-import com.github.soundpod.ui.components.SwipeToActionBox
 import com.github.soundpod.ui.components.InHistoryMediaItemMenu
 import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
+import com.github.soundpod.ui.components.SwipeToActionBox
 import com.github.soundpod.ui.items.AlbumItem
 import com.github.soundpod.ui.items.ArtistItem
 import com.github.soundpod.ui.items.ItemPlaceholder
@@ -308,7 +308,7 @@ fun SearchResults(
                 var items: List<Song> by remember { mutableStateOf(emptyList()) }
 
                 LaunchedEffect(Unit) {
-                    Database.songs(SongSortBy.Title, SortOrder.Ascending).collect {
+                    db.songs(SongSortBy.Title, SortOrder.Ascending).collect {
                         items = it.filter { song ->
                             song.title.contains(
                                 other = query,

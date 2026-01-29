@@ -31,15 +31,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.github.innertube.Innertube
 import com.github.innertube.requests.playlistPage
-import com.github.soundpod.Database
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.models.Playlist
 import com.github.soundpod.models.SongPlaylistMap
 import com.github.soundpod.query
 import com.github.soundpod.transaction
-import com.github.soundpod.ui.components.TooltipIconButton
 import com.github.soundpod.ui.components.ConfirmationDialog
 import com.github.soundpod.ui.components.TextFieldDialog
+import com.github.soundpod.ui.components.TooltipIconButton
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.completed
 import kotlinx.coroutines.Dispatchers
@@ -64,7 +64,7 @@ fun LocalPlaylistScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     LaunchedEffect(Unit) {
-        Database.playlist(playlistId).filterNotNull().collect { playlist = it }
+        db.playlist(playlistId).filterNotNull().collect { playlist = it }
     }
 
     BackHandler(enabled = true) {
@@ -103,19 +103,19 @@ fun LocalPlaylistScreen(
                                                     ?.completed()
                                             }
                                         }?.getOrNull()?.let { remotePlaylist ->
-                                            Database.clearPlaylist(playlistId)
+                                            db.clearPlaylist(playlistId)
 
                                             remotePlaylist.songsPage
                                                 ?.items
                                                 ?.map(Innertube.SongItem::asMediaItem)
-                                                ?.onEach(Database::insert)
+                                                ?.onEach(db::insert)
                                                 ?.mapIndexed { position, mediaItem ->
                                                     SongPlaylistMap(
                                                         songId = mediaItem.mediaId,
                                                         playlistId = playlistId,
                                                         position = position
                                                     )
-                                                }?.let(Database::insertSongPlaylistMaps)
+                                                }?.let(db::insertSongPlaylistMaps)
                                         }
                                     }
                                 }
@@ -163,7 +163,7 @@ fun LocalPlaylistScreen(
                     onDone = { text ->
                         query {
                             playlist?.copy(name = text)
-                                ?.let(Database::update)
+                                ?.let(db::update)
                         }
                     }
                 )
@@ -175,7 +175,7 @@ fun LocalPlaylistScreen(
                     onDismiss = { isDeleting = false },
                     onConfirm = {
                         query {
-                            playlist?.let(Database::delete)
+                            playlist?.let(db::delete)
                         }
                         pop()
                     }

@@ -24,7 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
@@ -33,7 +32,7 @@ import androidx.navigation.NavController
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
-import com.github.soundpod.ui.appearance.PlayerBackground // <--- Import this
+import com.github.soundpod.ui.appearance.PlayerBackground
 import com.github.soundpod.ui.navigation.Routes
 import kotlinx.coroutines.launch
 

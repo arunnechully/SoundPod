@@ -44,7 +44,7 @@ fun NewBuiltInPlaylistScreen(
         onBackClick = pop,
     ) {
         SettingsCard {
-            BuiltInPlaylistSongs(
+            NewBuiltInPlaylistSongs(
                 builtInPlaylist = builtInPlaylist,
                 onGoToAlbum = onGoToAlbum,
                 onGoToArtist = onGoToArtist

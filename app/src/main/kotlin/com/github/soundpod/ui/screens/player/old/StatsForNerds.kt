@@ -37,9 +37,9 @@ import androidx.media3.datasource.cache.Cache
 import androidx.media3.datasource.cache.CacheSpan
 import com.github.innertube.Innertube
 import com.github.innertube.requests.player
-import com.github.soundpod.Database
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.models.Format
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -66,15 +66,15 @@ fun StatsForNerds(
     }
 
     LaunchedEffect(mediaId) {
-        Database.format(mediaId).distinctUntilChanged().collectLatest { currentFormat ->
+        db.format(mediaId).distinctUntilChanged().collectLatest { currentFormat ->
             if (currentFormat?.itag == null) {
                 binder.player.currentMediaItem?.takeIf { it.mediaId == mediaId }?.let { mediaItem ->
                     withContext(Dispatchers.IO) {
                         delay(2000)
                         Innertube.player(videoId = mediaId)?.onSuccess { response ->
                             response.streamingData?.highestQualityFormat?.let { format ->
-                                Database.insert(mediaItem)
-                                Database.insert(
+                                db.insert(mediaItem)
+                                db.insert(
                                     Format(
                                         songId = mediaId,
                                         itag = format.itag,

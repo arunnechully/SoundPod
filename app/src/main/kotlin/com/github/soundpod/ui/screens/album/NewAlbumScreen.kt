@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -49,12 +48,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.github.core.ui.ColorPalette
 import com.github.core.ui.LocalAppearance
 import com.github.innertube.Innertube
 import com.github.innertube.requests.albumPage
-import com.github.soundpod.Database
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.models.Album
 import com.github.soundpod.models.Section
 import com.github.soundpod.models.SongAlbumMap
@@ -103,7 +101,7 @@ fun TodoAlbumScreen(
     val thumbnailUrl = album?.thumbnailUrl
 
     LaunchedEffect(Unit) {
-        Database
+        db
             .album(browseId)
             .combine(snapshotFlow { pagerState.currentPage }) { album, tabIndex -> album to tabIndex }
             .collect { (currentAlbum, tabIndex) ->
@@ -116,9 +114,9 @@ fun TodoAlbumScreen(
                             ?.onSuccess { currentAlbumPage ->
                                 albumPage = currentAlbumPage
 
-                                Database.clearAlbum(browseId)
+                                db.clearAlbum(browseId)
 
-                                Database.upsert(
+                                db.upsert(
                                     Album(
                                         id = browseId,
                                         title = currentAlbumPage.title,
@@ -134,7 +132,7 @@ fun TodoAlbumScreen(
                                         .songsPage
                                         ?.items
                                         ?.map(Innertube.SongItem::asMediaItem)
-                                        ?.onEach(Database::insert)
+                                        ?.onEach(db::insert)
                                         ?.mapIndexed { position, mediaItem ->
                                             SongAlbumMap(
                                                 songId = mediaItem.mediaId,

@@ -16,7 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.github.soundpod.Database
+import com.github.soundpod.db
 import com.github.soundpod.ui.styling.px
 import com.github.soundpod.utils.thumbnail
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +32,7 @@ fun PlaylistThumbnail(
         val thumbnailSizePx = thumbnailSizeDp.px
 
         val thumbnails by remember {
-            Database.playlistThumbnailUrls(playlistId).distinctUntilChanged().map {
+            db.playlistThumbnailUrls(playlistId).distinctUntilChanged().map {
                 it.map { url ->
                     url.thumbnail(thumbnailSizePx / 2)
                 }

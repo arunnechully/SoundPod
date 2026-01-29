@@ -47,10 +47,10 @@ import androidx.compose.ui.unit.times
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.innertube.Innertube
 import com.github.innertube.models.NavigationEndpoint
-import com.github.soundpod.Database
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.enums.QuickPicksSource
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.query
@@ -156,7 +156,7 @@ fun QuickPicks(
                                         mediaItem = song.asMediaItem,
                                         onRemoveFromQuickPicks = {
                                             query {
-                                                Database.clearEventsFor(song.id)
+                                                db.clearEventsFor(song.id)
                                             }
                                         },
                                         onGoToAlbum = onAlbumClick,

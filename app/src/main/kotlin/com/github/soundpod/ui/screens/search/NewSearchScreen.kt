@@ -50,8 +50,8 @@ import androidx.navigation.NavController
 import com.github.core.ui.LocalAppearance
 import com.github.innertube.Innertube
 import com.github.innertube.requests.searchSuggestions
-import com.github.soundpod.Database
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.models.SearchQuery
 import com.github.soundpod.query
 import com.github.soundpod.ui.components.LoadingAnimation
@@ -91,7 +91,7 @@ fun NewSearchScreen(
             confirmedSearchQuery = query
             if (!context.preferences.getBoolean(pauseSearchHistoryKey, false)) {
                 query {
-                    Database.insert(SearchQuery(query = query))
+                    db.insert(SearchQuery(query = query))
                 }
             }
         }
@@ -106,7 +106,7 @@ fun NewSearchScreen(
 
     LaunchedEffect(textFieldValue.text) {
         if (!context.preferences.getBoolean(pauseSearchHistoryKey, false)) {
-            Database.queries("%${textFieldValue.text}%")
+            db.queries("%${textFieldValue.text}%")
                 .distinctUntilChanged { old, new -> old.size == new.size }
                 .collect { history = it }
         }
@@ -258,7 +258,7 @@ fun NewSearchScreen(
                                 color = colorPalette.text
                             )
                             IconButton(
-                                onClick = { query { Database.delete(searchQuery) } },
+                                onClick = { query { db.delete(searchQuery) } },
                                 modifier = Modifier.size(28.dp)
                             ) {
                                 Icon(
@@ -282,7 +282,7 @@ fun NewSearchScreen(
                             horizontalArrangement = Arrangement.Center
                         ) {
                             TextButton(
-                                onClick = { query { Database.clearQueries() } },
+                                onClick = { query { db.clearQueries() } },
                                 colors = ButtonDefaults.textButtonColors(contentColor = colorPalette.text)
                             ) {
                                 Text("Clear all")

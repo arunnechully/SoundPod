@@ -47,7 +47,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import com.github.innertube.Innertube
 import com.github.innertube.requests.searchSuggestions
-import com.github.soundpod.Database
+import com.github.soundpod.db
 import com.github.soundpod.models.SearchQuery
 import com.github.soundpod.query
 import com.github.soundpod.ui.styling.Dimensions
@@ -87,7 +87,7 @@ fun SearchScreen(
 
             if (!context.preferences.getBoolean(pauseSearchHistoryKey, false)) {
                 query {
-                    Database.insert(SearchQuery(query = query))
+                    db.insert(SearchQuery(query = query))
                 }
             }
         }
@@ -106,7 +106,7 @@ fun SearchScreen(
 
     LaunchedEffect(textFieldState.text) {
         if (!context.preferences.getBoolean(pauseSearchHistoryKey, false)) {
-            Database.queries("%${textFieldState.text}%")
+            db.queries("%${textFieldState.text}%")
                 .distinctUntilChanged { old, new -> old.size == new.size }
                 .collect { history = it }
         }
@@ -155,7 +155,7 @@ fun SearchScreen(
                                 Row {
                                     IconButton(
                                         onClick = {
-                                            query { Database.delete(query) }
+                                            query { db.delete(query) }
                                         }
                                     ) {
                                         Icon(

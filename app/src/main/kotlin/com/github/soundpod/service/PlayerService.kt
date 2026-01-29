@@ -69,9 +69,9 @@ import androidx.media3.extractor.DefaultExtractorsFactory
 import com.github.innertube.Innertube
 import com.github.innertube.models.NavigationEndpoint
 import com.github.innertube.requests.player
-import com.github.soundpod.Database
 import com.github.soundpod.MainActivity
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.enums.ExoPlayerDiskCacheMaxSize
 import com.github.soundpod.models.Event
 import com.github.soundpod.models.QueuedMediaItem
@@ -206,7 +206,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     private val isLikedState = mediaItemState
         .flatMapMerge { item ->
             item?.mediaId?.let {
-                Database
+                db
                     .likedAt(it)
                     .distinctUntilChanged()
                     .cancellable()
@@ -373,14 +373,14 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
 
         if (totalPlayTimeMs > 5000) {
             query {
-                Database.incrementTotalPlayTimeMs(mediaItem.mediaId, totalPlayTimeMs)
+                db.incrementTotalPlayTimeMs(mediaItem.mediaId, totalPlayTimeMs)
             }
         }
 
         if (totalPlayTimeMs > 30000) {
             query {
                 try {
-                    Database.insert(
+                    db.insert(
                         Event(
                             songId = mediaItem.mediaId,
                             timestamp = System.currentTimeMillis(),
@@ -478,8 +478,8 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
             )
         }.let { queuedMediaItems ->
             query {
-                Database.clearQueue()
-                Database.insert(queuedMediaItems)
+                db.clearQueue()
+                db.insert(queuedMediaItems)
             }
         }
     }
@@ -488,8 +488,8 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         if (!isPersistentQueueEnabled) return
 
         query {
-            val queuedSong = Database.queue()
-            Database.clearQueue()
+            val queuedSong = db.queue()
+            db.clearQueue()
 
             if (queuedSong.isEmpty()) return@query
 
@@ -534,7 +534,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         player.currentMediaItem?.mediaId?.let { songId ->
             volumeNormalizationJob?.cancel()
             volumeNormalizationJob = coroutineScope.launch(Dispatchers.Main) {
-                Database.loudnessDb(songId).cancellable().collectLatest { loudnessDb ->
+                db.loudnessDb(songId).cancellable().collectLatest { loudnessDb ->
                     try {
                         loudnessEnhancer?.setTargetGain(-((loudnessDb ?: 0f) * 100).toInt() + 500)
                         loudnessEnhancer?.enabled = true
@@ -856,14 +856,14 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                                                     "durationText",
                                                     durationText
                                                 )
-                                                Database.updateDurationText(videoId, durationText)
+                                                db.updateDurationText(videoId, durationText)
                                             }
                                     }
 
                                     query {
-                                        mediaItem?.let(Database::insert)
+                                        mediaItem?.let(db::insert)
 
-                                        Database.insert(
+                                        db.insert(
                                             com.github.soundpod.models.Format(
                                                 songId = videoId,
                                                 itag = format.itag,
@@ -1017,7 +1017,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     private fun likeAction() = mediaItemState.value?.let { mediaItem ->
         query {
             runCatching {
-                Database.like(
+                db.like(
                     songId = mediaItem.mediaId,
                     likedAt = if (isLikedState.value) null else System.currentTimeMillis()
                 )

@@ -4,7 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.github.soundpod.Database
+import com.github.soundpod.db
 import com.github.soundpod.enums.SongSortBy
 import com.github.soundpod.enums.SortOrder
 import com.github.soundpod.models.Song
@@ -16,7 +16,7 @@ class HomeSongsViewModel : ViewModel() {
         sortBy: SongSortBy,
         sortOrder: SortOrder
     ) {
-        Database
+        db
             .songs(sortBy, sortOrder)
             .collect { items = it }
     }

@@ -44,9 +44,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.C
 import androidx.media3.common.Player
-import com.github.soundpod.Database
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.models.Song
 import com.github.soundpod.query
 import com.github.soundpod.ui.components.SeekBar
@@ -85,7 +85,7 @@ fun Controls(
     )
 
     LaunchedEffect(mediaId) {
-        Database.likedAt(mediaId).distinctUntilChanged().collect { likedAt = it }
+        db.likedAt(mediaId).distinctUntilChanged().collect { likedAt = it }
     }
 
     Column(
@@ -184,7 +184,7 @@ fun Controls(
                 onClick = {
                     val currentMediaItem = binder.player.currentMediaItem
                     query {
-                        if (Database.like(
+                        if (db.like(
                                 mediaId,
                                 if (likedAt == null) System.currentTimeMillis() else null
                             ) == 0
@@ -192,7 +192,7 @@ fun Controls(
                             currentMediaItem
                                 ?.takeIf { it.mediaId == mediaId }
                                 ?.let {
-                                    Database.insert(currentMediaItem, Song::toggleLike)
+                                    db.insert(currentMediaItem, Song::toggleLike)
                                 }
                         }
                     }

@@ -32,14 +32,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.github.innertube.Innertube
 import com.github.innertube.requests.playlistPage
-import com.github.soundpod.Database
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.models.Playlist
 import com.github.soundpod.models.SongPlaylistMap
 import com.github.soundpod.query
 import com.github.soundpod.transaction
-import com.github.soundpod.ui.components.TooltipIconButton
 import com.github.soundpod.ui.components.TextFieldDialog
+import com.github.soundpod.ui.components.TooltipIconButton
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.completed
 import kotlinx.coroutines.Dispatchers
@@ -151,7 +151,7 @@ fun PlaylistScreen(
                     onDone = { text ->
                         query {
                             transaction {
-                                val playlistId = Database.insert(
+                                val playlistId = db.insert(
                                     Playlist(
                                         name = text,
                                         browseId = browseId
@@ -160,14 +160,14 @@ fun PlaylistScreen(
 
                                 playlistPage?.songsPage?.items
                                     ?.map(Innertube.SongItem::asMediaItem)
-                                    ?.onEach(Database::insert)
+                                    ?.onEach(db::insert)
                                     ?.mapIndexed { index, mediaItem ->
                                         SongPlaylistMap(
                                             songId = mediaItem.mediaId,
                                             playlistId = playlistId,
                                             position = index
                                         )
-                                    }?.let(Database::insertSongPlaylistMaps)
+                                    }?.let(db::insertSongPlaylistMaps)
                             }
                         }
                     }

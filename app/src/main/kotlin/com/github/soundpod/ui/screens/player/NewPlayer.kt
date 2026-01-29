@@ -29,8 +29,8 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import com.github.soundpod.Database
 import com.github.soundpod.LocalPlayerServiceBinder
+import com.github.soundpod.db
 import com.github.soundpod.enums.ProgressBar
 import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.utils.DisposableListener
@@ -94,7 +94,7 @@ fun NewPlayer(
     LaunchedEffect(mediaItem) {
         withContext(Dispatchers.IO) {
             if (artistId == null) {
-                val artistsInfo = Database.songArtistInfo(mediaItem.mediaId)
+                val artistsInfo = db.songArtistInfo(mediaItem.mediaId)
                 if (artistsInfo.size == 1) artistId = artistsInfo.first().id
             }
         }

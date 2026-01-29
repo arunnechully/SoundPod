@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import androidx.compose.ui.graphics.Color
+import androidx.core.graphics.createBitmap
 import androidx.palette.graphics.Palette
 import coil3.Image
 import coil3.ImageLoader
@@ -15,7 +16,6 @@ import coil3.request.allowHardware
 import coil3.size.Precision
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import androidx.core.graphics.createBitmap
 
 // 1. Add 'defaultColor' parameter
 suspend fun extractDominantColor(

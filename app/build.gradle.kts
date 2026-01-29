@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.ApplicationExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -10,12 +11,12 @@ plugins {
 
 kotlin {
     compilerOptions {
-        jvmTarget = JvmTarget.fromTarget("17")
-        freeCompilerArgs.addAll("-Xcontext-receivers")
+        jvmTarget = JvmTarget.JVM_17
+        freeCompilerArgs.add("-Xcontext-receivers")
     }
 }
 
-android {
+extensions.configure<ApplicationExtension>("android") {
     namespace = "com.github.soundpod"
     compileSdk = 36
 
@@ -50,7 +51,7 @@ android {
     }
 
     sourceSets.all {
-        kotlin.srcDir("src/$name/kotlin")
+        kotlin.directories.add("src/$name/kotlin")
     }
 
     buildFeatures {
@@ -92,10 +93,13 @@ dependencies {
     implementation(libs.compose.lottie)
     implementation(libs.datastore.preferences)
     implementation(libs.work.runtime.ktx)
+
     ksp(libs.room.compiler)
+
     implementation(projects.core.ui)
     implementation(projects.github)
     implementation(projects.innertube)
     implementation(projects.kugou)
+
     coreLibraryDesugaring(libs.desugaring)
 }

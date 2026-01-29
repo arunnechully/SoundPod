@@ -1,29 +1,36 @@
+import com.android.build.api.dsl.LibraryExtension
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin)
     alias(libs.plugins.detekt)
 }
 
-android {
+extensions.configure<LibraryExtension>("android") {
     namespace = "com.soundpod.materialcompat"
     compileSdk = 36
 
     defaultConfig {
         minSdk = 23
     }
+}
 
-    sourceSets.all {
-        kotlin.srcDir("src/$name/kotlin")
+androidComponents {
+    onVariants { variant ->
+        variant.sources.kotlin?.addStaticSourceDirectory("src/main/kotlin")
+        variant.sources.kotlin?.addStaticSourceDirectory("src/${variant.name}/kotlin")
     }
+}
 
-    kotlinOptions {
-        freeCompilerArgs = freeCompilerArgs + listOf("-Xcontext-receivers")
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        freeCompilerArgs.add("-Xcontext-receivers")
     }
 }
 
 dependencies {
     implementation(projects.core.ui)
-
     detektPlugins(libs.detekt.compose)
     detektPlugins(libs.detekt.formatting)
 }
@@ -31,4 +38,3 @@ dependencies {
 kotlin {
     jvmToolchain(17)
 }
-

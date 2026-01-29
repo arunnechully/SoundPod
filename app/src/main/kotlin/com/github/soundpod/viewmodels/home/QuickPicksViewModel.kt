@@ -6,7 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.github.innertube.Innertube
 import com.github.innertube.requests.relatedPage
-import com.github.soundpod.Database
+import com.github.soundpod.db
 import com.github.soundpod.enums.QuickPicksSource
 import com.github.soundpod.models.Song
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -17,9 +17,9 @@ class QuickPicksViewModel : ViewModel() {
 
     suspend fun loadQuickPicks(quickPicksSource: QuickPicksSource) {
         val flow = when (quickPicksSource) {
-            QuickPicksSource.Trending -> Database.trending()
-            QuickPicksSource.LastPlayed -> Database.lastPlayed()
-            QuickPicksSource.Random -> Database.randomSong()
+            QuickPicksSource.Trending -> db.trending()
+            QuickPicksSource.LastPlayed -> db.lastPlayed()
+            QuickPicksSource.Random -> db.randomSong()
         }
 
         flow.distinctUntilChanged().collect { song ->

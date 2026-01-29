@@ -51,10 +51,10 @@ import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.components.SwitchSetting
 import com.github.soundpod.ui.github.UpdateMessage
-import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.ui.github.checkForUpdates
 import com.github.soundpod.ui.github.downloadAndInstall
 import com.github.soundpod.ui.github.installApkInternal
+import com.github.soundpod.ui.styling.Dimensions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

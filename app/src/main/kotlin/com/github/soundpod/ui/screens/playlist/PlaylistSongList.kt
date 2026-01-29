@@ -22,9 +22,9 @@ import com.github.soundpod.R
 import com.github.soundpod.models.ActionInfo
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.ui.components.CoverScaffold
+import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
 import com.github.soundpod.ui.components.ShimmerHost
 import com.github.soundpod.ui.components.SwipeToActionBox
-import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
 import com.github.soundpod.ui.components.adaptiveThumbnailContent
 import com.github.soundpod.ui.items.ListItemPlaceholder
 import com.github.soundpod.ui.items.SongItem

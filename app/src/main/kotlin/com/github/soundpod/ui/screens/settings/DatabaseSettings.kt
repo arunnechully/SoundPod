@@ -30,9 +30,9 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import coil3.imageLoader
 import com.github.core.ui.LocalAppearance
-import com.github.soundpod.Database
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.enums.CoilDiskCacheMaxSize
 import com.github.soundpod.enums.ExoPlayerDiskCacheMaxSize
 import com.github.soundpod.enums.QuickPicksSource
@@ -73,11 +73,11 @@ fun CacheSettings(
     var pauseSongCache by rememberPreference(pauseSongCacheKey, false)
 
     val queriesCount by remember {
-        Database.queriesCount().distinctUntilChanged()
+        db.queriesCount().distinctUntilChanged()
     }.collectAsState(initial = 0)
 
     val eventsCount by remember {
-        Database.eventsCount().distinctUntilChanged()
+        db.eventsCount().distinctUntilChanged()
     }.collectAsState(initial = 0)
 
     var quickPicksSource by rememberPreference(quickPicksSourceKey, QuickPicksSource.Trending)
@@ -143,7 +143,7 @@ fun CacheSettings(
                     } else {
                         stringResource(id = R.string.quick_picks_cleared)
                     },
-                    onClick = { query(Database::clearEvents) },
+                    onClick = { query(db::clearEvents) },
                     isEnabled = eventsCount > 0
                 )
             }

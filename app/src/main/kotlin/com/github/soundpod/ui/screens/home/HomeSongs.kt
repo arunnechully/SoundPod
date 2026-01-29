@@ -34,8 +34,8 @@ import com.github.soundpod.enums.SongSortBy
 import com.github.soundpod.enums.SortOrder
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.models.Song
-import com.github.soundpod.ui.components.SortingHeader
 import com.github.soundpod.ui.components.InHistoryMediaItemMenu
+import com.github.soundpod.ui.components.SortingHeader
 import com.github.soundpod.ui.items.LocalSongItem
 import com.github.soundpod.ui.styling.onOverlay
 import com.github.soundpod.ui.styling.overlay

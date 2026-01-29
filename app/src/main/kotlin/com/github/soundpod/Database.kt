@@ -57,7 +57,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface Database {
-    companion object : Database by DatabaseInitializer.Instance.database
+    // Note: Companion object removed to prevent circular dependency crash
 
     @Transaction
     @Query("SELECT * FROM Song WHERE totalPlayTimeMs > 0 ORDER BY ROWID ASC")
@@ -395,8 +395,8 @@ interface Database {
             artistsText = mediaItem.mediaMetadata.artist?.toString(),
             durationText = mediaItem.mediaMetadata.extras?.getString("durationText"),
             thumbnailUrl = mediaItem.mediaMetadata.artworkUri?.toString()
-        ).let(block).also { song ->
-            if (insert(song) == -1L) return
+        ).let(block).also { songInstance ->
+            if (insert(songInstance) == -1L) return
         }
 
         mediaItem.mediaMetadata.extras?.getString("albumId")?.let { albumId ->
@@ -462,22 +462,11 @@ interface Database {
 
 @androidx.room.Database(
     entities = [
-        Song::class,
-        SongPlaylistMap::class,
-        Playlist::class,
-        Artist::class,
-        SongArtistMap::class,
-        Album::class,
-        SongAlbumMap::class,
-        SearchQuery::class,
-        QueuedMediaItem::class,
-        Format::class,
-        Event::class,
-        Lyrics::class,
+        Song::class, SongPlaylistMap::class, Playlist::class, Artist::class,
+        SongArtistMap::class, Album::class, SongAlbumMap::class, SearchQuery::class,
+        QueuedMediaItem::class, Format::class, Event::class, Lyrics::class
     ],
-    views = [
-        SortedSongPlaylistMap::class
-    ],
+    views = [SortedSongPlaylistMap::class],
     version = 23,
     exportSchema = true,
     autoMigrations = [
@@ -502,16 +491,21 @@ interface Database {
     ],
 )
 @TypeConverters(Converters::class)
-abstract class DatabaseInitializer() : RoomDatabase() {
-    abstract val database: Database
+abstract class DatabaseInitializer : RoomDatabase() {
+
+    abstract fun database(): Database
 
     companion object {
-        lateinit var Instance: DatabaseInitializer
+        @Volatile
+        private var INSTANCE: DatabaseInitializer? = null
 
-        operator fun invoke(context: Context) {
-            if (!::Instance.isInitialized) {
-                Instance = Room
-                    .databaseBuilder(context, DatabaseInitializer::class.java, "data.db")
+        fun get(context: Context): DatabaseInitializer {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: Room.databaseBuilder(
+                    context.applicationContext,
+                    DatabaseInitializer::class.java,
+                    "data.db"
+                )
                     .addMigrations(
                         From8To9Migration(),
                         From10To11Migration(),
@@ -519,6 +513,7 @@ abstract class DatabaseInitializer() : RoomDatabase() {
                         From22To23Migration()
                     )
                     .build()
+                    .also { INSTANCE = it }
             }
         }
     }
@@ -539,13 +534,7 @@ abstract class DatabaseInitializer() : RoomDatabase() {
                         albumValues.put("title", cursor.getString(1))
                         db.insert("Album", CONFLICT_IGNORE, albumValues)
 
-                        db.execSQL(
-                            "UPDATE Song SET albumId = '${cursor.getString(0)}' WHERE albumId = ${
-                                cursor.getLong(
-                                    2
-                                )
-                            }"
-                        )
+                        db.execSQL("UPDATE Song SET albumId = '${cursor.getString(0)}' WHERE albumId = ${cursor.getLong(2)}")
                     }
                 }
 
@@ -554,13 +543,7 @@ abstract class DatabaseInitializer() : RoomDatabase() {
                     val songValues = ContentValues(1)
                     while (cursor.moveToNext()) {
                         songValues.put("artistsText", cursor.getString(0))
-                        db.update(
-                            "Song",
-                            CONFLICT_IGNORE,
-                            songValues,
-                            "id = ?",
-                            arrayOf(cursor.getString(1))
-                        )
+                        db.update("Song", CONFLICT_IGNORE, songValues, "id = ?", arrayOf(cursor.getString(1)))
                     }
                 }
 
@@ -572,18 +555,11 @@ abstract class DatabaseInitializer() : RoomDatabase() {
                         artistValues.put("name", cursor.getString(1))
                         db.insert("Artist", CONFLICT_IGNORE, artistValues)
 
-                        db.execSQL(
-                            "UPDATE SongWithAuthors SET authorInfoId = '${cursor.getString(0)}' WHERE authorInfoId = ${
-                                cursor.getLong(
-                                    2
-                                )
-                            }"
-                        )
+                        db.execSQL("UPDATE SongWithAuthors SET authorInfoId = '${cursor.getString(0)}' WHERE authorInfoId = ${cursor.getLong(2)}")
                     }
                 }
 
             db.execSQL("INSERT INTO SongArtistMap(songId, artistId) SELECT songId, authorInfoId FROM SongWithAuthors")
-
             db.execSQL("DROP TABLE Info;")
             db.execSQL("DROP TABLE SongWithAuthors;")
         }
@@ -601,7 +577,6 @@ abstract class DatabaseInitializer() : RoomDatabase() {
             }
 
             db.execSQL("CREATE TABLE IF NOT EXISTS `Song_new` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `artistsText` TEXT, `durationText` TEXT NOT NULL, `thumbnailUrl` TEXT, `lyrics` TEXT, `likedAt` INTEGER, `totalPlayTimeMs` INTEGER NOT NULL, `loudnessDb` REAL, `contentLength` INTEGER, PRIMARY KEY(`id`))")
-
             db.execSQL("INSERT INTO Song_new(id, title, artistsText, durationText, thumbnailUrl, lyrics, likedAt, totalPlayTimeMs, loudnessDb, contentLength) SELECT id, title, artistsText, durationText, thumbnailUrl, lyrics, likedAt, totalPlayTimeMs, loudnessDb, contentLength FROM Song;")
             db.execSQL("DROP TABLE Song;")
             db.execSQL("ALTER TABLE Song_new RENAME TO Song;")
@@ -626,7 +601,6 @@ abstract class DatabaseInitializer() : RoomDatabase() {
                 }
 
             db.execSQL("CREATE TABLE IF NOT EXISTS `Song_new` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `artistsText` TEXT, `durationText` TEXT NOT NULL, `thumbnailUrl` TEXT, `lyrics` TEXT, `likedAt` INTEGER, `totalPlayTimeMs` INTEGER NOT NULL, PRIMARY KEY(`id`))")
-
             db.execSQL("INSERT INTO Song_new(id, title, artistsText, durationText, thumbnailUrl, lyrics, likedAt, totalPlayTimeMs) SELECT id, title, artistsText, durationText, thumbnailUrl, lyrics, likedAt, totalPlayTimeMs FROM Song;")
             db.execSQL("DROP TABLE Song;")
             db.execSQL("ALTER TABLE Song_new RENAME TO Song;")
@@ -647,7 +621,6 @@ abstract class DatabaseInitializer() : RoomDatabase() {
     class From22To23Migration : Migration(22, 23) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL("CREATE TABLE IF NOT EXISTS Lyrics (`songId` TEXT NOT NULL, `fixed` TEXT, `synced` TEXT, PRIMARY KEY(`songId`), FOREIGN KEY(`songId`) REFERENCES `Song`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE)")
-
             db.query(SimpleSQLiteQuery("SELECT id, lyrics, synchronizedLyrics FROM Song;"))
                 .use { cursor ->
                     val lyricsValues = ContentValues(3)
@@ -679,7 +652,6 @@ object Converters {
                 parcel.setDataPosition(0)
                 val bundle = parcel.readBundle(MediaItem::class.java.classLoader)
                 parcel.recycle()
-
                 bundle?.let(MediaItem::fromBundle)
             }.getOrNull()
         }
@@ -687,27 +659,30 @@ object Converters {
 
     @TypeConverter
     fun mediaItemToByteArray(mediaItem: MediaItem?): ByteArray? {
-        return mediaItem?.toBundle()?.let { persistableBundle ->
+        return mediaItem?.toBundle()?.let { bundle ->
             val parcel = Parcel.obtain()
-            parcel.writeBundle(persistableBundle)
+            parcel.writeBundle(bundle)
             val bytes = parcel.marshall()
             parcel.recycle()
-
             bytes
         }
     }
 }
 
-val internal: RoomDatabase
-    get() = DatabaseInitializer.Instance
+// --- GLOBAL ACCESSORS ---
 
-fun query(block: () -> Unit) = DatabaseInitializer.Instance.queryExecutor.execute(block)
+val appContext: Context
+    get() = MainApplication.appContext
 
-fun transaction(block: () -> Unit) = with(DatabaseInitializer.Instance) {
-    transactionExecutor.execute {
-        runInTransaction(block)
-    }
-}
+// Renamed from 'Database' to 'db' to stop the conflict
+val db: Database
+    get() = DatabaseInitializer.get(appContext).database()
 
-val RoomDatabase.databasePath: String?
-    get() = openHelper.writableDatabase.path
+val internal: DatabaseInitializer
+    get() = DatabaseInitializer.get(appContext)
+
+fun query(block: () -> Unit) =
+    internal.queryExecutor.execute(block)
+
+fun transaction(block: () -> Unit) =
+    internal.runInTransaction(block)

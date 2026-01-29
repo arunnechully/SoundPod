@@ -51,9 +51,9 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import com.github.innertube.models.NavigationEndpoint
-import com.github.soundpod.Database
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.enums.PlaylistSortBy
 import com.github.soundpod.enums.SortOrder
 import com.github.soundpod.models.Info
@@ -96,7 +96,7 @@ fun InHistoryMediaItemMenu(
                 query {
                     // Not sure we can do this here
                     binder?.cache?.removeResource(song.id)
-                    Database.incrementTotalPlayTimeMs(song.id, -song.totalPlayTimeMs)
+                    db.incrementTotalPlayTimeMs(song.id, -song.totalPlayTimeMs)
                 }
             }
         )
@@ -128,8 +128,8 @@ fun InPlaylistMediaItemMenu(
         onDismiss = onDismiss,
         onRemoveFromPlaylist = {
             transaction {
-                Database.move(playlistId, positionInPlaylist, Int.MAX_VALUE)
-                Database.delete(SongPlaylistMap(song.id, playlistId, Int.MAX_VALUE))
+                db.move(playlistId, positionInPlaylist, Int.MAX_VALUE)
+                db.delete(SongPlaylistMap(song.id, playlistId, Int.MAX_VALUE))
             }
         },
         modifier = modifier,
@@ -230,11 +230,11 @@ fun BaseMediaItemMenu(
         onRemoveFromPlaylist = onRemoveFromPlaylist,
         onAddToPlaylist = { playlist, position ->
             transaction {
-                Database.insert(mediaItem)
-                Database.insert(
+                db.insert(mediaItem)
+                db.insert(
                     SongPlaylistMap(
                         songId = mediaItem.mediaId,
-                        playlistId = Database.insert(playlist).takeIf { it != -1L } ?: playlist.id,
+                        playlistId = db.insert(playlist).takeIf { it != -1L } ?: playlist.id,
                         position = position
                     )
                 )
@@ -257,6 +257,7 @@ fun BaseMediaItemMenu(
     }
 }
 
+@Suppress("AssignedValueIsNeverRead")
 @ExperimentalAnimationApi
 @Composable
 fun MediaItemMenu(
@@ -312,10 +313,10 @@ fun MediaItemMenu(
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            if (albumInfo == null) albumInfo = Database.songAlbumInfo(mediaItem.mediaId)
-            if (artistsInfo == null) artistsInfo = Database.songArtistInfo(mediaItem.mediaId)
+            if (albumInfo == null) albumInfo = db.songAlbumInfo(mediaItem.mediaId)
+            if (artistsInfo == null) artistsInfo = db.songArtistInfo(mediaItem.mediaId)
 
-            Database.likedAt(mediaItem.mediaId).collect { likedAt = it }
+            db.likedAt(mediaItem.mediaId).collect { likedAt = it }
         }
     }
 
@@ -336,7 +337,7 @@ fun MediaItemMenu(
             val sortOrder by rememberPreference(playlistSortOrderKey, SortOrder.Descending)
 
             val playlistPreviews by remember {
-                Database.playlistPreviews(sortBy, sortOrder)
+                db.playlistPreviews(sortBy, sortOrder)
             }.collectAsState(initial = emptyList(), context = Dispatchers.IO)
 
             var isCreatingNewPlaylist by rememberSaveable {
@@ -421,12 +422,12 @@ fun MediaItemMenu(
                             IconButton(
                                 onClick = {
                                     query {
-                                        if (Database.like(
+                                        if (db.like(
                                                 mediaItem.mediaId,
                                                 if (likedAt == null) System.currentTimeMillis() else null
                                             ) == 0
                                         ) {
-                                            Database.insert(mediaItem, Song::toggleLike)
+                                            db.insert(mediaItem, Song::toggleLike)
                                         }
                                     }
                                 }

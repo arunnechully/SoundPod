@@ -16,7 +16,16 @@ import androidx.compose.runtime.setValue
 import com.github.soundpod.enums.AppThemeColor
 import com.github.soundpod.service.PlayerService
 import com.github.soundpod.ui.navigation.SettingsDestinations
-import com.github.soundpod.ui.screens.settings.*
+import com.github.soundpod.ui.screens.settings.AboutSettings
+import com.github.soundpod.ui.screens.settings.AppearanceSettings
+import com.github.soundpod.ui.screens.settings.BackgroundSettings
+import com.github.soundpod.ui.screens.settings.BackupSettings
+import com.github.soundpod.ui.screens.settings.CacheSettings
+import com.github.soundpod.ui.screens.settings.ExperimentSettings
+import com.github.soundpod.ui.screens.settings.MoreSettings
+import com.github.soundpod.ui.screens.settings.PlayerSettings
+import com.github.soundpod.ui.screens.settings.PrivacySettings
+import com.github.soundpod.ui.screens.settings.SettingsScreen
 import com.github.soundpod.ui.styling.AppTheme
 import com.github.soundpod.utils.appTheme
 import com.github.soundpod.utils.rememberPreference

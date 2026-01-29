@@ -1,6 +1,5 @@
 package com.github.soundpod.ui.screens.builtinplaylist
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
@@ -21,19 +20,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.github.soundpod.Database
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.models.ActionInfo
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.models.Song
 import com.github.soundpod.models.SongWithContentLength
 import com.github.soundpod.ui.components.CoverScaffold
-import com.github.soundpod.ui.components.SwipeToActionBox
 import com.github.soundpod.ui.components.InHistoryMediaItemMenu
 import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
+import com.github.soundpod.ui.components.SwipeToActionBox
 import com.github.soundpod.ui.items.LocalSongItem
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.enqueue
@@ -60,9 +59,9 @@ fun BuiltInPlaylistSongs(
 
     LaunchedEffect(Unit) {
         when (builtInPlaylist) {
-            BuiltInPlaylist.Favorites -> Database.favorites()
+            BuiltInPlaylist.Favorites -> db.favorites()
 
-            BuiltInPlaylist.Offline -> Database
+            BuiltInPlaylist.Offline -> db
                 .songsWithContentLength()
                 .flowOn(Dispatchers.IO)
                 .map { songs ->

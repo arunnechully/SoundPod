@@ -58,15 +58,14 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
-import com.valentinilk.shimmer.shimmer
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.models.ActionInfo
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.ui.components.MusicBars
+import com.github.soundpod.ui.components.QueuedMediaItemMenu
 import com.github.soundpod.ui.components.SwipeToActionBox
 import com.github.soundpod.ui.components.TooltipIconButton
-import com.github.soundpod.ui.components.QueuedMediaItemMenu
 import com.github.soundpod.ui.items.ListItemPlaceholder
 import com.github.soundpod.ui.items.MediaSongItem
 import com.github.soundpod.ui.styling.Dimensions
@@ -77,6 +76,7 @@ import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.shouldBePlaying
 import com.github.soundpod.utils.shuffleQueue
 import com.github.soundpod.utils.windows
+import com.valentinilk.shimmer.shimmer
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState

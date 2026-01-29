@@ -27,15 +27,15 @@ import com.github.innertube.Innertube
 import com.github.innertube.requests.itemsPage
 import com.github.innertube.requests.itemsPageContinuation
 import com.github.innertube.utils.from
-import com.github.soundpod.Database
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.models.Section
 import com.github.soundpod.query
+import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
 import com.github.soundpod.ui.components.TabScaffold
 import com.github.soundpod.ui.components.TooltipIconButton
-import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
 import com.github.soundpod.ui.components.adaptiveThumbnailContent
 import com.github.soundpod.ui.items.AlbumItem
 import com.github.soundpod.ui.items.ItemPlaceholder
@@ -114,7 +114,7 @@ fun ArtistScreen(
                     query {
                         viewModel.artist
                             ?.copy(bookmarkedAt = bookmarkedAt)
-                            ?.let(Database::update)
+                            ?.let(db::update)
                     }
                 },
                 icon = if (viewModel.artist?.bookmarkedAt == null) Icons.Outlined.BookmarkAdd else Icons.Filled.Bookmark,

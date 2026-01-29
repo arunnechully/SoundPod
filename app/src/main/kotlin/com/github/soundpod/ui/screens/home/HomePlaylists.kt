@@ -23,9 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.github.soundpod.Database
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.enums.PlaylistSortBy
 import com.github.soundpod.enums.SortOrder
@@ -71,7 +71,7 @@ fun HomePlaylists(
             },
             onDone = { text ->
                 query {
-                    Database.insert(Playlist(name = text))
+                    db.insert(Playlist(name = text))
                 }
             }
         )

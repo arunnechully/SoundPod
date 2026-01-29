@@ -20,8 +20,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.github.innertube.Innertube
-import com.github.soundpod.Database
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.models.PlaylistPreview
 import com.github.soundpod.ui.styling.px
 import com.github.soundpod.utils.thumbnail
@@ -101,7 +101,7 @@ fun LocalPlaylistItem(
             val thumbnailWidthPx = maxWidth.px
 
             val thumbnails by remember {
-                Database.playlistThumbnailUrls(playlist.playlist.id).distinctUntilChanged().map {
+                db.playlistThumbnailUrls(playlist.playlist.id).distinctUntilChanged().map {
                     it.map { url ->
                         url.thumbnail(size = thumbnailWidthPx / 2)
                     }

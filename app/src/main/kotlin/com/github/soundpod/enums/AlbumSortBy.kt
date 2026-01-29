@@ -10,7 +10,7 @@ import com.github.soundpod.R
 import com.github.soundpod.models.SortBy
 
 enum class AlbumSortBy(
-    @StringRes override val text: Int,
+    @param:StringRes override val text: Int,
     override val icon: ImageVector
 ) : SortBy {
     Title(

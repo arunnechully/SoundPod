@@ -43,8 +43,8 @@ import androidx.media3.common.util.UnstableApi
 import coil3.compose.AsyncImage
 import com.github.innertube.Innertube
 import com.github.innertube.requests.visitorData
-import com.github.soundpod.Database
 import com.github.soundpod.LocalPlayerServiceBinder
+import com.github.soundpod.db
 import com.github.soundpod.service.LoginRequiredException
 import com.github.soundpod.service.PlayableFormatNotFoundException
 import com.github.soundpod.service.UnplayableException
@@ -194,7 +194,7 @@ fun Thumbnail(
                             onShowLyrics(false)
                             if (fullScreenLyrics) toggleFullScreenLyrics()
                         },
-                        ensureSongInserted = { Database.insert(currentWindow.mediaItem) },
+                        ensureSongInserted = { db.insert(currentWindow.mediaItem) },
                         size = thumbnailSizeDp,
                         mediaMetadataProvider = currentWindow.mediaItem::mediaMetadata,
                         durationProvider = player::getDuration,

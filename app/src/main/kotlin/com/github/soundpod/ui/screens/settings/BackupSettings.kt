@@ -27,8 +27,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
-import com.github.soundpod.Database
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.internal
 import com.github.soundpod.query
 import com.github.soundpod.service.PlayerService
@@ -59,7 +59,7 @@ fun BackupSettings(
             if (uri == null) return@rememberLauncherForActivityResult
 
             query {
-                Database.checkpoint()
+                db.checkpoint()
 
                 context.applicationContext.contentResolver.openOutputStream(uri)
                     ?.use { outputStream ->
@@ -75,7 +75,7 @@ fun BackupSettings(
             if (uri == null) return@rememberLauncherForActivityResult
 
             query {
-                Database.checkpoint()
+                db.checkpoint()
                 internal.close()
 
                 context.applicationContext.contentResolver.openInputStream(uri)

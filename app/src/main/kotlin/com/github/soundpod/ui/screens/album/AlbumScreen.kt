@@ -24,8 +24,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.github.innertube.Innertube
 import com.github.innertube.requests.albumPage
-import com.github.soundpod.Database
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.models.Album
 import com.github.soundpod.models.Section
 import com.github.soundpod.models.SongAlbumMap
@@ -62,7 +62,7 @@ fun AlbumScreen(
     val pagerState = rememberPagerState(pageCount = { tabs.size })
 
     LaunchedEffect(Unit) {
-        Database
+        db
             .album(browseId)
             .combine(snapshotFlow { pagerState.currentPage }) { album, tabIndex -> album to tabIndex }
             .collect { (currentAlbum, tabIndex) ->
@@ -75,9 +75,9 @@ fun AlbumScreen(
                             ?.onSuccess { currentAlbumPage ->
                                 albumPage = currentAlbumPage
 
-                                Database.clearAlbum(browseId)
+                                db.clearAlbum(browseId)
 
-                                Database.upsert(
+                                db.upsert(
                                     Album(
                                         id = browseId,
                                         title = currentAlbumPage.title,
@@ -93,7 +93,7 @@ fun AlbumScreen(
                                         .songsPage
                                         ?.items
                                         ?.map(Innertube.SongItem::asMediaItem)
-                                        ?.onEach(Database::insert)
+                                        ?.onEach(db::insert)
                                         ?.mapIndexed { position, mediaItem ->
                                             SongAlbumMap(
                                                 songId = mediaItem.mediaId,
@@ -132,7 +132,7 @@ fun AlbumScreen(
                     query {
                         album
                             ?.copy(bookmarkedAt = bookmarkedAt)
-                            ?.let(Database::update)
+                            ?.let(db::update)
                     }
                 },
                 icon = if (album?.bookmarkedAt == null) Icons.Outlined.BookmarkAdd else Icons.Filled.Bookmark,

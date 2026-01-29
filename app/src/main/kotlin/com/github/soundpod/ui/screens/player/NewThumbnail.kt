@@ -56,9 +56,9 @@ import com.github.core.ui.LocalAppearance
 import com.github.core.ui.favoritesIcon
 import com.github.innertube.Innertube
 import com.github.innertube.requests.visitorData
-import com.github.soundpod.Database
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.models.Song
 import com.github.soundpod.query
 import com.github.soundpod.service.LoginRequiredException
@@ -101,7 +101,7 @@ fun NewThumbnail(
     var likedAt by rememberSaveable { mutableStateOf<Long?>(null) }
 
     LaunchedEffect(mediaId) {
-        Database.likedAt(mediaId).distinctUntilChanged().collect { likedAt = it }
+        db.likedAt(mediaId).distinctUntilChanged().collect { likedAt = it }
     }
 
     val retry = {
@@ -232,7 +232,7 @@ fun NewThumbnail(
                             onDoubleTap = {
                                 val currentMediaItem = binder.player.currentMediaItem
                                 query {
-                                    if (Database.like(
+                                    if (db.like(
                                             mediaId,
                                             if (likedAt == null) System.currentTimeMillis() else null
                                         ) == 0
@@ -240,7 +240,7 @@ fun NewThumbnail(
                                         currentMediaItem
                                             ?.takeIf { it.mediaId == mediaId }
                                             ?.let {
-                                                Database.insert(currentMediaItem, Song::toggleLike)
+                                                db.insert(currentMediaItem, Song::toggleLike)
                                             }
                                     }
                                 }
@@ -276,7 +276,7 @@ fun NewThumbnail(
                         onShowLyrics(false)
                         if (fullScreenLyrics) toggleFullScreenLyrics()
                     },
-                    ensureSongInserted = { Database.insert(currentWindow.mediaItem) },
+                    ensureSongInserted = { db.insert(currentWindow.mediaItem) },
                     size = thumbnailSizeDp,
                     mediaMetadataProvider = currentWindow.mediaItem::mediaMetadata,
                     durationProvider = player::getDuration,

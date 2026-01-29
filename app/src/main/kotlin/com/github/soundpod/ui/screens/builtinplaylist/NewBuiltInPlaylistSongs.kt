@@ -15,9 +15,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.github.soundpod.Database
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
+import com.github.soundpod.db
 import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.models.Song
@@ -48,8 +48,8 @@ fun NewBuiltInPlaylistSongs(
 
     LaunchedEffect(builtInPlaylist) {
         when (builtInPlaylist) {
-            BuiltInPlaylist.Favorites -> Database.favorites()
-            BuiltInPlaylist.Offline -> Database
+            BuiltInPlaylist.Favorites -> db.favorites()
+            BuiltInPlaylist.Offline -> db
                 .songsWithContentLength()
                 .flowOn(Dispatchers.IO)
                 .map { songWithLengths ->

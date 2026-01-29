@@ -53,9 +53,9 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import com.github.innertube.models.NavigationEndpoint
-import com.github.soundpod.Database
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.ui.components.BaseMediaItemMenu
 import com.github.soundpod.ui.components.TooltipIconButton
@@ -160,7 +160,7 @@ fun Player(
     LaunchedEffect(mediaItem) {
         withContext(Dispatchers.IO) {
             if (artistId == null) {
-                val artistsInfo = Database.songArtistInfo(mediaItem.mediaId)
+                val artistsInfo = db.songArtistInfo(mediaItem.mediaId)
                 if (artistsInfo.size == 1) artistId = artistsInfo.first().id
             }
         }

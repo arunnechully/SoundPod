@@ -37,8 +37,8 @@ import com.github.soundpod.R
 import com.github.soundpod.models.ActionInfo
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.ui.components.CoverScaffold
-import com.github.soundpod.ui.components.ShimmerHost
 import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
+import com.github.soundpod.ui.components.ShimmerHost
 import com.github.soundpod.ui.components.TextPlaceholder
 import com.github.soundpod.ui.items.AlbumItem
 import com.github.soundpod.ui.items.ArtistItem

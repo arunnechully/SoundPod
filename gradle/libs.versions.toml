@@ -1,6 +1,6 @@
 [versions]
 activity = "1.12.0"
-agp = "8.13.2"
+agp = "9.0.0"
 brotli = "0.1.2"
 coil = "3.3.0"
 compose-bom = "2025.11.01"
@@ -10,9 +10,9 @@ datastore-preferences = "1.2.0"
 desugaring = "2.1.5"
 
 #noinspection NewerVersionAvailable
-kotlin = "2.1.21"
+kotlin = "2.2.10"
 kotlin-coroutines = "1.10.2"
-kotlin-ksp = "2.1.21-2.0.2"
+kotlin-ksp = "2.3.2"
 lifecycle = "2.10.0"
 ktor = "3.3.2"
 material-motion = "2.0.1"

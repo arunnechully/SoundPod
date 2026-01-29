@@ -4,13 +4,18 @@ import android.app.Application
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.ColorLens
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PrivacyTip
+import androidx.compose.material.icons.filled.Restore
+import androidx.compose.material.icons.filled.Storage
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.soundpod.R
-import com.github.soundpod.ui.common.newSearchLayoutEnabled // Import this
-import com.github.soundpod.ui.common.setNewSearchLayoutEnabled // Import this
+import com.github.soundpod.ui.common.newSearchLayoutEnabled
+import com.github.soundpod.ui.common.setNewSearchLayoutEnabled
 import com.github.soundpod.ui.navigation.SettingsDestinations
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
