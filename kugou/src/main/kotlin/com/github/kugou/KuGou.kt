@@ -1,5 +1,8 @@
 package com.github.kugou
 
+import com.github.kugou.models.DownloadLyricsResponse
+import com.github.kugou.models.SearchLyricsResponse
+import com.github.kugou.models.SearchSongResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
@@ -12,12 +15,9 @@ import io.ktor.client.request.parameter
 import io.ktor.http.ContentType
 import io.ktor.http.encodeURLParameter
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.util.decodeBase64String
-import com.github.kugou.models.DownloadLyricsResponse
-import com.github.kugou.models.SearchLyricsResponse
-import com.github.kugou.models.SearchSongResponse
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
+import kotlin.io.encoding.Base64
 
 object KuGou {
     @OptIn(ExperimentalSerializationApi::class)
@@ -80,14 +80,14 @@ object KuGou {
     }
 
     private suspend fun downloadLyrics(id: Long, accessKey: String): Lyrics {
-        return client.get("/download") {
-            parameter("ver", 1)
-            parameter("man", "yes")
-            parameter("client", "pc")
-            parameter("fmt", "lrc")
-            parameter("id", id)
-            parameter("accesskey", accessKey)
-        }.body<DownloadLyricsResponse>().content.decodeBase64String().let(::Lyrics)
+        return Base64.decode(client.get("/download") {
+                    parameter("ver", 1)
+                    parameter("man", "yes")
+                    parameter("client", "pc")
+                    parameter("fmt", "lrc")
+                    parameter("id", id)
+                    parameter("accesskey", accessKey)
+                }.body<DownloadLyricsResponse>().content).decodeToString().let(::Lyrics)
     }
 
     private suspend fun searchLyricsByHash(hash: String): List<SearchLyricsResponse.Candidate> {
@@ -145,7 +145,18 @@ object KuGou {
     }
 
     @JvmInline
-    value class Lyrics(val value: String) : CharSequence by value {
+    value class Lyrics(val value: String) : CharSequence {
+
+        override val length: Int
+            get() = value.length
+
+        override fun get(index: Int): Char = value[index]
+
+        override fun subSequence(startIndex: Int, endIndex: Int): CharSequence =
+            value.subSequence(startIndex, endIndex)
+
+        override fun toString(): String = value
+
         val sentences: List<Pair<Long, String>>
             get() = mutableListOf(0L to "").apply {
                 for (line in value.trim().lines()) {
@@ -210,4 +221,5 @@ object KuGou {
         private fun String.removeHtmlEntities(): String =
             replace("&apos;", "'")
     }
+
 }

@@ -1,3 +1,6 @@
+import com.android.build.api.dsl.LibraryExtension
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.kotlin)
     alias(libs.plugins.compose.compiler)
@@ -7,7 +10,16 @@ plugins {
     id("kotlin-parcelize")
 }
 
-android {
+kotlin {
+    jvmToolchain(17)
+
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
+        freeCompilerArgs.add("-Xcontext-receivers")
+    }
+}
+
+extensions.configure<LibraryExtension>("android") {
     namespace = "com.github.core.ui"
     compileSdk = 36
 
@@ -16,17 +28,15 @@ android {
     }
 
     sourceSets.all {
-        kotlin.srcDir("src/$name/kotlin")
+        kotlin.directories.add("src/$name/kotlin")
     }
 
-    kotlinOptions {
-        freeCompilerArgs = freeCompilerArgs + listOf("-Xcontext-receivers")
+    buildFeatures {
+        compose = true
     }
 }
 
 dependencies {
-//    implementation(projects.core.data)
-
     implementation(libs.core.ktx)
 
     implementation(platform(libs.compose.bom))
@@ -42,9 +52,3 @@ dependencies {
     detektPlugins(libs.detekt.compose)
     detektPlugins(libs.detekt.formatting)
 }
-
-kotlin {
-    jvmToolchain(17)
-}
-
-
