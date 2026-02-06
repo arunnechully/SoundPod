@@ -4,10 +4,10 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.kotlin)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.ksp)
 }
+
 
 kotlin {
     compilerOptions {
@@ -24,8 +24,8 @@ extensions.configure<ApplicationExtension>("android") {
         applicationId = "com.github.soundpod"
         minSdk = 23
         targetSdk = 36
-        versionCode = 13
-        versionName = "1.0.9"
+        versionCode = 14
+        versionName = "1.0.10"
     }
 
     splits {
