@@ -5,7 +5,7 @@
     "kind": "Directory"
   },
   "applicationId": "com.github.core.ui",
-  "variantName": "debug",
+  "variantName": "release",
   "elements": [
     {
       "type": "SINGLE",

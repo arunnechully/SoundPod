@@ -2,30 +2,28 @@
     name="release"
     package="com.github.core.ui"
     minSdkVersion="23"
-    targetSdkVersion="23"
-    mergedManifest="build\intermediates\merged_manifest\release\processReleaseManifest\AndroidManifest.xml"
-    proguardFiles="build\intermediates\default_proguard_files\global\proguard-android.txt-8.13.1"
-    partialResultsDir="build\intermediates\lint_vital_partial_results\release\lintVitalAnalyzeRelease\out"
-    desugaredMethodsFiles="C:\Users\arunn\.gradle\caches\8.14.3\transforms\f51a74ea3a3f98fa76a6d6c2fa1580a2\transformed\D8BackportedDesugaredMethods.txt">
-  <buildFeatures
-      namespacing="REQUIRED"/>
+    targetSdkVersion="36.0"
+    mergedManifest="build/intermediates/merged_manifest/release/processReleaseManifest/AndroidManifest.xml"
+    proguardFiles="build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-9.0.0"
+    partialResultsDir="build/intermediates/lint_vital_partial_results/release/lintVitalAnalyzeRelease/out"
+    desugaredMethodsFiles="/home/cureous/.gradle/caches/9.1.0/transforms/8222e2bacd69ad06dfb8d844cc8067b1/transformed/D8BackportedDesugaredMethods.txt">
+  <buildFeatures/>
   <sourceProviders>
     <sourceProvider
-        manifests="src\main\AndroidManifest.xml"
-        javaDirectories="src\main\java;src\release\java;src\main\kotlin;src\release\kotlin"
-        resDirectories="src\main\res;src\release\res"
-        assetsDirectories="src\main\assets;src\release\assets"/>
+        manifests="src/main/AndroidManifest.xml"
+        javaDirectories="src/main/java:src/release/java:src/main/kotlin:src/release/kotlin"
+        resDirectories="src/main/res:src/release/res"
+        assetsDirectories="src/main/assets:src/release/assets"/>
   </sourceProviders>
   <testSourceProviders>
   </testSourceProviders>
   <testFixturesSourceProviders>
   </testFixturesSourceProviders>
   <artifact
-      classOutputs="build\intermediates\javac\release\compileReleaseJavaWithJavac\classes;build\tmp\kotlin-classes\release;build\intermediates\compile_r_class_jar\release\generateReleaseRFile\R.jar"
+      classOutputs="build/intermediates/javac/release/compileReleaseJavaWithJavac/classes:build/intermediates/built_in_kotlinc/release/compileReleaseKotlin/classes:build/intermediates/compile_r_class_jar/release/generateReleaseRFile/R.jar"
       type="MAIN"
       applicationId="com.github.core.ui"
-      generatedSourceFolders="build\generated\ap_generated_sources\release\out"
-      generatedResourceFolders="build\generated\res\resValues\release"
-      desugaredMethodsFiles="C:\Users\arunn\.gradle\caches\8.14.3\transforms\f51a74ea3a3f98fa76a6d6c2fa1580a2\transformed\D8BackportedDesugaredMethods.txt">
+      generatedSourceFolders="build/generated/ap_generated_sources/release/out"
+      desugaredMethodsFiles="/home/cureous/.gradle/caches/9.1.0/transforms/8222e2bacd69ad06dfb8d844cc8067b1/transformed/D8BackportedDesugaredMethods.txt">
   </artifact>
 </variant>

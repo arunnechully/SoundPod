@@ -1,15 +1,16 @@
 <lint-module
     format="1"
-    dir="C:\Users\arunn\StudioProjects\SoundPod\core\ui"
+    dir="/home/cureous/StudioProjects/SoundPod/core/ui"
     name=":core:ui"
     type="LIBRARY"
     maven="SoundPod.core:ui:unspecified"
-    agpVersion="8.13.1"
+    agpVersion="9.0.0"
     buildFolder="build"
-    bootClassPath="C:\Users\arunn\AppData\Local\Android\Sdk\platforms\android-36\android.jar;C:\Users\arunn\AppData\Local\Android\Sdk\build-tools\35.0.0\core-lambda-stubs.jar"
+    bootClassPath="/home/cureous/Android/Sdk/platforms/android-36/android.jar:/home/cureous/Android/Sdk/build-tools/36.0.0/core-lambda-stubs.jar"
     javaSourceLevel="17"
     compileTarget="android-36"
-    neverShrinking="true">
+    neverShrinking="true"
+    highlightGradualR8Api="false">
   <lintOptions
       abortOnError="true"
       absolutePaths="true"
