@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.startForegroundService
+import androidx.core.content.edit
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.core.text.isDigitsOnly
@@ -57,7 +58,6 @@ import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.analytics.PlaybackStats
 import androidx.media3.exoplayer.analytics.PlaybackStatsListener
 import androidx.media3.exoplayer.audio.AudioRendererEventListener
-import androidx.media3.exoplayer.audio.DefaultAudioOffloadSupportProvider
 import androidx.media3.exoplayer.audio.DefaultAudioSink
 import androidx.media3.exoplayer.audio.DefaultAudioSink.DefaultAudioProcessorChain
 import androidx.media3.exoplayer.audio.MediaCodecAudioRenderer
@@ -911,8 +911,6 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     private fun createRendersFactory(): RenderersFactory {
         val audioSink = DefaultAudioSink.Builder(applicationContext)
             .setEnableFloatOutput(false)
-            .setEnableAudioTrackPlaybackParams(false)
-            .setAudioOffloadSupportProvider(DefaultAudioOffloadSupportProvider(applicationContext))
             .setAudioProcessorChain(
                 DefaultAudioProcessorChain(
                     emptyArray(),
@@ -1026,17 +1024,22 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     }
 
     private fun loopAction() {
-        val editor = preferences.edit()
-        when (player.repeatMode) {
-            Player.REPEAT_MODE_OFF -> editor.putBoolean(queueLoopEnabledKey, true)
-            Player.REPEAT_MODE_ALL -> {
-                editor.putBoolean(queueLoopEnabledKey, false)
-                editor.putBoolean(trackLoopEnabledKey, true)
+        preferences.edit {
+            when (player.repeatMode) {
+                Player.REPEAT_MODE_OFF -> {
+                    putBoolean(queueLoopEnabledKey, true)
+                }
+                Player.REPEAT_MODE_ALL -> {
+                    putBoolean(queueLoopEnabledKey, false)
+                    putBoolean(trackLoopEnabledKey, true)
+                }
+                Player.REPEAT_MODE_ONE -> {
+                    putBoolean(trackLoopEnabledKey, false)
+                }
             }
-            Player.REPEAT_MODE_ONE -> editor.putBoolean(trackLoopEnabledKey, false)
         }
-        editor.apply()
     }
+
 
     private fun play() {
         if (player.playerError != null) player.prepare()
@@ -1084,12 +1087,12 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
 
     @JvmInline
     private value class Action(val value: String) {
-        context(Context)
+        context(ctx: Context)
         val pendingIntent: PendingIntent
             get() = PendingIntent.getBroadcast(
-                this@Context,
+                ctx,
                 100,
-                Intent(value).setPackage(packageName),
+                Intent(value).setPackage(ctx.packageName),
                 PendingIntent.FLAG_UPDATE_CURRENT.or(if (isAtLeastAndroid6) PendingIntent.FLAG_IMMUTABLE else 0)
             )
 

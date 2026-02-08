@@ -70,12 +70,19 @@ fun UpdateMessage(
             }
         } else {
             val statusText = when (status) {
-                is UpdateStatus.UpToDate -> stringResource(id = R.string.latest_version_installed)
-                is UpdateStatus.Installing -> stringResource(id = R.string.installing_update)
-                is UpdateStatus.DownloadedToPublic -> stringResource(id = R.string.update_manually)
-                is UpdateStatus.Error -> stringResource(id = R.string.update_failed)
-                else -> ""
+                is UpdateStatus.UpToDate ->
+                    stringResource(id = R.string.latest_version_installed)
+
+                is UpdateStatus.Installing ->
+                    stringResource(id = R.string.installing_update)
+
+                is UpdateStatus.DownloadedToPublic ->
+                    stringResource(id = R.string.update_manually)
+
+                is UpdateStatus.Error ->
+                    stringResource(id = R.string.update_failed)
             }
+
 
             if (statusText.isNotEmpty()) {
                 Text(
