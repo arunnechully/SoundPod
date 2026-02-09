@@ -2,6 +2,7 @@
 
 package com.github.soundpod.ui.screens.settings
 
+import android.annotation.SuppressLint
 import android.text.format.Formatter
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Spacer
@@ -12,13 +13,16 @@ import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.ManageHistory
 import androidx.compose.material.icons.outlined.MusicNote
 import androidx.compose.material.icons.outlined.RestartAlt
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -50,6 +54,7 @@ import com.github.soundpod.utils.quickPicksSourceKey
 import com.github.soundpod.utils.rememberPreference
 import kotlinx.coroutines.flow.distinctUntilChanged
 
+@SuppressLint("LocalContextGetResourceValueCall")
 @androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,9 +77,9 @@ fun CacheSettings(
 
     var pauseSongCache by rememberPreference(pauseSongCacheKey, false)
 
-    val queriesCount by remember {
-        db.queriesCount().distinctUntilChanged()
-    }.collectAsState(initial = 0)
+//    val queriesCount by remember {
+//        db.queriesCount().distinctUntilChanged()
+//    }.collectAsState(initial = 0)
 
     val eventsCount by remember {
         db.eventsCount().distinctUntilChanged()
@@ -83,6 +88,7 @@ fun CacheSettings(
     var quickPicksSource by rememberPreference(quickPicksSourceKey, QuickPicksSource.Trending)
 
     val (colorPalette) = LocalAppearance.current
+    var showClearQuickPicksDialog by remember { mutableStateOf(false) }
 
     BackHandler(onBack = onBackClick)
 
@@ -122,19 +128,6 @@ fun CacheSettings(
             Spacer(modifier = Modifier.height(16.dp))
 
             SettingsCard {
-
-//                SettingColum(
-//                    icon = IconSource.Vector(Icons.Default.DeleteSweep),
-//                    title = stringResource(id = R.string.clear_search_history),
-//                    description = if (queriesCount > 0) {
-//                        stringResource(id = R.string.delete_search_queries, queriesCount)
-//                    } else {
-//                        stringResource(id = R.string.history_is_empty)
-//                    },
-//                    onClick = { query(Database::clearQueries) },
-//                    isEnabled = queriesCount > 0
-//                )
-
                 SettingColum(
                     icon = IconSource.Vector(Icons.Outlined.RestartAlt),
                     title = stringResource(id = R.string.reset_quick_picks),
@@ -143,8 +136,38 @@ fun CacheSettings(
                     } else {
                         stringResource(id = R.string.quick_picks_cleared)
                     },
-                    onClick = { query(db::clearEvents) },
+                    // 2. Change onClick to show the dialog instead of clearing immediately
+                    onClick = { showClearQuickPicksDialog = true },
                     isEnabled = eventsCount > 0
+                )
+            }
+
+            if (showClearQuickPicksDialog) {
+                AlertDialog(
+                    onDismissRequest = { showClearQuickPicksDialog = false },
+                    title = {
+                        Text(text = stringResource(id = R.string.reset_quick_picks))
+                    },
+                    text = {
+                        Text(text = stringResource(id = R.string.reset_quick_picks_alert))
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                query(db::clearEvents) // Clear the DB
+                                showClearQuickPicksDialog = false // Close the dialog
+                            }
+                        ) {
+                            Text(text = stringResource(android.R.string.ok))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { showClearQuickPicksDialog = false }
+                        ) {
+                            Text(text = stringResource(android.R.string.cancel))
+                        }
+                    }
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))

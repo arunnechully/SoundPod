@@ -121,6 +121,7 @@ fun QuickPicks(
         val error = result?.exceptionOrNull()
 
         if (related != null) {
+            
             Text(
                 text = stringResource(id = R.string.quick_picks),
                 style = MaterialTheme.typography.titleMedium,
