@@ -57,8 +57,11 @@ An Android application for streaming music from YouTube Music.
 alt="Get it on GitHub"
 height="80">](https://github.com/arunnechully/SoundPod/releases/latest)
 
-## 🌟 Inspiration
+## 🧩 Based on
 
+This project is based on and inspired by:
+
+- [music-you](https://github.com/DanielSevillano/music-you)
 - [ViMusic](https://github.com/vfsfitvnm/ViMusic)
 - [RiMusic](https://github.com/fast4x/RiMusic)
 - [ViTune](https://github.com/25huizengek1/ViTune)
