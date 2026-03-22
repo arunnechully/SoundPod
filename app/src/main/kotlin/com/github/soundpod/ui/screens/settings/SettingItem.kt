@@ -35,7 +35,7 @@ inline fun <reified T : Enum<T>> EnumValueSelectorSettingsEntry(
     crossinline onValueSelected: (T) -> Unit,
     icon: IconSource? = null,
     isEnabled: Boolean = true,
-    crossinline valueText: (T) -> String = Enum<T>::name,
+    crossinline valueText: @Composable (T) -> String = { it.name },
     noinline trailingContent: @Composable (() -> Unit)? = null
 ) {
     ValueSelectorSettingsEntry(
@@ -50,6 +50,7 @@ inline fun <reified T : Enum<T>> EnumValueSelectorSettingsEntry(
     )
 }
 
+@Suppress("AssignedValueIsNeverRead")
 @Composable
 inline fun <T> ValueSelectorSettingsEntry(
     title: String,
@@ -58,7 +59,7 @@ inline fun <T> ValueSelectorSettingsEntry(
     crossinline onValueSelected: (T) -> Unit,
     icon: IconSource? = null,
     isEnabled: Boolean = true,
-    crossinline valueText: (T) -> String = { it.toString() },
+    crossinline valueText: @Composable (T) -> String = { it.toString() },
     noinline trailingContent: @Composable (() -> Unit)? = null
 ) {
     var isShowingDialog by remember { mutableStateOf(false) }

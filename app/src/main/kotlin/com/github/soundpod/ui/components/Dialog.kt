@@ -229,7 +229,7 @@ inline fun <T> ThemeSelectorDialog(
     values: List<T>,
     noinline onDismiss: () -> Unit,
     crossinline onValueSelected: (T) -> Unit,
-    crossinline valueText: (T) -> String = { it.toString() }
+    crossinline valueText: @Composable (T) -> String = { it.toString() }
 ) {
     var tempSelected by remember { mutableStateOf(selectedValue) }
 
