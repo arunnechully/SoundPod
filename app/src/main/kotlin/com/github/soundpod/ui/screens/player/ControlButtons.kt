@@ -48,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -70,7 +71,9 @@ import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.models.Song
 import com.github.soundpod.query
 import com.github.soundpod.ui.components.BaseMediaItemMenu
-import com.github.soundpod.ui.components.SeekBar
+import com.github.soundpod.ui.screens.player.seekbar.SeekBar
+import com.github.soundpod.ui.screens.player.seekbar.SimpleWave
+import com.github.soundpod.ui.screens.player.seekbar.PaperBoatAnimation
 import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.utils.forceSeekToNext
 import com.github.soundpod.utils.forceSeekToPrevious
@@ -583,8 +586,15 @@ fun PlayerSeekBar(
             )
         }
 
-        ProgressBar.Animated -> {
-            PlayerSeekBarAnimated(
+        ProgressBar.Wave -> {
+            WaveAnimation(
+                mediaId = mediaId,
+                position = position,
+                duration = duration
+            )
+        }
+        ProgressBar.Paperboat -> {
+            BoatAnimation(
                 mediaId = mediaId,
                 position = position,
                 duration = duration
@@ -601,7 +611,6 @@ private fun PlayerSeekBarDefault(
 ) {
     val binder = LocalPlayerServiceBinder.current
     binder?.player ?: return
-
     var scrubbingPosition by remember(mediaId) { mutableStateOf<Long?>(null) }
 
     Column(
@@ -624,8 +633,8 @@ private fun PlayerSeekBarDefault(
                 scrubbingPosition?.let(binder.player::seekTo)
                 scrubbingPosition = null
             },
-            color = MaterialTheme.colorScheme.primary,
-            backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+            color = LocalAppearance.current.colorPalette.text,
+            backgroundColor = LocalAppearance.current.colorPalette.textDisabled,
             shape = RoundedCornerShape(8.dp)
         )
 
@@ -634,7 +643,9 @@ private fun PlayerSeekBarDefault(
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
         ) {
             Text(
                 text = formatAsDuration(scrubbingPosition ?: position),
@@ -656,7 +667,7 @@ private fun PlayerSeekBarDefault(
 }
 
 @Composable
-private fun PlayerSeekBarAnimated(
+private fun WaveAnimation(
     mediaId: String,
     position: Long,
     duration: Long
@@ -672,7 +683,59 @@ private fun PlayerSeekBarAnimated(
             .padding(horizontal = 18.dp)
     ) {
 
-        AnimatedSeekbar(
+        SimpleWave(
+            value = scrubbingPosition ?: position.toFloat(),
+            onValueChange = { scrubbingPosition = it },
+            onValueChangeFinished = {
+                scrubbingPosition?.let { binder.player.seekTo(it.toLong()) }
+                scrubbingPosition = null
+            },
+            valueRange = 0f..duration.toFloat(),
+            isPlaying = binder.player.isPlaying
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = formatAsDuration((scrubbingPosition ?: position.toFloat()).toLong()),
+                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.labelMedium
+            )
+
+            if (duration != C.TIME_UNSET) {
+                Text(
+                    text = formatAsDuration(duration),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.labelMedium
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun BoatAnimation(
+    mediaId: String,
+    position: Long,
+    duration: Long
+) {
+    val binder = LocalPlayerServiceBinder.current
+    binder?.player ?: return
+
+    var scrubbingPosition by remember(mediaId) { mutableStateOf<Float?>(null) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp)
+    ) {
+
+        PaperBoatAnimation(
             value = scrubbingPosition ?: position.toFloat(),
             onValueChange = { scrubbingPosition = it },
             onValueChangeFinished = {

@@ -49,7 +49,7 @@ import com.github.soundpod.R
 import com.github.soundpod.db
 import com.github.soundpod.models.Song
 import com.github.soundpod.query
-import com.github.soundpod.ui.components.SeekBar
+import com.github.soundpod.ui.screens.player.seekbar.SeekBar
 import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.utils.forceSeekToNext
 import com.github.soundpod.utils.forceSeekToPrevious

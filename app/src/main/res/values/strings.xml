@@ -218,7 +218,7 @@
     <string name="material_you">MaterialYou</string>
     <string name="progress_bar_style">Progress Bar Style</string>
     <string name="background_style">Background Style</string>
-    <string name="animated">Animated</string>
+    <string name="wave">Wave</string>
     <string name="pause_song_cache">Pause song cache</string>
     <string name="pause_song_cache_description">Pause the song caching process</string>
     <string name="suggest_an_idea">Suggest an Idea</string>
@@ -258,4 +258,5 @@
     <string name="add_to_favorites">Add to Favorites</string>
     <string name="add_to_blocklist">Add to Blocklist</string>
     <string name="reset_quick_picks_alert">Are you sure you want to clear all quick picks history? This action cannot be undone.</string>
+    <string name="paperboat">Paper boat</string>
 </resources>

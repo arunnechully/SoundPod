@@ -9,7 +9,10 @@ enum class ProgressBar(
     Default(
         resourceId = R.string.defualt,
     ),
-    Animated(
-        resourceId = R.string.animated,
+    Wave(
+        resourceId = R.string.wave,
+    ),
+    Paperboat(
+    resourceId = R.string.paperboat,
     )
 }

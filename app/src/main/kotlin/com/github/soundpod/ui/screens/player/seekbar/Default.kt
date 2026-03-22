@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.components
+package com.github.soundpod.ui.screens.player.seekbar
 
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateDp
@@ -38,7 +38,7 @@ fun SeekBar(
     modifier: Modifier = Modifier,
     barHeight: Dp = 3.dp,
     scrubberColor: Color = color,
-    scrubberRadius: Dp = 6.dp,
+    scrubberRadius: Dp = 16.dp,
     shape: Shape = RectangleShape,
     drawSteps: Boolean = false,
 ) {
@@ -49,10 +49,10 @@ fun SeekBar(
     val transition = rememberTransition(transitionState = isDragging, label = null)
 
     val currentBarHeight by transition.animateDp(label = "") { if (it) scrubberRadius else barHeight }
-    val currentScrubberRadius by transition.animateDp(label = "") { if (it) 0.dp else scrubberRadius }
-
+    val currentScrubberRadius by transition.animateDp(label = "") { if (it) 0.dp else 6.dp }
     Box(
         modifier = modifier
+            .padding(horizontal = 16.dp)
             .pointerInput(minimumValue, maximumValue) {
                 if (maximumValue < minimumValue) return@pointerInput
 
@@ -94,7 +94,6 @@ fun SeekBar(
                     }
                 )
             }
-            .padding(horizontal = scrubberRadius)
             .drawWithContent {
                 drawContent()
 

@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.screens.player
+package com.github.soundpod.ui.screens.player.seekbar
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -32,7 +32,7 @@ import kotlin.math.abs
 import kotlin.math.sin
 
 @Composable
-fun AnimatedSeekbar(
+fun SimpleWave(
     value: Float,
     onValueChange: (Float) -> Unit,
     onValueChangeFinished: () -> Unit,
@@ -48,7 +48,6 @@ fun AnimatedSeekbar(
     var lastDragValue by remember { mutableFloatStateOf(value) }
     var isDraggingForward by remember { mutableStateOf(true) }
 
-    // Update dragValue when value changes and not dragging
     LaunchedEffect(value) {
         if (!isDragging) {
             dragValue = value
@@ -77,7 +76,6 @@ fun AnimatedSeekbar(
                 detectHorizontalDragGestures(
                     onDragStart = { offset ->
                         isDragging = true
-                        // Update initial drag value based on touch position
                         dragValue = ((offset.x / size.width) *
                             (valueRange.endInclusive - valueRange.start) +
                             valueRange.start).coerceIn(valueRange)
@@ -90,7 +88,7 @@ fun AnimatedSeekbar(
                     },
                     onDragCancel = {
                         isDragging = false
-                        dragValue = value // Reset to current value on cancel
+                        dragValue = value
                         onValueChangeFinished()
                     },
                     onHorizontalDrag = { change, dragAmount ->
@@ -99,7 +97,6 @@ fun AnimatedSeekbar(
                         val delta = (dragAmount / size.width) * range
                         val newDragValue = (dragValue + delta).coerceIn(valueRange)
 
-                        // Only update if the change is significant enough
                         if (abs(newDragValue - dragValue) > (range * 0.001f)) {
                             isDraggingForward = newDragValue > lastDragValue
                             lastDragValue = dragValue
@@ -124,22 +121,18 @@ fun AnimatedSeekbar(
         val height = size.height
         val amplitude = height * 0.2f
         val frequency = 2f
-
-        // Calculate wave phase based on playing state and drag direction
         val currentPhase = when {
-            isDragging -> 0f  // No animation while dragging
+            isDragging -> 0f
             shouldAnimate -> phase
             else -> 0f
         }
-
-        // Draw background track
         val backgroundPath = Path()
         for (x in 0..width.toInt()) {
             val xRatio = x / width
-            val y = if (shouldAnimate) {  // Update condition
+            val y = if (shouldAnimate) {
                 height / 2 + amplitude * sin(xRatio * frequency * 2 * PI.toFloat() + currentPhase)
             } else {
-                height / 2  // Straight line when not animating
+                height / 2
             }
             if (x == 0) {
                 backgroundPath.moveTo(x.toFloat(), y)
@@ -165,10 +158,10 @@ fun AnimatedSeekbar(
         val progressWidth = width * progress
         for (x in 0..progressWidth.toInt()) {
             val xRatio = x / width
-            val y = if (shouldAnimate) {  // Update condition
+            val y = if (shouldAnimate) {
                 height / 2 + amplitude * sin(xRatio * frequency * 2 * PI.toFloat() + currentPhase)
             } else {
-                height / 2  // Straight line when not animating
+                height / 2
             }
             if (x == 0) {
                 progressPath.moveTo(x.toFloat(), y)
@@ -188,7 +181,7 @@ fun AnimatedSeekbar(
         val thumbY = if (shouldAnimate) {
             height / 2 + amplitude * sin(progress * frequency * 2 * PI.toFloat() + currentPhase)
         } else {
-            height / 2  // Center position when not animating
+            height / 2
         }
         drawCircle(
             color = color,
