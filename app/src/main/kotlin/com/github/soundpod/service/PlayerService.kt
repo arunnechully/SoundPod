@@ -90,7 +90,6 @@ import com.github.soundpod.utils.forceSeekToPrevious
 import com.github.soundpod.utils.getEnum
 import com.github.soundpod.utils.intent
 import com.github.soundpod.utils.isAtLeastAndroid13
-import com.github.soundpod.utils.isAtLeastAndroid6
 import com.github.soundpod.utils.isAtLeastAndroid8
 import com.github.soundpod.utils.isInvincibilityEnabledKey
 import com.github.soundpod.utils.isShowingThumbnailInLockscreenKey
@@ -562,7 +561,6 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     }
 
     private fun maybeResumePlaybackWhenDeviceConnected() {
-        if (!isAtLeastAndroid6) return
 
         if (preferences.getBoolean(resumePlaybackWhenDeviceConnectedKey, false)) {
             if (audioManager == null) {
@@ -1093,7 +1091,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                 ctx,
                 100,
                 Intent(value).setPackage(ctx.packageName),
-                PendingIntent.FLAG_UPDATE_CURRENT.or(if (isAtLeastAndroid6) PendingIntent.FLAG_IMMUTABLE else 0)
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
         companion object {

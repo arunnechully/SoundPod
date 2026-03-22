@@ -2,9 +2,9 @@ package com.github.soundpod.utils
 
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.text.format.DateUtils
 import androidx.core.net.toUri
-import androidx.core.os.bundleOf
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.github.innertube.Innertube
@@ -25,12 +25,16 @@ val Innertube.SongItem.asMediaItem: MediaItem
                 .setAlbumTitle(album?.name)
                 .setArtworkUri(thumbnail?.url?.toUri())
                 .setExtras(
-                    bundleOf(
-                        "albumId" to album?.endpoint?.browseId,
-                        "durationText" to durationText,
-                        "artistNames" to authors?.filter { it.endpoint != null }?.mapNotNull { it.name },
-                        "artistIds" to authors?.mapNotNull { it.endpoint?.browseId },
-                    )
+                    Bundle().apply {
+                        album?.endpoint?.browseId?.let { putString("albumId", it) }
+                        durationText?.let { putString("durationText", it) }
+
+                        val names = authors?.filter { it.endpoint != null }?.mapNotNull { it.name }
+                        if (!names.isNullOrEmpty()) putStringArrayList("artistNames", ArrayList(names))
+
+                        val ids = authors?.mapNotNull { it.endpoint?.browseId }
+                        if (!ids.isNullOrEmpty()) putStringArrayList("artistIds", ArrayList(ids))
+                    }
                 )
                 .build()
         )
@@ -48,11 +52,17 @@ val Innertube.VideoItem.asMediaItem: MediaItem
                 .setArtist(authors?.joinToString("") { it.name ?: "" })
                 .setArtworkUri(thumbnail?.url?.toUri())
                 .setExtras(
-                    bundleOf(
-                        "durationText" to durationText,
-                        "artistNames" to if (isOfficialMusicVideo) authors?.filter { it.endpoint != null }?.mapNotNull { it.name } else null,
-                        "artistIds" to if (isOfficialMusicVideo) authors?.mapNotNull { it.endpoint?.browseId } else null,
-                    )
+                    Bundle().apply {
+                        durationText?.let { putString("durationText", it) }
+
+                        if (isOfficialMusicVideo) {
+                            val names = authors?.filter { it.endpoint != null }?.mapNotNull { it.name }
+                            if (!names.isNullOrEmpty()) putStringArrayList("artistNames", ArrayList(names))
+
+                            val ids = authors?.mapNotNull { it.endpoint?.browseId }
+                            if (!ids.isNullOrEmpty()) putStringArrayList("artistIds", ArrayList(ids))
+                        }
+                    }
                 )
                 .build()
         )
@@ -67,9 +77,9 @@ val Song.asMediaItem: MediaItem
                 .setArtist(artistsText)
                 .setArtworkUri(thumbnailUrl?.toUri())
                 .setExtras(
-                    bundleOf(
-                        "durationText" to durationText
-                    )
+                    Bundle().apply {
+                        durationText?.let { putString("durationText", it) }
+                    }
                 )
                 .build()
         )
@@ -110,8 +120,7 @@ suspend fun Result<Innertube.PlaylistOrAlbumPage>.completed(): Result<Innertube.
     return Result.success(playlistPage)
 }
 
-inline val isAtLeastAndroid6
-    get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+// Removed `isAtLeastAndroid6` entirely since your minSdkVersion is >= 23
 
 inline val isAtLeastAndroid8
     get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
