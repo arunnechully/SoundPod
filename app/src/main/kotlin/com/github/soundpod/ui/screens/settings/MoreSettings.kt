@@ -48,7 +48,6 @@ import com.github.soundpod.ui.components.SwitchSetting
 import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.utils.isAtLeastAndroid12
 import com.github.soundpod.utils.isAtLeastAndroid13
-import com.github.soundpod.utils.isAtLeastAndroid6
 import com.github.soundpod.utils.isIgnoringBatteryOptimizations
 import com.github.soundpod.utils.isInvincibilityEnabledKey
 import com.github.soundpod.utils.isShowingThumbnailInLockscreenKey
@@ -57,7 +56,6 @@ import com.github.soundpod.utils.swipeActionLeft
 import com.github.soundpod.utils.swipeActionRight
 import com.github.soundpod.utils.toast
 
-@Suppress("AssignedValueIsNeverRead")
 @SuppressLint("BatteryLife")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -229,7 +227,7 @@ fun MoreSettings(
                     selectedValue = swipeActionRight,
                     onValueSelected = { swipeActionRight = it },
                     icon = IconSource.Icon( painterResource(id = R.drawable.swipe_right)),
-                    valueText = { context.getString(it.resourceId) },
+                    valueText = { stringResource(it.resourceId) },
                     trailingContent = trailingIcon
                 )
 
@@ -238,7 +236,7 @@ fun MoreSettings(
                     selectedValue = swipeActionLeft,
                     onValueSelected = { swipeActionLeft = it },
                     icon = IconSource.Icon( painterResource(id = R.drawable.swipe_left)),
-                    valueText = { context.getString(it.resourceId) },
+                    valueText = { stringResource(it.resourceId) },
                     trailingContent = trailingIcon
                 )
             }
@@ -264,8 +262,6 @@ fun MoreSettings(
                         stringResource(id = R.string.disable_background_restrictions)
                     },
                     onClick = {
-                        if (!isAtLeastAndroid6) return@SettingColum
-
                         try {
                             activityResultLauncher.launch(
                                 Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {

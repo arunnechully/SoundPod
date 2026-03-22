@@ -29,7 +29,6 @@ import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.components.SliderSettingsItem
 import com.github.soundpod.ui.components.SwitchSetting
-import com.github.soundpod.utils.isAtLeastAndroid6
 import com.github.soundpod.utils.persistentQueueKey
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.resumePlaybackWhenDeviceConnectedKey
@@ -37,7 +36,6 @@ import com.github.soundpod.utils.skipSilenceKey
 import com.github.soundpod.utils.volumeNormalizationKey
 import java.util.Locale
 
-@Suppress("AssignedValueIsNeverRead")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerSettings(
@@ -108,8 +106,6 @@ fun PlayerSettings(
                     switchState = autoPauseEnabled,
                     onSwitchChange = { autoPauseEnabled = it }
                 )
-
-                if (isAtLeastAndroid6) {
                     SwitchSetting(
                         icon = IconSource.Icon(painterResource(R.drawable.headphone)),
                         title = stringResource(id = R.string.resume_playback),
@@ -119,7 +115,6 @@ fun PlayerSettings(
                             resumePlaybackWhenDeviceConnected = it
                         }
                     )
-                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))

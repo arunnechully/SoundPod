@@ -23,12 +23,12 @@ fun Context.streamVolumeFlow(
     }
 
     ContextCompat.registerReceiver(
-        /* context = */ this@Context,
+        /* context = */ this@streamVolumeFlow,
         /* receiver = */ receiver,
         /* filter = */ IntentFilter(VolumeChangedIntentBundleAccessor.ACTION),
         /* flags = */ flags
     )
-    awaitClose { unregisterReceiver(receiver) }
+    awaitClose { this@streamVolumeFlow.unregisterReceiver(receiver) }
 }
 
 class VolumeChangedIntentBundleAccessor(val bundle: Bundle = Bundle()) : BundleAccessor {

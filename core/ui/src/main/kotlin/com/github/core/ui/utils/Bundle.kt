@@ -23,202 +23,207 @@ private inline fun <T> Bundle.bundleDelegate(
     name: String? = null,
     crossinline get: Bundle.(String) -> T,
     crossinline set: Bundle.(k: String, v: T) -> Unit
-) = PropertyDelegateProvider<BundleAccessor, ReadWriteProperty<BundleAccessor, T>> { _, property ->
-    val actualName = name ?: property.name
+): PropertyDelegateProvider<BundleAccessor, ReadWriteProperty<BundleAccessor, T>> {
+    // We capture 'this' here to permanently fix the 'this@Bundle unresolved label' error
+    val currentBundle = this
 
-    object : ReadWriteProperty<BundleAccessor, T> {
-        override fun getValue(thisRef: BundleAccessor, property: KProperty<*>) =
-            get(this@Bundle, actualName)
+    return PropertyDelegateProvider { _, property ->
+        val actualName = name ?: property.name
 
-        override fun setValue(thisRef: BundleAccessor, property: KProperty<*>, value: T) =
-            set(this@Bundle, actualName, value)
+        object : ReadWriteProperty<BundleAccessor, T> {
+            override fun getValue(thisRef: BundleAccessor, property: KProperty<*>) =
+                get(currentBundle, actualName)
+
+            override fun setValue(thisRef: BundleAccessor, property: KProperty<*>, value: T) =
+                set(currentBundle, actualName, value)
+        }
     }
 }
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 val Bundle.boolean get() = boolean()
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 fun Bundle.boolean(name: String? = null) = bundleDelegate(
     name = name,
     get = { getBoolean(it) },
     set = { k, v -> putBoolean(k, v) }
 )
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 val Bundle.byte get() = byte()
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 fun Bundle.byte(name: String? = null) = bundleDelegate(
     name = name,
     get = { getByte(it) },
     set = { k, v -> putByte(k, v) }
 )
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 val Bundle.char get() = char()
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 fun Bundle.char(name: String? = null) = bundleDelegate(
     name = name,
     get = { getChar(it) },
     set = { k, v -> putChar(k, v) }
 )
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 val Bundle.short get() = short()
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 fun Bundle.short(name: String? = null) = bundleDelegate(
     name = name,
     get = { getShort(it) },
     set = { k, v -> putShort(k, v) }
 )
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 val Bundle.int get() = int()
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 fun Bundle.int(name: String? = null) = bundleDelegate(
     name = name,
     get = { getInt(it) },
     set = { k, v -> putInt(k, v) }
 )
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 val Bundle.long get() = long()
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 fun Bundle.long(name: String? = null) = bundleDelegate(
     name = name,
     get = { getLong(it) },
     set = { k, v -> putLong(k, v) }
 )
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 val Bundle.float get() = float()
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 fun Bundle.float(name: String? = null) = bundleDelegate(
     name = name,
     get = { getFloat(it) },
     set = { k, v -> putFloat(k, v) }
 )
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 val Bundle.double get() = double()
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 fun Bundle.double(name: String? = null) = bundleDelegate(
     name = name,
     get = { getDouble(it) },
     set = { k, v -> putDouble(k, v) }
 )
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 val Bundle.string get() = string()
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 fun Bundle.string(name: String? = null) = bundleDelegate(
     name = name,
     get = { getString(it) },
     set = { k, v -> putString(k, v) }
 )
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 val Bundle.intList get() = intList()
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 fun Bundle.intList(name: String? = null) = bundleDelegate(
     name = name,
     get = { getIntegerArrayList(it) },
     set = { k, v -> putIntegerArrayList(k, v) }
 )
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 val Bundle.stringList get() = stringList()
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 fun Bundle.stringList(name: String? = null) = bundleDelegate<List<String>?>(
     name = name,
     get = { getStringArrayList(it) },
     set = { k, v -> putStringArrayList(k, v?.let { ArrayList(it) }) }
 )
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 val Bundle.booleanArray get() = booleanArray()
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 fun Bundle.booleanArray(name: String? = null) = bundleDelegate(
     name = name,
     get = { getBooleanArray(it) },
     set = { k, v -> putBooleanArray(k, v) }
 )
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 val Bundle.byteArray get() = byteArray()
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 fun Bundle.byteArray(name: String? = null) = bundleDelegate(
     name = name,
     get = { getByteArray(it) },
     set = { k, v -> putByteArray(k, v) }
 )
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 val Bundle.shortArray get() = shortArray()
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 fun Bundle.shortArray(name: String? = null) = bundleDelegate(
     name = name,
     get = { getShortArray(it) },
     set = { k, v -> putShortArray(k, v) }
 )
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 val Bundle.charArray get() = charArray()
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 fun Bundle.charArray(name: String? = null) = bundleDelegate(
     name = name,
     get = { getCharArray(it) },
     set = { k, v -> putCharArray(k, v) }
 )
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 val Bundle.intArray get() = intArray()
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 fun Bundle.intArray(name: String? = null) = bundleDelegate(
     name = name,
     get = { getIntArray(it) },
     set = { k, v -> putIntArray(k, v) }
 )
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 val Bundle.floatArray get() = floatArray()
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 fun Bundle.floatArray(name: String? = null) = bundleDelegate(
     name = name,
     get = { getFloatArray(it) },
     set = { k, v -> putFloatArray(k, v) }
 )
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 val Bundle.doubleArray get() = doubleArray()
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 fun Bundle.doubleArray(name: String? = null) = bundleDelegate(
     name = name,
     get = { getDoubleArray(it) },
     set = { k, v -> putDoubleArray(k, v) }
 )
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 val Bundle.stringArray get() = stringArray()
 
-context(BundleAccessor)
+context(accessor: BundleAccessor)
 fun Bundle.stringArray(name: String? = null) = bundleDelegate(
     name = name,
     get = { getStringArray(it) },
@@ -282,25 +287,25 @@ class EqualizerIntentBundleAccessor(val extras: Bundle = Bundle()) : BundleAcces
         fun bundle(block: EqualizerIntentBundleAccessor.() -> Unit) =
             EqualizerIntentBundleAccessor().apply(block).extras
 
-        context(Context)
+        context(ctx: Context)
         fun sendOpenEqualizer(
             sessionId: Int,
             @ContentType
             type: Int = AudioEffect.CONTENT_TYPE_MUSIC
-        ) = sendBroadcast(
+        ) = ctx.sendBroadcast(
             Intent(AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION).apply {
                 replaceExtras(
                     bundle {
                         audioSession = sessionId
-                        packageName = this@Context.packageName
+                        packageName = ctx.packageName
                         contentType = type
                     }
                 )
             }
         )
 
-        context(Context)
-        fun sendCloseEqualizer(sessionId: Int) = sendBroadcast(
+        context(ctx: Context)
+        fun sendCloseEqualizer(sessionId: Int) = ctx.sendBroadcast(
             Intent(AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION).apply {
                 replaceExtras(
                     bundle {
