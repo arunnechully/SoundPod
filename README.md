@@ -8,7 +8,7 @@ An Android application for streaming music from YouTube Music.
   <img src="./screenshots/repository_preview.png" 
        alt="Repository preview" 
        width="1024"
-       style="border-radius: 15px;">
+       style="border-radius: 15px; max-width: 100%; height: auto;">
 </p>
 
 
@@ -32,23 +32,15 @@ An Android application for streaming music from YouTube Music.
 - Quick picks selection customization
 - Swipe to enqueue and delete songs
 
-## 🌐 Available languages
-
-- English
-- Spanish
-- German ([@siggi1984](https://github.com/siggi1984))
-- French ([@patxixi](https://github.com/patxixi) and [@Mickael81](https://github.com/Mickael81))
-- Italian ([@F3FFO](https://github.com/F3FFO))
-
 ## 📸 Screenshots
 
-<div>
-    <img src="./screenshots/screenshot_home.jpg" alt="Home" style="width: 30%;">
-    <img src="./screenshots/screenshot_player.png" alt="Player" style="width: 30%;">
-    <img src="./screenshots/Sailing_Seekbar.gif" alt="Seekbar" style="width: 30%;">
-    <img src="./screenshots/screenshot_songs.png" alt="Songs" style="width: 30%;">
-    <img src="./screenshots/screenshot_artists.png" alt="Artists" style="width: 30%;">
-    <img src="./screenshots/screenshot_albums.png" alt="Albums" style="width: 30%;">
+<div align="center">
+    <img src="./screenshots/screenshot_home.jpg" alt="Home" style="width: 31%; border-radius: 10px; margin: 1%; vertical-align: top;">
+    <img src="./screenshots/screenshot_player.png" alt="Player" style="width: 31%; border-radius: 10px; margin: 1%; vertical-align: top;">
+    <img src="./screenshots/Sailing_Seekbar.gif" alt="Sailing Seekbar" style="width: 31%; border-radius: 10px; margin: 1%; vertical-align: top;">
+    <img src="./screenshots/screenshot_songs.png" alt="Songs" style="width: 31%; border-radius: 10px; margin: 1%; vertical-align: top;">
+    <img src="./screenshots/screenshot_artists.png" alt="Artists" style="width: 31%; border-radius: 10px; margin: 1%; vertical-align: top;">
+    <img src="./screenshots/screenshot_albums.png" alt="Albums" style="width: 31%; border-radius: 10px; margin: 1%; vertical-align: top;">
 </div>
 
 ## 📲 Installation
