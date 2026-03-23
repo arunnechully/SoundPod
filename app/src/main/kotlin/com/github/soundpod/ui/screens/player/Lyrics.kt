@@ -78,7 +78,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 
-@Suppress("AssignedValueIsNeverRead")
 @Composable
 fun Lyrics(
     mediaId: String,

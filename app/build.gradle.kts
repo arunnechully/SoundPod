@@ -26,7 +26,7 @@ extensions.configure<ApplicationExtension>("android") {
         minSdk = 23
         targetSdk = 36
         versionCode = 14
-        versionName = "1.0.10"
+        versionName = "1.0.11"
     }
 
     splits {
