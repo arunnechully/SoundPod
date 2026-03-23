@@ -45,7 +45,7 @@ An Android application for streaming music from YouTube Music.
 <div>
     <img src="./screenshots/screenshot_home.jpg" alt="Home" style="width: 30%;">
     <img src="./screenshots/screenshot_player.png" alt="Player" style="width: 30%;">
-    <img src="./screenshots/screenshot_artist.png" alt="Artist" style="width: 30%;">
+    <video src="./screenshots/Screen_Recording_SoundPod.mp4" autoplay loop muted playsinline style="width: 30%; vertical-align: top; border-radius: 10px;"></video>
     <img src="./screenshots/screenshot_songs.png" alt="Songs" style="width: 30%;">
     <img src="./screenshots/screenshot_artists.png" alt="Artists" style="width: 30%;">
     <img src="./screenshots/screenshot_albums.png" alt="Albums" style="width: 30%;">
