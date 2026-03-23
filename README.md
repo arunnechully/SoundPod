@@ -35,12 +35,15 @@ An Android application for streaming music from YouTube Music.
 ## 📸 Screenshots
 
 <div align="center">
-    <img src="./screenshots/screenshot_home.jpg" alt="Home" style="width: 31%; border-radius: 10px; margin: 1%; vertical-align: top;">
-    <img src="./screenshots/screenshot_player.png" alt="Player" style="width: 31%; border-radius: 10px; margin: 1%; vertical-align: top;">
-    <img src="./screenshots/Sailing_Seekbar.gif" alt="Sailing Seekbar" style="width: 31%; border-radius: 10px; margin: 1%; vertical-align: top;">
-    <img src="./screenshots/screenshot_songs.png" alt="Songs" style="width: 31%; border-radius: 10px; margin: 1%; vertical-align: top;">
-    <img src="./screenshots/screenshot_artists.png" alt="Artists" style="width: 31%; border-radius: 10px; margin: 1%; vertical-align: top;">
-    <img src="./screenshots/screenshot_albums.png" alt="Albums" style="width: 31%; border-radius: 10px; margin: 1%; vertical-align: top;">
+
+| Home | Player | High Seas (v1.0.11) |
+| :---: | :---: | :---: |
+| <img src="./screenshots/screenshot_home.jpg" width="260" height="560" style="object-fit: cover; border-radius: 12px;"> | <img src="./screenshots/screenshot_player.png" width="260" height="560" style="object-fit: cover; border-radius: 12px;"> | <img src="./screenshots/Sailing_Seekbar.gif" width="260" height="560" style="object-fit: cover; border-radius: 12px;"> |
+
+| Songs | Artists | Albums |
+| :---: | :---: | :---: |
+| <img src="./screenshots/screenshot_songs.png" width="260" height="560" style="object-fit: cover; border-radius: 12px;"> | <img src="./screenshots/screenshot_artists.png" width="260" height="560" style="object-fit: cover; border-radius: 12px;"> | <img src="./screenshots/screenshot_albums.png" width="260" height="560" style="object-fit: cover; border-radius: 12px;"> |
+
 </div>
 
 ## 📲 Installation
