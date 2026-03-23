@@ -51,6 +51,12 @@ An Android application for streaming music from YouTube Music.
     <img src="./screenshots/screenshot_albums.png" alt="Albums" style="width: 30%;">
 </div>
 
+## 📸 Video
+<video src="https://raw.githubusercontent.com/arunnechully/SoundPod/master/screenshots/Screen_Recording_SoundPod.mp4" 
+       autoplay loop muted playsinline 
+       style="width: 30%; vertical-align: top; border-radius: 10px;">
+</video>
+
 ## 📲 Installation
 
 [<img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png"
