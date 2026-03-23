@@ -44,6 +44,16 @@ An Android application for streaming music from YouTube Music.
 | :---: | :---: | :---: |
 | <img src="./screenshots/screenshot_songs.png" width="260" height="560" style="object-fit: cover; border-radius: 12px;"> | <img src="./screenshots/screenshot_artists.png" width="260" height="560" style="object-fit: cover; border-radius: 12px;"> | <img src="./screenshots/screenshot_albums.png" width="260" height="560" style="object-fit: cover; border-radius: 12px;"> |
 
+
+<video src="./screenshots/Sailing_Seekbar.gif" 
+       autoplay 
+       loop 
+       muted 
+       playsinline 
+       width="280" 
+       style="border-radius: 12px; vertical-align: middle;">
+</video>
+
 </div>
 
 ## 📲 Installation
