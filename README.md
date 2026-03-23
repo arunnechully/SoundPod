@@ -36,7 +36,7 @@ An Android application for streaming music from YouTube Music.
 
 <div align="center">
 
-| Home | Player | High Seas (v1.0.11) |
+| Home | Player | New Seekbar |
 | :---: | :---: | :---: |
 | <img src="./screenshots/screenshot_home.jpg" width="260" height="560" style="object-fit: cover; border-radius: 12px;"> | <img src="./screenshots/screenshot_player.png" width="260" height="560" style="object-fit: cover; border-radius: 12px;"> | <img src="./screenshots/Sailing_Seekbar.gif" width="260" height="560" style="object-fit: cover; border-radius: 12px;"> |
 
