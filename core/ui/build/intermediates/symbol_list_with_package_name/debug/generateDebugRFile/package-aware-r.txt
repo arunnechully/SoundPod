@@ -1,9 +1,0 @@
-com.github.core.ui
-array com_google_android_gms_fonts_certs
-array com_google_android_gms_fonts_certs_dev
-array com_google_android_gms_fonts_certs_prod
-font poppins_w300
-font poppins_w400
-font poppins_w500
-font poppins_w600
-font poppins_w700
