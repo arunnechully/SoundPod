@@ -29,6 +29,21 @@ extensions.configure<ApplicationExtension>("android") {
         versionName = "1.0.11"
     }
 
+    flavorDimensions += "store"
+
+    productFlavors {
+        create("fdroid") {
+            dimension = "store"
+            buildConfigField("boolean", "ENABLE_UPDATER", "false")
+        }
+        create("github") {
+            dimension = "store"
+            buildConfigField("boolean", "ENABLE_UPDATER", "true")
+        }
+    }
+
+
+
     splits {
         abi {
             reset()
@@ -57,6 +72,7 @@ extensions.configure<ApplicationExtension>("android") {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     compileOptions {

@@ -1,3 +1,5 @@
+@file:Suppress("KotlinConstantConditions")
+
 package com.github.soundpod.ui.screens.settings
 
 import android.content.Intent
@@ -40,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import com.github.soundpod.BuildConfig
 import com.github.soundpod.R
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.common.UpdateStatus
@@ -108,7 +111,9 @@ fun AboutSettings(
         launch {
             seamlessUpdateEnabled(context).collect { savedValue ->
                 seamlessUpdateEnabled = savedValue
-                checkForUpdates(context, currentVersion, savedValue) { updateStatus = it }
+                if (BuildConfig.ENABLE_UPDATER) {
+                    checkForUpdates(context, currentVersion, savedValue) { updateStatus = it }
+                }
             }
         }
     }
@@ -155,35 +160,36 @@ fun AboutSettings(
                         .padding(top = 8.dp),
                     textAlign = TextAlign.Center
                 )
-
-                UpdateMessage(
-                    status = updateStatus,
-                    onUpdateClick = { downloadUrl ->
-                        scope.launch(Dispatchers.IO) {
-                            downloadAndInstall(
-                                context = context,
-                                urlString = downloadUrl,
-                                isSeamless = seamlessUpdateEnabled,
-                                onProgress = { updateStatus = UpdateStatus.Downloading(it) },
-                                onFinished = { file ->
-                                    updateStatus = if (seamlessUpdateEnabled) {
-                                        UpdateStatus.ReadyToInstall(file)
-                                    } else {
-                                        UpdateStatus.DownloadedToPublic(file)
-                                    }
-                                },
-                                onError = { updateStatus = UpdateStatus.Error }
-                            )
-                        }
-                    },
-                    onInstallClick = { file ->
-                        updateStatus = UpdateStatus.Installing
-                        scope.launch {
-                            delay(1500)
-                            installApkInternal(context, file)
-                        }
-                    },
-                )
+                if (BuildConfig.ENABLE_UPDATER) {
+                    UpdateMessage(
+                        status = updateStatus,
+                        onUpdateClick = { downloadUrl ->
+                            scope.launch(Dispatchers.IO) {
+                                downloadAndInstall(
+                                    context = context,
+                                    urlString = downloadUrl,
+                                    isSeamless = seamlessUpdateEnabled,
+                                    onProgress = { updateStatus = UpdateStatus.Downloading(it) },
+                                    onFinished = { file ->
+                                        updateStatus = if (seamlessUpdateEnabled) {
+                                            UpdateStatus.ReadyToInstall(file)
+                                        } else {
+                                            UpdateStatus.DownloadedToPublic(file)
+                                        }
+                                    },
+                                    onError = { updateStatus = UpdateStatus.Error }
+                                )
+                            }
+                        },
+                        onInstallClick = { file ->
+                            updateStatus = UpdateStatus.Installing
+                            scope.launch {
+                                delay(1500)
+                                installApkInternal(context, file)
+                            }
+                        },
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(Dimensions.spacer + 8.dp))
 
@@ -210,29 +216,31 @@ fun AboutSettings(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 SettingsCard {
-                    SwitchSetting(
-                        icon = IconSource.Vector(Icons.Default.Update),
-                        title = stringResource(id = R.string.seamless_update),
-                        description = stringResource(id = R.string.seamless_update_description),
-                        switchState = seamlessUpdateEnabled,
-                        onSwitchChange = { isChecked ->
-                            if (isChecked) {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !context.packageManager.canRequestPackageInstalls()) {
-                                    showPermissionDialog = true
+                    if (BuildConfig.ENABLE_UPDATER) {
+                        SwitchSetting(
+                            icon = IconSource.Vector(Icons.Default.Update),
+                            title = stringResource(id = R.string.seamless_update),
+                            description = stringResource(id = R.string.seamless_update_description),
+                            switchState = seamlessUpdateEnabled,
+                            onSwitchChange = { isChecked ->
+                                if (isChecked) {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !context.packageManager.canRequestPackageInstalls()) {
+                                        showPermissionDialog = true
+                                    } else {
+                                        seamlessUpdateEnabled = true
+                                        CoroutineScope(Dispatchers.IO).launch {
+                                            setSeamlessUpdateEnabled(context, true)
+                                        }
+                                    }
                                 } else {
-                                    seamlessUpdateEnabled = true
+                                    seamlessUpdateEnabled = false
                                     CoroutineScope(Dispatchers.IO).launch {
-                                        setSeamlessUpdateEnabled(context, true)
+                                        setSeamlessUpdateEnabled(context, false)
                                     }
                                 }
-                            } else {
-                                seamlessUpdateEnabled = false
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    setSeamlessUpdateEnabled(context, false)
-                                }
                             }
-                        }
-                    )
+                        )
+                    }
 
                     SwitchSetting(
                         icon = IconSource.Vector(Icons.Default.Notifications),
@@ -271,7 +279,9 @@ fun AboutSettings(
                 }) { Text(stringResource(id = R.string.settings)) }
             },
             dismissButton = {
-                TextButton(onClick = { showPermissionDialog = false }) { Text(stringResource(id = R.string.cancel)) }
+                TextButton(onClick = {
+                    showPermissionDialog = false
+                }) { Text(stringResource(id = R.string.cancel)) }
             }
         )
     }
