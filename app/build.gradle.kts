@@ -10,6 +10,7 @@ plugins {
 
 
 kotlin {
+    jvmToolchain(17)
     compilerOptions {
         jvmTarget = JvmTarget.JVM_17
         freeCompilerArgs.add("-Xcontext-parameters")
@@ -119,4 +120,11 @@ dependencies {
     implementation(projects.kugou)
 
     coreLibraryDesugaring(libs.desugaring)
+}
+android {
+    buildTypes {
+        getByName("release") {
+            signingConfig = signingConfigs.getByName("debug")
+        }
+    }
 }
