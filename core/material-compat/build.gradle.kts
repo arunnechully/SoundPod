@@ -33,7 +33,3 @@ dependencies {
     detektPlugins(libs.detekt.compose)
     detektPlugins(libs.detekt.formatting)
 }
-
-kotlin {
-    jvmToolchain(17)
-}
