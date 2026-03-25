@@ -4,14 +4,6 @@
 An Android application for streaming music from YouTube Music.
 </p>
 
-<p align="center">
-  <img src="./screenshots/repository_preview.png" 
-       alt="Repository preview" 
-       width="1024"
-       style="border-radius: 15px; max-width: 100%; height: auto;">
-</p>
-
-
 ## ✨ Features
 
 - Background playback
@@ -31,20 +23,6 @@ An Android application for streaming music from YouTube Music.
 - Multilingual support
 - Quick picks selection customization
 - Swipe to enqueue and delete songs
-
-## 📸 Screenshots
-
-<div align="center">
-
-| Home | Player | New Seekbar |
-| :---: | :---: | :---: |
-| <img src="./screenshots/screenshot_home.jpg" width="260" height="560" style="object-fit: cover; border-radius: 12px;"> | <img src="./screenshots/screenshot_player.png" width="260" height="560" style="object-fit: cover; border-radius: 12px;"> | <img src="./screenshots/Sailing_Seekbar.gif" width="260" height="560" style="object-fit: cover; border-radius: 12px;"> |
-
-| Songs | Artists | Albums |
-| :---: | :---: | :---: |
-| <img src="./screenshots/screenshot_songs.png" width="260" height="560" style="object-fit: cover; border-radius: 12px;"> | <img src="./screenshots/screenshot_artists.png" width="260" height="560" style="object-fit: cover; border-radius: 12px;"> | <img src="./screenshots/screenshot_albums.png" width="260" height="560" style="object-fit: cover; border-radius: 12px;"> |
-
-</div>
 
 ## 📲 Installation
 
