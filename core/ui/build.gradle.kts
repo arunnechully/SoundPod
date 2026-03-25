@@ -1,19 +1,12 @@
 import com.android.build.api.dsl.LibraryExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.android.library)
+    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.detekt)
-
     id("kotlin-parcelize")
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget = JvmTarget.JVM_17
-        freeCompilerArgs.add("-Xcontext-parameters")
-    }
 }
 
 extensions.configure<LibraryExtension>("android") {
@@ -24,12 +17,20 @@ extensions.configure<LibraryExtension>("android") {
         minSdk = 23
     }
 
-    sourceSets.all {
-        kotlin.directories.add("src/$name/kotlin")
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     buildFeatures {
         compose = true
+    }
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+        freeCompilerArgs.add("-Xcontext-parameters")
     }
 }
 
