@@ -1,0 +1,13 @@
+SoundPod is a minimalist, open-source music player. Built with Jetpack Compose, it offers a modern interface for streaming media using publicly accessible APIs.
+
+Key Features:
+• Background playback and persistent queue management.
+• High-quality caching for offline playback.
+• Comprehensive search for songs, albums, artists, and playlists.
+• Bookmark your favorite artists and albums for quick access.
+• Import and manage local and remote playlists.
+• Fetch, display, and edit synchronized or static lyrics.
+• Seamlessly opens YouTube and YouTube Music links.
+• Smart features: Sleep timer, skip silence, and audio normalization.
+• Ecosystem support: Full Android Auto integration.
+• Invincible service to ensure uninterrupted background listening.
