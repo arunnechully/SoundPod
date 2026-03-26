@@ -1,51 +1,68 @@
-<h1 align="center">SoundPod</h1>
+<h1 align="center">
+  <img src="fastlane/metadata/android/en-US/images/icon.png" width="80" vertical-align="middle"><br>
+  SoundPod
+</h1>
 
 <p align="center">
-An Android application for streaming music from YouTube Music.
+  <strong>A minimalist, high-performance YouTube Music client for Android.</strong><br>
+  Built with Jetpack Compose and Material You for a modern, fluid experience.
 </p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Platform-Android-brightgreen.svg" alt="Platform">
+  <img src="https://img.shields.io/badge/License-GPL--3.0-blue.svg" alt="License">
+  <img src="https://img.shields.io/badge/Status-F--Droid%20Pending-orange.svg" alt="F-Droid Status">
+</p>
+
+---
+
+## 📸 Screenshots
+
+<p align="center">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Home.png" width="30%" alt="Home Screen">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Player.png" width="30%" alt="Player View">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Seekbar.png" width="30%" alt="Seeker View">
+</p>
+
+---
 
 ## ✨ Features
 
-- Background playback
-- Cache songs for offline playback
-- Search for songs, albums, artists, videos and playlists
-- Bookmark artists and albums
-- Import playlists and manage local playlists
-- Fetch, display and edit songs lyrics or synchronized lyrics
-- Open YouTube and YouTube Music links by default
-- Player features, such as sleep timer and persistent queue
-- Audio features, such as skip silence and audio normalization
-- Other features, such as Android Auto support and invincible service
+- 🎧 **Background Playback**: Keep the music going while using other apps or with the screen off.
+- ⏬ **Smart Cache**: Automatically cache songs for seamless offline playback.
+- 🔍 **Powerful Search**: Find songs, albums, artists, videos, and playlists directly from YouTube Music.
+- 📖 **Lyrics Support**: Fetch, display, and edit synchronized lyrics in real-time.
+- 🚗 **Android Auto**: Full support for a safe and integrated driving experience.
+- 🛠️ **Audio Control**: Features like skip silence, audio normalization, and sleep timer.
 
-### 🗒️ New features
+---
 
-- Material You redesign
-- Multilingual support
-- Quick picks selection customization
-- Swipe to enqueue and delete songs
+## 🚀 Roadmap
+
+SoundPod is evolving into a fully resilient, open-source music ecosystem. Upcoming milestones include:
+
+- [ ] **Desktop Expansion**: Porting the SoundPod experience to **Windows** and **Linux** via Compose Multiplatform for a seamless desktop experience.
+
+---
 
 ## 📲 Installation
 
-[<img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png"
-alt="Get it on GitHub"
-height="80">](https://github.com/arunnechully/SoundPod/releases/latest)
+### Stable Releases
+You can grab the latest stable APK from the Releases page:
 
-## 🧩 Based on
+[<img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" alt="Get it on GitHub" height="60">](https://github.com/arunnechully/SoundPod/releases/latest)
 
-This project is based on and inspired by:
+> **Note:** We are currently in the process of joining the **Official F-Droid** repositories. Check back soon for the badges!
 
-- [music-you](https://github.com/DanielSevillano/music-you)
-- [ViMusic](https://github.com/vfsfitvnm/ViMusic)
-- [RiMusic](https://github.com/fast4x/RiMusic)
-- [ViTune](https://github.com/25huizengek1/ViTune)
-- [InnerTune](https://github.com/z-huang/InnerTune)
-- [OuterTune](https://github.com/OuterTune/OuterTune)
-- [Symphony](https://github.com/zyrouge/symphony)
+---
+
+## 🧩 Credits & Inspiration
+
+Special thanks to:
+
+- [music-you](https://github.com/DanielSevillano/music-you) | [ViMusic](https://github.com/vfsfitvnm/ViMusic) | [RiMusic](https://github.com/fast4x/RiMusic) | [InnerTune](https://github.com/z-huang/InnerTune) | [ViTune](https://github.com/25huizengek1/ViTune) |  [OuterTune](https://github.com/OuterTune/OuterTune) | [Symphony](https://github.com/zyrouge/symphony)
+---
 
 ## ℹ️ Disclaimer
 
-This project and its contents are not affiliated with, funded, authorized, endorsed by, or in any
-way associated with YouTube, Google LLC or any of its affiliates and subsidiaries.
-
-Any trademark, service mark, trade name, or other intellectual property rights used in this project
-are owned by the respective owners.
+This project is not affiliated with, authorized, or endorsed by Google LLC or YouTube. It is an independent open-source project designed for streaming media using publicly accessible APIs.
