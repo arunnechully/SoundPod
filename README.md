@@ -4,7 +4,7 @@
 </h1>
 
 <p align="center">
-  <strong>A minimalist, high-performance YouTube Music client for Android.</strong><br>
+  <strong>A minimalist, YouTube Music client for Android.</strong><br>
   Built with Jetpack Compose and Material You for a modern, fluid experience.
 </p>
 
