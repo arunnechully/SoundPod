@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="fastlane/metadata/android/en-US/images/icon.png" width="80" vertical-align="middle"><br>
+  <img src="fastlane/metadata/android/en-US/images/icon_round.png" width="80" vertical-align="middle"><br>
   SoundPod
 </h1>
 
