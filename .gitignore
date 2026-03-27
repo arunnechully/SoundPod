@@ -16,3 +16,8 @@ local.properties
 # Recommended additions
 *.apk
 *.aab
+
+# Ignore build artifacts and generated properties
+*.dm
+output-metadata.json
+gradle-daemon-jvm.properties
