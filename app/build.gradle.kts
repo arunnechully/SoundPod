@@ -42,7 +42,11 @@ extensions.configure<ApplicationExtension>("android") {
         }
     }
 
-
+    packaging {
+        resources {
+            excludes += "META-INF/*"
+        }
+    }
 
     splits {
         abi {
@@ -52,6 +56,7 @@ extensions.configure<ApplicationExtension>("android") {
     }
 
     buildTypes {
+
         debug {
             applicationIdSuffix = ".debug"
         }
@@ -59,6 +64,9 @@ extensions.configure<ApplicationExtension>("android") {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+
+            signingConfig = signingConfigs.getByName("debug")
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -73,6 +81,11 @@ extensions.configure<ApplicationExtension>("android") {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
     }
 
     compileOptions {
@@ -119,11 +132,4 @@ dependencies {
     implementation(projects.kugou)
 
     coreLibraryDesugaring(libs.desugaring)
-}
-android {
-    buildTypes {
-        getByName("release") {
-            signingConfig = signingConfigs.getByName("debug")
-        }
-    }
 }
