@@ -7,15 +7,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.automirrored.outlined.QueueMusic
 import androidx.compose.material.icons.filled.MusicOff
-import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -27,14 +23,12 @@ import com.github.soundpod.R
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
-import com.github.soundpod.ui.components.SliderSettingsItem
 import com.github.soundpod.ui.components.SwitchSetting
 import com.github.soundpod.utils.persistentQueueKey
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.resumePlaybackWhenDeviceConnectedKey
 import com.github.soundpod.utils.skipSilenceKey
 import com.github.soundpod.utils.volumeNormalizationKey
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,10 +37,6 @@ fun PlayerSettings(
 ) {
     val (colorPalette) = LocalAppearance.current
     var skipSilence by rememberPreference(skipSilenceKey, false)
-    var autoPauseEnabled by remember { mutableStateOf(false) }
-    var audioFocus by remember { mutableStateOf(false) }
-    var playSpeed by remember { mutableFloatStateOf(1.0f) }
-    var crossfade by remember { mutableFloatStateOf(5f) }
     var volumeNormalization by rememberPreference(volumeNormalizationKey, false)
     var resumePlaybackWhenDeviceConnected by rememberPreference(
         resumePlaybackWhenDeviceConnectedKey,
@@ -92,20 +82,6 @@ fun PlayerSettings(
                         skipSilence = it
                     }
                 )
-                SwitchSetting(
-                    icon = IconSource.Icon(painterResource(R.drawable.audio_focus)),
-                    title = "Audio Focus",
-                    description = "Pause playback when other media is playing",
-                    switchState = audioFocus,
-                    onSwitchChange = { audioFocus = it }
-                )
-                SwitchSetting(
-                    icon = IconSource.Vector(Icons.Default.Pause),
-                    title = "Auto Pause",
-                    description = "Pause playback when volume is muted",
-                    switchState = autoPauseEnabled,
-                    onSwitchChange = { autoPauseEnabled = it }
-                )
                     SwitchSetting(
                         icon = IconSource.Icon(painterResource(R.drawable.headphone)),
                         title = stringResource(id = R.string.resume_playback),
@@ -128,31 +104,6 @@ fun PlayerSettings(
             Spacer(modifier = Modifier.height(8.dp))
 
             SettingsCard {
-                SliderSettingsItem(
-                    label = "Play speed",
-                    value = playSpeed,
-                    onValueChange = { playSpeed = it },
-                    valueRange = 0.5f..2.0f,
-                    valueLabel = { String.format(Locale.US, "%.1fx", it) },
-                    hapticUseIntegerStep = false,
-                    hapticUseFloatStep = true,
-                    hapticFloatStep = 0.1f
-                )
-
-
-                SliderSettingsItem(
-                    label = "Crossfade between tracks",
-                    value = crossfade,
-                    onValueChange = { crossfade = it },
-                    valueRange = 0f..10f,
-                    valueLabel = {
-                        val seconds = it.toInt()
-                        if (seconds == 0) "Off" else "$seconds seconds"
-                    },
-                    hapticStep = 1f,
-                    hapticUseIntegerStep = true
-                )
-
                 SwitchSetting(
                     icon = IconSource.Vector(Icons.AutoMirrored.Filled.VolumeUp),
                     title = stringResource(id = R.string.loudness_normalization),

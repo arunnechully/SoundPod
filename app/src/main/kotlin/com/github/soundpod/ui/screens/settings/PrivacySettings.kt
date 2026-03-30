@@ -34,12 +34,13 @@ import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.github.core.ui.LocalAppearance
+import com.github.soundpod.BuildConfig
 import com.github.soundpod.R
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 
-@Suppress("AssignedValueIsNeverRead")
+@Suppress("KotlinConstantConditions")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrivacySettings(
@@ -73,9 +74,11 @@ fun PrivacySettings(
         ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
     }
 
-    val isInstallUnknownGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        context.packageManager.canRequestPackageInstalls()
-    } else true
+    val isInstallUnknownGranted = if (BuildConfig.ENABLE_UPDATER) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.packageManager.canRequestPackageInstalls()
+        } else true
+    } else false
 
     BackHandler(onBack = onBackClick)
 
@@ -104,19 +107,22 @@ fun PrivacySettings(
                     description = if (isStorageGranted) "Allowed" else "Denied",
                     onClick = { openAppSettings(context) }
                 )
-                SettingColum(
-                    icon = IconSource.Vector(Icons.Outlined.Security),
-                    title = "Install Unknown Apps",
-                    description = if (isInstallUnknownGranted) "Allowed" else "Denied",
-                    onClick = {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-                                data = "package:${context.packageName}".toUri()
+                if (BuildConfig.ENABLE_UPDATER) {
+                    SettingColum(
+                        icon = IconSource.Vector(Icons.Outlined.Security),
+                        title = "Install Unknown Apps",
+                        description = if (isInstallUnknownGranted) "Allowed" else "Denied",
+                        onClick = {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                val intent =
+                                    Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                                        data = "package:${context.packageName}".toUri()
+                                    }
+                                context.startActivity(intent)
                             }
-                            context.startActivity(intent)
                         }
-                    }
-                )
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))

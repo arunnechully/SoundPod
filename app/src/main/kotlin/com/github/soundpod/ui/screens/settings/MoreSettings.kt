@@ -203,47 +203,6 @@ fun MoreSettings(
             Spacer(modifier = Modifier.height(Dimensions.spacer))
 
             Text(
-                text = stringResource(id = R.string.gestures),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.ExtraBold,
-                color = colorPalette.text.copy(alpha = 0.7f)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            var swipeActionRight by rememberPreference(swipeActionRight, SwipeActions.Off )
-            var swipeActionLeft by rememberPreference(swipeActionLeft, SwipeActions.Off )
-            val trailingIcon = @Composable {
-                Icon(
-                    painter = painterResource(id = R.drawable.chevron_forward),
-                    contentDescription = stringResource(id = R.string.customise),
-                    tint = colorPalette.text.copy(alpha = 0.5f),
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-            SettingsCard {
-                EnumValueSelectorSettingsEntry(
-                    title = stringResource(id = R.string.swipe_right),
-                    selectedValue = swipeActionRight,
-                    onValueSelected = { swipeActionRight = it },
-                    icon = IconSource.Icon( painterResource(id = R.drawable.swipe_right)),
-                    valueText = { stringResource(it.resourceId) },
-                    trailingContent = trailingIcon
-                )
-
-                EnumValueSelectorSettingsEntry(
-                    title = stringResource(id = R.string.swipe_left),
-                    selectedValue = swipeActionLeft,
-                    onValueSelected = { swipeActionLeft = it },
-                    icon = IconSource.Icon( painterResource(id = R.drawable.swipe_left)),
-                    valueText = { stringResource(it.resourceId) },
-                    trailingContent = trailingIcon
-                )
-            }
-
-            Spacer(modifier = Modifier.height(Dimensions.spacer))
-
-            Text(
                 text = stringResource(id = R.string.service_lifetime),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.ExtraBold,

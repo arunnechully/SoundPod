@@ -12,20 +12,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
-import com.github.soundpod.enums.AccentColorSource
 import com.github.soundpod.enums.AppThemeColor
 import com.github.soundpod.enums.ProgressBar
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
-import com.github.soundpod.utils.accentColorSource
 import com.github.soundpod.utils.appTheme
 import com.github.soundpod.utils.progressBarStyle
 import com.github.soundpod.utils.rememberPreference
@@ -37,9 +34,7 @@ fun AppearanceSettings(
     onBackgroundClick: () -> Unit
 ) {
     val (colorPalette) = LocalAppearance.current
-    val context = LocalContext.current
     var appThemeColor by rememberPreference(appTheme, AppThemeColor.System)
-    var accentColorSource by rememberPreference(accentColorSource, AccentColorSource.Default )
     var progressBarStyle by rememberPreference(progressBarStyle, ProgressBar.Default )
 
     BackHandler(onBack = onBackClick)
@@ -67,15 +62,7 @@ fun AppearanceSettings(
                     selectedValue = appThemeColor,
                     onValueSelected = { appThemeColor = it },
                     icon = IconSource.Icon( painterResource(id = R.drawable.dark_mode)),
-                    valueText = { context.getString(it.resourceId) }
-                )
-
-                EnumValueSelectorSettingsEntry(
-                    title = stringResource(id = R.string.accent_color),
-                    selectedValue = accentColorSource,
-                    onValueSelected = { accentColorSource = it },
-                    icon = IconSource.Icon( painterResource(id = R.drawable.color_mode)),
-                    valueText = { context.getString(it.resourceId) }
+                    valueText = { stringResource(it.resourceId) }
                 )
             }
 
@@ -97,7 +84,7 @@ fun AppearanceSettings(
                     selectedValue = progressBarStyle,
                     onValueSelected = { progressBarStyle = it },
                     icon = IconSource.Icon( painterResource(id = R.drawable.wave)),
-                    valueText = { context.getString(it.resourceId) }
+                    valueText = { stringResource(it.resourceId) }
                 )
 
                 SettingColum(

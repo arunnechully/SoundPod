@@ -1,0 +1,4 @@
+- Added support for Android 13+ monochrome/themed app icons
+- Fixed crashes on the About and Privacy pages
+- Minor UI cleanups and stability improvements
+- Bumped up the lib versions
