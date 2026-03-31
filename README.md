@@ -11,7 +11,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Platform-Android-brightgreen.svg" alt="Platform">
   <img src="https://img.shields.io/badge/License-GPL--3.0-blue.svg" alt="License">
-  <img src="https://img.shields.io/badge/Status-F--Droid%20Pending-orange.svg" alt="F-Droid Status">
+  <a href="https://f-droid.org/packages/com.github.soundpod/"><img src="https://img.shields.io/badge/F--Droid-Available-brightgreen.svg?logo=f-droid" alt="F-Droid Status"></a>
 </p>
 
 ---
@@ -43,6 +43,9 @@
 You can grab the latest stable APK from the Releases page:
 
 [<img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" alt="Get it on GitHub" height="60">](https://github.com/arunnechully/SoundPod/releases/latest)
+
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="60">](https://f-droid.org/packages/com.github.soundpod/)
+
 
 ---
 
