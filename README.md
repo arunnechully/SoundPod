@@ -37,22 +37,12 @@
 
 ---
 
-## 🚀 Roadmap
-
-SoundPod is evolving into a fully resilient, open-source music ecosystem. Upcoming milestones include:
-
-- [ ] **Desktop Expansion**: Porting the SoundPod experience to **Windows** and **Linux** via Compose Multiplatform for a seamless desktop experience.
-
----
-
 ## 📲 Installation
 
 ### Stable Releases
 You can grab the latest stable APK from the Releases page:
 
 [<img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" alt="Get it on GitHub" height="60">](https://github.com/arunnechully/SoundPod/releases/latest)
-
-> **Note:** We are currently in the process of joining the **Official F-Droid** repositories. Check back soon for the badges!
 
 ---
 
