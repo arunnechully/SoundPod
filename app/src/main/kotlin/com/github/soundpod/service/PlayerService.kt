@@ -48,6 +48,7 @@ import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.cache.Cache
+import androidx.media3.datasource.cache.CacheDataSink
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
 import androidx.media3.datasource.cache.NoOpCacheEvictor
@@ -94,6 +95,7 @@ import com.github.soundpod.utils.isAtLeastAndroid8
 import com.github.soundpod.utils.isInvincibilityEnabledKey
 import com.github.soundpod.utils.isShowingThumbnailInLockscreenKey
 import com.github.soundpod.utils.mediaItems
+import com.github.soundpod.utils.pauseSongCacheKey
 import com.github.soundpod.utils.persistentQueueKey
 import com.github.soundpod.utils.preferences
 import com.github.soundpod.utils.queueLoopEnabledKey
@@ -809,13 +811,22 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     }
 
     private fun createCacheDataSource(): DataSource.Factory {
-        return CacheDataSource.Factory().setCache(cache).apply {
-            setUpstreamDataSourceFactory(
-                DefaultHttpDataSource.Factory()
-                    .setConnectTimeoutMs(16000)
-                    .setReadTimeoutMs(8000)
-                    .setUserAgent("Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0")
-            )
+        val upstreamFactory = DefaultHttpDataSource.Factory()
+            .setConnectTimeoutMs(16000)
+            .setReadTimeoutMs(8000)
+            .setUserAgent("Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0")
+        return DataSource.Factory {
+            val pauseSongCache = preferences.getBoolean(pauseSongCacheKey, false)
+
+            val cacheFactory = CacheDataSource.Factory()
+                .setCache(cache)
+                .setUpstreamDataSourceFactory(upstreamFactory)
+            if (pauseSongCache) {
+                cacheFactory.setCacheWriteDataSinkFactory(null)
+            } else {
+                cacheFactory.setCacheWriteDataSinkFactory(CacheDataSink.Factory().setCache(cache))
+            }
+            cacheFactory.createDataSource()
         }
     }
 
@@ -1027,10 +1038,12 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                 Player.REPEAT_MODE_OFF -> {
                     putBoolean(queueLoopEnabledKey, true)
                 }
+
                 Player.REPEAT_MODE_ALL -> {
                     putBoolean(queueLoopEnabledKey, false)
                     putBoolean(trackLoopEnabledKey, true)
                 }
+
                 Player.REPEAT_MODE_ONE -> {
                     putBoolean(trackLoopEnabledKey, false)
                 }

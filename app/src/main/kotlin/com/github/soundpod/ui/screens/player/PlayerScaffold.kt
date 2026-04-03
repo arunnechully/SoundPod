@@ -112,7 +112,7 @@ fun PlayerScaffold(
                             // because it's now handled inside PlayerBackground based on settings.
 
                             if (value == SheetValue.Expanded) {
-                                NewPlayer(
+                                Player(
                                     onGoToAlbum = { browseId ->
                                         scope.launch { sheetState.partialExpand() }
                                         navController.navigate(
@@ -130,7 +130,7 @@ fun PlayerScaffold(
                                 Box(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    NewMiniPlayer(
+                                    MiniPlayer(
                                         openPlayer = {
                                             scope.launch { sheetState.expand() }
                                         }

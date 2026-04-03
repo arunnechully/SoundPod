@@ -44,7 +44,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
@@ -78,7 +77,7 @@ import java.net.UnknownHostException
 import java.nio.channels.UnresolvedAddressException
 
 @Composable
-fun NewThumbnail(
+fun Thumbnail(
     mediaId: String,
     isShowingLyrics: Boolean,
     onShowLyrics: (Boolean) -> Unit,
@@ -210,8 +209,6 @@ fun NewThumbnail(
                 .clip(RoundedCornerShape(25.dp))
                 .background(glassColor)
         ) {
-
-            var height by remember { mutableIntStateOf(0) }
             val artworkUri = currentWindow.mediaItem.mediaMetadata.artworkUri
             val model = if (artworkUri.toString().isNotBlank()) {
                 artworkUri.thumbnail((Dimensions.thumbnails.player.song - 54.dp).px)
@@ -259,9 +256,6 @@ fun NewThumbnail(
                         if (blurRadius == 0.dp) it else it.blur(radius = blurRadius)
                     }
                     .animateContentSize()
-                    .onGloballyPositioned { coords ->
-                        coords.size.height.let { if (it > 0) height = it }
-                    }
             )
 
             Box(
@@ -287,7 +281,7 @@ fun NewThumbnail(
 
 
                 if (isShowingStatsForNerds) {
-                    NewStatsForNerds(
+                    StatsForNerds(
                         mediaId = currentWindow.mediaItem.mediaId,
                         onDismiss = { onShowStatsForNerds(false) }
                     )

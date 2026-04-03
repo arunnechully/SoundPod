@@ -47,7 +47,7 @@ import com.github.soundpod.utils.thumbnail
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewMiniPlayer(
+fun MiniPlayer(
     openPlayer: () -> Unit
 ) {
     val binder = LocalPlayerServiceBinder.current
@@ -78,11 +78,10 @@ fun NewMiniPlayer(
     val mediaItem = nullableMediaItem ?: return
     val (colorPalette) = LocalAppearance.current
 
-    // --- WRAPPER START ---
     DynamicBackground(
         thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString(),
-        animate = false,      // No breathing
-        useGradient = false,  // SOLID FILL (No fading to transparent)
+        animate = false,
+        useGradient = false,
         modifier = Modifier
             .fillMaxWidth()
             .height(65.dp)
@@ -114,7 +113,6 @@ fun NewMiniPlayer(
         ) {
             ListItem(
                 headlineContent = {
-                    // Removed .fadingEdge modifier to prevent black smudges
                     Box(modifier = Modifier.fillMaxWidth()) {
                         Text(
                             text = mediaItem.mediaMetadata.title?.toString() ?: "",

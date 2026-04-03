@@ -14,8 +14,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -155,7 +157,7 @@ class MainActivity : ComponentActivity() {
                         PlayerScaffold(
                             navController = navController,
                             sheetState = playerState,
-                            scaffoldPadding = PaddingValues(0.dp),
+                            scaffoldPadding = WindowInsets.navigationBars.asPaddingValues(),
                             showPlayer = isPlayerVisible
                         ) {
                             MainNavigation(

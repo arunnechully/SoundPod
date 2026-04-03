@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -30,7 +31,6 @@ const val resumePlaybackWhenDeviceConnectedKey = "resumePlaybackWhenDeviceConnec
 const val persistentQueueKey = "persistentQueue"
 const val isShowingSynchronizedLyricsKey = "isShowingSynchronizedLyrics"
 const val isShowingThumbnailInLockscreenKey = "isShowingThumbnailInLockscreen"
-const val homeScreenTabIndexKey = "homeScreenTabIndex"
 const val searchResultScreenTabIndexKey = "searchResultScreenTabIndex"
 const val artistScreenTabIndexKey = "artistScreenTabIndex"
 const val pauseSearchHistoryKey = "pauseSearchHistory"
@@ -39,14 +39,7 @@ const val pauseSongCacheKey = "pauseSongCache"
 const val quickPicksSourceKey = "quickPicksSource"
 
 const val appTheme = "appTheme"
-const val accentColorSource = "accentColorSource"
-
-const val swipeActionRight = "swipeActionRight"
-
-const val swipeActionLeft = "swipeActionLeft"
 const val progressBarStyle = "progressBarStyle"
-
-const val navigationLabelsVisibilityKey = "navigationLabelsVisibility"
 const val listGesturesEnabledKey = "listGesturesEnabled"
 const val playerGesturesEnabledKey = "songGesturesEnabled"
 const val miniplayerGesturesEnabledKey = "miniplayerGesturesEnabled"
@@ -103,12 +96,12 @@ fun rememberPreference(key: String, defaultValue: Boolean): MutableState<Boolean
 fun rememberPreference(key: String, defaultValue: Int): MutableState<Int> {
     val context = LocalContext.current
     val preferences = context.preferences
-    val state = remember { mutableStateOf(preferences.getInt(key, defaultValue)) }
+    val state = remember { mutableIntStateOf(preferences.getInt(key, defaultValue)) }
 
     DisposableEffect(key) {
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPrefs, changedKey ->
             if (changedKey == key) {
-                state.value = sharedPrefs.getInt(key, defaultValue)
+                state.intValue = sharedPrefs.getInt(key, defaultValue)
             }
         }
         preferences.registerOnSharedPreferenceChangeListener(listener)
@@ -117,9 +110,9 @@ fun rememberPreference(key: String, defaultValue: Int): MutableState<Int> {
         }
     }
 
-    LaunchedEffect(state.value) {
-        if (state.value != preferences.getInt(key, defaultValue)) {
-            preferences.edit { putInt(key, state.value) }
+    LaunchedEffect(state.intValue) {
+        if (state.intValue != preferences.getInt(key, defaultValue)) {
+            preferences.edit { putInt(key, state.intValue) }
         }
     }
 

@@ -11,7 +11,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddLink
 import androidx.compose.material.icons.outlined.Battery0Bar
@@ -20,7 +19,6 @@ import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Stars
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -39,7 +37,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
-import com.github.soundpod.enums.SwipeActions
 import com.github.soundpod.service.PlayerMediaBrowserService
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
@@ -52,8 +49,6 @@ import com.github.soundpod.utils.isIgnoringBatteryOptimizations
 import com.github.soundpod.utils.isInvincibilityEnabledKey
 import com.github.soundpod.utils.isShowingThumbnailInLockscreenKey
 import com.github.soundpod.utils.rememberPreference
-import com.github.soundpod.utils.swipeActionLeft
-import com.github.soundpod.utils.swipeActionRight
 import com.github.soundpod.utils.toast
 
 @SuppressLint("BatteryLife")

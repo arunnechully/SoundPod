@@ -22,9 +22,7 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
 
     override fun onCreate() {
         super.onCreate()
-        instance = this // Fixes the Unresolved appContext error
-
-        // Initialize the database singleton safely
+        instance = this
         DatabaseInitializer.get(this)
 
         @OptIn(DelicateCoroutinesApi::class)
@@ -54,7 +52,6 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
 
     companion object {
         private lateinit var instance: MainApplication
-        // This is the specific property the Database file will look for
         val appContext: Context get() = instance.applicationContext
     }
 }

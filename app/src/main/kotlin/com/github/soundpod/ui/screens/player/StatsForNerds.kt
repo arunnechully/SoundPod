@@ -51,7 +51,7 @@ import kotlin.math.roundToInt
 
 @OptIn(UnstableApi::class)
 @Composable
-fun NewStatsForNerds(
+fun StatsForNerds(
     mediaId: String,
     onDismiss: () -> Unit
 ) {

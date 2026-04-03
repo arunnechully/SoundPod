@@ -49,7 +49,7 @@ import kotlinx.coroutines.withContext
     ExperimentalLayoutApi::class
 )
 @Composable
-fun NewPlayer(
+fun Player(
     onGoToAlbum: (String) -> Unit,
     onGoToArtist: (String) -> Unit
 ) {
@@ -159,7 +159,7 @@ fun NewPlayer(
                     ) {
                         Spacer(modifier = Modifier.height(30.dp))
 
-                        NewThumbnail(
+                        Thumbnail(
                             isShowingLyrics = isShowingLyrics,
                             onShowLyrics = { isShowingLyrics = it },
                             fullScreenLyrics = fullScreenLyrics,

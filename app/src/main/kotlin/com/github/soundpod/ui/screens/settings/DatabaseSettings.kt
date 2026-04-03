@@ -77,10 +77,6 @@ fun CacheSettings(
 
     var pauseSongCache by rememberPreference(pauseSongCacheKey, false)
 
-//    val queriesCount by remember {
-//        db.queriesCount().distinctUntilChanged()
-//    }.collectAsState(initial = 0)
-
     val eventsCount by remember {
         db.eventsCount().distinctUntilChanged()
     }.collectAsState(initial = 0)
@@ -136,7 +132,6 @@ fun CacheSettings(
                     } else {
                         stringResource(id = R.string.quick_picks_cleared)
                     },
-                    // 2. Change onClick to show the dialog instead of clearing immediately
                     onClick = { showClearQuickPicksDialog = true },
                     isEnabled = eventsCount > 0
                 )

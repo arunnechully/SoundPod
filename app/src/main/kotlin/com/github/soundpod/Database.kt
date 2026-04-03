@@ -4,8 +4,8 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase.CONFLICT_IGNORE
-import android.os.Parcel
 import androidx.core.database.getFloatOrNull
+import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.room.AutoMigration
 import androidx.room.Dao
@@ -643,33 +643,82 @@ abstract class DatabaseInitializer : RoomDatabase() {
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @TypeConverters
 object Converters {
+
     @TypeConverter
     fun mediaItemFromByteArray(value: ByteArray?): MediaItem? {
-        return value?.let { byteArray ->
-            runCatching {
-                val parcel = Parcel.obtain()
-                parcel.unmarshall(byteArray, 0, byteArray.size)
-                parcel.setDataPosition(0)
-                val bundle = parcel.readBundle(MediaItem::class.java.classLoader)
-                parcel.recycle()
-                bundle?.let(MediaItem::fromBundle)
-            }.getOrNull()
+        if (value == null) return null
+
+        return try {
+
+            val jsonString = String(value, Charsets.UTF_8)
+            val json = org.json.JSONObject(jsonString)
+
+
+            val metadataBuilder = androidx.media3.common.MediaMetadata.Builder()
+            if (json.has("title")) metadataBuilder.setTitle(json.getString("title"))
+            if (json.has("artist")) metadataBuilder.setArtist(json.getString("artist"))
+            if (json.has("albumTitle")) metadataBuilder.setAlbumTitle(json.getString("albumTitle"))
+            if (json.has("artworkUri")) metadataBuilder.setArtworkUri(json.getString("artworkUri").toUri())
+
+            if (json.has("extras")) {
+                val extrasJson = json.getJSONObject("extras")
+                val bundle = android.os.Bundle()
+                extrasJson.keys().forEach { key ->
+                    when (val extraVal = extrasJson.get(key)) {
+                        is String -> bundle.putString(key, extraVal)
+                        is Boolean -> bundle.putBoolean(key, extraVal)
+                        is org.json.JSONArray -> {
+                            val list = ArrayList<String>()
+                            for (i in 0 until extraVal.length()) {
+                                list.add(extraVal.getString(i))
+                            }
+                            bundle.putStringArrayList(key, list)
+                        }
+                    }
+                }
+                metadataBuilder.setExtras(bundle)
+            }
+            MediaItem.Builder()
+                .setMediaId(json.getString("mediaId"))
+                .setMediaMetadata(metadataBuilder.build())
+                .build()
+
+        } catch (_: Exception) {
+            null
         }
     }
 
+    @Suppress("DEPRECATION")
     @TypeConverter
     fun mediaItemToByteArray(mediaItem: MediaItem?): ByteArray? {
-        return mediaItem?.toBundle()?.let { bundle ->
-            val parcel = Parcel.obtain()
-            parcel.writeBundle(bundle)
-            val bytes = parcel.marshall()
-            parcel.recycle()
-            bytes
+        if (mediaItem == null) return null
+
+        return try {
+            val json = org.json.JSONObject().apply {
+                put("mediaId", mediaItem.mediaId)
+                put("title", mediaItem.mediaMetadata.title)
+                put("artist", mediaItem.mediaMetadata.artist)
+                put("albumTitle", mediaItem.mediaMetadata.albumTitle)
+                mediaItem.mediaMetadata.artworkUri?.let { put("artworkUri", it.toString()) }
+
+                mediaItem.mediaMetadata.extras?.let { extras ->
+                    val extrasJson = org.json.JSONObject()
+                    extras.keySet().forEach { key ->
+                        when (val extraVal = extras.get(key)) { // The deprecated call
+                            is String -> extrasJson.put(key, extraVal)
+                            is Boolean -> extrasJson.put(key, extraVal)
+                            is ArrayList<*> -> extrasJson.put(key, org.json.JSONArray(extraVal))
+                        }
+                    }
+                    put("extras", extrasJson)
+                }
+            }
+            json.toString().toByteArray(Charsets.UTF_8)
+        } catch (_: Exception) {
+            null
         }
     }
 }
-
-// --- GLOBAL ACCESSORS ---
 
 val appContext: Context
     get() = MainApplication.appContext
