@@ -734,4 +734,6 @@ fun query(block: () -> Unit) =
     internal.queryExecutor.execute(block)
 
 fun transaction(block: () -> Unit) =
-    internal.runInTransaction(block)
+    internal.transactionExecutor.execute {
+        internal.runInTransaction(block)
+    }

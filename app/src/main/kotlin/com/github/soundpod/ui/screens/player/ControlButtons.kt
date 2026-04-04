@@ -6,6 +6,7 @@ import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.media.audiofx.AudioEffect
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
@@ -48,7 +49,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -71,9 +71,9 @@ import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.models.Song
 import com.github.soundpod.query
 import com.github.soundpod.ui.components.BaseMediaItemMenu
+import com.github.soundpod.ui.screens.player.seekbar.PaperBoatAnimation
 import com.github.soundpod.ui.screens.player.seekbar.SeekBar
 import com.github.soundpod.ui.screens.player.seekbar.SimpleWave
-import com.github.soundpod.ui.screens.player.seekbar.PaperBoatAnimation
 import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.utils.forceSeekToNext
 import com.github.soundpod.utils.forceSeekToPrevious
@@ -253,6 +253,7 @@ fun PlayerMiddleControl(
     onTogglePlaylist: (Boolean) -> Unit,
     mediaId: String
 ) {
+    val ctx = LocalContext.current
     val binder = LocalPlayerServiceBinder.current
     val (colorPalette) = LocalAppearance.current
     var likedAt by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -305,7 +306,9 @@ fun PlayerMiddleControl(
         }
 
         AnimatedIconButton(
-            onClick = {/*todo*/},
+            onClick = {
+                Toast.makeText(ctx,"Function not setup yet", Toast.LENGTH_SHORT).show()
+            },
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.add),
@@ -417,13 +420,15 @@ fun PlayerControlBottom(
     }
 }
 
+@Suppress("AssignedValueIsNeverRead")
 @OptIn(UnstableApi::class)
 @UnstableApi
 @Composable
 fun PlayerTopControl(
     onGoToAlbum: (String) -> Unit,
     onGoToArtist: (String) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    isPlaylistShowing: Boolean
 ) {
     val menuState = LocalMenuState.current
     val (colorPalette) = LocalAppearance.current
@@ -460,9 +465,11 @@ fun PlayerTopControl(
             onClick = onBack,
         ){
             Icon(
-                painter = painterResource(id = R.drawable.arrow_down),
+                painter = painterResource(
+                    id = if (isPlaylistShowing) R.drawable.arrow_back else R.drawable.arrow_down
+                ),
                 tint = colorPalette.iconColor,
-                contentDescription = null,
+                contentDescription = if (isPlaylistShowing) "Close Playlist" else "Minimize Player",
                 modifier = Modifier
                     .size(22.dp)
             )

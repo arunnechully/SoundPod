@@ -336,7 +336,7 @@ fun PlaylistOverlay(
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painter = painterResource(R.drawable.chevron_up),
+                    painter = painterResource(R.drawable.arrow_up),
                     contentDescription = null,
                     colorFilter = ColorFilter.tint(colorPalette.text),
                     modifier = Modifier.size(24.dp)
@@ -396,13 +396,13 @@ fun PlaylistOverlay(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Image(
-                            painter = painterResource(R.drawable.chevron_up),
+                            painter = painterResource(R.drawable.arrow_up),
                             contentDescription = "Scroll up cue",
                             colorFilter = ColorFilter.tint(colorPalette.text.copy(alpha = 0.5f)),
                             modifier = Modifier.size(18.dp)
                         )
                         Image(
-                            painter = painterResource(R.drawable.chevron_down),
+                            painter = painterResource(R.drawable.arrow_down),
                             contentDescription = "Scroll down cue",
                             colorFilter = ColorFilter.tint(colorPalette.text.copy(alpha = 0.5f)),
                             modifier = Modifier.size(18.dp)
@@ -443,13 +443,13 @@ fun CircleDragHandle(
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             Icon(
-                painter = painterResource(R.drawable.chevron_up),
+                painter = painterResource(R.drawable.arrow_up),
                 contentDescription = null,
                 tint = tint,
                 modifier = Modifier.size(14.dp)
             )
             Icon(
-                painter = painterResource(R.drawable.chevron_down),
+                painter = painterResource(R.drawable.arrow_down),
                 contentDescription = null,
                 tint = tint,
                 modifier = Modifier.size(14.dp)

@@ -51,7 +51,8 @@ import kotlinx.coroutines.withContext
 @Composable
 fun Player(
     onGoToAlbum: (String) -> Unit,
-    onGoToArtist: (String) -> Unit
+    onGoToArtist: (String) -> Unit,
+    onBack: () -> Unit
 ) {
     val binder = LocalPlayerServiceBinder.current
     binder?.player ?: return
@@ -78,6 +79,7 @@ fun Player(
     binder.player.DisposableListener {
         object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                @Suppress("AssignedValueIsNeverRead")
                 nullableMediaItem = mediaItem
             }
 
@@ -102,8 +104,12 @@ fun Player(
 
     var showPlaylist by remember { mutableStateOf(false) }
 
-    BackHandler(enabled = showPlaylist) {
-        showPlaylist = false
+    BackHandler(enabled = true) {
+        if (showPlaylist) {
+            showPlaylist = false
+        } else {
+            onBack()
+        }
     }
 
     val positionAndDuration by binder.player.positionAndDurationState()
@@ -136,7 +142,14 @@ fun Player(
             PlayerTopControl(
                 onGoToAlbum = onGoToAlbum,
                 onGoToArtist = onGoToArtist,
-                onBack = {},
+                onBack = {
+                    if (showPlaylist) {
+                        showPlaylist = false
+                    } else {
+                        onBack()
+                    }
+                },
+                isPlaylistShowing = showPlaylist
             )
 
             Box(Modifier.weight(1f)) {

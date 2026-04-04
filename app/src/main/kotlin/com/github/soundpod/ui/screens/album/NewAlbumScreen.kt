@@ -178,7 +178,7 @@ fun TodoAlbumScreen(
                 modifier = Modifier.size(40.dp)
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.chevron_back),
+                    painter = painterResource(id = R.drawable.arrow_back),
                     contentDescription = "Back",
                     modifier = Modifier.size(24.dp),
                     colorFilter = ColorFilter.tint(colorPalette.text)

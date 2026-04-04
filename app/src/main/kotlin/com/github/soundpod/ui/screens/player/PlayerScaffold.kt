@@ -27,9 +27,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.navigation.NavController
-import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.ui.appearance.PlayerBackground
@@ -48,7 +48,6 @@ fun PlayerScaffold(
     val scope = rememberCoroutineScope()
     val layoutDirection = LocalLayoutDirection.current
     val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
-    val (colorPalette) = LocalAppearance.current
 
     val binder = LocalPlayerServiceBinder.current
     val player = binder?.player
@@ -62,7 +61,7 @@ fun PlayerScaffold(
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 currentArtworkUrl = mediaItem?.mediaMetadata?.artworkUri?.toString()
             }
-            override fun onMediaMetadataChanged(mediaMetadata: androidx.media3.common.MediaMetadata) {
+            override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
                 currentArtworkUrl = mediaMetadata.artworkUri?.toString()
             }
         }
@@ -124,6 +123,9 @@ fun PlayerScaffold(
                                         navController.navigate(
                                             route = Routes.Artist(id = browseId)
                                         )
+                                    },
+                                    onBack = {
+                                        scope.launch { sheetState.partialExpand() }
                                     }
                                 )
                             } else {
