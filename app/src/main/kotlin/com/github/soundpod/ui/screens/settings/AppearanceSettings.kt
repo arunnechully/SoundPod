@@ -19,11 +19,13 @@ import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
 import com.github.soundpod.enums.AppThemeColor
+import com.github.soundpod.enums.PlayerLayout
 import com.github.soundpod.enums.ProgressBar
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.utils.appTheme
+import com.github.soundpod.utils.playerlayout
 import com.github.soundpod.utils.progressBarStyle
 import com.github.soundpod.utils.rememberPreference
 
@@ -36,6 +38,7 @@ fun AppearanceSettings(
     val (colorPalette) = LocalAppearance.current
     var appThemeColor by rememberPreference(appTheme, AppThemeColor.System)
     var progressBarStyle by rememberPreference(progressBarStyle, ProgressBar.Default )
+    var playerlayout by rememberPreference(playerlayout, PlayerLayout.Default )
 
     BackHandler(onBack = onBackClick)
 
@@ -69,11 +72,23 @@ fun AppearanceSettings(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Animations",
+                text = "Player Style",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.ExtraBold,
                 color = colorPalette.text.copy(alpha = 0.7f)
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            SettingsCard{
+                EnumValueSelectorSettingsEntry(
+                    title = stringResource(id = R.string.player_layout),
+                    selectedValue = playerlayout,
+                    onValueSelected = { playerlayout = it },
+                    icon = IconSource.Icon( painterResource(id = R.drawable.layout)),
+                    valueText = { stringResource(it.resourceId) }
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 

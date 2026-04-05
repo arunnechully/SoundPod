@@ -107,11 +107,8 @@ fun PlayerScaffold(
                         Box(
                             modifier = Modifier.fillMaxHeight()
                         ) {
-                            // Note: removed the hardcoded ThemedLottieBackground here
-                            // because it's now handled inside PlayerBackground based on settings.
-
                             if (value == SheetValue.Expanded) {
-                                Player(
+                                PlayerLayout(
                                     onGoToAlbum = { browseId ->
                                         scope.launch { sheetState.partialExpand() }
                                         navController.navigate(

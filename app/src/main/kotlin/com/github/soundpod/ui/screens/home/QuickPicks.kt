@@ -1,6 +1,7 @@
 package com.github.soundpod.ui.screens.home
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
@@ -45,6 +46,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
 import com.github.innertube.Innertube
 import com.github.innertube.models.NavigationEndpoint
 import com.github.soundpod.LocalPlayerPadding
@@ -72,6 +74,7 @@ import com.github.soundpod.utils.quickPicksSourceKey
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.viewmodels.home.QuickPicksViewModel
 import kotlinx.coroutines.launch
+import java.io.IOException
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @ExperimentalFoundationApi
@@ -121,7 +124,6 @@ fun QuickPicks(
         val error = result?.exceptionOrNull()
 
         if (related != null) {
-            
             Text(
                 text = stringResource(id = R.string.quick_picks),
                 style = MaterialTheme.typography.titleMedium,
@@ -203,169 +205,103 @@ fun QuickPicks(
 
             related.albums?.let { albums ->
                 Spacer(modifier = Modifier.height(Dimensions.spacer))
-
-                Text(
-                    text = stringResource(id = R.string.related_albums),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = sectionTextModifier
-                )
-
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 8.dp)
-                ) {
-                    items(
-                        items = albums,
-                        key = Innertube.AlbumItem::key
-                    ) { album ->
-                        AlbumItem(
-                            modifier = Modifier.widthIn(max = itemSize),
-                            album = album,
-                            onClick = { onAlbumClick(album.key) }
-                        )
+                Text(text = stringResource(id = R.string.related_albums), style = MaterialTheme.typography.titleMedium, modifier = sectionTextModifier)
+                LazyRow(contentPadding = PaddingValues(horizontal = 8.dp)) {
+                    items(items = albums, key = Innertube.AlbumItem::key) { album ->
+                        AlbumItem(modifier = Modifier.widthIn(max = itemSize), album = album, onClick = { onAlbumClick(album.key) })
                     }
                 }
             }
 
             related.artists?.let { artists ->
                 Spacer(modifier = Modifier.height(Dimensions.spacer))
-
-                Text(
-                    text = stringResource(id = R.string.similar_artists),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = sectionTextModifier
-                )
-
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 8.dp)
-                ) {
-                    items(
-                        items = artists,
-                        key = Innertube.ArtistItem::key,
-                    ) { artist ->
-                        ArtistItem(
-                            modifier = Modifier.widthIn(max = itemSize),
-                            artist = artist,
-                            onClick = { onArtistClick(artist.key) }
-                        )
+                Text(text = stringResource(id = R.string.similar_artists), style = MaterialTheme.typography.titleMedium, modifier = sectionTextModifier)
+                LazyRow(contentPadding = PaddingValues(horizontal = 8.dp)) {
+                    items(items = artists, key = Innertube.ArtistItem::key) { artist ->
+                        ArtistItem(modifier = Modifier.widthIn(max = itemSize), artist = artist, onClick = { onArtistClick(artist.key) })
                     }
                 }
             }
 
             related.playlists?.let { playlists ->
                 Spacer(modifier = Modifier.height(Dimensions.spacer))
-
-                Text(
-                    text = stringResource(id = R.string.recommended_playlists),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = sectionTextModifier
-                )
-
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 8.dp)
-                ) {
-                    items(
-                        items = playlists,
-                        key = Innertube.PlaylistItem::key,
-                    ) { playlist ->
-                        PlaylistItem(
-                            modifier = Modifier.widthIn(max = itemSize),
-                            playlist = playlist,
-                            onClick = { onPlaylistClick(playlist.key) }
-                        )
+                Text(text = stringResource(id = R.string.recommended_playlists), style = MaterialTheme.typography.titleMedium, modifier = sectionTextModifier)
+                LazyRow(contentPadding = PaddingValues(horizontal = 8.dp)) {
+                    items(items = playlists, key = Innertube.PlaylistItem::key) { playlist ->
+                        PlaylistItem(modifier = Modifier.widthIn(max = itemSize), playlist = playlist, onClick = { onPlaylistClick(playlist.key) })
                     }
                 }
             }
-        } else if (error != null) {
 
-            Text(
-                text = stringResource(id = R.string.home_error),
-                style = MaterialTheme.typography.titleMedium,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(all = 16.dp)
-            )
+        } else {
+            Crossfade(targetState = error, label = "RetryAnimation") { currentError ->
+                if (currentError != null) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 64.dp, bottom = 32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        AsyncImage(
+                            model = "file:///android_asset/img/A4.webp",
+                            contentDescription = null,
+                            modifier = Modifier.size(240.dp)
+                        )
 
-            Row(
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Button(
-                    onClick = {
-                        scope.launch {
-                            viewModel.loadQuickPicks(quickPicksSource)
+                        val errorMessage = if (currentError is IOException) {
+                            stringResource(id = R.string.network_error)
+                        } else {
+                            stringResource(id = R.string.home_error)
+                        }
+
+                        Text(
+                            text = errorMessage,
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 32.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Button(
+                                onClick = {
+                                    viewModel.relatedPageResult = null
+                                    scope.launch {
+                                        viewModel.loadQuickPicks(quickPicksSource)
+                                    }
+                                }
+                            ) {
+                                Icon(imageVector = Icons.Outlined.Refresh, contentDescription = null)
+                                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                Text(text = stringResource(id = R.string.retry))
+                            }
+
+                            FilledTonalButton(onClick = onOfflinePlaylistClick) {
+                                Icon(imageVector = Icons.Outlined.DownloadForOffline, contentDescription = null)
+                                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                Text(text = stringResource(id = R.string.offline))
+                            }
                         }
                     }
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Refresh,
-                        contentDescription = stringResource(id = R.string.retry)
-                    )
-
-                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-
-                    Text(text = stringResource(id = R.string.retry))
-                }
-
-                FilledTonalButton(
-                    onClick = onOfflinePlaylistClick
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.DownloadForOffline,
-                        contentDescription = stringResource(id = R.string.offline)
-                    )
-
-                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-
-                    Text(text = stringResource(id = R.string.offline))
-                }
-            }
-        } else {
-
-            ShimmerHost {
-                TextPlaceholder(modifier = sectionTextModifier)
-
-                repeat(4) {
-                    ListItemPlaceholder()
-                }
-
-                Spacer(modifier = Modifier.height(Dimensions.spacer))
-
-                TextPlaceholder(modifier = sectionTextModifier)
-
-                Row(
-                    modifier = Modifier.padding(start = 8.dp)
-                ) {
-                    repeat(4) {
-                        ItemPlaceholder(modifier = Modifier.widthIn(max = itemSize))
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(Dimensions.spacer))
-
-                TextPlaceholder(modifier = sectionTextModifier)
-
-                Row(
-                    modifier = Modifier.padding(start = 8.dp)
-                ) {
-                    repeat(4) {
-                        ItemPlaceholder(
-                            modifier = Modifier.widthIn(max = itemSize),
-                            shape = CircleShape
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(Dimensions.spacer))
-
-                TextPlaceholder(modifier = sectionTextModifier)
-
-                Row(
-                    modifier = Modifier.padding(start = 8.dp)
-                ) {
-                    repeat(4) {
-                        ItemPlaceholder(modifier = Modifier.widthIn(max = itemSize))
+                } else {
+                    ShimmerHost {
+                        TextPlaceholder(modifier = sectionTextModifier)
+                        repeat(4) { ListItemPlaceholder() }
+                        Spacer(modifier = Modifier.height(Dimensions.spacer))
+                        TextPlaceholder(modifier = sectionTextModifier)
+                        Row(modifier = Modifier.padding(start = 8.dp)) {
+                            repeat(4) { ItemPlaceholder(modifier = Modifier.widthIn(max = itemSize)) }
+                        }
+                        Spacer(modifier = Modifier.height(Dimensions.spacer))
+                        TextPlaceholder(modifier = sectionTextModifier)
+                        Row(modifier = Modifier.padding(start = 8.dp)) {
+                            repeat(4) { ItemPlaceholder(modifier = Modifier.widthIn(max = itemSize), shape = CircleShape) }
+                        }
                     }
                 }
             }

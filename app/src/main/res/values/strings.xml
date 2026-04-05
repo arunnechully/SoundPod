@@ -259,4 +259,6 @@
     <string name="add_to_blocklist">Add to Blocklist</string>
     <string name="reset_quick_picks_alert">Are you sure you want to clear all quick picks history? This action cannot be undone.</string>
     <string name="paperboat">Paper boat</string>
+    <string name="player_layout">Player Layout</string>
+    <string name="new_layout">New Layout</string>
 </resources>

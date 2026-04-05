@@ -40,6 +40,8 @@ const val quickPicksSourceKey = "quickPicksSource"
 
 const val appTheme = "appTheme"
 const val progressBarStyle = "progressBarStyle"
+
+const val playerlayout = "playerlayout"
 const val listGesturesEnabledKey = "listGesturesEnabled"
 const val playerGesturesEnabledKey = "songGesturesEnabled"
 const val miniplayerGesturesEnabledKey = "miniplayerGesturesEnabled"

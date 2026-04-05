@@ -49,7 +49,7 @@ import kotlinx.coroutines.withContext
     ExperimentalLayoutApi::class
 )
 @Composable
-fun Player(
+fun DefaultPlayer(
     onGoToAlbum: (String) -> Unit,
     onGoToArtist: (String) -> Unit,
     onBack: () -> Unit

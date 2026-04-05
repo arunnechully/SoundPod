@@ -1,0 +1,5 @@
+-New player layout
+-Fixed crash when adding songs to playlists from the player
+-Fixed f-droid reproducibility
+-Code cleanup
+-Other minor improvements and bug fixes

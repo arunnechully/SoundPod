@@ -11,9 +11,16 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.EaseInOutSine
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.background
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -22,16 +29,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -49,6 +58,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -61,11 +73,11 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.github.core.ui.LocalAppearance
 import com.github.core.ui.favoritesIcon
-import com.github.core.ui.surface
 import com.github.innertube.models.NavigationEndpoint
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.db
+import com.github.soundpod.enums.PlayerLayout
 import com.github.soundpod.enums.ProgressBar
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.models.Song
@@ -78,6 +90,7 @@ import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.utils.forceSeekToNext
 import com.github.soundpod.utils.forceSeekToPrevious
 import com.github.soundpod.utils.formatAsDuration
+import com.github.soundpod.utils.playerlayout
 import com.github.soundpod.utils.queueLoopEnabledKey
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.seamlessPlay
@@ -86,6 +99,9 @@ import com.github.soundpod.utils.toast
 import com.github.soundpod.utils.trackLoopEnabledKey
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
 @Composable
 fun AnimatedIconButton(
@@ -137,60 +153,92 @@ fun PlayPauseButton(
             contentDescription = null,
             tint = colorPalette.iconColor,
             modifier = Modifier
-                .size(30.dp)
+                .size(68.dp)
         )
     }
 }
 
-//@Composable
-//fun ShufflePlayButtons(
-//    onPlay: () -> Unit, onShuffle: () -> Unit, modifier: Modifier = Modifier
-//) {
-//    val (colorPalette) = LocalAppearance.current
-//    Row(
-//        modifier = modifier
-//            .fillMaxWidth()
-//            .padding(horizontal = 16.dp, vertical = 8.dp),
-//        horizontalArrangement = Arrangement.End,
-//        verticalAlignment = Alignment.CenterVertically
-//    ) {
-//
-//        //shuffle button
-//        Box(
-//            modifier = Modifier
-//                .size(32.dp)
-//                .clip(shape = CircleShape)
-//                .background(colorPalette.surface)
-//                .clickable(onClick = onShuffle), contentAlignment = Alignment.Center
-//        ) {
-//            Icon(
-//                painter = painterResource(id = R.drawable.shuffle),
-//                contentDescription = "Shuffle",
-//                tint = colorPalette.iconColor,
-//                modifier = Modifier.size(18.dp)
-//
-//            )
-//        }
-//
-//        Spacer(modifier = Modifier.width(12.dp))
-//
-//        // Play button
-//        Box(
-//            modifier = Modifier
-//                .size(32.dp)
-//                .clip(shape = CircleShape)
-//                .background(colorPalette.surface)
-//                .clickable(onClick = onPlay), contentAlignment = Alignment.Center
-//        ) {
-//            Icon(
-//                painter = painterResource(id = R.drawable.play),
-//                contentDescription = "Play",
-//                tint = colorPalette.iconColor,
-//                modifier = Modifier.size(18.dp)
-//            )
-//        }
-//    }
-//}
+@Composable
+fun NewPlayPauseButton(
+    playing: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.primary
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "organic_dialer_button")
+    val phase by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = (2 * PI).toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(6000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "wave_phase"
+    )
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(15000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "global_rotation"
+    )
+
+    val squiggleIntensity by animateFloatAsState(
+        targetValue = if (playing) 1f else 0f,
+        animationSpec = tween(1000, easing = EaseInOutSine),
+        label = "squiggle_intensity"
+    )
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .size(84.dp)
+            .clip(CircleShape)
+            .clickable(
+                onClick = onClick,
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            )
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val center = Offset(size.width / 2, size.height / 2)
+            val baseRadius = size.minDimension / 2.2f
+            val path = Path()
+
+            val points = 200
+            for (i in 0..points) {
+                val angleInRadians = (i.toFloat() / points) * 2f * PI.toFloat()
+
+                val waveCount = 16f
+                val amplitude = 1.1.dp.toPx()
+
+                val wave = sin(angleInRadians * waveCount + phase) * amplitude * squiggleIntensity
+                val currentRadius = baseRadius + wave
+
+                val totalRotation = (rotation * PI.toFloat() / 180f)
+                val x = center.x + currentRadius * cos(angleInRadians + totalRotation)
+                val y = center.y + currentRadius * sin(angleInRadians + totalRotation)
+
+                if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+            }
+            path.close()
+
+            drawPath(
+                path = path,
+                color = color
+            )
+        }
+
+        Icon(
+            imageVector = if (playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+            contentDescription = if (playing) "Pause" else "Play",
+            modifier = Modifier.size(52.dp),
+            tint = MaterialTheme.colorScheme.onPrimary
+        )
+    }
+}
 
 @SuppressLint("SuspiciousIndentation")
 @Composable
@@ -328,6 +376,9 @@ fun PlayerControlBottom(
     val binder = LocalPlayerServiceBinder.current
     val player = binder?.player ?: return
     val (colorPalette) = LocalAppearance.current
+
+    val playerLayout by rememberPreference(playerlayout, PlayerLayout.Default)
+
     var trackLoopEnabled by rememberPreference(trackLoopEnabledKey, defaultValue = false)
     var queueLoopEnabled by rememberPreference(queueLoopEnabledKey, defaultValue = false)
 
@@ -365,11 +416,17 @@ fun PlayerControlBottom(
             )
         }
 
-        // Play / Pause
-        PlayPauseButton(
-            playing = shouldBePlaying,
-            onClick = onPlayPauseClick
-        )
+        if (playerLayout == PlayerLayout.New) {
+            NewPlayPauseButton(
+                playing = shouldBePlaying,
+                onClick = onPlayPauseClick
+            )
+        } else if (playerLayout == PlayerLayout.Default) {
+            PlayPauseButton(
+                playing = shouldBePlaying,
+                onClick = onPlayPauseClick
+            )
+        }
 
         // Next
         AnimatedIconButton(
@@ -382,8 +439,6 @@ fun PlayerControlBottom(
                 modifier = Modifier.size(18.dp)
             )
         }
-
-        // Repeat
         AnimatedIconButton(
             onClick = {
                 if (trackLoopEnabled) {
