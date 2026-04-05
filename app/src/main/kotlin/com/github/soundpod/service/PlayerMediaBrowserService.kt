@@ -12,7 +12,6 @@ import android.service.media.MediaBrowserService
 import androidx.annotation.DrawableRes
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
-import androidx.core.os.bundleOf
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.Cache
@@ -67,13 +66,14 @@ class PlayerMediaBrowserService : MediaBrowserService(), ServiceConnection {
             || clientPackageName == "com.google.android.projection.gearhead"
         ) {
             bindService(intent<PlayerService>(), this, BIND_AUTO_CREATE)
-            BrowserRoot(
-                MediaId.ROOT,
-                bundleOf("android.media.browse.CONTENT_STYLE_BROWSABLE_HINT" to 1)
-            )
+
+            val rootExtras = Bundle().apply {
+                putInt("android.media.browse.CONTENT_STYLE_BROWSABLE_HINT", 1)
+            }
+
+            BrowserRoot(MediaId.ROOT, rootExtras)
         } else null
     }
-
     override fun onLoadChildren(parentId: String, result: Result<MutableList<BrowserMediaItem>>) {
         runBlocking(Dispatchers.IO) {
             result.sendResult(
