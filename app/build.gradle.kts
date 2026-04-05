@@ -44,13 +44,10 @@ extensions.configure<ApplicationExtension>("android") {
 
     packaging {
         resources {
-            excludes += "assets/dexopt/baseline.prof"
-        }
-    }
-
-    packaging {
-        resources {
-            excludes += "META-INF/*"
+            excludes += setOf(
+                "assets/dexopt/baseline.prof",
+                "META-INF/*"
+            )
         }
     }
 
@@ -77,6 +74,7 @@ extensions.configure<ApplicationExtension>("android") {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            isCrunchPngs = false
         }
     }
 
