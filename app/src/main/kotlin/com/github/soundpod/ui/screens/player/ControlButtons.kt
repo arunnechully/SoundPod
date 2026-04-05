@@ -142,55 +142,55 @@ fun PlayPauseButton(
     }
 }
 
-@Composable
-fun ShufflePlayButtons(
-    onPlay: () -> Unit, onShuffle: () -> Unit, modifier: Modifier = Modifier
-) {
-    val (colorPalette) = LocalAppearance.current
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.End,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-        //shuffle button
-        Box(
-            modifier = Modifier
-                .size(32.dp)
-                .clip(shape = CircleShape)
-                .background(colorPalette.surface)
-                .clickable(onClick = onShuffle), contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.shuffle),
-                contentDescription = "Shuffle",
-                tint = colorPalette.iconColor,
-                modifier = Modifier.size(18.dp)
-
-            )
-        }
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        // Play button
-        Box(
-            modifier = Modifier
-                .size(32.dp)
-                .clip(shape = CircleShape)
-                .background(colorPalette.surface)
-                .clickable(onClick = onPlay), contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.play),
-                contentDescription = "Play",
-                tint = colorPalette.iconColor,
-                modifier = Modifier.size(18.dp)
-            )
-        }
-    }
-}
+//@Composable
+//fun ShufflePlayButtons(
+//    onPlay: () -> Unit, onShuffle: () -> Unit, modifier: Modifier = Modifier
+//) {
+//    val (colorPalette) = LocalAppearance.current
+//    Row(
+//        modifier = modifier
+//            .fillMaxWidth()
+//            .padding(horizontal = 16.dp, vertical = 8.dp),
+//        horizontalArrangement = Arrangement.End,
+//        verticalAlignment = Alignment.CenterVertically
+//    ) {
+//
+//        //shuffle button
+//        Box(
+//            modifier = Modifier
+//                .size(32.dp)
+//                .clip(shape = CircleShape)
+//                .background(colorPalette.surface)
+//                .clickable(onClick = onShuffle), contentAlignment = Alignment.Center
+//        ) {
+//            Icon(
+//                painter = painterResource(id = R.drawable.shuffle),
+//                contentDescription = "Shuffle",
+//                tint = colorPalette.iconColor,
+//                modifier = Modifier.size(18.dp)
+//
+//            )
+//        }
+//
+//        Spacer(modifier = Modifier.width(12.dp))
+//
+//        // Play button
+//        Box(
+//            modifier = Modifier
+//                .size(32.dp)
+//                .clip(shape = CircleShape)
+//                .background(colorPalette.surface)
+//                .clickable(onClick = onPlay), contentAlignment = Alignment.Center
+//        ) {
+//            Icon(
+//                painter = painterResource(id = R.drawable.play),
+//                contentDescription = "Play",
+//                tint = colorPalette.iconColor,
+//                modifier = Modifier.size(18.dp)
+//            )
+//        }
+//    }
+//}
 
 @SuppressLint("SuspiciousIndentation")
 @Composable
