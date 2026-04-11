@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
@@ -72,38 +71,38 @@ fun MiniPlayerContent(
     val mediaItem = nullableMediaItem ?: return
     val (colorPalette) = LocalAppearance.current
 
-//    DynamicBackground(
-//        thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString(),
-//        animate = false,
-//        useGradient = false,
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .height(65.dp)
-//            .clip(shape = MaterialTheme.shapes.extraLarge)
-//            .clickable(onClick = openPlayer)
-//    ) {
+    DynamicBackground(
+        thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString(),
+        animate = false,
+        useGradient = false,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(65.dp)
+            .clip(shape = MaterialTheme.shapes.extraLarge)
+            .clickable(onClick = openPlayer)
+    ) {
         Column(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier
                 .fillMaxWidth()
-//                .drawBehind {
-//                    val position = positionAndDuration.first
-//                    val duration = positionAndDuration.second
-//
-//                    val fraction = if (duration > 0L) {
-//                        (position.toFloat() / duration.toFloat()).coerceIn(0f, 1f)
-//                    } else 0f
-//
-//                    val barWidth = size.width * fraction
-//
-//                    if (barWidth > 0f) {
-//                        drawRect(
-//                            color = colorPalette.collapsedPlayerProgressBar.copy(alpha = 0.5f),
-//                            topLeft = Offset.Zero,
-//                            size = Size(width = barWidth, height = size.height)
-//                        )
-//                    }
-//                }
+                .drawBehind {
+                    val position = positionAndDuration.first
+                    val duration = positionAndDuration.second
+
+                    val fraction = if (duration > 0L) {
+                        (position.toFloat() / duration.toFloat()).coerceIn(0f, 1f)
+                    } else 0f
+
+                    val barWidth = size.width * fraction
+
+                    if (barWidth > 0f) {
+                        drawRect(
+                            color = colorPalette.collapsedPlayerProgressBar.copy(alpha = 0.5f),
+                            topLeft = Offset.Zero,
+                            size = Size(width = barWidth, height = size.height)
+                        )
+                    }
+                }
         ) {
             ListItem(
                 headlineContent = {
@@ -150,5 +149,5 @@ fun MiniPlayerContent(
                 )
             )
         }
-//    }
+    }
 }
