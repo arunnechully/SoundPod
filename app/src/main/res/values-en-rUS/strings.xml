@@ -118,9 +118,9 @@
     <string name="playable_format_not_found_error">Couldn\'t find a playable audio format</string>
     <string name="video_source_deleted_error">The original video source of this song has been deleted</string>
     <string name="server_restrictions_error">This song cannot be played due to server restrictions</string>
-    <string name="id_mismatch_error">The returned video id doesn\'t match the requested one</string>
+    <string name="id_mismatch_error">The returned video id doesn’t match the requested one</string>
     <string name="unknown_playback_error">An unknown playback error has occurred</string>
-    <string name="no_alternative_versions">This album doesn\'t have any alternative versions</string>
+    <string name="no_alternative_versions">This album doesn’t have any alternative versions</string>
     <string name="fetch_lyrics_again">Fetch lyrics again</string>
     <string name="lyrics_not_available">Lyrics are not available for this song</string>
     <string name="synchronized_lyrics_not_available">Synchronized lyrics are not available for this song</string>
@@ -134,8 +134,8 @@
     <string name="disable_background_restrictions">Disable background restrictions</string>
     <string name="subscribers">Subscribers</string>
     <string name="home_error">An error has occurred</string>
-    <string name="no_albums_artist">This artist didn\'t release any album</string>
-    <string name="no_singles_artist">This artist didn\'t release any single</string>
+    <string name="no_albums_artist">This artist didn’t release any album</string>
+    <string name="no_singles_artist">This artist didn’t release any single</string>
     <string name="open_supported_links_by_default">Open supported links by default</string>
     <string name="configure_supported_links">Configure supported links</string>
     <string name="app_language">App language</string>
@@ -190,6 +190,20 @@
     <string name="featured_on">Featured on</string>
     <string name="fans_might_also_like">Fans might also like</string>
     <string name="no_related_albums">No related albums were found</string>
+    <string name="appearance">Appearance</string>
+    <string name="privacy">Privacy</string>
+    <string name="backup_restore">Backup and restore</string>
+    <string name="storage_and_cache">Storage and cache</string>
+    <string name="more_settings">More Settings</string>
+    <string name="experimental">Experimental</string>
+    <string name="theme">Theme</string>
+    <string name="app_theme">App Theme</string>
+    <string name="app_theme_description">Select App Theme</string>
+    <string name="dark_theme">Dark Theme</string>
+    <string name="light_theme">Light Theme</string>
+    <string name="System_default">System Default</string>
+    <string name="accent_color">Accent Color</string>
+    <string name="source_code">View Source Code</string>
     <string name="autocheck">Auto check for updates</string>
     <string name="autocheck_description">Automatically check for new versions in background</string>
     <string name="update_alert">Show update alert</string>
@@ -242,4 +256,6 @@
     <string name="paperboat">Paper boat</string>
     <string name="player_layout">Player Layout</string>
     <string name="new_layout">New Layout</string>
+    <string name="loading">Loading</string>
+    <string name="clear">Clear</string>
 </resources>
