@@ -8,6 +8,7 @@ import com.github.innertube.models.BrowseResponse
 import com.github.innertube.models.ContinuationResponse
 import com.github.innertube.models.MusicCarouselShelfRenderer
 import com.github.innertube.models.MusicShelfRenderer
+import com.github.innertube.models.MusicPlaylistShelfRenderer
 import com.github.innertube.models.bodies.BrowseBody
 import com.github.innertube.models.bodies.ContinuationBody
 import com.github.innertube.utils.from
@@ -45,9 +46,15 @@ suspend fun Innertube.playlistPage(
         ?.sectionListRenderer
         ?.contents
 
+    // Standard playlists (PL/VL)
     val musicShelfRenderer = contents
         ?.firstOrNull()
         ?.musicShelfRenderer
+
+    // Mixes and Charts (RDCLAK/Mixes)
+    val musicPlaylistShelfRenderer = contents
+        ?.firstOrNull()
+        ?.musicPlaylistShelfRenderer
 
     val otherVersionsSection = if (contents?.size == 3) contents.getOrNull(1)
     else {
@@ -88,8 +95,8 @@ suspend fun Innertube.playlistPage(
             .microformat
             ?.microformatDataRenderer
             ?.urlCanonical,
-        songsPage = musicShelfRenderer
-            ?.toSongsPage(),
+        songsPage = musicShelfRenderer?.toSongsPage()
+            ?: musicPlaylistShelfRenderer?.toSongsPage(),
         otherVersions = otherVersionsSection
             ?.musicCarouselShelfRenderer
             ?.contents
@@ -115,11 +122,30 @@ suspend fun Innertube.playlistPageContinuation(continuation: String) = runCatchi
         ?.toSongsPage()
 }
 
+/**
+ * Standard Shelf Converter (PL/VL)
+ */
 private fun MusicShelfRenderer?.toSongsPage() =
     Innertube.ItemsPage(
         items = this
             ?.contents
             ?.mapNotNull(MusicShelfRenderer.Content::musicResponsiveListItemRenderer)
+            ?.mapNotNull(Innertube.SongItem::from),
+        continuation = this
+            ?.continuations
+            ?.firstOrNull()
+            ?.nextContinuationData
+            ?.continuation
+    )
+
+/**
+ * Mix/Chart Shelf Converter (RDCLAK)
+ */
+private fun MusicPlaylistShelfRenderer?.toSongsPage() =
+    Innertube.ItemsPage(
+        items = this
+            ?.contents
+            ?.mapNotNull { it.musicResponsiveListItemRenderer }
             ?.mapNotNull(Innertube.SongItem::from),
         continuation = this
             ?.continuations

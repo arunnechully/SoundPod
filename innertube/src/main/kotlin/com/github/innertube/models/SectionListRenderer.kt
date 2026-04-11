@@ -14,12 +14,12 @@ data class SectionListRenderer(
     data class Content(
         @JsonNames("musicImmersiveCarouselShelfRenderer")
         val musicCarouselShelfRenderer: MusicCarouselShelfRenderer?,
-        @JsonNames("musicPlaylistShelfRenderer")
         val musicShelfRenderer: MusicShelfRenderer?,
+        val musicPlaylistShelfRenderer: MusicPlaylistShelfRenderer?,
         val gridRenderer: GridRenderer?,
         val musicDescriptionShelfRenderer: MusicDescriptionShelfRenderer?,
         val musicResponsiveHeaderRenderer: MusicResponsiveHeaderRenderer?
-    ) {
+    ){
         @Serializable
         data class MusicDescriptionShelfRenderer(
             val description: Runs?

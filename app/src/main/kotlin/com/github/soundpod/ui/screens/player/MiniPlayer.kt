@@ -72,38 +72,38 @@ fun MiniPlayerContent(
     val mediaItem = nullableMediaItem ?: return
     val (colorPalette) = LocalAppearance.current
 
-    DynamicBackground(
-        thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString(),
-        animate = false,
-        useGradient = false,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(65.dp)
-            .clip(shape = MaterialTheme.shapes.extraLarge)
-            .clickable(onClick = openPlayer)
-    ) {
+//    DynamicBackground(
+//        thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString(),
+//        animate = false,
+//        useGradient = false,
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .height(65.dp)
+//            .clip(shape = MaterialTheme.shapes.extraLarge)
+//            .clickable(onClick = openPlayer)
+//    ) {
         Column(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier
-                .fillMaxSize()
-                .drawBehind {
-                    val position = positionAndDuration.first
-                    val duration = positionAndDuration.second
-
-                    val fraction = if (duration > 0L) {
-                        (position.toFloat() / duration.toFloat()).coerceIn(0f, 1f)
-                    } else 0f
-
-                    val barWidth = size.width * fraction
-
-                    if (barWidth > 0f) {
-                        drawRect(
-                            color = colorPalette.collapsedPlayerProgressBar.copy(alpha = 0.5f),
-                            topLeft = Offset.Zero,
-                            size = Size(width = barWidth, height = size.height)
-                        )
-                    }
-                }
+                .fillMaxWidth()
+//                .drawBehind {
+//                    val position = positionAndDuration.first
+//                    val duration = positionAndDuration.second
+//
+//                    val fraction = if (duration > 0L) {
+//                        (position.toFloat() / duration.toFloat()).coerceIn(0f, 1f)
+//                    } else 0f
+//
+//                    val barWidth = size.width * fraction
+//
+//                    if (barWidth > 0f) {
+//                        drawRect(
+//                            color = colorPalette.collapsedPlayerProgressBar.copy(alpha = 0.5f),
+//                            topLeft = Offset.Zero,
+//                            size = Size(width = barWidth, height = size.height)
+//                        )
+//                    }
+//                }
         ) {
             ListItem(
                 headlineContent = {
@@ -150,5 +150,5 @@ fun MiniPlayerContent(
                 )
             )
         }
-    }
+//    }
 }

@@ -6,6 +6,7 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.LibraryAdd
@@ -23,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -30,6 +32,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import com.github.innertube.Innertube
 import com.github.innertube.requests.playlistPage
 import com.github.soundpod.R
@@ -38,11 +41,13 @@ import com.github.soundpod.models.Playlist
 import com.github.soundpod.models.SongPlaylistMap
 import com.github.soundpod.query
 import com.github.soundpod.transaction
+import com.github.soundpod.ui.components.LoadingAnimation
 import com.github.soundpod.ui.components.TextFieldDialog
 import com.github.soundpod.ui.components.TooltipIconButton
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.completed
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,21 +60,26 @@ fun PlaylistScreen(
     onGoToAlbum: (String) -> Unit,
     onGoToArtist: (String) -> Unit
 ) {
-    var playlistPage: Innertube.PlaylistOrAlbumPage? by remember { mutableStateOf(null) }
+    var playlistPage: Innertube.PlaylistOrAlbumPage? by remember(browseId) { mutableStateOf(null) }
     var isImportingPlaylist by rememberSaveable { mutableStateOf(false) }
+
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scope = rememberCoroutineScope()
 
-    LaunchedEffect(Unit) {
-        if (playlistPage != null && playlistPage?.songsPage?.continuation == null) return@LaunchedEffect
-
-        playlistPage = withContext(Dispatchers.IO) {
-            Innertube.playlistPage(browseId = browseId)?.completed()?.getOrNull()
+    LaunchedEffect(browseId) {
+        withContext(Dispatchers.IO) {
+            Innertube.playlistPage(browseId = browseId)
+                ?.completed()
+                ?.getOrNull()
+                ?.let { page ->
+                    withContext(Dispatchers.Main) {
+                        playlistPage = page
+                    }
+                }
         }
     }
 
-    BackHandler(enabled = true) {
-        pop()
-    }
+    BackHandler(onBack = pop)
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -77,7 +87,7 @@ fun PlaylistScreen(
             MediumTopAppBar(
                 title = {
                     Text(
-                        text = playlistPage?.title ?: "",
+                        text = playlistPage?.title ?: stringResource(R.string.loading),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -93,39 +103,29 @@ fun PlaylistScreen(
                 actions = {
                     val context = LocalContext.current
 
-                    TooltipIconButton(
-                        description = R.string.import_playlist,
-                        onClick = { isImportingPlaylist = true },
-                        icon = Icons.Outlined.LibraryAdd,
-                        inTopBar = true
-                    )
+                    if (playlistPage != null) {
+                        TooltipIconButton(
+                            description = R.string.import_playlist,
+                            onClick = { isImportingPlaylist = true },
+                            icon = Icons.Outlined.LibraryAdd,
+                            inTopBar = true
+                        )
 
-                    TooltipIconButton(
-                        description = R.string.share,
-                        onClick = {
-                            (playlistPage?.url
-                                ?: "https://music.youtube.com/playlist?list=${
-                                    browseId.removePrefix(
-                                        "VL"
-                                    )
-                                }").let { url ->
+                        TooltipIconButton(
+                            description = R.string.share,
+                            onClick = {
+                                val url = playlistPage?.url ?: "https://music.youtube.com/playlist?list=${browseId.removePrefix("VL")}"
                                 val sendIntent = Intent().apply {
                                     action = Intent.ACTION_SEND
                                     type = "text/plain"
                                     putExtra(Intent.EXTRA_TEXT, url)
                                 }
-
-                                context.startActivity(
-                                    Intent.createChooser(
-                                        sendIntent,
-                                        null
-                                    )
-                                )
-                            }
-                        },
-                        icon = Icons.Outlined.Share,
-                        inTopBar = true
-                    )
+                                context.startActivity(Intent.createChooser(sendIntent, null))
+                            },
+                            icon = Icons.Outlined.Share,
+                            inTopBar = true
+                        )
+                    }
                 },
                 scrollBehavior = scrollBehavior
             )
@@ -134,13 +134,24 @@ fun PlaylistScreen(
         Surface(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = paddingValues.calculateTopPadding())
+                .padding(paddingValues)
         ) {
-            PlaylistSongList(
-                playlistPage = playlistPage,
-                onGoToAlbum = onGoToAlbum,
-                onGoToArtist = onGoToArtist
-            )
+            if (playlistPage == null) {
+                androidx.compose.foundation.layout.Box(
+                    contentAlignment = androidx.compose.ui.Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    LoadingAnimation(
+                        modifier = Modifier.size(50.dp)
+                    )
+                }
+            } else {
+                PlaylistSongList(
+                    playlistPage = playlistPage,
+                    onGoToAlbum = onGoToAlbum,
+                    onGoToArtist = onGoToArtist
+                )
+            }
 
             if (isImportingPlaylist) {
                 TextFieldDialog(
@@ -149,25 +160,30 @@ fun PlaylistScreen(
                     initialTextInput = playlistPage?.title ?: "",
                     onDismiss = { isImportingPlaylist = false },
                     onDone = { text ->
-                        query {
-                            transaction {
-                                val playlistId = db.insert(
-                                    Playlist(
-                                        name = text,
-                                        browseId = browseId
-                                    )
-                                )
-
-                                playlistPage?.songsPage?.items
-                                    ?.map(Innertube.SongItem::asMediaItem)
-                                    ?.onEach(db::insert)
-                                    ?.mapIndexed { index, mediaItem ->
-                                        SongPlaylistMap(
-                                            songId = mediaItem.mediaId,
-                                            playlistId = playlistId,
-                                            position = index
+                        scope.launch(Dispatchers.IO) {
+                            query {
+                                transaction {
+                                    val playlistId = db.insert(
+                                        Playlist(
+                                            name = text,
+                                            browseId = browseId
                                         )
-                                    }?.let(db::insertSongPlaylistMaps)
+                                    )
+
+                                    playlistPage?.songsPage?.items
+                                        ?.map(Innertube.SongItem::asMediaItem)
+                                        ?.onEach(db::insert)
+                                        ?.mapIndexed { index, mediaItem ->
+                                            SongPlaylistMap(
+                                                songId = mediaItem.mediaId,
+                                                playlistId = playlistId,
+                                                position = index
+                                            )
+                                        }?.let(db::insertSongPlaylistMaps)
+                                }
+                            }
+                            withContext(Dispatchers.Main) {
+                                isImportingPlaylist = false
                             }
                         }
                     }

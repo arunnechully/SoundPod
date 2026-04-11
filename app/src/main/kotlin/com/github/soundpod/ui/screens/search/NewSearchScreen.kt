@@ -5,7 +5,7 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -38,8 +38,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
@@ -60,8 +61,10 @@ import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.utils.pauseSearchHistoryKey
 import com.github.soundpod.utils.preferences
 import com.github.soundpod.utils.rememberVoiceSearchLauncher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @Composable
@@ -71,27 +74,30 @@ fun NewSearchScreen(
     onAlbumClick: (String) -> Unit,
     onArtistClick: (String) -> Unit
 ) {
-    BackHandler { navController.popBackStack() }
+    val context = LocalContext.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    val (colorPalette) = LocalAppearance.current
 
     var textFieldValue by remember { mutableStateOf(TextFieldValue(initialTextInput)) }
     var confirmedSearchQuery: String? by rememberSaveable { mutableStateOf(null) }
-
     var history: List<SearchQuery> by remember { mutableStateOf(emptyList()) }
     var suggestionsResult: Result<List<String>?>? by remember { mutableStateOf(null) }
-
     var isLoadingSuggestions by remember { mutableStateOf(false) }
 
     val focusRequester = remember { FocusRequester() }
-    val context = LocalContext.current
-    val (colorPalette) = LocalAppearance.current
 
-    val performSearch: (String) -> Unit = { query ->
-        if (query.isNotBlank()) {
-            textFieldValue = TextFieldValue(query)
-            confirmedSearchQuery = query
+    val performSearch: (String) -> Unit = { queryText ->
+        if (queryText.isNotBlank()) {
+            keyboardController?.hide()
+            focusManager.clearFocus()
+
+            textFieldValue = TextFieldValue(queryText)
+            confirmedSearchQuery = queryText
+
             if (!context.preferences.getBoolean(pauseSearchHistoryKey, false)) {
                 query {
-                    db.insert(SearchQuery(query = query))
+                    db.insert(SearchQuery(query = queryText))
                 }
             }
         }
@@ -99,11 +105,15 @@ fun NewSearchScreen(
 
     val launchVoiceSearch = rememberVoiceSearchLauncher(
         context = context,
-        onSpeechResult = { spokenText ->
-            performSearch(spokenText)
-        }
+        onSpeechResult = { spokenText -> performSearch(spokenText) }
     )
-
+    BackHandler {
+        if (confirmedSearchQuery != null) {
+            confirmedSearchQuery = null
+        } else {
+            navController.popBackStack()
+        }
+    }
     LaunchedEffect(textFieldValue.text) {
         if (!context.preferences.getBoolean(pauseSearchHistoryKey, false)) {
             db.queries("%${textFieldValue.text}%")
@@ -111,21 +121,25 @@ fun NewSearchScreen(
                 .collect { history = it }
         }
     }
+
     LaunchedEffect(textFieldValue.text) {
         if (textFieldValue.text != confirmedSearchQuery) {
             confirmedSearchQuery = null
         }
 
-        if (textFieldValue.text.isNotEmpty()) {
+        if (textFieldValue.text.isNotEmpty() && confirmedSearchQuery == null) {
             isLoadingSuggestions = true
-            delay(200)
-            suggestionsResult = Innertube.searchSuggestions(input = textFieldValue.text)
+            delay(300)
+            suggestionsResult = withContext(Dispatchers.IO) {
+                Innertube.searchSuggestions(input = textFieldValue.text)
+            }
             isLoadingSuggestions = false
         } else {
             isLoadingSuggestions = false
             suggestionsResult = null
         }
     }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -137,19 +151,12 @@ fun NewSearchScreen(
         ) {
             NewSearchBar(
                 text = textFieldValue.text,
-                onTextChange = {
-                    textFieldValue = TextFieldValue(it)
-                },
-                onSearch = { queryText ->
-                    performSearch(queryText)
-                },
+                onTextChange = { textFieldValue = TextFieldValue(it) },
+                onSearch = { performSearch(it) },
                 placeholderText = stringResource(R.string.search),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .focusRequester(focusRequester)
-                    .onFocusChanged {
-                        focusRequester.freeFocus()
-                    },
+                    .focusRequester(focusRequester),
                 onClear = {
                     textFieldValue = TextFieldValue("")
                     confirmedSearchQuery = null
@@ -162,154 +169,153 @@ fun NewSearchScreen(
 
         Spacer(modifier = Modifier.height(6.dp))
 
-// Inside NewSearchScreen.kt
-
-        if (confirmedSearchQuery != null) {
-            OnlineSearch(
-                query = textFieldValue.text,
-                onAlbumClick = onAlbumClick,
-                onArtistClick = onArtistClick,
-                onViewAllClick = { category ->
-                    navController.navigate("${Routes.SearchResult}/${textFieldValue.text}/$category")
-                }
-            )
-        }
-
-        else if (textFieldValue.text.isNotEmpty()) {
-            SettingsCard {
-                if (isLoadingSuggestions) {
-                    Column(
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .fillMaxSize(),
-                    ) {
-                        LoadingAnimation(
-                            modifier = Modifier.size(50.dp)
-                        )
-                        Spacer(modifier = Modifier.height(5.dp))
-                        Text(
-                            text = "Loading...",
-                            style = typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+        when {
+            confirmedSearchQuery != null -> {
+                OnlineSearch(
+                    query = confirmedSearchQuery!!,
+                    onAlbumClick = onAlbumClick,
+                    onArtistClick = onArtistClick,
+                    onViewAllClick = { category ->
+                        navController.navigate("${Routes.SearchResult}/${confirmedSearchQuery}/$category")
                     }
-                } else {
-                    LazyColumn {
-                        suggestionsResult?.getOrNull()?.let { suggestions ->
-                            items(items = suggestions) { suggestion ->
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable { performSearch(suggestion) }
-                                        .padding(horizontal = 22.dp, vertical = 12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
+                )
+            }
+
+            textFieldValue.text.isNotEmpty() -> {
+                SettingsCard {
+                    if (isLoadingSuggestions) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                LoadingAnimation(modifier = Modifier.size(50.dp))
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = stringResource(R.string.loading),
+                                    style = typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    } else {
+                        LazyColumn {
+                            suggestionsResult?.getOrNull()?.let { suggestions ->
+                                items(items = suggestions) { suggestion ->
+                                    SuggestionItem(
                                         text = suggestion,
-                                        style = typography.titleMedium.copy(
-                                            fontWeight = FontWeight.Medium,
-                                            color = colorPalette.text
-                                        ),
-                                        modifier = Modifier.weight(1f)
+                                        onClick = { performSearch(suggestion) },
+                                        color = colorPalette.text
+                                    )
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(horizontal = 18.dp),
+                                        color = colorPalette.text.copy(alpha = 0.1f)
                                     )
                                 }
-                                HorizontalDivider(
-                                    modifier = Modifier
-                                        .padding(horizontal = 18.dp)
-                                        .fillMaxWidth(),
-                                    color = colorPalette.text.copy(alpha = 0.1f)
-                                )
                             }
                         }
                     }
                 }
             }
-        }
-        else if (history.isNotEmpty()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp, horizontal = 22.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.search_history),
-                    style = typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                    color = colorPalette.text.copy(alpha = 0.5f)
+
+            history.isNotEmpty() -> {
+                HistorySection(
+                    history = history,
+                    onHistoryClick = { performSearch(it) },
+                    onDeleteClick = { query { db.delete(it) } },
+                    onClearAllClick = { query { db.clearQueries() } },
+                    colorPalette = colorPalette
                 )
             }
 
-            SettingsCard {
-                LazyColumn {
-                    items(history) { searchQuery ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { performSearch(searchQuery.query) }
-                                .padding(horizontal = 22.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = searchQuery.query,
-                                style = typography.bodyMedium,
-                                modifier = Modifier.weight(1f),
-                                color = colorPalette.text
-                            )
-                            IconButton(
-                                onClick = { query { db.delete(searchQuery) } },
-                                modifier = Modifier.size(28.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Clear,
-                                    contentDescription = "Delete",
-                                    tint = colorPalette.text
-                                )
-                            }
-                        }
-                    }
-
-                    item {
-                        HorizontalDivider(
-                            modifier = Modifier
-                                .padding(horizontal = 18.dp)
-                                .fillMaxWidth(),
-                            color = colorPalette.text.copy(alpha = 0.1f)
-                        )
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            TextButton(
-                                onClick = { query { db.clearQueries() } },
-                                colors = ButtonDefaults.textButtonColors(contentColor = colorPalette.text)
-                            ) {
-                                Text("Clear all")
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Text(
-                    text = stringResource(R.string.no_search_history),
-                    style = typography.titleMedium.copy(
-                        color = colorPalette.text,
-                        fontSize = 20.sp
-                    ),
-                    textAlign = TextAlign.Center
-                )
+            else -> {
+                EmptySearchPlaceholder(color = colorPalette.text)
             }
         }
     }
-
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
+    }
+}
+
+@Composable
+private fun SuggestionItem(text: String, onClick: () -> Unit, color: androidx.compose.ui.graphics.Color) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 22.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = text,
+            style = typography.titleMedium.copy(fontWeight = FontWeight.Medium, color = color),
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun HistorySection(
+    history: List<SearchQuery>,
+    onHistoryClick: (String) -> Unit,
+    onDeleteClick: (SearchQuery) -> Unit,
+    onClearAllClick: () -> Unit,
+    colorPalette: com.github.core.ui.ColorPalette
+) {
+    Column {
+        Text(
+            text = stringResource(R.string.search_history),
+            style = typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+            color = colorPalette.text.copy(alpha = 0.5f),
+            modifier = Modifier.padding(vertical = 8.dp, horizontal = 22.dp)
+        )
+
+        SettingsCard {
+            LazyColumn {
+                items(history) { item ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onHistoryClick(item.query) }
+                            .padding(horizontal = 22.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = item.query,
+                            style = typography.bodyMedium,
+                            modifier = Modifier.weight(1f),
+                            color = colorPalette.text
+                        )
+                        IconButton(
+                            onClick = { onDeleteClick(item) },
+                            modifier = Modifier.size(28.dp)
+                        ) {
+                            Icon(Icons.Outlined.Clear, "Delete", tint = colorPalette.text)
+                        }
+                    }
+                }
+                item {
+                    TextButton(
+                        onClick = onClearAllClick,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.textButtonColors(contentColor = colorPalette.text)
+                    ) {
+                        Text(stringResource(R.string.clear))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptySearchPlaceholder(color: androidx.compose.ui.graphics.Color) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(
+            text = stringResource(R.string.no_search_history),
+            style = typography.titleMedium.copy(color = color, fontSize = 20.sp),
+            textAlign = TextAlign.Center
+        )
     }
 }
