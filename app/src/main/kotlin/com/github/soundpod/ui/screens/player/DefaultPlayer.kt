@@ -8,11 +8,13 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.BottomAppBarDefaults.windowInsets
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
@@ -49,7 +51,7 @@ import kotlinx.coroutines.withContext
     ExperimentalLayoutApi::class
 )
 @Composable
-fun DefaultPlayer(
+fun MainPlayerContent(
     onGoToAlbum: (String) -> Unit,
     onGoToArtist: (String) -> Unit,
     onBack: () -> Unit
@@ -170,23 +172,12 @@ fun DefaultPlayer(
                         modifier = Modifier
                             .fillMaxSize()
                     ) {
-                        Spacer(modifier = Modifier.height(30.dp))
-
-                        Thumbnail(
-                            isShowingLyrics = isShowingLyrics,
-                            onShowLyrics = { isShowingLyrics = it },
-                            fullScreenLyrics = fullScreenLyrics,
-                            toggleFullScreenLyrics = { fullScreenLyrics = !fullScreenLyrics },
-                            isShowingStatsForNerds = isShowingStatsForNerds,
-                            onShowStatsForNerds = { isShowingStatsForNerds = it },
+                        Spacer(
                             modifier = Modifier
                                 .padding(horizontal = 24.dp)
-                                .fillMaxWidth(),
-                            mediaId = mediaItem.mediaId
+                                .fillMaxWidth()
+                                .aspectRatio(1f)
                         )
-
-                        Spacer(modifier = Modifier.padding(vertical = 5.dp))
-
                         PlayerMediaItem(
                             onGoToArtist = artistId?.let {
                                 { onGoToArtist(it) }

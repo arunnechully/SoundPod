@@ -38,7 +38,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlayerScaffold(
+fun OldPlayerScaffold(
     navController: NavController,
     sheetState: SheetState,
     scaffoldPadding: PaddingValues,
@@ -129,7 +129,7 @@ fun PlayerScaffold(
                                 Box(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    MiniPlayer(
+                                    MiniPlayerContent(
                                         openPlayer = {
                                             scope.launch { sheetState.expand() }
                                         }

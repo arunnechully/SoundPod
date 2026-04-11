@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,28 +27,21 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
-import coil3.compose.AsyncImage
 import com.github.core.ui.LocalAppearance
 import com.github.core.ui.collapsedPlayerProgressBar
 import com.github.soundpod.LocalPlayerServiceBinder
-import com.github.soundpod.R
 import com.github.soundpod.ui.appearance.DynamicBackground
-import com.github.soundpod.ui.styling.Dimensions
-import com.github.soundpod.ui.styling.px
 import com.github.soundpod.utils.DisposableListener
 import com.github.soundpod.utils.positionAndDurationState
 import com.github.soundpod.utils.shouldBePlaying
-import com.github.soundpod.utils.thumbnail
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MiniPlayer(
+fun MiniPlayerContent(
     openPlayer: () -> Unit
 ) {
     val binder = LocalPlayerServiceBinder.current
@@ -133,17 +127,7 @@ fun MiniPlayer(
                     }
                 },
                 leadingContent = {
-                    AsyncImage(
-                        model = mediaItem.mediaMetadata.artworkUri.thumbnail(Dimensions.thumbnails.song.px),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .clip(MaterialTheme.shapes.extraLarge)
-                            .size(43.dp),
-                        placeholder = painterResource(id = R.drawable.app_icon),
-                        error = painterResource(id = R.drawable.app_icon),
-                        fallback = painterResource(id = R.drawable.app_icon)
-                    )
+                    Spacer(modifier = Modifier.size(43.dp))
                 },
                 trailingContent = {
                     MiniPlayerControl(

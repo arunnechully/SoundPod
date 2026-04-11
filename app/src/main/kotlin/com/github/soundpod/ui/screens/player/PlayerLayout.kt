@@ -16,7 +16,7 @@ fun PlayerLayout(
 
     when (currentLayout) {
         PlayerLayout.Default -> {
-            DefaultPlayer(
+            MainPlayerContent(
                 onGoToAlbum = onGoToAlbum,
                 onGoToArtist = onGoToArtist,
                 onBack = onBack
