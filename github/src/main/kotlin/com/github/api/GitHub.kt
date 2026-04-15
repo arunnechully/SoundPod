@@ -19,4 +19,7 @@ object GitHub {
         val filteredReleases = response.filter { !it.draft && !it.prerelease }
         return filteredReleases.firstOrNull()
     }
+    suspend fun getLatestReleaseApkUrl(flavorName: String): String? {
+        return ReleaseService(client = client).getLatestReleaseApkUrl(flavorName)
+    }
 }

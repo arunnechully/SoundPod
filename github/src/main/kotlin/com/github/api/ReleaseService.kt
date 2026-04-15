@@ -20,5 +20,15 @@ class ReleaseService(
         }
     }
 
-}
+    suspend fun getLatestReleaseApkUrl(flavorName: String): String? {
+        val releases = getReleases()
 
+        val latestRelease = releases.firstOrNull { !it.draft && !it.prerelease } ?: return null
+
+        val matchedAsset = latestRelease.assets.find { asset ->
+            asset.name.contains(flavorName, ignoreCase = true) && asset.name.endsWith(".apk")
+        }
+
+        return matchedAsset?.browserDownloadUrl
+    }
+}

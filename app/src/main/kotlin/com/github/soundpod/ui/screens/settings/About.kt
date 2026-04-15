@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import com.github.api.GitHub
 import com.github.soundpod.BuildConfig
 import com.github.soundpod.R
 import com.github.soundpod.ui.common.*
@@ -155,22 +156,28 @@ fun AboutSettings(
                 if (BuildConfig.ENABLE_UPDATER) {
                     UpdateMessage(
                         status = updateStatus,
-                        onUpdateClick = { downloadUrl ->
+                        onUpdateClick = { _ ->
                             scope.launch(Dispatchers.IO) {
-                                downloadAndInstall(
-                                    context = context,
-                                    urlString = downloadUrl,
-                                    isSeamless = seamlessUpdateEnabled,
-                                    onProgress = { updateStatus = UpdateStatus.Downloading(it) },
-                                    onFinished = { file ->
-                                        updateStatus = if (seamlessUpdateEnabled) {
-                                            UpdateStatus.ReadyToInstall(file)
-                                        } else {
-                                            UpdateStatus.DownloadedToPublic(file)
-                                        }
-                                    },
-                                    onError = { updateStatus = UpdateStatus.Error }
-                                )
+                                val exactApkUrl = GitHub.getLatestReleaseApkUrl(BuildConfig.FLAVOR)
+
+                                if (exactApkUrl != null) {
+                                    downloadAndInstall(
+                                        context = context,
+                                        urlString = exactApkUrl,
+                                        isSeamless = seamlessUpdateEnabled,
+                                        onProgress = { updateStatus = UpdateStatus.Downloading(it) },
+                                        onFinished = { file ->
+                                            updateStatus = if (seamlessUpdateEnabled) {
+                                                UpdateStatus.ReadyToInstall(file)
+                                            } else {
+                                                UpdateStatus.DownloadedToPublic(file)
+                                            }
+                                        },
+                                        onError = { updateStatus = UpdateStatus.Error }
+                                    )
+                                } else {
+                                    updateStatus = UpdateStatus.Error
+                                }
                             }
                         },
                         onInstallClick = { file ->

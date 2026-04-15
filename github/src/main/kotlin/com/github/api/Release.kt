@@ -2,11 +2,14 @@ package com.github.api
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import java.util.Locale
 
 @Serializable
 data class Release(
+    @SerialName("tag_name")
+    val tagName: String,
     val draft: Boolean,
-    val name: String,
+    val name: String? = null,
     val prerelease: Boolean,
     val assets: List<Asset> = emptyList()
 )
@@ -18,13 +21,13 @@ data class Asset(
     @SerialName("browser_download_url")
     val browserDownloadUrl: String
 )
-
 fun formatFileSize(bytes: Long): String {
-    val kb = bytes / 1024
-    val mb = kb / 1024
+    val kb = bytes / 1024.0
+    val mb = kb / 1024.0
+
     return when {
-        mb > 0 -> "$mb MB"
-        kb > 0 -> "$kb KB"
+        mb >= 1.0 -> String.format(Locale.US, "%.1f MB", mb)
+        kb >= 1.0 -> String.format(Locale.US, "%.1f KB", kb)
         else -> "$bytes bytes"
     }
 }

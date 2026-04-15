@@ -42,7 +42,8 @@ class UpdateCheckWorker(
         return try {
             val release = GitHub.getLastestRelease() ?: return Result.failure()
 
-            val latestVersionStr = release.name
+            val latestVersionStr = release.tagName
+
             val latestVersion = VersionUtils.extractVersion(latestVersionStr)
 
             val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
