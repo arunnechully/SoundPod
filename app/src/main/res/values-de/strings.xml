@@ -258,4 +258,6 @@
     <string name="new_layout">New Layout</string>
     <string name="loading">Loading</string>
     <string name="clear">Clear</string>
+    <string name="new_player">New Player</string>
+    <string name="new_player_description">Try the new experimental player. Some features may be unstable.</string>
 </resources>

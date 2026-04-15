@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
@@ -47,15 +48,15 @@ fun ExperimentSettings(
                         viewModel.setNewSearchEnabled(isChecked)
                     },
                 )
-                SwitchSetting(
-                    icon = IconSource.Vector(Icons.Default.Search),
-                    title = stringResource(id = R.string.new_search_screen),
-                    description = stringResource(id = R.string.new_search_screen_description),
-                    switchState = isNewSearchEnabled,
-                    onSwitchChange = { isChecked ->
-                        viewModel.setNewSearchEnabled(isChecked)
-                    },
-                )
+//                SwitchSetting(
+//                    icon = IconSource.Vector(Icons.Default.PlayArrow),
+//                    title = stringResource(id = R.string.new_player),
+//                    description = stringResource(id = R.string.new_player_description),
+//                    switchState = isNewSearchEnabled,
+//                    onSwitchChange = { isChecked ->
+//                        viewModel.setNewSearchEnabled(isChecked)
+//                    },
+//                )
             }
         }
     )

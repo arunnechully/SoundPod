@@ -1,5 +1,3 @@
-@file:Suppress("NOTHING_TO_INLINE")
-
 package com.github.core.ui.utils
 
 import androidx.compose.runtime.Composable
@@ -12,7 +10,7 @@ import kotlin.math.roundToInt
 @JvmInline
 value class Px(val value: Int) {
     inline val dp @Composable get() = dp(LocalDensity.current)
-    inline fun dp(density: Density) = with(density) { value.toDp() }
+    fun dp(density: Density) = with(density) { value.toDp() }
 }
 
 inline val Int.px inline get() = Px(value = this)
@@ -26,4 +24,4 @@ inline val TextUnit.dp
     @Composable
     inline get() = dp(LocalDensity.current)
 
-inline fun TextUnit.dp(density: Density) = with(density) { toDp() }
+fun TextUnit.dp(density: Density) = with(density) { toDp() }

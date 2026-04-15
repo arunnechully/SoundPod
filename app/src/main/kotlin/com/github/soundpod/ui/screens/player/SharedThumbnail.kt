@@ -3,7 +3,9 @@ package com.github.soundpod.ui.screens.player
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
@@ -11,14 +13,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -27,10 +32,12 @@ import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.util.lerp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
-import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
+import coil3.compose.SubcomposeAsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.size.Size
+import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.utils.thumbnail
@@ -129,12 +136,18 @@ fun SharedThumbnail(expandProgress: Float) {
         val xOffset = lerp(bounds.collapsedX, bounds.expandedX, expandProgress)
         val yOffset = lerp(bounds.collapsedY, bounds.expandedY, expandProgress)
 
-        AsyncImage(
+        val (colorPalette, _) = LocalAppearance.current
+        val isDarkTheme = colorPalette.background2.luminance() < 0.5f
+
+        val glassColor = if (isDarkTheme) {
+            Color.White.copy(alpha = 0.07f)
+        } else {
+            Color.Black.copy(alpha = 0.04f)
+        }
+
+        SubcomposeAsyncImage(
             model = imageRequest,
-            placeholder = painterResource(id = R.drawable.app_icon),
-            error = painterResource(id = R.drawable.app_icon),
             contentDescription = "Album Art",
-            contentScale = ContentScale.Crop,
             modifier = Modifier
                 .offset(x = xOffset, y = yOffset)
                 .size(currentSize)
@@ -144,7 +157,34 @@ fun SharedThumbnail(expandProgress: Float) {
                     shape = RoundedCornerShape(cornerRadius.toPx())
                     clip = true
                 }
-                .background(Color.DarkGray)
-        )
+                .background(glassColor)
+        ) {
+            val state by painter.state.collectAsState()
+
+            val dynamicIconSize = lerp(24.dp, 180.dp, expandProgress)
+
+            when (state) {
+                is AsyncImagePainter.State.Success -> {
+                    Image(
+                        painter = painter,
+                        contentDescription = "Album Art",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                else -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.app_icon),
+                            contentDescription = null,
+                            modifier = Modifier.size(dynamicIconSize)
+                        )
+                    }
+                }
+            }
+        }
     }
 }

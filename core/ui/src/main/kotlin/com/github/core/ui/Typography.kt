@@ -115,7 +115,7 @@ private val poppinsFonts = listOf(
 private val poppinsFontFamily = FontFamily(poppinsFonts)
 
 @Parcelize
-enum class BuiltInFontFamily(internal val googleFont: @kotlinx.parcelize.RawValue GoogleFont?) : Parcelable {
+enum class BuiltInFontFamily(internal val googleFont: @RawValue GoogleFont?) : Parcelable {
     Poppins(null),
     Roboto(GoogleFont("Roboto")),
     Montserrat(GoogleFont("Montserrat")),

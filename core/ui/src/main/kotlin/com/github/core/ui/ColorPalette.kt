@@ -5,17 +5,13 @@ import android.os.Parcel
 import android.os.Parcelable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.palette.graphics.Palette
+import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parceler
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.WriteWith
-import com.github.core.ui.utils.DpParceler
-import kotlinx.parcelize.IgnoredOnParcel
 
 typealias ParcelableColor = @WriteWith<ColorParceler> Color
-typealias ParcelableDp = @WriteWith<DpParceler> Dp
 
 @Parcelize
 @Immutable
@@ -217,29 +213,6 @@ fun dynamicAccentColorOf(
 
     return arr.hsl
 }
-
-fun ColorPalette.amoled() = if (isDark) {
-    val (hue, saturation) = accent.hsl
-
-    copy(
-        background0 = Color.hsl(
-            hue = hue,
-            saturation = saturation.coerceAtMost(0.1f),
-            lightness = 0.10f
-        ),
-        background1 = Color.hsl(
-            hue = hue,
-            saturation = saturation.coerceAtMost(0.3f),
-            lightness = 0.15f
-        ),
-        background2 = Color.hsl(
-            hue = hue,
-            saturation = saturation.coerceAtMost(0.4f),
-            lightness = 0.2f
-        )
-    )
-} else this
-
 fun colorPaletteOf(
     source: ColorSource,
     darkness: Darkness,
@@ -262,23 +235,13 @@ inline val ColorPalette.isPureBlack get() = background0 == Color.Black
 inline val ColorPalette.collapsedPlayerProgressBar
     get() = if (isPureBlack) defaultDarkPalette.background0 else background2
 inline val ColorPalette.favoritesIcon get() = if (isDefault) red else accent
-inline val ColorPalette.shimmer get() = if (isDefault) Color(0xff838383) else accent
+
 inline val ColorPalette.surface get() = if (isPureBlack) Color(0xff272727) else background2
-
-@Suppress("UnusedReceiverParameter")
-inline val ColorPalette.overlay get() = Color.Black.copy(alpha = 0.75f)
-
-@Suppress("UnusedReceiverParameter")
-inline val ColorPalette.onOverlay get() = defaultDarkPalette.text
-
-@Suppress("UnusedReceiverParameter")
-inline val ColorPalette.onOverlayShimmer get() = defaultDarkPalette.shimmer
-
 object ColorParceler : Parceler<Color> {
     override fun Color.write(parcel: Parcel, flags: Int) {
         try {
             parcel.writeLong(value.toLong())
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             parcel.writeLong(Color.Transparent.value.toLong())
         }
     }
@@ -287,18 +250,8 @@ object ColorParceler : Parceler<Color> {
         return try {
             val colorValue = parcel.readLong()
             Color(colorValue)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             Color.Transparent
         }
-    }
-}
-
-object DpParceler : Parceler<Dp> {
-    override fun Dp.write(parcel: Parcel, flags: Int) {
-        parcel.writeFloat(value)
-    }
-
-    override fun create(parcel: Parcel): Dp {
-        return parcel.readFloat().dp
     }
 }

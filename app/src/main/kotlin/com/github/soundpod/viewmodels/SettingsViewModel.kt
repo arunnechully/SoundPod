@@ -31,15 +31,12 @@ data class SettingOption(
 data class SettingsSection(
     val options: List<SettingOption>
 )
+
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val context = application.applicationContext
-
-    // Menu Structure
     private val _sections = MutableStateFlow<List<SettingsSection>>(emptyList())
     val sections = _sections.asStateFlow()
 
-    // Search Toggle State
     private val _newSearchEnabled = MutableStateFlow(false)
     val newSearchEnabled = _newSearchEnabled.asStateFlow()
 
@@ -50,23 +47,20 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     private fun observePreferences() {
         viewModelScope.launch {
-            // Observe the Flow from your DataStore helper
-            newSearchLayoutEnabled(context).collect { isEnabled ->
+            newSearchLayoutEnabled(getApplication()).collect { isEnabled ->
                 _newSearchEnabled.value = isEnabled
             }
         }
     }
 
     fun setNewSearchEnabled(enabled: Boolean) {
-        // Update DataStore (The Flow above will automatically update the UI state)
         viewModelScope.launch {
-            setNewSearchLayoutEnabled(context, enabled)
+            setNewSearchLayoutEnabled(getApplication(), enabled)
         }
     }
 
     private fun loadSettings() {
         val menuStructure = listOf(
-            // ... (Keep your Section 1, 2, 3) ...
             SettingsSection(
                 listOf(
                     SettingOption(title = R.string.appearance, icon = Icons.Default.ColorLens, screenId = SettingsDestinations.APPEARANCE),
@@ -84,7 +78,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     SettingOption(title = R.string.database, icon = Icons.Default.Storage, screenId = SettingsDestinations.DATABASE)
                 )
             ),
-            // Section 4: Advanced
             SettingsSection(
                 listOf(
                     SettingOption(
@@ -92,7 +85,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                         iconRes = R.drawable.more_settings,
                         screenId = SettingsDestinations.MORE
                     ),
-                    // Ensure this ID matches what you use in NavHost
                     SettingOption(
                         title = R.string.experimental,
                         iconRes = R.drawable.experimental,
