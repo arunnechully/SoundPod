@@ -5,7 +5,9 @@ import androidx.annotation.OptIn
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -29,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -121,6 +124,7 @@ fun NewMainPlayerContent(
     BackHandler(enabled = true) {
         if (showPlaylist) onTogglePlaylist(false) else onBack()
     }
+    var isDraggingSeekBar by remember { mutableStateOf(false) }
 
     val positionAndDuration by player.positionAndDurationState()
     val progressBarStyleState = rememberPreference(progressBarStyle, ProgressBar.Default)
@@ -188,11 +192,18 @@ fun NewMainPlayerContent(
 
                             Spacer(modifier = Modifier.weight(1f))
 
-                            PlayerMiddleControl(
-                                showPlaylist = false,
-                                onTogglePlaylist = onTogglePlaylist,
-                                mediaId = mediaItem.mediaId
+                            val middleControlAlpha by animateFloatAsState(
+                                targetValue = if (isDraggingSeekBar) 0f else 1f,
+                                animationSpec = tween(durationMillis = 300),
+                                label = "MiddleControlFade"
                             )
+                            Box(modifier = Modifier.graphicsLayer { alpha = middleControlAlpha }) {
+                                PlayerMiddleControl(
+                                    showPlaylist = false,
+                                    onTogglePlaylist = onTogglePlaylist,
+                                    mediaId = mediaItem.mediaId
+                                )
+                            }
                         }
                     }
                 }
@@ -203,7 +214,8 @@ fun NewMainPlayerContent(
                     mediaId = mediaItem.mediaId,
                     position = positionAndDuration.first,
                     duration = positionAndDuration.second,
-                    progressBarStyle = currentProgressStyle
+                    progressBarStyle = currentProgressStyle,
+                    onDraggingStateChange = { isDraggingSeekBar = it }
                 )
 
                 Spacer(modifier = Modifier.height(Dimensions.spacer))

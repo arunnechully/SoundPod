@@ -2,6 +2,7 @@ package com.github.soundpod.ui.screens.player
 
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -69,7 +70,11 @@ fun NewMiniPlayerContent(
             .fillMaxWidth()
             .height(60.dp)
             .clip(MaterialTheme.shapes.extraLarge)
-            .clickable(onClick = openPlayer)
+            .clickable(
+                interactionSource = remember {MutableInteractionSource() },
+                indication = null,
+                onClick = openPlayer
+            )
     ) {
         ListItem(
             headlineContent = {

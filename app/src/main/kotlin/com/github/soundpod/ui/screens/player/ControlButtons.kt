@@ -14,6 +14,7 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.EaseInOutSine
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
@@ -26,12 +27,14 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -633,7 +636,8 @@ fun PlayerSeekBar(
     mediaId: String,
     position: Long,
     duration: Long,
-    progressBarStyle: ProgressBar
+    progressBarStyle: ProgressBar,
+    onDraggingStateChange: (Boolean) -> Unit = {}
 ) {
     val binder = LocalPlayerServiceBinder.current
     binder?.player ?: return
@@ -644,7 +648,8 @@ fun PlayerSeekBar(
             PlayerSeekBarDefault(
                 mediaId = mediaId,
                 position = position,
-                duration = duration
+                duration = duration,
+                onDraggingStateChange = onDraggingStateChange
             )
         }
 
@@ -669,36 +674,98 @@ fun PlayerSeekBar(
 private fun PlayerSeekBarDefault(
     mediaId: String,
     position: Long,
-    duration: Long
+    duration: Long,
+    onDraggingStateChange: (Boolean) -> Unit = {}
 ) {
     val binder = LocalPlayerServiceBinder.current
     binder?.player ?: return
+
     var scrubbingPosition by remember(mediaId) { mutableStateOf<Long?>(null) }
+    val isDragging = scrubbingPosition != null
+    val currentDisplayPosition = scrubbingPosition ?: position
+
+
+    LaunchedEffect(isDragging) {
+        onDraggingStateChange(isDragging)
+    }
+
+    val floatingAlpha by animateFloatAsState(
+        targetValue = if (isDragging) 1f else 0f,
+        animationSpec = tween(durationMillis = 250),
+        label = "FloatingTextFade"
+    )
+
+    val bottomLabelsAlpha by animateFloatAsState(
+        targetValue = if (isDragging) 0f else 1f,
+        animationSpec = tween(durationMillis = 250),
+        label = "BottomLabelsFade"
+    )
+    val floatingScale by animateFloatAsState(
+        targetValue = if (isDragging) 1f else 0.7f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "FloatingTextScale"
+    )
+
+    val progressFraction = if (duration > 0) {
+        currentDisplayPosition.toFloat() / duration
+    } else 0f
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 18.dp)
     ) {
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            val maxWidthDp = maxWidth
 
-        SeekBar(
-            value = scrubbingPosition ?: position,
-            minimumValue = 0,
-            maximumValue = duration,
-            onDragStart = { scrubbingPosition = it },
-            onDrag = { delta ->
-                scrubbingPosition = if (duration != C.TIME_UNSET) {
-                    scrubbingPosition?.plus(delta)?.coerceIn(0, duration)
-                } else null
-            },
-            onDragEnd = {
-                scrubbingPosition?.let(binder.player::seekTo)
-                scrubbingPosition = null
-            },
-            color = LocalAppearance.current.colorPalette.text,
-            backgroundColor = LocalAppearance.current.colorPalette.textDisabled,
-            shape = RoundedCornerShape(8.dp)
-        )
+            if (floatingAlpha > 0f) {
+                val textWidth = 46.dp
+                val halfTextWidth = textWidth / 2
+                val rawXOffset = (progressFraction * maxWidthDp.value).dp - halfTextWidth
+                val clampedXOffset = rawXOffset.coerceIn(0.dp, maxWidthDp - textWidth)
+
+                Text(
+                    text = formatAsDuration(currentDisplayPosition),
+                    color = LocalAppearance.current.colorPalette.text,
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        fontWeight = FontWeight.Bold
+                    ),
+                    modifier = Modifier
+                        .offset(
+                            x = clampedXOffset,
+                            y = (-28).dp
+                        )
+                        .graphicsLayer {
+                            alpha = floatingAlpha
+                            scaleX = floatingScale
+                            scaleY = floatingScale
+                        }
+                )
+            }
+
+            SeekBar(
+                value = currentDisplayPosition,
+                minimumValue = 0,
+                maximumValue = duration,
+                onDragStart = { scrubbingPosition = it },
+                onDrag = { delta ->
+                    scrubbingPosition = if (duration != C.TIME_UNSET) {
+                        scrubbingPosition?.plus(delta)?.coerceIn(0, duration)
+                    } else null
+                },
+                onDragEnd = {
+                    scrubbingPosition?.let(binder.player::seekTo)
+                    scrubbingPosition = null
+                },
+                color = LocalAppearance.current.colorPalette.text,
+                backgroundColor = LocalAppearance.current.colorPalette.text.copy(alpha = 0.07f),
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
 
         Spacer(Modifier.height(8.dp))
 
@@ -707,13 +774,14 @@ private fun PlayerSeekBarDefault(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 4.dp)
         ) {
             Text(
-                text = formatAsDuration(scrubbingPosition ?: position),
+                text = formatAsDuration(position),
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.labelMedium,
-                maxLines = 1
+                maxLines = 1,
+                modifier = Modifier.graphicsLayer { alpha = bottomLabelsAlpha }
             )
 
             if (duration != C.TIME_UNSET) {
@@ -721,13 +789,13 @@ private fun PlayerSeekBarDefault(
                     text = formatAsDuration(duration),
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.labelMedium,
-                    maxLines = 1
+                    maxLines = 1,
+                    modifier = Modifier.graphicsLayer { alpha = bottomLabelsAlpha }
                 )
             }
         }
     }
 }
-
 @Composable
 private fun WaveAnimation(
     mediaId: String,
