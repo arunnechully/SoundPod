@@ -12,7 +12,7 @@
   <img src="https://img.shields.io/badge/Platform-Android-brightgreen.svg" alt="Platform">
   <img src="https://img.shields.io/badge/License-GPL--3.0-blue.svg" alt="License">
   <a href="https://f-droid.org/packages/com.github.soundpod/"><img src="https://img.shields.io/badge/F--Droid-Available-brightgreen.svg?logo=f-droid" alt="F-Droid Status"></a>
-  <a href="https://crowdin.com/project/soundpod"><img src="https://badges.crowdin.net/soundpod/localized.svg" alt="Crowdin"></a>
+<a title="Crowdin" target="_blank" href="https://crowdin.com/project/soundpod"><img src="https://badges.crowdin.net/soundpod/localized.svg"></a>
 </p>
 
 ---
