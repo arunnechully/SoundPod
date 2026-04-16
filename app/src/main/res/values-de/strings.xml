@@ -60,7 +60,7 @@
     <string name="ignore_battery_optimizations">Akku-Optimierungen ignorieren</string>
     <string name="service_lifetime_description">Wenn das Ausschalten der Akku-Optimierung nicht ausreicht.</string>
     <string name="service_lifetime_information">Wenn die Akku-Optimierung angewendet wird, kann die Benachrichtigung über die Wiedergabe plötzlich verschwinden, wenn die Wiedergabe angehalten wird.</string>
-    <string name="service_lifetime_information_plus">Seit Android 12 ist die Deaktivierung der Akku-Optimierung erforderlich, damit die Option "Unbezwingbarer Dienst" wirksam wird.</string>
+    <string name="service_lifetime_information_plus">Seit Android 12 ist die Deaktivierung der Akku-Optimierung erforderlich, damit die Option \"Unbezwingbarer Dienst\" wirksam wird.</string>
     <string name="about">Info</string>
     <string name="search">Suche</string>
     <string name="featured">Ausgewählte</string>
