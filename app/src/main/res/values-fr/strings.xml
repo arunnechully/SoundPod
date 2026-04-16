@@ -88,22 +88,18 @@
     <string name="search_lyrics_online">Rechercher des paroles en ligne</string>
     <plurals name="number_of_songs">
         <item quantity="one">%d titre</item>
-        <item quantity="many">%d titres</item>
         <item quantity="other">%d titres</item>
     </plurals>
     <plurals name="number_of_artists">
         <item quantity="one">%d artiste</item>
-        <item quantity="many">%d artistes</item>
         <item quantity="other">%d artistes</item>
     </plurals>
     <plurals name="number_of_albums">
         <item quantity="one">%d album</item>
-        <item quantity="many">%d albums</item>
         <item quantity="other">%d albums</item>
     </plurals>
     <plurals name="number_of_playlists">
         <item quantity="one">%d playlist</item>
-        <item quantity="many">%d listas</item>
         <item quantity="other">%d playlists</item>
     </plurals>
     <string name="hide_from_quick_picks">Masquer de la Sélection Rapide</string>
