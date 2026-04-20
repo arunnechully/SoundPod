@@ -26,6 +26,7 @@ core-ktx = "1.18.0"
 material = "1.13.0"
 detekt = "1.23.8"
 work-runtime-ktx = "2.11.2"
+ui-geometry = "1.10.6"
 
 [libraries]
 brotli = { group = "org.brotli", name = "dec", version.ref = "brotli" }
@@ -69,6 +70,7 @@ detekt_formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", 
 palette = { module = "androidx.palette:palette", version = "1.0.0" }
 compose_lottie = { module = "com.airbnb.android:lottie-compose", version = "6.7.1" }
 work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work-runtime-ktx" }
+ui-geometry = { group = "androidx.compose.ui", name = "ui-geometry", version.ref = "ui-geometry" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

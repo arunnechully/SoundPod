@@ -59,11 +59,11 @@ import com.github.innertube.requests.song
 import com.github.soundpod.enums.AppThemeColor
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.service.PlayerService
-import com.github.soundpod.ui.github.UpdateCheckWorker
+import com.github.soundpod.github.UpdateCheckWorker
 import com.github.soundpod.ui.navigation.MainNavigation
 import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.ui.navigation.SettingsDestinations
-import com.github.soundpod.ui.screens.player.PlayerScaffold
+import com.github.soundpod.ui.screens.player.SharedPlayer
 import com.github.soundpod.ui.styling.AppTheme
 import com.github.soundpod.utils.appTheme
 import com.github.soundpod.utils.asMediaItem
@@ -168,7 +168,7 @@ class MainActivity : ComponentActivity() {
                     CompositionLocalProvider(value = LocalPlayerServiceBinder provides binder) {
                         val menuState = LocalMenuState.current
 
-                        PlayerScaffold(
+                        SharedPlayer(
                             navController = navController,
                             sheetState = playerState,
                             scaffoldPadding = WindowInsets.navigationBars.asPaddingValues(),

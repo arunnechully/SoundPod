@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.github
+package com.github.soundpod.github
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background

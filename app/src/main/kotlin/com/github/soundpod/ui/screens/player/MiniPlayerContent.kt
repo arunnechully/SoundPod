@@ -34,7 +34,7 @@ import com.github.soundpod.utils.shouldBePlaying
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewMiniPlayerContent(
+fun MiniPlayerContent(
     openPlayer: () -> Unit
 ) {
     val binder = LocalPlayerServiceBinder.current
@@ -111,7 +111,7 @@ fun NewMiniPlayerContent(
                                 Player.STATE_IDLE -> player.prepare()
                                 Player.STATE_ENDED -> player.seekToDefaultPosition(0)
                                 Player.STATE_BUFFERING,
-                                Player.STATE_READY -> { /* Ready to play */ }
+                                Player.STATE_READY -> {}
                             }
                             player.play()
                         }

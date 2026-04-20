@@ -1,6 +1,6 @@
 @file:Suppress("AssignedValueIsNeverRead")
 
-package com.github.soundpod.ui.github
+package com.github.soundpod.github
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

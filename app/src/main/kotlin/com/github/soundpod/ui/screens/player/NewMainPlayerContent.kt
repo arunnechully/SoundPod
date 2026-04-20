@@ -25,6 +25,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.remember
@@ -39,6 +40,7 @@ import androidx.media3.common.util.UnstableApi
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.db
 import com.github.soundpod.enums.ProgressBar
+import com.github.soundpod.ui.screens.player.lyrics.LyricsOverlay
 import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.utils.DisposableListener
 import com.github.soundpod.utils.isLandscape
@@ -46,7 +48,9 @@ import com.github.soundpod.utils.positionAndDurationState
 import com.github.soundpod.utils.progressBarStyle
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.shouldBePlaying
+import com.github.soundpod.viewmodels.PlaylistViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 @OptIn(UnstableApi::class)
@@ -61,10 +65,13 @@ fun NewMainPlayerContent(
     onGoToArtist: (String) -> Unit,
     onBack: () -> Unit,
     showPlaylist: Boolean,
-    onTogglePlaylist: (Boolean) -> Unit
+    onTogglePlaylist: (Boolean) -> Unit,
+    showLyrics: Boolean
 ) {
     val binder = LocalPlayerServiceBinder.current
     val player = binder?.player ?: return
+
+    val playlistViewModel = remember(player) { PlaylistViewModel(player) }
 
     var nullableMediaItem by remember {
         mutableStateOf(player.currentMediaItem, neverEqualPolicy())
@@ -80,6 +87,15 @@ fun NewMainPlayerContent(
     }
 
     var shouldBePlaying by remember { mutableStateOf(player.shouldBePlaying) }
+    var currentPositionMs by remember { mutableLongStateOf(0L) }
+
+    // Track position for Lyrics Auto-scrolling
+    LaunchedEffect(player.isPlaying, mediaItem) {
+        while (player.isPlaying) {
+            currentPositionMs = player.currentPosition
+            delay(250)
+        }
+    }
 
     val handleGoToAlbum: (String) -> Unit = remember(onGoToAlbum, onBack) {
         { id ->
@@ -169,9 +185,21 @@ fun NewMainPlayerContent(
                     if (showPlaylist) {
                         Column {
                             PlaylistOverlay(
+                                viewModel = playlistViewModel,
                                 modifier = Modifier.weight(1f),
                                 onGoToAlbum = handleGoToAlbum,
                                 onGoToArtist = handleGoToArtist
+                            )
+                            Spacer(modifier = Modifier.height(26.dp))
+                        }
+                    } else if (showLyrics) {
+                        Column {
+                            LyricsOverlay(
+                                modifier = Modifier.weight(1f),
+                                mediaId = mediaItem.mediaId,
+                                mediaMetadata = mediaItem.mediaMetadata,
+                                currentPositionMs = currentPositionMs,
+                                onSeekTo = { timeMs -> player.seekTo(timeMs) }
                             )
                             Spacer(modifier = Modifier.height(26.dp))
                         }
@@ -198,10 +226,23 @@ fun NewMainPlayerContent(
                                 label = "MiddleControlFade"
                             )
                             Box(modifier = Modifier.graphicsLayer { alpha = middleControlAlpha }) {
-                                PlayerMiddleControl(
-                                    showPlaylist = false,
-                                    onTogglePlaylist = onTogglePlaylist,
-                                    mediaId = mediaItem.mediaId
+
+                                PlayerControlBottom(
+                                    shouldBePlaying = shouldBePlaying,
+                                    onPlayPauseClick = {
+                                        if (shouldBePlaying) {
+                                            player.pause()
+                                        } else {
+                                            when (player.playbackState) {
+                                                Player.STATE_IDLE -> player.prepare()
+                                                Player.STATE_ENDED -> player.seekToDefaultPosition(0)
+                                                Player.STATE_BUFFERING,
+                                                Player.STATE_READY -> {
+                                                }
+                                            }
+                                            player.play()
+                                        }
+                                    }
                                 )
                             }
                         }
@@ -219,23 +260,10 @@ fun NewMainPlayerContent(
                 )
 
                 Spacer(modifier = Modifier.height(Dimensions.spacer))
-
-                PlayerControlBottom(
-                    shouldBePlaying = shouldBePlaying,
-                    onPlayPauseClick = {
-                        if (shouldBePlaying) {
-                            player.pause()
-                        } else {
-                            when (player.playbackState) {
-                                Player.STATE_IDLE -> player.prepare()
-                                Player.STATE_ENDED -> player.seekToDefaultPosition(0)
-                                Player.STATE_BUFFERING,
-                                Player.STATE_READY -> {
-                                }
-                            }
-                            player.play()
-                        }
-                    }
+                PlayerMiddleControl(
+                    showPlaylist = false,
+                    onTogglePlaylist = onTogglePlaylist,
+                    mediaId = mediaItem.mediaId
                 )
             }
         }

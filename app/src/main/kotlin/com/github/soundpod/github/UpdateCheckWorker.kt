@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.github
+package com.github.soundpod.github
 
 import android.Manifest
 import android.app.NotificationChannel

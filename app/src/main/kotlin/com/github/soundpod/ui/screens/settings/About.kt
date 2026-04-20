@@ -29,11 +29,14 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import com.github.api.GitHub
 import com.github.soundpod.BuildConfig
 import com.github.soundpod.R
+import com.github.soundpod.github.UpdateMessage
+import com.github.soundpod.github.checkForUpdates
+import com.github.soundpod.github.downloadAndInstall
+import com.github.soundpod.github.installApkInternal
 import com.github.soundpod.ui.common.*
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.components.SwitchSetting
-import com.github.soundpod.ui.github.*
 import com.github.soundpod.ui.styling.Dimensions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -165,7 +168,9 @@ fun AboutSettings(
                                         context = context,
                                         urlString = exactApkUrl,
                                         isSeamless = seamlessUpdateEnabled,
-                                        onProgress = { updateStatus = UpdateStatus.Downloading(it) },
+                                        onProgress = {
+                                            updateStatus = UpdateStatus.Downloading(it)
+                                        },
                                         onFinished = { file ->
                                             updateStatus = if (seamlessUpdateEnabled) {
                                                 UpdateStatus.ReadyToInstall(file)

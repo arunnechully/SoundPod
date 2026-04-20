@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.github
+package com.github.soundpod.github
 
 object VersionUtils {
     fun extractVersion(text: String): String {

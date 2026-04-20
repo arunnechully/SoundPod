@@ -9,7 +9,11 @@ import com.github.soundpod.utils.rememberPreference
 fun PlayerLayout(
     onGoToAlbum: (String) -> Unit,
     onGoToArtist: (String) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    showPlaylist: Boolean,
+    onLyricsClick: () -> Unit = {},
+    showLyrics: Boolean,
+    onTogglePlaylist: (Boolean) -> Unit
 ) {
     val playerLayoutState = rememberPreference(playerlayout, PlayerLayout.Default)
     val currentLayout = playerLayoutState.value
@@ -19,14 +23,21 @@ fun PlayerLayout(
             MainPlayerContent(
                 onGoToAlbum = onGoToAlbum,
                 onGoToArtist = onGoToArtist,
-                onBack = onBack
+                onBack = onBack,
+                showPlaylist = showPlaylist,
+                onLyricsClick = onLyricsClick,
+                showLyrics = showLyrics,
+                onTogglePlaylist = onTogglePlaylist
             )
         }
         PlayerLayout.New -> {
-            NewPlayer(
+            NewMainPlayerContent(
                 onGoToAlbum = onGoToAlbum,
                 onGoToArtist = onGoToArtist,
-                onBack = onBack
+                onBack = onBack,
+                showPlaylist = showPlaylist,
+                showLyrics = showLyrics,
+                onTogglePlaylist = onTogglePlaylist
             )
         }
     }

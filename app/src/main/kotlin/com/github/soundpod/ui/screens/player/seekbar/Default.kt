@@ -41,7 +41,6 @@ fun SeekBar(
     scrubberColor: Color = color,
     scrubberRadius: Dp = 16.dp,
     shape: Shape = RectangleShape,
-    drawSteps: Boolean = false,
 ) {
     val isDragging = remember { MutableTransitionState(false) }
 

@@ -400,6 +400,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         maybeRecoverPlaybackError()
         maybeNormalizeVolume()
         maybeProcessRadio()
+        maybeFetchLyrics(mediaItem)
 
         if (mediaItem == null) {
             bitmapProvider.listener?.invoke(null)
@@ -545,7 +546,19 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
             }
         }
     }
+    private fun maybeFetchLyrics(mediaItem: MediaItem?) {
+        val mediaId = mediaItem?.mediaId ?: return
+        val metadata = mediaItem.mediaMetadata
 
+        coroutineScope.launch(Dispatchers.IO) {
+
+            val duration = withContext(Dispatchers.Main) {
+                if (player.duration == C.TIME_UNSET) 0L else player.duration
+            }
+
+            LyricsFetcher.fetchLyrics(mediaId, metadata, duration)
+        }
+    }
     private fun maybeShowSongCoverInLockScreen() {
         val bitmap =
             if (isAtLeastAndroid13 || isShowingThumbnailInLockscreen) bitmapProvider.bitmap else null

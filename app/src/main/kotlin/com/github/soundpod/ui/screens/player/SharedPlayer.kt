@@ -1,7 +1,11 @@
 package com.github.soundpod.ui.screens.player
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -19,6 +23,7 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,7 +47,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlayerScaffold(
+fun SharedPlayer(
     navController: NavController,
     sheetState: SheetState,
     scaffoldPadding: PaddingValues,
@@ -51,7 +56,9 @@ fun PlayerScaffold(
 ) {
     val scope = rememberCoroutineScope()
     val layoutDirection = LocalLayoutDirection.current
+
     var showPlaylist by remember { mutableStateOf(false) }
+    var showLyrics by remember { mutableStateOf(false) }
     var targetExpandProgress by remember { mutableFloatStateOf(0f) }
 
     val expandProgress by animateFloatAsState(
@@ -64,6 +71,13 @@ fun PlayerScaffold(
     val player = binder?.player
     var currentArtworkUrl by remember {
         mutableStateOf(player?.currentMediaItem?.mediaMetadata?.artworkUri?.toString())
+    }
+
+    LaunchedEffect(expandProgress) {
+        if (expandProgress == 0f) {
+            showLyrics = false
+            showPlaylist = false
+        }
     }
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -88,7 +102,7 @@ fun PlayerScaffold(
         }
 
         if (showPlayer) {
-            val dragGestureModifier = if (showPlaylist) {
+            val dragGestureModifier = if (showPlaylist || showLyrics) {
                 Modifier
             } else {
                 Modifier.pointerInput(Unit) {
@@ -122,13 +136,14 @@ fun PlayerScaffold(
             ) {
                 PlayerBackground(thumbnailUrl = currentArtworkUrl) {
                     Box(modifier = Modifier.fillMaxSize()) {
+
                         if (expandProgress > 0f) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .alpha(expandProgress)
                             ) {
-                                NewMainPlayerContent(
+                                PlayerLayout(
                                     onGoToAlbum = { browseId ->
                                         scope.launch { sheetState.partialExpand() }
                                         navController.navigate(route = Routes.Album(id = browseId))
@@ -138,16 +153,37 @@ fun PlayerScaffold(
                                         navController.navigate(route = Routes.Artist(id = browseId))
                                     },
                                     onBack = {
-                                        targetExpandProgress = 0f
-                                        scope.launch { sheetState.partialExpand() }
+                                        if (showLyrics) {
+                                            showLyrics = false
+                                        } else if (showPlaylist) {
+                                            showPlaylist = false
+                                        } else {
+                                            targetExpandProgress = 0f
+                                            scope.launch { sheetState.partialExpand() }
+                                        }
                                     },
                                     showPlaylist = showPlaylist,
-                                    onTogglePlaylist = { showPlaylist = it }
+                                    onLyricsClick = {
+                                        showLyrics = true
+                                        showPlaylist = false
+                                    },
+                                    showLyrics = showLyrics,
+                                    onTogglePlaylist = {
+                                        showPlaylist = it
+                                        if (it) showLyrics = false
+                                    }
                                 )
                             }
                         }
-                        if (!showPlaylist) {
-                            SharedThumbnail(expandProgress = expandProgress)
+
+                        AnimatedVisibility(
+                            visible = !showPlaylist && !showLyrics,
+                            enter = fadeIn(tween(400)),
+                            exit = fadeOut(tween(400))
+                        ) {
+                            SharedThumbnail(
+                                expandProgress = expandProgress,
+                            )
                         }
                     }
                 }
@@ -166,7 +202,7 @@ fun PlayerScaffold(
                         .alpha(1f - expandProgress)
                         .then(dragGestureModifier)
                 ){
-                    NewMiniPlayerContent(
+                    MiniPlayerContent(
                         openPlayer = {
                             targetExpandProgress = 1f
                             scope.launch { sheetState.expand() }

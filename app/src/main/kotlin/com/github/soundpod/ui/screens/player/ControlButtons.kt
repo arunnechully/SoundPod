@@ -486,7 +486,9 @@ fun PlayerTopControl(
     onGoToAlbum: (String) -> Unit,
     onGoToArtist: (String) -> Unit,
     onBack: () -> Unit,
+    onLyricsClick: () -> Unit = {},
     isPlaylistShowing: Boolean
+
 ) {
     val menuState = LocalMenuState.current
     val (colorPalette) = LocalAppearance.current
@@ -563,6 +565,20 @@ fun PlayerTopControl(
                     modifier = Modifier.size(22.dp)
                 )
             }
+        }
+
+        IconButton(
+            onClick = {
+                onLyricsClick()
+            }
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.music_lyric),
+                tint = colorPalette.iconColor,
+                contentDescription = "music lyrics",
+                modifier = Modifier
+                    .size(22.dp)
+            )
         }
 
         IconButton(

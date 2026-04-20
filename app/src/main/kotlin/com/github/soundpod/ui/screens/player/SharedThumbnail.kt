@@ -5,12 +5,15 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -21,14 +24,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -54,7 +60,9 @@ private data class ThumbnailBounds(
 )
 
 @Composable
-fun SharedThumbnail(expandProgress: Float) {
+fun SharedThumbnail(
+    expandProgress: Float,
+) {
     val binder = LocalPlayerServiceBinder.current
     val player = binder?.player ?: return
 
@@ -159,29 +167,33 @@ fun SharedThumbnail(expandProgress: Float) {
                 }
                 .background(glassColor)
         ) {
-            val state by painter.state.collectAsState()
-
+            val asyncPainter = this.painter
+            val state by asyncPainter.state.collectAsState()
             val dynamicIconSize = lerp(24.dp, 180.dp, expandProgress)
 
-            when (state) {
-                is AsyncImagePainter.State.Success -> {
-                    Image(
-                        painter = painter,
-                        contentDescription = "Album Art",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-                else -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+
+                // Artwork Layer
+                when (state) {
+                    is AsyncImagePainter.State.Success -> {
                         Image(
-                            painter = painterResource(id = R.drawable.app_icon),
-                            contentDescription = null,
-                            modifier = Modifier.size(dynamicIconSize)
+                            painter = asyncPainter,
+                            contentDescription = "Album Art",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
                         )
+                    }
+                    else -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.app_icon),
+                                contentDescription = null,
+                                modifier = Modifier.size(dynamicIconSize)
+                            )
+                        }
                     }
                 }
             }

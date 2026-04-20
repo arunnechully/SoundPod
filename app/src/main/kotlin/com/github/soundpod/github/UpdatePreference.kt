@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.github
+package com.github.soundpod.github
 
 import android.app.DownloadManager
 import android.content.ActivityNotFoundException

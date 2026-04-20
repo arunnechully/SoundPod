@@ -22,7 +22,7 @@ data class ColorPalette(
     val iconColor: ParcelableColor,
     val accent: ParcelableColor,
     val onAccent: ParcelableColor,
-    val black: ParcelableColor = Color(0xFF000000),
+    val black: ParcelableColor = Color.Black,
     val red: ParcelableColor = Color(0xffbf4040),
     val blue: ParcelableColor = Color(0xff4472cf),
     val yellow: ParcelableColor = Color(0xfffff176),
@@ -33,21 +33,27 @@ data class ColorPalette(
     val isDark: Boolean
 ) : Parcelable {
     @IgnoredOnParcel
-    val background3 by lazy { if (isDark) Color.Black else Color.White }
+    val background3: Color get() = if (isDark) Color.Black else Color.White
 
     @IgnoredOnParcel
-    val background4 by lazy { if (isDark) Color.Black else Color(0xFFF6F6F8) }
+    val background4: Color get() = if (isDark) Color.Black else Color(0xFFF6F6F8)
+
     @IgnoredOnParcel
-    val baseColor by lazy { if (isDark) Color(0xFF1E1E1E) else Color.White }
+    val baseColor: Color get() = if (isDark) Color(0xFF1E1E1E) else Color.White
+
     @IgnoredOnParcel
-    val boxColor by lazy { if (isDark) Color(0xFF1E1E1E) else Color.White  }
+    val boxColor: Color get() = if (isDark) Color(0xFF1E1E1E) else Color.White
+
+    @IgnoredOnParcel
+    val glass: Color get() = if (isDark) Color.White.copy(alpha = 0.07f) else Color.Black.copy(alpha = 0.04f)
+
     companion object
 }
 
 private val defaultAccentColor = Color(0xFFF08A6E).hsl
 
 val defaultLightPalette = ColorPalette(
-    background0 = Color(0xFFFFFFFF),
+    background0 = Color.White,
     background1 = Color(0xfff8f8fc),
     background2 = Color(0xffeaeaf5),
     iconColor = Color.Black,
@@ -90,18 +96,13 @@ private fun lightColorPalette(accent: Hsl) = ColorPalette(
         saturation = accent.saturation.coerceAtMost(0.4f),
         lightness = 0.85f
     ),
-
     iconColor = Color.Black,
-
-    // accent and onAccent
     accent = Color.hsl(
         hue = accent.hue,
         saturation = accent.saturation.coerceAtMost(0.5f),
         lightness = 0.5f
     ),
     onAccent = Color.White,
-
-    // next parameters are text colors
     text = Color.hsl(
         hue = accent.hue,
         saturation = accent.saturation.coerceAtMost(0.02f),
@@ -117,11 +118,9 @@ private fun lightColorPalette(accent: Hsl) = ColorPalette(
         saturation = accent.saturation.coerceAtMost(0.2f),
         lightness = 0.65f
     ),
-
     isDefault = false,
     isDark = false
 )
-
 
 private fun darkColorPalette(accent: Hsl, darkness: Darkness) = ColorPalette(
     background0 = if (darkness == Darkness.Normal) Color.hsl(
@@ -139,16 +138,13 @@ private fun darkColorPalette(accent: Hsl, darkness: Darkness) = ColorPalette(
         saturation = accent.saturation.coerceAtMost(0.4f),
         lightness = 0.2f
     ) else Color.Black,
-
     iconColor = Color.White,
-
     accent = Color.hsl(
         hue = accent.hue,
         saturation = accent.saturation.coerceAtMost(if (darkness == Darkness.AMOLED) 0.4f else 0.5f),
         lightness = 0.5f
     ),
     onAccent = Color.White,
-
     text = Color.hsl(
         hue = accent.hue,
         saturation = accent.saturation.coerceAtMost(0.02f),
@@ -164,22 +160,18 @@ private fun darkColorPalette(accent: Hsl, darkness: Darkness) = ColorPalette(
         saturation = accent.saturation.coerceAtMost(0.2f),
         lightness = 0.40f
     ),
-
     isDefault = false,
     isDark = true
 )
-
 
 fun accentColorOf(
     source: ColorSource,
     isDark: Boolean,
     materialAccentColor: Color?,
     sampleBitmap: Bitmap?
-) = when (source) {
+): Hsl = when (source) {
     ColorSource.Default -> defaultAccentColor
-    ColorSource.Dynamic -> sampleBitmap?.let { dynamicAccentColorOf(it, isDark) }
-        ?: defaultAccentColor
-
+    ColorSource.Dynamic -> sampleBitmap?.let { dynamicAccentColorOf(it, isDark) } ?: defaultAccentColor
     ColorSource.MaterialYou -> materialAccentColor?.hsl ?: defaultAccentColor
 }
 
@@ -187,32 +179,31 @@ fun dynamicAccentColorOf(
     bitmap: Bitmap,
     isDark: Boolean
 ): Hsl? {
-    val palette = Palette
-        .from(bitmap)
-        .maximumColorCount(8)
-        .addFilter(if (isDark) ({ _, hsl -> hsl[0] !in 36f..100f }) else null)
-        .generate()
+    val builder = Palette.from(bitmap).maximumColorCount(8)
+    if (isDark) {
+        builder.addFilter { _, hsl -> hsl[0] !in 36f..100f }
+    }
 
-    val hsl = if (isDark) {
-        palette.dominantSwatch ?: Palette
-            .from(bitmap)
-            .maximumColorCount(8)
-            .generate()
-            .dominantSwatch
-    } else {
-        palette.dominantSwatch
-    }?.hsl ?: return null
+    var palette = builder.generate()
+    var swatch = palette.dominantSwatch
 
-    val arr = if (hsl[1] < 0.08)
-        palette.swatches
-            .map(Palette.Swatch::getHsl)
-            .sortedByDescending(FloatArray::component2)
-            .find { it[1] != 0f }
-            ?: hsl
-    else hsl
+    if (isDark && swatch == null) {
+        palette = Palette.from(bitmap).maximumColorCount(8).generate()
+        swatch = palette.dominantSwatch
+    }
 
-    return arr.hsl
+    val hslArray = swatch?.hsl ?: return null
+
+    if (hslArray[1] < 0.08f) {
+        val colorfulSwatch = palette.swatches.maxByOrNull { it.hsl[1] }
+
+        if (colorfulSwatch != null && colorfulSwatch.hsl[1] > 0f) {
+            return colorfulSwatch.hsl.hsl
+        }
+    }
+    return hslArray.hsl
 }
+
 fun colorPaletteOf(
     source: ColorSource,
     darkness: Darkness,
@@ -220,38 +211,39 @@ fun colorPaletteOf(
     materialAccentColor: Color?,
     sampleBitmap: Bitmap?
 ): ColorPalette {
-    val accentColor = accentColorOf(
-        source = source,
-        isDark = isDark,
-        materialAccentColor = materialAccentColor,
-        sampleBitmap = sampleBitmap
-    )
+    val accentColor = accentColorOf(source, isDark, materialAccentColor, sampleBitmap)
+    val isDefaultAccent = accentColor == defaultAccentColor
 
-    return (if (isDark) darkColorPalette(accentColor, darkness) else lightColorPalette(accentColor))
-        .copy(isDefault = accentColor == defaultAccentColor)
+    if (isDefaultAccent) {
+        if (!isDark) return defaultLightPalette
+        if (darkness == Darkness.Normal) return defaultDarkPalette
+    }
+
+    return if (isDark) {
+        darkColorPalette(accentColor, darkness).copy(isDefault = isDefaultAccent)
+    } else {
+        lightColorPalette(accentColor).copy(isDefault = isDefaultAccent)
+    }
 }
 
 inline val ColorPalette.isPureBlack get() = background0 == Color.Black
-inline val ColorPalette.collapsedPlayerProgressBar
-    get() = if (isPureBlack) defaultDarkPalette.background0 else background2
-inline val ColorPalette.favoritesIcon get() = if (isDefault) red else accent
 
-inline val ColorPalette.surface get() = if (isPureBlack) Color(0xff272727) else background2
+inline val ColorPalette.collapsedPlayerProgressBar: ParcelableColor
+    get() = if (isPureBlack) defaultDarkPalette.background0 else background2
+
+inline val ColorPalette.favoritesIcon: ParcelableColor
+    get() = if (isDefault) red else accent
+
+inline val ColorPalette.surface: ParcelableColor
+    get() = if (isPureBlack) Color(0xff272727) else background2
+
 object ColorParceler : Parceler<Color> {
     override fun Color.write(parcel: Parcel, flags: Int) {
-        try {
-            parcel.writeLong(value.toLong())
-        } catch (_: Exception) {
-            parcel.writeLong(Color.Transparent.value.toLong())
-        }
+        parcel.writeLong(this.value.toLong())
     }
 
     override fun create(parcel: Parcel): Color {
-        return try {
-            val colorValue = parcel.readLong()
-            Color(colorValue)
-        } catch (_: Exception) {
-            Color.Transparent
-        }
+        val colorValue = parcel.readLong()
+        return Color(colorValue.toULong())
     }
 }

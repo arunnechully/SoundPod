@@ -127,6 +127,7 @@ dependencies {
     implementation(libs.compose.lottie)
     implementation(libs.datastore.preferences)
     implementation(libs.work.runtime.ktx)
+    implementation(libs.ui.geometry)
 
     ksp(libs.room.compiler)
 

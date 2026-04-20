@@ -63,6 +63,7 @@ import com.github.soundpod.query
 import com.github.soundpod.service.LoginRequiredException
 import com.github.soundpod.service.PlayableFormatNotFoundException
 import com.github.soundpod.service.UnplayableException
+import com.github.soundpod.ui.screens.player.lyrics.OldLyrics
 import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.ui.styling.px
 import com.github.soundpod.utils.DisposableListener
@@ -263,7 +264,7 @@ fun Thumbnail(
                     .matchParentSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Lyrics(
+                OldLyrics(
                     mediaId = currentWindow.mediaItem.mediaId,
                     isDisplayed = isShowingLyrics && error == null,
                     onDismiss = {

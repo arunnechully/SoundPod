@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.screens.player
+package com.github.soundpod.ui.screens.player.lyrics
 
 import android.app.SearchManager
 import android.content.ActivityNotFoundException
@@ -79,7 +79,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 
 @Composable
-fun Lyrics(
+fun OldLyrics(
     mediaId: String,
     isDisplayed: Boolean,
     onDismiss: () -> Unit,
