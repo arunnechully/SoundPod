@@ -5,33 +5,14 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Album
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.MusicNote
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme.typography
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -47,40 +28,35 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.github.core.ui.LocalAppearance
-import com.github.innertube.Innertube
-import com.github.innertube.requests.albumPage
 import com.github.soundpod.R
-import com.github.soundpod.db
-import com.github.soundpod.models.Album
 import com.github.soundpod.models.Section
-import com.github.soundpod.models.SongAlbumMap
-import com.github.soundpod.ui.components.adaptiveThumbnailContent
-import com.github.soundpod.utils.asMediaItem
-import com.github.soundpod.utils.completed
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.withContext
+import com.github.soundpod.ui.components.AdaptiveThumbnail
+import com.github.soundpod.utils.thumbnail
+import com.github.soundpod.viewmodels.AlbumViewModel
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun TodoAlbumScreen(
+fun NewAlbumScreen(
     browseId: String,
-    pop: () -> Unit,
-    onAlbumClick: (String) -> Unit,
     onGoToArtist: (String) -> Unit,
     onBack: () -> Unit,
+    viewModel: AlbumViewModel = viewModel()
 ) {
     BackHandler { onBack() }
 
+    LaunchedEffect(browseId) {
+        viewModel.initAlbum(browseId)
+    }
+
+    val uiState by viewModel.uiState.collectAsState()
+    val album = uiState.album
+
     val(colorPalette) = LocalAppearance.current
-
-    var album: Album? by remember { mutableStateOf(null) }
-    var albumPage: Innertube.PlaylistOrAlbumPage? by remember { mutableStateOf(null) }
-
-    val isLoved = false
     val windowInfo = LocalWindowInfo.current
+
     val (blurRadius, cornerRadius) = remember(windowInfo.containerSize) {
         val blur = (windowInfo.containerSize.height * 0.15f).dp
         val corner = (windowInfo.containerSize.width * 0.08f).dp.coerceAtMost(32.dp)
@@ -95,56 +71,12 @@ fun TodoAlbumScreen(
 
     val pagerState = rememberPagerState(pageCount = { tabs.size })
 
-    val thumbnailContent =
-        adaptiveThumbnailContent(album?.timestamp == null, album?.thumbnailUrl)
+    LaunchedEffect(pagerState.currentPage) {
+        viewModel.onTabSelected(pagerState.currentPage)
+    }
 
-    val thumbnailUrl = album?.thumbnailUrl
-
-    LaunchedEffect(Unit) {
-        db
-            .album(browseId)
-            .combine(snapshotFlow { pagerState.currentPage }) { album, tabIndex -> album to tabIndex }
-            .collect { (currentAlbum, tabIndex) ->
-                album = currentAlbum
-
-                if (albumPage == null && (currentAlbum?.timestamp == null || tabIndex >= 1)) {
-                    withContext(Dispatchers.IO) {
-                        Innertube.albumPage(browseId = browseId)
-                            ?.completed()
-                            ?.onSuccess { currentAlbumPage ->
-                                albumPage = currentAlbumPage
-
-                                db.clearAlbum(browseId)
-
-                                db.upsert(
-                                    Album(
-                                        id = browseId,
-                                        title = currentAlbumPage.title,
-                                        thumbnailUrl = currentAlbumPage.thumbnail?.url,
-                                        year = currentAlbumPage.year,
-                                        authorsText = currentAlbumPage.authors
-                                            ?.joinToString("") { it.name ?: "" },
-                                        shareUrl = currentAlbumPage.url,
-                                        timestamp = System.currentTimeMillis(),
-                                        bookmarkedAt = album?.bookmarkedAt
-                                    ),
-                                    currentAlbumPage
-                                        .songsPage
-                                        ?.items
-                                        ?.map(Innertube.SongItem::asMediaItem)
-                                        ?.onEach(db::insert)
-                                        ?.mapIndexed { position, mediaItem ->
-                                            SongAlbumMap(
-                                                songId = mediaItem.mediaId,
-                                                albumId = browseId,
-                                                position = position
-                                            )
-                                        } ?: emptyList()
-                                )
-                            }
-                    }
-                }
-            }
+    val highResThumbnailUrl = remember(album?.thumbnailUrl) {
+        album?.thumbnailUrl?.thumbnail(1024)
     }
 
     Box(
@@ -152,9 +84,11 @@ fun TodoAlbumScreen(
             .fillMaxSize()
             .background(colorPalette.background4)
     ) {
+        // Blurred Background Image
         AsyncImage(
-            model = thumbnailUrl,
+            model = highResThumbnailUrl,
             contentDescription = null,
+            contentScale = ContentScale.Crop,
             modifier = Modifier
                 .matchParentSize()
                 .blur(blurRadius)
@@ -186,14 +120,14 @@ fun TodoAlbumScreen(
             }
 
             IconButton(
-                onClick = {}
+                onClick = { viewModel.toggleLove() }
             ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(
-                        if (isLoved) R.drawable.heart else R.drawable.heart_outline
+                        if (uiState.isLoved) R.drawable.heart else R.drawable.heart_outline
                     ),
-                    contentDescription = if (isLoved) "Unlike" else "Like",
-                    tint = (if (isLoved) Color.Red else colorPalette.text),
+                    contentDescription = if (uiState.isLoved) "Unlike" else "Like",
+                    tint = (if (uiState.isLoved) Color.Red else colorPalette.text),
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -206,20 +140,11 @@ fun TodoAlbumScreen(
                 .align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally
         ){
-            AsyncImage(
-                model = thumbnailUrl,
-                placeholder = painterResource(id = R.drawable.app_icon),
-                error = painterResource(id = R.drawable.app_icon),
-                fallback = painterResource(id = R.drawable.app_icon),
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .fillMaxWidth(0.45f)
-//                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(cornerRadius / 2))
+            AdaptiveThumbnail(
+                isLoading = uiState.isLoading,
+                url = album?.thumbnailUrl,
+                modifier = Modifier.fillMaxWidth(0.55f)
             )
-
-            Spacer(modifier = Modifier.padding(vertical = 5.dp))
 
             Text(
                 text = album?.title.orEmpty(),
@@ -245,23 +170,16 @@ fun TodoAlbumScreen(
             }
         }
 
-        // Song list
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .fillMaxHeight(0.53f)
-                .clip(
-                    RoundedCornerShape(
-                        topStart = cornerRadius,
-                        topEnd = cornerRadius
-                    )
-                )
+                .clip(RoundedCornerShape(topStart = cornerRadius, topEnd = cornerRadius))
                 .background(colorPalette.baseColor)
         ) {
-            AlbumSongs(
+            NewAlbumSongs(
                 browseId = browseId,
-                thumbnailContent = thumbnailContent,
                 onGoToArtist = onGoToArtist
             )
         }

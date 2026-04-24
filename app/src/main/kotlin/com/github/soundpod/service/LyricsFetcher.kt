@@ -3,7 +3,7 @@ package com.github.soundpod.service
 import androidx.media3.common.MediaMetadata
 import com.github.innertube.Innertube
 import com.github.innertube.requests.lyrics
-import com.github.kugou.KuGou
+import com.github.kugou.KuGou // <-- Imported KuGou
 import com.github.soundpod.db
 import com.github.soundpod.models.Lyrics
 import kotlinx.coroutines.Dispatchers
@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
-// Import the SQLite exception
 import android.database.sqlite.SQLiteConstraintException
 
 object LyricsFetcher {
@@ -36,13 +35,20 @@ object LyricsFetcher {
             }
 
             var kugouResult: String? = null
-            KuGou.lyrics(
-                artist = mediaMetadata.artist?.toString() ?: "",
-                title = mediaMetadata.title?.toString() ?: "",
-                duration = durationMs / 1000
-            )?.onSuccess { syncedLyrics ->
-                kugouResult = syncedLyrics?.value
+
+            val artist = mediaMetadata.artist?.toString() ?: ""
+            val title = mediaMetadata.title?.toString() ?: ""
+
+            if (artist.isNotBlank() && title.isNotBlank()) {
+                KuGou.lyrics(
+                    artist = artist,
+                    title = title,
+                    duration = durationMs / 1000
+                )?.onSuccess { syncedLyrics ->
+                    kugouResult = syncedLyrics?.value
+                }
             }
+
             kugouResult
         }
 

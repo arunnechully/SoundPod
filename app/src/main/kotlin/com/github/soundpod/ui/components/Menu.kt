@@ -47,12 +47,12 @@ fun MenuEntry(
         },
         modifier = Modifier
             .clickable(enabled = enabled, onClick = onClick)
-            .alpha(if (enabled) 1F else Dimensions.lowOpacity),
+            .alpha(if (enabled) 1F else Dimensions.LOWOPACITY),
         supportingContent = {
             if (secondaryText != null) {
                 Text(
                     text = secondaryText,
-                    modifier = Modifier.alpha(Dimensions.mediumOpacity)
+                    modifier = Modifier.alpha(Dimensions.MEDIUMOPACITY)
                 )
             }
         },

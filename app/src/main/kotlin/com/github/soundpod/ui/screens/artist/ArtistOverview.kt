@@ -353,7 +353,7 @@ fun ArtistOverview(
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
-                        .alpha(Dimensions.mediumOpacity)
+                        .alpha(Dimensions.MEDIUMOPACITY)
                 )
 
                 if (attributionsIndex != -1) {
@@ -361,7 +361,7 @@ fun ArtistOverview(
                         text = "From Wikipedia under Creative Commons Attribution CC-BY-SA 3.0",
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier
-                            .alpha(Dimensions.mediumOpacity)
+                            .alpha(Dimensions.MEDIUMOPACITY)
                             .padding(start = 16.dp, end = 16.dp, top = 12.dp)
                     )
                 }

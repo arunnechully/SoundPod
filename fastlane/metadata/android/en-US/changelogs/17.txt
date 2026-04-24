@@ -1,0 +1,16 @@
+🚀 What’s New
+• Completely redesigned player with a unified layout
+• UI redesigned (inspired by Samsung Music)
+• Added new album screen
+• Fixed thumbnail quality issue (now fetches high-quality artwork)
+• Updated player thumbnail to match new design
+• Moved lyrics to a dedicated view inside the player
+• Added a dedicated lyrics button for quick access
+• Removed unused code for better performance
+
+🛠 Work in Progress
+• Add to playlist option from player (+ button)
+• Smoother lyrics view experience
+• Further improvements to player & thumbnails
+• Enhancements to album screen
+• Locale support

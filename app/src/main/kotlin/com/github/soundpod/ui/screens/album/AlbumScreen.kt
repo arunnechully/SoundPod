@@ -32,7 +32,7 @@ import com.github.soundpod.models.SongAlbumMap
 import com.github.soundpod.query
 import com.github.soundpod.ui.components.TabScaffold
 import com.github.soundpod.ui.components.TooltipIconButton
-import com.github.soundpod.ui.components.adaptiveThumbnailContent
+import com.github.soundpod.ui.components.AdaptiveThumbnail // <-- Updated Import
 import com.github.soundpod.ui.items.AlbumItem
 import com.github.soundpod.ui.items.ItemPlaceholder
 import com.github.soundpod.ui.screens.search.ItemsPage
@@ -108,9 +108,6 @@ fun AlbumScreen(
             }
     }
 
-    val thumbnailContent =
-        adaptiveThumbnailContent(album?.timestamp == null, album?.thumbnailUrl)
-
     BackHandler(enabled = true) {
         pop()
     }
@@ -166,7 +163,12 @@ fun AlbumScreen(
         when (index) {
             0 -> AlbumSongs(
                 browseId = browseId,
-                thumbnailContent = thumbnailContent,
+                thumbnailContent = {
+                    AdaptiveThumbnail(
+                        isLoading = album?.timestamp == null,
+                        url = album?.thumbnailUrl
+                    )
+                },
                 onGoToArtist = onGoToArtist
             )
 

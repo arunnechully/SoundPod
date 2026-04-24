@@ -377,7 +377,7 @@ fun SearchResults(
                                 modifier = Modifier
                                     .padding(horizontal = 16.dp, vertical = 32.dp)
                                     .fillMaxWidth()
-                                    .alpha(Dimensions.mediumOpacity)
+                                    .alpha(Dimensions.MEDIUMOPACITY)
                             )
                         }
                     }

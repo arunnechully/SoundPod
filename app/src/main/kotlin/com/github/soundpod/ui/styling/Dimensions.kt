@@ -9,8 +9,8 @@ import androidx.compose.ui.unit.dp
 @Suppress("ClassName")
 object Dimensions {
     val itemsVerticalPadding = 8.dp
-    const val mediumOpacity = 0.75F
-    const val lowOpacity = 0.5F
+    const val MEDIUMOPACITY = 0.75F
+    const val LOWOPACITY = 0.5F
     val spacer = 16.dp
 
     object thumbnails {

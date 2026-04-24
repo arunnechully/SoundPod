@@ -45,7 +45,11 @@ class LyricsViewModel : ViewModel() {
 
     fun getActiveIndex(position: Long, lines: List<LyricLine>): Int {
         if (lines.isEmpty()) return -1
-        val index = lines.binarySearch { it.startMs.compareTo(position) }
+
+        val lookaheadPosition = position + 600
+
+        val index = lines.binarySearch { it.startMs.compareTo(lookaheadPosition) }
+
         return if (index >= 0) index else (-(index + 2)).coerceAtLeast(0)
     }
 }

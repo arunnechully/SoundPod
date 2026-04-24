@@ -223,7 +223,7 @@ fun SearchScreen(
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier
                                         .align(Alignment.Center)
-                                        .alpha(Dimensions.mediumOpacity)
+                                        .alpha(Dimensions.MEDIUMOPACITY)
                                 )
                             }
                         }

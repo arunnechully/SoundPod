@@ -292,7 +292,7 @@ fun OldLyrics(
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier
                                     .padding(vertical = 4.dp, horizontal = 32.dp)
-                                    .alpha(if (index == synchronizedLyrics.index) 1F else Dimensions.mediumOpacity)
+                                    .alpha(if (index == synchronizedLyrics.index) 1F else Dimensions.MEDIUMOPACITY)
                             )
                         }
                     }

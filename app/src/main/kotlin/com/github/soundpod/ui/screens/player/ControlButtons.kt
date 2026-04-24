@@ -464,7 +464,7 @@ fun PlayerControlBottom(
                 Player.REPEAT_MODE_ALL -> painterResource(R.drawable.repeat)
                 else -> painterResource(R.drawable.repeat_off)
             }
-            val alpha = if (repeatMode == Player.REPEAT_MODE_OFF) Dimensions.lowOpacity else 1f
+            val alpha = if (repeatMode == Player.REPEAT_MODE_OFF) Dimensions.LOWOPACITY else 1f
 
             Icon(
                 painter = icon,

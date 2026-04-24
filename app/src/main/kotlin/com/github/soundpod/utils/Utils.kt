@@ -89,11 +89,16 @@ val Song.asMediaItem: MediaItem
         .build()
 
 fun String?.thumbnail(size: Int): String? {
-    return when {
-        this?.startsWith("https://lh3.googleusercontent.com") == true -> "$this-w$size-h$size"
-        this?.startsWith("https://yt3.ggpht.com") == true -> "$this-w$size-h$size-s$size"
-        else -> this
+    if (this == null) return null
+
+    if (this.contains("i.ytimg.com")) {
+        return this.replace("hqdefault.jpg", "maxresdefault.jpg")
+            .replace("mqdefault.jpg", "maxresdefault.jpg")
+            .replace("sddefault.jpg", "maxresdefault.jpg")
     }
+
+    val cleanUrl = this.substringBefore("=")
+    return "$cleanUrl=w$size-h$size"
 }
 
 fun Uri?.thumbnail(size: Int): Uri? {

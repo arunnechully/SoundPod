@@ -79,7 +79,7 @@ val ColorScheme.shimmer: Color
     get() = Color(0xff838383)
 
 val ColorScheme.overlay: Color
-    get() = Color.Black.copy(alpha = Dimensions.mediumOpacity)
+    get() = Color.Black.copy(alpha = Dimensions.MEDIUMOPACITY)
 
 val ColorScheme.onOverlay: Color
     get() = Color(0xffe1e1e2)

@@ -70,7 +70,6 @@ fun Overlay(
     var isDragging by remember { mutableStateOf(false) }
     val isScrolling = lazyListState.isScrollInProgress
 
-    // Keep scrollbar visible if either the list is scrolling OR the user is dragging the thumb
     if (enableScrollbar) {
         LaunchedEffect(isScrolling, isDragging) {
             if (isScrolling || isDragging) {
@@ -158,7 +157,6 @@ fun Overlay(
 
         if (enableScrollbar) {
             scrollbarMetrics?.let { metrics ->
-                // Capture the latest scrollFactor without restarting the pointerInput
                 val currentScrollFactor by rememberUpdatedState(metrics.scrollFactor)
 
                 AnimatedVisibility(
@@ -172,7 +170,6 @@ fun Overlay(
                             .padding(vertical = 56.dp, horizontal = 4.dp)
                             .width(28.dp)
                             .fillMaxHeight()
-                            // Pass Unit to pointerInput so it NEVER restarts during a drag
                             .pointerInput(Unit) {
                                 detectVerticalDragGestures(
                                     onDragStart = {
@@ -183,7 +180,6 @@ fun Overlay(
                                     onDragCancel = { isDragging = false }
                                 ) { change, dragAmount ->
                                     change.consume()
-                                    // Use dispatchRawDelta for synchronous, glitch-free scrolling
                                     lazyListState.dispatchRawDelta(dragAmount * currentScrollFactor)
                                 }
                             }

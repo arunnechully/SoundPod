@@ -81,13 +81,13 @@ object KuGou {
 
     private suspend fun downloadLyrics(id: Long, accessKey: String): Lyrics {
         return Base64.decode(client.get("/download") {
-                    parameter("ver", 1)
-                    parameter("man", "yes")
-                    parameter("client", "pc")
-                    parameter("fmt", "lrc")
-                    parameter("id", id)
-                    parameter("accesskey", accessKey)
-                }.body<DownloadLyricsResponse>().content).decodeToString().let(::Lyrics)
+            parameter("ver", 1)
+            parameter("man", "yes")
+            parameter("client", "pc")
+            parameter("fmt", "lrc")
+            parameter("id", id)
+            parameter("accesskey", accessKey)
+        }.body<DownloadLyricsResponse>().content).decodeToString().let(::Lyrics)
     }
 
     private suspend fun searchLyricsByHash(hash: String): List<SearchLyricsResponse.Candidate> {
@@ -177,49 +177,41 @@ object KuGou {
             }
 
         fun normalize(): Lyrics {
-            var toDrop = 0
-            var maybeToDrop = 0
+            val cleanLines = value.replace("\r\n", "\n").trim().lineSequence().filter { line ->
+                // 1. Drop LRC metadata tags like [ti:Title], [ar:Artist], [al:Album], [offset:0]
+                // Timestamps start with numbers [00:, metadata starts with letters [ar:
+                if (line.matches(Regex("^\\[[a-zA-Z]+:.*"))) return@filter false
 
-            val text = value.replace("\r\n", "\n").trim()
+                // 2. Get purely the text content after the last timestamp bracket "]"
+                val textContent = line.substringAfterLast("]").trim()
 
-            for (line in text.lineSequence()) {
-                if (line.startsWith("[ti:") ||
-                    line.startsWith("[ar:") ||
-                    line.startsWith("[al:") ||
-                    line.startsWith("[by:") ||
-                    line.startsWith("[hash:") ||
-                    line.startsWith("[sign:") ||
-                    line.startsWith("[qq:") ||
-                    line.startsWith("[total:") ||
-                    line.startsWith("[offset:") ||
-                    line.startsWith("[id:") ||
-                    line.containsAt("]Written by：", 9) ||
-                    line.containsAt("]Lyrics by：", 9) ||
-                    line.containsAt("]Composed by：", 9) ||
-                    line.containsAt("]Producer：", 9) ||
-                    line.containsAt("]作曲 : ", 9) ||
-                    line.containsAt("]作词 : ", 9)
-                ) {
-                    toDrop += line.length + 1 + maybeToDrop
-                    maybeToDrop = 0
-                } else {
-                    if (maybeToDrop == 0) {
-                        maybeToDrop = line.length + 1
-                    } else {
-                        maybeToDrop = 0
-                        break
-                    }
-                }
-            }
+                // 3. Check for typical credits in both English and Chinese
+                val lowerText = textContent.lowercase()
+                val isCredit = lowerText.startsWith("written by") ||
+                        lowerText.startsWith("lyrics by") ||
+                        lowerText.startsWith("composed by") ||
+                        lowerText.startsWith("arranged by") ||
+                        lowerText.startsWith("produced by") ||
+                        lowerText.startsWith("producer") ||
+                        lowerText.startsWith("vocal") ||
+                        lowerText.startsWith("作词") ||
+                        lowerText.startsWith("作曲") ||
+                        lowerText.startsWith("编曲") ||
+                        lowerText.startsWith("制作人") ||
+                        lowerText.startsWith("混音") ||
+                        lowerText.startsWith("演唱") ||
+                        lowerText.startsWith("词：") ||
+                        lowerText.startsWith("曲：") ||
+                        lowerText.startsWith("词:") ||
+                        lowerText.startsWith("曲:")
 
-            return Lyrics(text.drop(toDrop + maybeToDrop).removeHtmlEntities())
+                // Keep the line only if it is NOT a credit
+                !isCredit
+            }.joinToString("\n")
+
+            return Lyrics(cleanLines.removeHtmlEntities())
         }
 
-        private fun String.containsAt(charSequence: CharSequence, startIndex: Int): Boolean =
-            regionMatches(startIndex, charSequence, 0, charSequence.length)
-
-        private fun String.removeHtmlEntities(): String =
-            replace("&apos;", "'")
+        private fun String.removeHtmlEntities(): String = replace("&apos;", "'")
     }
-
 }
