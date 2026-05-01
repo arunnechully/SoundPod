@@ -15,59 +15,63 @@ import io.ktor.http.contentType
 import kotlinx.serialization.Serializable
 
 suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
+    val token = visitorData().getOrNull()
+
     val response = client.post(PLAYER) {
         setBody(
             PlayerBody(
-                context = YouTubeClient.ANDROID_VR.toContext(visitorData = visitorData),
+                context = YouTubeClient.ANDROID_MUSIC.toContext(visitorData = token),
                 videoId = videoId
             )
         )
         mask("playabilityStatus.status,playerConfig.audioConfig,streamingData.adaptiveFormats,videoDetails.videoId")
     }.body<PlayerResponse>()
 
-    if (response.playabilityStatus?.status == "OK") response
-    else {
-        @Serializable
-        data class AudioStream(
-            val url: String,
-            val bitrate: Long
-        )
-
-        @Serializable
-        data class PipedResponse(
-            val audioStreams: List<AudioStream>
-        )
-
-        val safePlayerResponse = client.post(PLAYER) {
-            setBody(
-                PlayerBody(
-                    context = YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER.toContext().copy(
-                        thirdParty = Context.ThirdParty(
-                            embedUrl = "https://www.youtube.com/watch?v=$videoId"
-                        )
-                    ),
-                    videoId = videoId
-                )
-            )
-            mask("playabilityStatus.status,playerConfig.audioConfig,streamingData.adaptiveFormats,videoDetails.videoId")
-        }.body<PlayerResponse>()
-
-        if (safePlayerResponse.playabilityStatus?.status != "OK") {
-            return@runCatchingNonCancellable response
-        }
-
-        val audioStreams = client.get("https://pipedapi.adminforge.de/streams/$videoId") {
-            contentType(ContentType.Application.Json)
-        }.body<PipedResponse>().audioStreams
-
-        safePlayerResponse.copy(
-            streamingData = safePlayerResponse.streamingData?.copy(
-                adaptiveFormats = safePlayerResponse.streamingData.adaptiveFormats?.map { adaptiveFormat ->
-                    adaptiveFormat.copy(
-                        url = audioStreams.find { it.bitrate == adaptiveFormat.bitrate }?.url
-                    )
-                }
-            )
-        )
+    if (response.playabilityStatus?.status == "OK") {
+        return@runCatchingNonCancellable response
     }
+
+    @Serializable
+    data class AudioStream(
+        val url: String,
+        val bitrate: Long
+    )
+
+    @Serializable
+    data class PipedResponse(
+        val audioStreams: List<AudioStream>
+    )
+
+    val safePlayerResponse = client.post(PLAYER) {
+        setBody(
+            PlayerBody(
+                context = YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER.toContext().copy(
+                    thirdParty = Context.ThirdParty(
+                        embedUrl = "https://www.youtube.com/watch?v=$videoId"
+                    )
+                ),
+                videoId = videoId
+            )
+        )
+        mask("playabilityStatus.status,playerConfig.audioConfig,streamingData.adaptiveFormats,videoDetails.videoId")
+    }.body<PlayerResponse>()
+
+    if (safePlayerResponse.playabilityStatus?.status != "OK") {
+        return@runCatchingNonCancellable response
+    }
+
+    //Piped URL extraction
+    val audioStreams = client.get("https://pipedapi.adminforge.de/streams/$videoId") {
+        contentType(ContentType.Application.Json)
+    }.body<PipedResponse>().audioStreams
+
+    safePlayerResponse.copy(
+        streamingData = safePlayerResponse.streamingData?.copy(
+            adaptiveFormats = safePlayerResponse.streamingData.adaptiveFormats?.map { adaptiveFormat ->
+                adaptiveFormat.copy(
+                    url = audioStreams.find { it.bitrate == adaptiveFormat.bitrate }?.url
+                )
+            }
+        )
+    )
 }

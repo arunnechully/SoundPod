@@ -11,7 +11,7 @@ class YouTubeClient(
     val osVersion: String? = null
 ) {
     fun toContext(
-        localized: Boolean = true,
+        localized: Boolean = false, // Changed default to false. to force US/en and bypass strict regions
         visitorData: String? = null
     ) = Context(
         client = Context.Client(
@@ -27,8 +27,16 @@ class YouTubeClient(
         )
     )
 
-
     companion object {
+        val ANDROID_MUSIC = YouTubeClient(
+            clientName = "ANDROID_MUSIC",
+            clientVersion = "6.02.53",
+            clientId = "21",
+            platform = "MOBILE",
+            userAgent = "com.google.android.apps.youtube.music/6.02.53 (Linux; U; Android 13; en_US) gzip",
+            osVersion = "13"
+        )
+
         val WEB_REMIX = YouTubeClient(
             clientName = "WEB_REMIX",
             clientVersion = "1.20260114.03.00",
@@ -44,6 +52,7 @@ class YouTubeClient(
             userAgent = "com.google.android.apps.youtube.vr.oculus/1.71.26 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip",
             osVersion = "12L"
         )
+
         val TVHTML5_SIMPLY_EMBEDDED_PLAYER = YouTubeClient(
             clientName = "TVHTML5_SIMPLY_EMBEDDED_PLAYER",
             clientVersion = "2.0",
