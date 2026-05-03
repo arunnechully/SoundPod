@@ -20,7 +20,7 @@ suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
     val response = client.post(PLAYER) {
         setBody(
             PlayerBody(
-                context = YouTubeClient.ANDROID_MUSIC.toContext(visitorData = token),
+                context = YouTubeClient.ANDROID_VR.toContext(visitorData = token),
                 videoId = videoId
             )
         )

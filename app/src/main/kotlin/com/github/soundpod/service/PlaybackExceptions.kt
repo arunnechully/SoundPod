@@ -1,19 +1,15 @@
 package com.github.soundpod.service
 
-import androidx.media3.common.PlaybackException
+import java.io.IOException
 
-@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class PlayableFormatNotFoundException :
-    PlaybackException("Playable format not found", null, ERROR_CODE_REMOTE_ERROR)
+    IOException("Playable format not found")
 
-@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class UnplayableException :
-    PlaybackException("Unplayable", null, ERROR_CODE_REMOTE_ERROR)
+    IOException("Unplayable")
 
-@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class LoginRequiredException :
-    PlaybackException("Login required", null, ERROR_CODE_REMOTE_ERROR)
+    IOException("Login required")
 
-@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class VideoIdMismatchException :
-    PlaybackException("Video id mismatch", null, ERROR_CODE_REMOTE_ERROR)
+    IOException("Video id mismatch")

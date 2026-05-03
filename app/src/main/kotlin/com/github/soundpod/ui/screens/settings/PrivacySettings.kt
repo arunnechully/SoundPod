@@ -95,12 +95,14 @@ fun PrivacySettings(
             )
             Spacer(modifier = Modifier.height(8.dp))
             SettingsCard {
-                SettingColum(
-                    icon = IconSource.Vector(Icons.Outlined.Notifications),
-                    title = stringResource(id = R.string.notifications),
-                    description = if (isNotificationGranted) "Allowed" else "Denied",
-                    onClick = { openAppSettings(context) }
-                )
+                if (BuildConfig.ENABLE_UPDATER) {
+                    SettingColum(
+                        icon = IconSource.Vector(Icons.Outlined.Notifications),
+                        title = stringResource(id = R.string.notifications),
+                        description = if (isNotificationGranted) "Allowed" else "Denied",
+                        onClick = { openAppSettings(context) }
+                    )
+                }
                 SettingColum(
                     icon = IconSource.Vector(Icons.Outlined.MusicNote),
                     title = "Music & Audio",

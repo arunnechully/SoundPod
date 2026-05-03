@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
+import android.content.pm.ServiceInfo
 import android.content.res.Configuration
 import android.database.SQLException
 import android.graphics.Color
@@ -22,6 +23,7 @@ import android.media.audiofx.LoudnessEnhancer
 import android.media.session.MediaSession
 import android.media.session.PlaybackState
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.support.v4.media.session.MediaSessionCompat
@@ -39,7 +41,6 @@ import androidx.core.text.isDigitsOnly
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
-import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.audio.SonicAudioProcessor
@@ -514,7 +515,14 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
 
                 isNotificationStarted = true
                 startForegroundService(this@PlayerService, intent<PlayerService>())
-                startForeground(NOTIFICATION_ID, notification())
+                val notif = notification()
+                if (notif != null) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        startForeground(NOTIFICATION_ID, notif, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+                    } else {
+                        startForeground(NOTIFICATION_ID, notif)
+                    }
+                }
             }
         }
     }
@@ -685,7 +693,11 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
             if (player.shouldBePlaying && !isNotificationStarted) {
                 isNotificationStarted = true
                 startForegroundService(this@PlayerService, intent<PlayerService>())
-                startForeground(NOTIFICATION_ID, notification)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+                } else {
+                    startForeground(NOTIFICATION_ID, notification)
+                }
                 makeInvincible(false)
                 sendOpenEqualizerIntent()
             } else {
@@ -848,7 +860,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         val ringBuffer = RingBuffer<Pair<String, Uri>?>(2) { null }
 
         return ResolvingDataSource.Factory(createCacheDataSource()) { dataSpec ->
-            val videoId = dataSpec.key ?: error("A key must be set")
+            val videoId = dataSpec.key ?: throw java.io.IOException("A key must be set")
 
             if (cache.isCached(videoId, dataSpec.position, chunkLength)) {
                 dataSpec
@@ -860,9 +872,6 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                         val urlResult = runBlocking(Dispatchers.IO) {
                             Innertube.player(videoId = videoId)
                         }?.mapCatching { body ->
-                            if (body.videoDetails?.videoId != videoId) {
-                                throw VideoIdMismatchException()
-                            }
 
                             when (val status = body.playabilityStatus?.status) {
                                 "OK" -> body.streamingData?.highestQualityFormat?.let { format ->
@@ -903,11 +912,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
 
                                 "UNPLAYABLE" -> throw UnplayableException()
                                 "LOGIN_REQUIRED" -> throw LoginRequiredException()
-                                else -> throw PlaybackException(
-                                    status,
-                                    null,
-                                    PlaybackException.ERROR_CODE_REMOTE_ERROR
-                                )
+                                else -> throw java.io.IOException("Remote error: $status")
                             }
                         }
 
@@ -915,10 +920,9 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                             ringBuffer.append(videoId to url.toUri())
                             dataSpec.withUri(url.toUri())
                                 .subrange(dataSpec.uriPositionOffset, chunkLength)
-                        } ?: throw PlaybackException(
-                            null,
-                            urlResult?.exceptionOrNull(),
-                            PlaybackException.ERROR_CODE_REMOTE_ERROR
+                        } ?: throw java.io.IOException(
+                            "Failed to resolve URL",
+                            urlResult?.exceptionOrNull()
                         )
                     }
                 }

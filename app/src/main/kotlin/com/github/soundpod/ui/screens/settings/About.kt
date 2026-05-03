@@ -21,12 +21,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import com.github.api.GitHub
+import com.github.core.ui.LocalAppearance
 import com.github.soundpod.BuildConfig
 import com.github.soundpod.R
 import com.github.soundpod.github.UpdateMessage
@@ -134,7 +136,9 @@ fun AboutSettings(
                 Text(
                     text = stringResource(id = R.string.app_name),
                     style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
                     textAlign = TextAlign.Center
                 )
 
@@ -144,14 +148,18 @@ fun AboutSettings(
                         text = stringResource(id = R.string.new_version_available),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
                         textAlign = TextAlign.Center
                     )
                 } else {
                     Text(
                         text = "Version $currentVersion",
                         style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
                         textAlign = TextAlign.Center
                     )
                 }
@@ -215,10 +223,61 @@ fun AboutSettings(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                val (colorPalette) = LocalAppearance.current
 
-                SettingsCard {
-                    if (BuildConfig.ENABLE_UPDATER) {
+                if (!BuildConfig.ENABLE_UPDATER) {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Text(
+                        text = stringResource(id = R.string.distribution_info),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = colorPalette.text.copy(alpha = 0.7f)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    SettingsCard {
+                        Column(
+                            modifier = Modifier
+                                .padding(24.dp)
+                                .fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.f_droid),
+                                contentDescription = null,
+                                modifier = Modifier.size(56.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Text(
+                                text = "F-Droid Build",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Text(
+                                text = stringResource(id = R.string.updates_handled_by_fdroid),
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 4.dp, bottom = 20.dp)
+                            )
+                            Button(
+                                onClick = { uriHandler.openUri("https://f-droid.org/packages/com.github.soundpod") },
+                                modifier = Modifier.fillMaxWidth(0.5f),
+                                shape = MaterialTheme.shapes.large,
+                            ) {
+
+                                Text(text = stringResource(id = R.string.view_on_f_droid))
+                            }
+                        }
+                    }
+                }
+
+                if (BuildConfig.ENABLE_UPDATER) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    SettingsCard {
                         SwitchSetting(
                             icon = IconSource.Vector(Icons.Default.Update),
                             title = stringResource(id = R.string.seamless_update),
@@ -250,20 +309,20 @@ fun AboutSettings(
                                 }
                             }
                         )
-                    }
 
-                    SwitchSetting(
-                        icon = IconSource.Vector(Icons.Default.Notifications),
-                        title = stringResource(id = R.string.update_alert),
-                        description = stringResource(id = R.string.update_alert_desription),
-                        switchState = showAlertEnabled,
-                        onSwitchChange = { enabled ->
-                            showAlertEnabled = enabled
-                            scope.launch(Dispatchers.IO) {
-                                setShowUpdateAlert(context, enabled)
+                        SwitchSetting(
+                            icon = IconSource.Vector(Icons.Default.Notifications),
+                            title = stringResource(id = R.string.update_alert),
+                            description = stringResource(id = R.string.update_alert_desription),
+                            switchState = showAlertEnabled,
+                            onSwitchChange = { enabled ->
+                                showAlertEnabled = enabled
+                                scope.launch(Dispatchers.IO) {
+                                    setShowUpdateAlert(context, enabled)
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }
