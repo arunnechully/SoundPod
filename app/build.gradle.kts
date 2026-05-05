@@ -25,8 +25,8 @@ extensions.configure<ApplicationExtension>("android") {
         applicationId = "com.github.soundpod"
         minSdk = 23
         targetSdk = 36
-        versionCode = 17
-        versionName = "1.1.0"
+        versionCode = 18
+        versionName = "1.1.1-rc.1"
     }
 
     flavorDimensions += "store"
