@@ -41,7 +41,7 @@ import com.github.soundpod.models.Playlist
 import com.github.soundpod.models.SongPlaylistMap
 import com.github.soundpod.query
 import com.github.soundpod.transaction
-import com.github.soundpod.ui.components.LoadingAnimation
+import com.github.soundpod.ui.appearance.LoadingAnimation
 import com.github.soundpod.ui.components.TextFieldDialog
 import com.github.soundpod.ui.components.TooltipIconButton
 import com.github.soundpod.utils.asMediaItem

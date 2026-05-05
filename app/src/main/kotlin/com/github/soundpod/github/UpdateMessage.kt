@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.github.api.formatFileSize
 import com.github.soundpod.R
 import com.github.soundpod.ui.common.UpdateStatus
-import com.github.soundpod.ui.components.LoadingAnimation
+import com.github.soundpod.ui.appearance.LoadingAnimation
 import java.io.File
 
 @Composable

@@ -35,7 +35,7 @@ import com.github.innertube.utils.from
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.models.LocalMenuState
-import com.github.soundpod.ui.components.LoadingAnimation
+import com.github.soundpod.ui.appearance.LoadingAnimation
 import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.items.SongItem

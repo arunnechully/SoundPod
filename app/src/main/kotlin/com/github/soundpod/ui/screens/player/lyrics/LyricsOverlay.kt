@@ -40,7 +40,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaMetadata
 import com.github.core.ui.LocalAppearance
-import com.github.soundpod.ui.components.LoadingAnimation
+import com.github.soundpod.ui.appearance.LoadingAnimation
 import com.github.soundpod.ui.components.Overlay
 import com.github.soundpod.utils.LyricsData
 import com.github.soundpod.viewmodels.LyricsViewModel

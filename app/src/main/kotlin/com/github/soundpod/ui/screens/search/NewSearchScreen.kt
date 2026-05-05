@@ -55,7 +55,7 @@ import com.github.soundpod.R
 import com.github.soundpod.db
 import com.github.soundpod.models.SearchQuery
 import com.github.soundpod.query
-import com.github.soundpod.ui.components.LoadingAnimation
+import com.github.soundpod.ui.appearance.LoadingAnimation
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.utils.pauseSearchHistoryKey

@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
@@ -140,7 +141,27 @@ fun SharedPlayer(
                         if (expandProgress > 0f) {
                             Box(
                                 modifier = Modifier
-                                    .fillMaxSize()
+                                    .layout { measurable, constraints ->
+                                        val screenW = exactScreenWidth.roundToPx()
+                                        val screenH = exactScreenHeight.roundToPx()
+
+                                        //The actual size the parent box currently is
+                                        val currentH = constraints.maxHeight
+                                        val pad = activeBottomPadding.roundToPx()
+
+                                        //Measure the inner player at FULL screen size so it stays static
+                                        val placeable = measurable.measure(
+                                            androidx.compose.ui.unit.Constraints.fixed(screenW, screenH)
+                                        )
+
+                                        // This ensures SharedThumbnail isn't pushed off the screen!
+                                        layout(constraints.maxWidth, currentH) {
+
+                                            //Shift the inner player UP to cancel out the parent's movement
+                                            val yOffset = currentH + pad - screenH
+                                            placeable.placeRelative(0, yOffset)
+                                        }
+                                    }
                                     .alpha(expandProgress)
                             ) {
                                 PlayerLayout(
@@ -175,7 +196,6 @@ fun SharedPlayer(
                                 )
                             }
                         }
-
                         AnimatedVisibility(
                             visible = !showPlaylist && !showLyrics,
                             enter = fadeIn(tween(400)),
