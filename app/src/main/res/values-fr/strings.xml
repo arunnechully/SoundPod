@@ -226,7 +226,7 @@
     <string name="notifications">Notifications</string>
     <string name="update_now">Mettre à jour maintenant</string>
     <string name="latest_version_installed">La dernière version est déjà installée</string>
-    <string name="installing_update">Installation de la mise à jour...</string>
+    <string name="installing_update">Installation de la mise à jour....</string>
     <string name="update_manually">Mettre à jour manuellement à partir du dossier « Téléchargements »</string>
     <string name="update_failed">Échec de la mise à jour</string>
     <string name="updates_available">Nouvelle mise à jour disponible</string>
