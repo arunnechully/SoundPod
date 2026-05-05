@@ -24,6 +24,7 @@ extensions.configure<ApplicationExtension>("android") {
     defaultConfig {
         applicationId = "com.github.soundpod"
         minSdk = 23
+        //noinspection OldTargetApi
         targetSdk = 36
         versionCode = 18
         versionName = "1.1.1-rc.1"

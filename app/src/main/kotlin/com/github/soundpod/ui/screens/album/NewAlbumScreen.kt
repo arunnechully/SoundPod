@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -75,8 +76,8 @@ fun NewAlbumScreen(
         viewModel.onTabSelected(pagerState.currentPage)
     }
 
-    val highResThumbnailUrl = remember(album?.thumbnailUrl) {
-        album?.thumbnailUrl?.thumbnail(1024)
+    val lowResForBlurUrl = remember(album?.thumbnailUrl) {
+        album?.thumbnailUrl?.thumbnail(10)
     }
 
     Box(
@@ -86,11 +87,14 @@ fun NewAlbumScreen(
     ) {
         // Blurred Background Image
         AsyncImage(
-            model = highResThumbnailUrl,
+            model = lowResForBlurUrl,
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .matchParentSize()
+                .graphicsLayer {
+                    alpha = 0.99f
+                }
                 .blur(blurRadius)
         )
 
