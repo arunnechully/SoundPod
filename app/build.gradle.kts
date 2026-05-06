@@ -112,6 +112,8 @@ dependencies {
     implementation(libs.material)
     implementation(libs.compose.material.icons)
     implementation(libs.compose.material3)
+    implementation(libs.glance.appwidget)
+    implementation(libs.glance.material3)
     implementation(libs.compose.navigation)
     implementation(libs.compose.shimmer)
     implementation(libs.compose.ui)
