@@ -4,8 +4,6 @@ package com.github.soundpod.ui.screens.home
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,11 +14,10 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.github.core.ui.LocalAppearance
 import com.github.soundpod.ui.components.HorizontalTabs
+import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.TopBar
 import com.github.soundpod.ui.navigation.Routes
 
@@ -32,7 +29,6 @@ fun HomeScreen(
 
 
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { 5 })
-    val (colorPalette) = LocalAppearance.current
     val navigateToAlbum = { browseId: String ->
         navController.navigate(route = Routes.Album(id = browseId))
     }
@@ -54,11 +50,11 @@ fun HomeScreen(
 
         HorizontalTabs(pagerState = pagerState)
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp))
-                .background(color = colorPalette.baseColor)
+        SettingsCard(
+            shape = RoundedCornerShape(
+                topStart = 25.dp,
+                topEnd = 25.dp
+            )
         ) {
             HorizontalPager(
                 state = pagerState,

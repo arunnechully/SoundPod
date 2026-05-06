@@ -5,6 +5,7 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.PlaylistPlay
 import androidx.compose.material3.MaterialTheme
@@ -58,7 +59,9 @@ fun NewSearchResult(
         scrollable = false,
         horizontalPadding = 0.dp
     ) {
-        SettingsCard {
+        SettingsCard(
+            shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)
+        ){
             when (resultType) {
                 "Songs" -> {
                     ItemsPage(

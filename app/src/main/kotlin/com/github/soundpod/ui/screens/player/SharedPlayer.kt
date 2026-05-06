@@ -30,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -72,6 +73,22 @@ fun SharedPlayer(
     val player = binder?.player
     var currentArtworkUrl by remember {
         mutableStateOf(player?.currentMediaItem?.mediaMetadata?.artworkUri?.toString())
+    }
+
+    LaunchedEffect(player) {
+        if (player == null) return@LaunchedEffect
+
+        snapshotFlow { player.currentMediaItem }
+            .collect { mediaItem ->
+                val metadata = mediaItem?.mediaMetadata
+                // Check the standard URI first, then fall back to extras
+                val url = metadata?.artworkUri?.toString()
+                    ?: metadata?.extras?.getString("artwork_url") // Common custom key
+                    ?: ""
+
+                currentArtworkUrl = url
+                println("Debug: Current Artwork URL is -> $url") // Check your Logcat!
+            }
     }
 
     LaunchedEffect(expandProgress) {

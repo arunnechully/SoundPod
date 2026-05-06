@@ -80,7 +80,7 @@ fun SettingsScreenLayout(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(top = innerPadding.calculateTopPadding())
                 .padding(horizontal = horizontalPadding)
                 .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
                 .then(if (scrollable) Modifier.verticalScroll(scrollState) else Modifier)

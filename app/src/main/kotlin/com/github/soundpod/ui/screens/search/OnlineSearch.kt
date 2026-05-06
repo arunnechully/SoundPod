@@ -18,11 +18,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -30,8 +25,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
 import com.github.innertube.Innertube
-import com.github.innertube.requests.searchPage
-import com.github.innertube.utils.from
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.models.LocalMenuState
@@ -45,7 +38,8 @@ import com.github.soundpod.utils.forcePlay
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @Composable
 fun OnlineSearch(
-    query: String,
+    searchResults: List<Innertube.SongItem>?,
+    isLoading: Boolean,
     onAlbumClick: (String) -> Unit,
     onArtistClick: (String) -> Unit,
     onViewAllClick: (String) -> Unit
@@ -54,35 +48,11 @@ fun OnlineSearch(
     val binder = LocalPlayerServiceBinder.current
     val menuState = LocalMenuState.current
 
-    var searchResults by remember { mutableStateOf<List<Innertube.SongItem>?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
-    LaunchedEffect(query) {
-        if (query.isBlank()) {
-            searchResults = null
-            isLoading = false
-            return@LaunchedEffect
-        }
-        isLoading = true
-
-        try {
-            val result = Innertube.searchPage(
-                query = query,
-                params = Innertube.SearchFilter.Song.value,
-                fromMusicShelfRendererContent = Innertube.SongItem.Companion::from
-            )
-            searchResults = result?.getOrNull()?.items?.take(5)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        } finally {
-            isLoading = false
-        }
-    }
     if (isLoading) {
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         ) {
             LoadingAnimation(
                 modifier = Modifier.size(50.dp)
@@ -117,7 +87,7 @@ fun OnlineSearch(
             SettingsCard(
                 content = {
                     Column {
-                        searchResults!!.forEach { song ->
+                        searchResults.forEach { song ->
                             SongItem(
                                 song = song,
                                 onClick = {

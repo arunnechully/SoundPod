@@ -3,6 +3,7 @@ package com.github.soundpod.ui.screens.builtinplaylist
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,7 +44,12 @@ fun NewBuiltInPlaylistScreen(
         horizontalPadding = 0.dp,
         onBackClick = pop,
     ) {
-        SettingsCard {
+        SettingsCard(
+            shape = RoundedCornerShape(
+                topStart = 25.dp,
+                topEnd = 25.dp
+            )
+        ) {
             NewBuiltInPlaylistSongs(
                 builtInPlaylist = builtInPlaylist,
                 onGoToAlbum = onGoToAlbum,

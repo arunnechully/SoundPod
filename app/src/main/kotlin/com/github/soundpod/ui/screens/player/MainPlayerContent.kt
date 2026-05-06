@@ -2,6 +2,7 @@ package com.github.soundpod.ui.screens.player
 
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -10,6 +11,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -19,6 +21,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,6 +39,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.db
+import com.github.soundpod.enums.PlayerLayout // Important import
 import com.github.soundpod.enums.ProgressBar
 import com.github.soundpod.ui.screens.player.lyrics.LyricsOverlay
 import com.github.soundpod.ui.styling.Dimensions
@@ -50,10 +54,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
-
 @OptIn(UnstableApi::class)
+@kotlin.OptIn(
+    ExperimentalAnimationApi::class,
+    ExperimentalMaterial3Api::class,
+    ExperimentalLayoutApi::class
+)
 @Composable
 fun MainPlayerContent(
+    layoutMode: PlayerLayout,
     onGoToAlbum: (String) -> Unit,
     onGoToArtist: (String) -> Unit,
     onBack: () -> Unit,
@@ -65,7 +74,6 @@ fun MainPlayerContent(
     val binder = LocalPlayerServiceBinder.current
     val player = binder?.player ?: return
 
-    // Initialize the ViewModel here using the player from the binder
     val playlistViewModel = remember(player) { PlaylistViewModel(player) }
 
     var nullableMediaItem by remember {
@@ -92,17 +100,11 @@ fun MainPlayerContent(
     }
 
     val handleGoToAlbum: (String) -> Unit = remember(onGoToAlbum, onBack) {
-        { id ->
-            onBack()
-            onGoToAlbum(id)
-        }
+        { id -> onBack(); onGoToAlbum(id) }
     }
 
     val handleGoToArtist: (String) -> Unit = remember(onGoToArtist, onBack) {
-        { id ->
-            onBack()
-            onGoToArtist(id)
-        }
+        { id -> onBack(); onGoToArtist(id) }
     }
 
     player.DisposableListener {
@@ -134,6 +136,7 @@ fun MainPlayerContent(
     BackHandler(enabled = true) {
         if (showPlaylist) onTogglePlaylist(false) else onBack()
     }
+
     var isDraggingSeekBar by remember { mutableStateOf(false) }
 
     val positionAndDuration by player.positionAndDurationState()
@@ -154,7 +157,7 @@ fun MainPlayerContent(
         )
 
         if (isLandscape) {
-            // Landscape implementation
+            // TODO: Landscape implementation
         } else {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -166,6 +169,7 @@ fun MainPlayerContent(
             ) {
                 Spacer(modifier = Modifier.height(Dimensions.spacer))
 
+                //Top Control
                 PlayerTopControl(
                     onGoToAlbum = handleGoToAlbum,
                     onGoToArtist = handleGoToArtist,
@@ -173,13 +177,12 @@ fun MainPlayerContent(
                     onBack = {
                         if (showPlaylist) onTogglePlaylist(false) else onBack()
                     },
-                    isPlaylistShowing = showPlaylist || showLyrics
+                    isPlaylistShowing = if (layoutMode == PlayerLayout.Default) showPlaylist || showLyrics else showPlaylist
                 )
 
                 Box(Modifier.weight(1f)) {
                     if (showPlaylist) {
                         Column {
-                            // FIXED: Passed the viewModel parameter
                             PlaylistOverlay(
                                 viewModel = playlistViewModel,
                                 modifier = Modifier.weight(1f),
@@ -208,9 +211,7 @@ fun MainPlayerContent(
 
                             Box(modifier = Modifier.offset(y = textYOffset)) {
                                 PlayerMediaItem(
-                                    onGoToArtist = artistId?.let { artist ->
-                                        { handleGoToArtist(artist) }
-                                    }
+                                    onGoToArtist = artistId?.let { artist -> { handleGoToArtist(artist) } }
                                 )
                             }
 
@@ -221,12 +222,20 @@ fun MainPlayerContent(
                                 animationSpec = tween(durationMillis = 300),
                                 label = "MiddleControlFade"
                             )
+
                             Box(modifier = Modifier.graphicsLayer { alpha = middleControlAlpha }) {
-                                PlayerMiddleControl(
-                                    showPlaylist = false,
-                                    onTogglePlaylist = onTogglePlaylist,
-                                    mediaId = mediaItem.mediaId
-                                )
+                                if (layoutMode == PlayerLayout.Default) {
+                                    PlayerMiddleControl(
+                                        showPlaylist = false,
+                                        onTogglePlaylist = onTogglePlaylist,
+                                        mediaId = mediaItem.mediaId
+                                    )
+                                } else {
+                                    PlayerControlBottom(
+                                        shouldBePlaying = shouldBePlaying,
+                                        onPlayPauseClick = { handlePlayPauseClick(player, shouldBePlaying) }
+                                    )
+                                }
                             }
                         }
                     }
@@ -244,22 +253,33 @@ fun MainPlayerContent(
 
                 Spacer(modifier = Modifier.height(Dimensions.spacer))
 
-                PlayerControlBottom(
-                    shouldBePlaying = shouldBePlaying,
-                    onPlayPauseClick = {
-                        if (shouldBePlaying) {
-                            player.pause()
-                        } else {
-                            when (player.playbackState) {
-                                Player.STATE_IDLE -> player.prepare()
-                                Player.STATE_ENDED -> player.seekToDefaultPosition(0)
-                                else -> {}
-                            }
-                            player.play()
-                        }
-                    }
-                )
+                if (layoutMode == PlayerLayout.Default) {
+                    PlayerControlBottom(
+                        shouldBePlaying = shouldBePlaying,
+                        onPlayPauseClick = { handlePlayPauseClick(player, shouldBePlaying) }
+                    )
+                } else {
+                    PlayerMiddleControl(
+                        showPlaylist = false,
+                        onTogglePlaylist = onTogglePlaylist,
+                        mediaId = mediaItem.mediaId
+                    )
+                }
             }
         }
+    }
+}
+@UnstableApi
+private fun handlePlayPauseClick(player: Player, shouldBePlaying: Boolean) {
+    if (shouldBePlaying) {
+        player.pause()
+    } else {
+        when (player.playbackState) {
+            Player.STATE_IDLE -> player.prepare()
+            Player.STATE_ENDED -> player.seekToDefaultPosition(0)
+            Player.STATE_BUFFERING,
+            Player.STATE_READY -> {}
+        }
+        player.play()
     }
 }

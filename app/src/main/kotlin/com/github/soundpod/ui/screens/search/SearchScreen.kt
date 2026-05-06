@@ -96,11 +96,8 @@ fun SearchScreen(
     val inputField = @Composable {
         NewSearchInputField(
             textFieldState = textFieldState,
-//            searchBarState = searchBarState,
-//            searchText = searchText,
             onSearch = onSearch,
             pop = pop,
-//            scope = scope
         )
     }
 

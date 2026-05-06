@@ -18,27 +18,14 @@ fun PlayerLayout(
     val playerLayoutState = rememberPreference(playerlayout, PlayerLayout.Default)
     val currentLayout = playerLayoutState.value
 
-    when (currentLayout) {
-        PlayerLayout.Default -> {
-            MainPlayerContent(
-                onGoToAlbum = onGoToAlbum,
-                onGoToArtist = onGoToArtist,
-                onBack = onBack,
-                showPlaylist = showPlaylist,
-                onLyricsClick = onLyricsClick,
-                showLyrics = showLyrics,
-                onTogglePlaylist = onTogglePlaylist
-            )
-        }
-        PlayerLayout.New -> {
-            NewMainPlayerContent(
-                onGoToAlbum = onGoToAlbum,
-                onGoToArtist = onGoToArtist,
-                onBack = onBack,
-                showPlaylist = showPlaylist,
-                showLyrics = showLyrics,
-                onTogglePlaylist = onTogglePlaylist
-            )
-        }
-    }
+    MainPlayerContent(
+        layoutMode = currentLayout,
+        onGoToAlbum = onGoToAlbum,
+        onGoToArtist = onGoToArtist,
+        onBack = onBack,
+        showPlaylist = showPlaylist,
+        onLyricsClick = onLyricsClick,
+        showLyrics = showLyrics,
+        onTogglePlaylist = onTogglePlaylist
+    )
 }

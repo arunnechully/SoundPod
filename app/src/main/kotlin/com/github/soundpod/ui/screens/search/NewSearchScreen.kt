@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material3.ButtonDefaults
@@ -47,6 +48,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.github.core.ui.LocalAppearance
 import com.github.innertube.Innertube
@@ -61,6 +63,7 @@ import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.utils.pauseSearchHistoryKey
 import com.github.soundpod.utils.preferences
 import com.github.soundpod.utils.rememberVoiceSearchLauncher
+import com.github.soundpod.viewmodels.SearchViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -79,7 +82,12 @@ fun NewSearchScreen(
     val focusManager = LocalFocusManager.current
     val (colorPalette) = LocalAppearance.current
 
-    var textFieldValue by remember { mutableStateOf(TextFieldValue(initialTextInput)) }
+    val searchViewModel: SearchViewModel = viewModel()
+
+    var textFieldValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(initialTextInput))
+    }
+
     var confirmedSearchQuery: String? by rememberSaveable { mutableStateOf(null) }
     var history: List<SearchQuery> by remember { mutableStateOf(emptyList()) }
     var suggestionsResult: Result<List<String>?>? by remember { mutableStateOf(null) }
@@ -95,6 +103,8 @@ fun NewSearchScreen(
             textFieldValue = TextFieldValue(queryText)
             confirmedSearchQuery = queryText
 
+            searchViewModel.performSearch(queryText)
+
             if (!context.preferences.getBoolean(pauseSearchHistoryKey, false)) {
                 query {
                     db.insert(SearchQuery(query = queryText))
@@ -107,6 +117,7 @@ fun NewSearchScreen(
         context = context,
         onSpeechResult = { spokenText -> performSearch(spokenText) }
     )
+
     BackHandler {
         if (confirmedSearchQuery != null) {
             confirmedSearchQuery = null
@@ -114,6 +125,7 @@ fun NewSearchScreen(
             navController.popBackStack()
         }
     }
+
     LaunchedEffect(textFieldValue.text) {
         if (!context.preferences.getBoolean(pauseSearchHistoryKey, false)) {
             db.queries("%${textFieldValue.text}%")
@@ -172,7 +184,8 @@ fun NewSearchScreen(
         when {
             confirmedSearchQuery != null -> {
                 OnlineSearch(
-                    query = confirmedSearchQuery!!,
+                    searchResults = searchViewModel.searchResults,
+                    isLoading = searchViewModel.isLoading,
                     onAlbumClick = onAlbumClick,
                     onArtistClick = onArtistClick,
                     onViewAllClick = { category ->
@@ -182,7 +195,9 @@ fun NewSearchScreen(
             }
 
             textFieldValue.text.isNotEmpty() -> {
-                SettingsCard {
+                SettingsCard(
+                    shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)
+                ){
                     if (isLoadingSuggestions) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
