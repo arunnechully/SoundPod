@@ -1,0 +1,7 @@
+• Improvements to player
+• Decompose `PlayerService` into specialized manager classes
+• Minor internal and ui improvements
+• Fixed the InnerTube client which caused playback errors for users from different regions
+• Added F-Droid distribution info in about screen
+• Added music player widget
+• Other bug fixes and performance improvements
