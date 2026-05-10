@@ -26,8 +26,8 @@ extensions.configure<ApplicationExtension>("android") {
         minSdk = 23
         //noinspection OldTargetApi
         targetSdk = 36
-        versionCode = 18
-        versionName = "1.1.1-rc.1"
+        versionCode = 19
+        versionName = "1.1.1"
     }
 
     flavorDimensions += "store"
