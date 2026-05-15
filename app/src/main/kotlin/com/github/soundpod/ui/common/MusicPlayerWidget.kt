@@ -8,9 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.edit
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
@@ -47,9 +47,6 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.github.soundpod.MainActivity
 import com.github.soundpod.R
-import com.github.soundpod.utils.preferences
-import com.github.soundpod.utils.queueLoopEnabledKey
-import com.github.soundpod.utils.trackLoopEnabledKey
 import java.io.File
 
 val widgetSongTitleKey = stringPreferencesKey("widget_song_title")
@@ -58,188 +55,131 @@ val widgetIsPlayingKey = booleanPreferencesKey("widget_is_playing")
 val widgetArtworkPathKey = stringPreferencesKey("widget_artwork_path")
 val isPlayingParamKey = ActionParameters.Key<Boolean>("is_playing_param")
 
+val widgetBgColorIsWhiteKey = booleanPreferencesKey("widget_bg_is_white")
+val widgetBgOpacityKey = floatPreferencesKey("widget_bg_opacity")
+val widgetMatchDarkKey = booleanPreferencesKey("widget_match_dark")
+
 class MusicPlayerWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
             GlanceTheme {
                 val prefs = currentState<Preferences>()
-                val songTitle = prefs[widgetSongTitleKey] ?: "Not Playing"
-                val artist = prefs[widgetArtistKey] ?: "SoundPod"
+                val songTitle = prefs[widgetSongTitleKey] ?: "Track title"
+                val artist = prefs[widgetArtistKey] ?: "Artist"
                 val isPlaying = prefs[widgetIsPlayingKey] ?: false
-
                 val artworkPath = prefs[widgetArtworkPathKey]
-                val bitmap = artworkPath?.let { path ->
-                    try {
-                        if (File(path).exists()) BitmapFactory.decodeFile(path) else null
-                    } catch (_: Exception) {
-                        null
-                    }
-                }
 
-                WidgetContent(
-                    songTitle = songTitle,
-                    artist = artist,
-                    isPlaying = isPlaying,
-                    bitmap = bitmap
-                )
+                val bitmap = loadOptimizedBitmap(artworkPath)
+
+                SamsungStyleWidgetLayout(songTitle, artist, isPlaying, bitmap)
             }
+        }
+    }
+
+    private fun loadOptimizedBitmap(path: String?): Bitmap? {
+        if (path == null) return null
+        return try {
+            val file = File(path)
+            if (file.exists()) {
+                val options = BitmapFactory.Options().apply { inSampleSize = 2 }
+                BitmapFactory.decodeFile(path, options)
+            } else null
+        } catch (_: Exception) {
+            null
         }
     }
 
     @Composable
-    private fun WidgetContent(
-        songTitle: String,
-        artist: String,
-        isPlaying: Boolean,
-        bitmap: Bitmap?
-    ) {
-        Column(
+    private fun SamsungStyleWidgetLayout(songTitle: String, artist: String, isPlaying: Boolean, bitmap: Bitmap?) {
+        val prefs = currentState<Preferences>()
+
+        val isWhite = prefs[widgetBgColorIsWhiteKey] ?: false
+        val opacity = prefs[widgetBgOpacityKey] ?: 0.5f
+        val matchDark = prefs[widgetMatchDarkKey] ?: true
+
+        val baseColor = if (isWhite && !matchDark) androidx.compose.ui.graphics.Color.White else androidx.compose.ui.graphics.Color.Black
+        val finalBgColor = baseColor.copy(alpha = opacity)
+
+        Row(
             modifier = GlanceModifier
-                .fillMaxSize()
-                .background(GlanceTheme.colors.surface) // Cleaner background
+                .fillMaxWidth()
+                .background(finalBgColor)
                 .cornerRadius(24.dp)
-                .padding(16.dp),
+                .padding(16.dp)
+                .clickable(actionStartActivity<MainActivity>()),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // HEADER (Album Art + Info)
-            Row(
-                modifier = GlanceModifier
-                    .fillMaxWidth()
-                    .clickable(actionStartActivity<MainActivity>()),
+            Image(
+                provider = bitmap?.let { ImageProvider(it) } ?: ImageProvider(R.drawable.music_icon),
+                contentDescription = "Album Art",
+                contentScale = ContentScale.Crop,
+                modifier = GlanceModifier.size(68.dp).cornerRadius(16.dp)
+            )
+
+            Spacer(modifier = GlanceModifier.width(16.dp))
+
+            Column(
+                modifier = GlanceModifier.defaultWeight().fillMaxSize(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val imageProvider = if (bitmap != null) ImageProvider(bitmap) else ImageProvider(R.drawable.music_icon)
-
-                Image(
-                    provider = imageProvider,
-                    contentDescription = "Album Art",
-                    contentScale = ContentScale.Crop,
-                    modifier = GlanceModifier.size(72.dp).cornerRadius(16.dp)
-                )
-
-                Spacer(modifier = GlanceModifier.width(16.dp))
-
-                // Text wrapped in a weight modifier to prevent overflow
-                Column(modifier = GlanceModifier.defaultWeight()) {
+                Column(
+                    modifier = GlanceModifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.Start
+                ) {
                     Text(
                         text = songTitle,
-                        maxLines = 1, // Prevents layout breaking
+                        maxLines = 1,
                         style = TextStyle(
                             color = GlanceTheme.colors.onSurface,
-                            fontSize = 18.sp,
+                            fontSize = 15.sp,
                             fontWeight = FontWeight.Bold
                         )
                     )
-                    Spacer(modifier = GlanceModifier.height(4.dp))
+                    Spacer(modifier = GlanceModifier.height(2.dp))
                     Text(
                         text = artist,
-                        maxLines = 1, // Prevents layout breaking
+                        maxLines = 1,
                         style = TextStyle(
                             color = GlanceTheme.colors.onSurfaceVariant,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Normal
                         )
                     )
                 }
-            }
 
-            Spacer(modifier = GlanceModifier.height(20.dp))
+                Spacer(modifier = GlanceModifier.height(12.dp))
 
-            // CONTROL BUTTONS
-            Row(
-                modifier = GlanceModifier.fillMaxWidth().padding(horizontal = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                CircularControlButton(
-                    iconRes = R.drawable.shuffle,
-                    description = "Shuffle",
-                    iconSize = 22.dp, touchSize = 40.dp,
-                    tint = GlanceTheme.colors.onSurfaceVariant,
-                    actionModifier = GlanceModifier.clickable(actionRunCallback<ToggleShuffleAction>())
-                )
-
-                Spacer(modifier = GlanceModifier.defaultWeight())
-
-                CircularControlButton(
-                    iconRes = R.drawable.skip_previous,
-                    description = "Previous",
-                    iconSize = 28.dp, touchSize = 48.dp,
-                    tint = GlanceTheme.colors.onSurface,
-                    actionModifier = GlanceModifier.clickable(actionRunCallback<SkipPreviousAction>())
-                )
-
-                Spacer(modifier = GlanceModifier.defaultWeight())
-
-                // Prominent Play/Pause Button
-                ProminentPlayPauseButton(
-                    isPlaying = isPlaying,
-                    actionModifier = GlanceModifier.clickable(
-                        actionRunCallback<TogglePlayAction>(actionParametersOf(isPlayingParamKey to isPlaying))
-                    )
-                )
-
-                Spacer(modifier = GlanceModifier.defaultWeight())
-
-                CircularControlButton(
-                    iconRes = R.drawable.skip_next,
-                    description = "Next",
-                    iconSize = 28.dp, touchSize = 48.dp,
-                    tint = GlanceTheme.colors.onSurface,
-                    actionModifier = GlanceModifier.clickable(actionRunCallback<SkipNextAction>())
-                )
-
-                Spacer(modifier = GlanceModifier.defaultWeight())
-
-                CircularControlButton(
-                    iconRes = R.drawable.repeat_off,
-                    description = "Repeat",
-                    iconSize = 22.dp, touchSize = 40.dp,
-                    tint = GlanceTheme.colors.onSurfaceVariant,
-                    actionModifier = GlanceModifier.clickable(actionRunCallback<ToggleRepeatAction>())
-                )
+                Row(
+                    modifier = GlanceModifier.fillMaxWidth().padding(end = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    ControlButton(R.drawable.shuffle, 18.dp, 32.dp, GlanceTheme.colors.onSurface, GlanceModifier.clickable(actionRunCallback<ToggleShuffleAction>()))
+                    Spacer(modifier = GlanceModifier.defaultWeight())
+                    ControlButton(R.drawable.skip_previous, 22.dp, 36.dp, GlanceTheme.colors.onSurface, GlanceModifier.clickable(actionRunCallback<SkipPreviousAction>()))
+                    Spacer(modifier = GlanceModifier.defaultWeight())
+                    ControlButton(if (isPlaying) R.drawable.pause else R.drawable.play, 28.dp, 44.dp, GlanceTheme.colors.onSurface, GlanceModifier.clickable(actionRunCallback<TogglePlayAction>(actionParametersOf(isPlayingParamKey to isPlaying))))
+                    Spacer(modifier = GlanceModifier.defaultWeight())
+                    ControlButton(R.drawable.skip_next, 22.dp, 36.dp, GlanceTheme.colors.onSurface, GlanceModifier.clickable(actionRunCallback<SkipNextAction>()))
+                    Spacer(modifier = GlanceModifier.defaultWeight())
+                    ControlButton(R.drawable.repeat_off, 18.dp, 32.dp, GlanceTheme.colors.onSurface, GlanceModifier.clickable(actionRunCallback<ToggleRepeatAction>()))
+                }
             }
         }
     }
 }
 
-// Standard invisible touch target button
 @Composable
-private fun CircularControlButton(
-    iconRes: Int, description: String, iconSize: Dp, touchSize: Dp, tint: ColorProvider, actionModifier: GlanceModifier
-) {
+private fun ControlButton(iconRes: Int, iconSize: Dp, touchSize: Dp, tint: ColorProvider, actionModifier: GlanceModifier) {
     Box(
-        modifier = actionModifier.size(touchSize).cornerRadius(touchSize / 2),
+        modifier = actionModifier.size(touchSize),
         contentAlignment = Alignment.Center
     ) {
         Image(
             provider = ImageProvider(iconRes),
-            contentDescription = description,
+            contentDescription = null,
             colorFilter = ColorFilter.tint(tint),
             modifier = GlanceModifier.size(iconSize)
-        )
-    }
-}
-
-// Emphasized filled button for Play/Pause (Similar to Samsung/Spotify)
-@Composable
-private fun ProminentPlayPauseButton(
-    isPlaying: Boolean,
-    actionModifier: GlanceModifier
-) {
-    Box(
-        modifier = actionModifier
-            .size(56.dp)
-            .background(GlanceTheme.colors.primary)
-            .cornerRadius(28.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Image(
-            provider = ImageProvider(if (isPlaying) R.drawable.pause else R.drawable.play),
-            contentDescription = "Play/Pause",
-            colorFilter = ColorFilter.tint(GlanceTheme.colors.onPrimary),
-            modifier = GlanceModifier.size(32.dp)
         )
     }
 }
@@ -266,26 +206,12 @@ class SkipPreviousAction : ActionCallback {
 
 class ToggleRepeatAction : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        val prefs = context.preferences
-        val trackLoop = prefs.getBoolean(trackLoopEnabledKey, false)
-        val queueLoop = prefs.getBoolean(queueLoopEnabledKey, false)
 
-        prefs.edit {
-            when {
-                !trackLoop && !queueLoop -> putBoolean(queueLoopEnabledKey, true)
-                queueLoop -> {
-                    putBoolean(queueLoopEnabledKey, false)
-                    putBoolean(trackLoopEnabledKey, true)
-                }
-
-                else -> putBoolean(trackLoopEnabledKey, false)
-            }
-        }
     }
 }
 
 class ToggleShuffleAction : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        // Implement shuffle preference toggle here when added to PlayerService
+
     }
 }

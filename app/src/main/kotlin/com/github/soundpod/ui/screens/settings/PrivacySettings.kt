@@ -99,21 +99,21 @@ fun PrivacySettings(
                     SettingColum(
                         icon = IconSource.Vector(Icons.Outlined.Notifications),
                         title = stringResource(id = R.string.notifications),
-                        description = if (isNotificationGranted) "Allowed" else "Denied",
+                        description = if (isNotificationGranted) stringResource(id = R.string.allowed) else stringResource(id = R.string.denied),
                         onClick = { openAppSettings(context) }
                     )
                 }
                 SettingColum(
                     icon = IconSource.Vector(Icons.Outlined.MusicNote),
-                    title = "Music & Audio",
-                    description = if (isStorageGranted) "Allowed" else "Denied",
+                    title = stringResource(id = R.string.audio_permission),
+                    description = if (isStorageGranted) stringResource(id = R.string.allowed) else stringResource(id = R.string.denied),
                     onClick = { openAppSettings(context) }
                 )
                 if (BuildConfig.ENABLE_UPDATER) {
                     SettingColum(
                         icon = IconSource.Vector(Icons.Outlined.Security),
-                        title = "Install Unknown Apps",
-                        description = if (isInstallUnknownGranted) "Allowed" else "Denied",
+                        title = stringResource(id = R.string.install_unknown_apps),
+                        description = if (isInstallUnknownGranted) stringResource(id = R.string.allowed) else stringResource(id = R.string.denied),
                         onClick = {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                 val intent =
@@ -130,7 +130,7 @@ fun PrivacySettings(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Data",
+                text = stringResource(id = R.string.storage),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.ExtraBold,
                 color = colorPalette.text.copy(alpha = 0.7f)
@@ -141,8 +141,8 @@ fun PrivacySettings(
             SettingsCard {
                 SettingColum(
                     icon = IconSource.Vector(Icons.Outlined.Folder),
-                    title = "Local Data",
-                    description = "SoundPod stores cache and database locally on your device.",
+                    title = stringResource(id = R.string.local_data),
+                    description = stringResource(id = R.string.local_data_discription),
                     onClick = null
                 )
             }

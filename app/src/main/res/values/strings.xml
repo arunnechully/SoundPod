@@ -283,4 +283,11 @@
     <string name="add_custom">Add Custom</string>
     <string name="custom_image">Custom Image</string>
     <string name="preset">Preset</string>
+    <string name="allowed">Allowed</string>
+    <string name="denied">Denied</string>
+    <string name="audio_permission">Audio Permission</string>
+    <string name="install_unknown_apps">Install Unknown Apps</string>
+    <string name="storage">Storage</string>
+    <string name="local_data">Local Data</string>
+    <string name="local_data_discription">SoundPod stores cache and database locally on your device.</string>
 </resources>
