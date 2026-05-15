@@ -86,23 +86,23 @@ fun NewAlbumScreen(
             .background(colorPalette.background4)
     ) {
         // Blurred Background Image
-        AsyncImage(
-            model = lowResForBlurUrl,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .matchParentSize()
-                .graphicsLayer {
-                    alpha = 0.99f
-                }
-                .blur(blurRadius)
-        )
-
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(colorPalette.background3.copy(alpha = 0.35f))
-        )
+//        AsyncImage(
+//            model = lowResForBlurUrl,
+//            contentDescription = null,
+//            contentScale = ContentScale.Crop,
+//            modifier = Modifier
+//                .matchParentSize()
+//                .graphicsLayer {
+//                    alpha = 0.99f
+//                }
+//                .blur(blurRadius)
+//        )
+//
+//        Box(
+//            modifier = Modifier
+//                .matchParentSize()
+//                .background(colorPalette.background3.copy(alpha = 0.35f))
+//        )
 
         Row(
             modifier = Modifier

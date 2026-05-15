@@ -12,9 +12,11 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import com.github.soundpod.R
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
@@ -22,16 +24,19 @@ import kotlinx.coroutines.launch
 fun HorizontalTabs(
     pagerState: PagerState
 ) {
-    val tabs = listOf("Home", "Songs", "Artists", "Albums", "Playlists")
+    val tabs = listOf(
+        stringResource(id = R.string.home),
+        stringResource(id = R.string.songs),
+        stringResource(id = R.string.artists),
+        stringResource(id = R.string.albums),
+        stringResource(id = R.string.playlists)
+    )
     val coroutineScope = rememberCoroutineScope()
 
-    // The selectedTabIndex is directly tied to the PagerState.currentPage
     val selectedTabIndex = pagerState.currentPage
 
     Column {
         PrimaryScrollableTabRow(
-            // Use the PagerState's current page as the selected index.
-            // PrimaryScrollableTabRow automatically tries to center the selected tab.
             selectedTabIndex = selectedTabIndex,
             edgePadding = 8.dp,
             containerColor = Color.Transparent,
@@ -47,7 +52,6 @@ fun HorizontalTabs(
                 Tab(
                     selected = isSelected,
                     onClick = {
-                        // Scroll the Pager when the tab is clicked
                         coroutineScope.launch {
                             pagerState.animateScrollToPage(index)
                         }

@@ -251,7 +251,7 @@ fun AboutSettings(
                             Spacer(modifier = Modifier.height(16.dp))
 
                             Text(
-                                text = "F-Droid Build",
+                                text = stringResource(id = R.string.f_droid_build),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )

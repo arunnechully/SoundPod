@@ -101,68 +101,76 @@ class MusicPlayerWidget : GlanceAppWidget() {
         val baseColor = if (isWhite && !matchDark) androidx.compose.ui.graphics.Color.White else androidx.compose.ui.graphics.Color.Black
         val finalBgColor = baseColor.copy(alpha = opacity)
 
-        Row(
-            modifier = GlanceModifier
-                .fillMaxWidth()
-                .background(finalBgColor)
-                .cornerRadius(24.dp)
-                .padding(16.dp)
-                .clickable(actionStartActivity<MainActivity>()),
-            verticalAlignment = Alignment.CenterVertically
+        // 1. ROOT BOX: This invisible box fills whatever grid size the user stretches the widget to.
+        Box(
+            modifier = GlanceModifier.fillMaxSize(),
+            contentAlignment = Alignment.Center // Keeps the widget centered if stretched vertically
         ) {
-            Image(
-                provider = bitmap?.let { ImageProvider(it) } ?: ImageProvider(R.drawable.music_icon),
-                contentDescription = "Album Art",
-                contentScale = ContentScale.Crop,
-                modifier = GlanceModifier.size(68.dp).cornerRadius(16.dp)
-            )
-
-            Spacer(modifier = GlanceModifier.width(16.dp))
-
-            Column(
-                modifier = GlanceModifier.defaultWeight().fillMaxSize(),
+            // 2. ACTUAL WIDGET CARD: This stays compact and tightly wraps its content.
+            Row(
+                modifier = GlanceModifier
+                    .fillMaxWidth()
+                    .background(finalBgColor) // Background is now on the compact inner row
+                    .cornerRadius(24.dp)
+                    .padding(16.dp)
+                    .clickable(actionStartActivity<MainActivity>()),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                Image(
+                    provider = bitmap?.let { ImageProvider(it) } ?: ImageProvider(R.drawable.music_icon),
+                    contentDescription = "Album Art",
+                    contentScale = ContentScale.Crop,
+                    // Slightly larger album art to match the proportions in the Samsung UI
+                    modifier = GlanceModifier.size(76.dp).cornerRadius(16.dp)
+                )
+
+                Spacer(modifier = GlanceModifier.width(16.dp))
+
                 Column(
-                    modifier = GlanceModifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Text(
-                        text = songTitle,
-                        maxLines = 1,
-                        style = TextStyle(
-                            color = GlanceTheme.colors.onSurface,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-                    Spacer(modifier = GlanceModifier.height(2.dp))
-                    Text(
-                        text = artist,
-                        maxLines = 1,
-                        style = TextStyle(
-                            color = GlanceTheme.colors.onSurfaceVariant,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Normal
-                        )
-                    )
-                }
-
-                Spacer(modifier = GlanceModifier.height(12.dp))
-
-                Row(
-                    modifier = GlanceModifier.fillMaxWidth().padding(end = 8.dp),
+                    modifier = GlanceModifier.defaultWeight(), // Takes remaining space
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    ControlButton(R.drawable.shuffle, 18.dp, 32.dp, GlanceTheme.colors.onSurface, GlanceModifier.clickable(actionRunCallback<ToggleShuffleAction>()))
-                    Spacer(modifier = GlanceModifier.defaultWeight())
-                    ControlButton(R.drawable.skip_previous, 22.dp, 36.dp, GlanceTheme.colors.onSurface, GlanceModifier.clickable(actionRunCallback<SkipPreviousAction>()))
-                    Spacer(modifier = GlanceModifier.defaultWeight())
-                    ControlButton(if (isPlaying) R.drawable.pause else R.drawable.play, 28.dp, 44.dp, GlanceTheme.colors.onSurface, GlanceModifier.clickable(actionRunCallback<TogglePlayAction>(actionParametersOf(isPlayingParamKey to isPlaying))))
-                    Spacer(modifier = GlanceModifier.defaultWeight())
-                    ControlButton(R.drawable.skip_next, 22.dp, 36.dp, GlanceTheme.colors.onSurface, GlanceModifier.clickable(actionRunCallback<SkipNextAction>()))
-                    Spacer(modifier = GlanceModifier.defaultWeight())
-                    ControlButton(R.drawable.repeat_off, 18.dp, 32.dp, GlanceTheme.colors.onSurface, GlanceModifier.clickable(actionRunCallback<ToggleRepeatAction>()))
+                    Column(
+                        modifier = GlanceModifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Text(
+                            text = songTitle,
+                            maxLines = 1,
+                            style = TextStyle(
+                                color = GlanceTheme.colors.onSurface,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                        Spacer(modifier = GlanceModifier.height(4.dp))
+                        Text(
+                            text = artist,
+                            maxLines = 1,
+                            style = TextStyle(
+                                color = GlanceTheme.colors.onSurfaceVariant,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Normal
+                            )
+                        )
+                    }
+
+                    Spacer(modifier = GlanceModifier.height(14.dp))
+
+                    Row(
+                        modifier = GlanceModifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        ControlButton(R.drawable.shuffle, 18.dp, 32.dp, GlanceTheme.colors.onSurface, GlanceModifier.clickable(actionRunCallback<ToggleShuffleAction>()))
+                        Spacer(modifier = GlanceModifier.defaultWeight())
+                        ControlButton(R.drawable.skip_previous, 22.dp, 36.dp, GlanceTheme.colors.onSurface, GlanceModifier.clickable(actionRunCallback<SkipPreviousAction>()))
+                        Spacer(modifier = GlanceModifier.defaultWeight())
+                        ControlButton(if (isPlaying) R.drawable.pause else R.drawable.play, 28.dp, 44.dp, GlanceTheme.colors.onSurface, GlanceModifier.clickable(actionRunCallback<TogglePlayAction>(actionParametersOf(isPlayingParamKey to isPlaying))))
+                        Spacer(modifier = GlanceModifier.defaultWeight())
+                        ControlButton(R.drawable.skip_next, 22.dp, 36.dp, GlanceTheme.colors.onSurface, GlanceModifier.clickable(actionRunCallback<SkipNextAction>()))
+                        Spacer(modifier = GlanceModifier.defaultWeight())
+                        ControlButton(R.drawable.repeat_off, 18.dp, 32.dp, GlanceTheme.colors.onSurface, GlanceModifier.clickable(actionRunCallback<ToggleRepeatAction>()))
+                    }
                 }
             }
         }

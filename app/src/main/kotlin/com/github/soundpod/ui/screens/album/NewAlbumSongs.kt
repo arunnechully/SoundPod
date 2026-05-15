@@ -3,7 +3,7 @@ package com.github.soundpod.ui.screens.album
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
@@ -17,7 +17,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
@@ -56,6 +55,17 @@ fun NewAlbumSongs(
         ) { index, song ->
             LocalSongItem(
                 song = song,
+                showThumbnail = false,
+                leadingContent = {
+                    Text(
+                        text = "${index + 1}",
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .width(28.dp)
+                            .alpha(Dimensions.MEDIUMOPACITY)
+                    )
+                },
                 onClick = {
                     binder?.stopRadio()
                     binder?.player?.forcePlayAtIndex(
@@ -71,18 +81,6 @@ fun NewAlbumSongs(
                             onGoToArtist = onGoToArtist
                         )
                     }
-                },
-                thumbnailContent = {
-                    Text(
-                        text = "${index + 1}",
-                        style = MaterialTheme.typography.titleMedium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .alpha(Dimensions.MEDIUMOPACITY)
-                    )
                 }
             )
         }

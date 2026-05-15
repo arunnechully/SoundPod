@@ -147,7 +147,7 @@ fun MoreSettings(
                         },
                         confirmButton = {
                             TextButton(onClick = { showInfoDialog = false }) {
-                                Text("OK")
+                                Text(stringResource(id = R.string.ok))
                             }
                         }
                     )
@@ -161,6 +161,9 @@ fun MoreSettings(
                         Settings.ACTION_APP_LOCALE_SETTINGS,
                         "package:${context.packageName}".toUri()
                     )
+
+                    val languageSelectorNotFound = stringResource(id = R.string.language_selector_not_found)
+
                     SettingColum(
                         icon = IconSource.Vector(Icons.Outlined.Language),
                         title = stringResource(id = R.string.app_language),
@@ -169,10 +172,11 @@ fun MoreSettings(
                             try {
                                 context.startActivity(intent)
                             } catch (_: ActivityNotFoundException) {
-                                context.toast("Couldn't find app language settings, please configure them manually")
+                                context.toast(languageSelectorNotFound)
                             }
                         }
                     )
+
                 }
 
                 if (isAtLeastAndroid12) {
@@ -228,7 +232,7 @@ fun MoreSettings(
                                     Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
                                 )
                             } catch (_: ActivityNotFoundException) {
-                                context.toast("Couldn't find battery optimization settings, please whitelist Music You manually")
+                                context.toast("Couldn't find battery optimization settings, please whitelist SoundPod manually")
                             }
                         }
                     },

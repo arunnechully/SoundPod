@@ -1,6 +1,7 @@
 package com.github.soundpod.ui.components
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,7 +22,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.Dp // Import Dp
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
 
@@ -29,16 +31,38 @@ import com.github.core.ui.LocalAppearance
 @Composable
 fun SettingsScreenLayout(
     title: String,
+    description: String? = null,
     onBackClick: () -> Unit,
     scrollable: Boolean = true,
     horizontalPadding: Dp = 14.dp,
+    actions: @Composable RowScope.() -> Unit = {},
     content: @Composable () -> Unit
 ) {
+    val (colorPalette) = LocalAppearance.current
+
     SettingsScreenLayout(
-        title = { Text(title) },
+        title = {
+            Column {
+                Text(
+                    text = title,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (description != null) {
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colorPalette.text.copy(alpha = 0.6f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        },
         onBackClick = onBackClick,
         scrollable = scrollable,
         horizontalPadding = horizontalPadding,
+        actions = actions,
         content = content
     )
 }
@@ -50,6 +74,7 @@ fun SettingsScreenLayout(
     onBackClick: () -> Unit,
     scrollable: Boolean = true,
     horizontalPadding: Dp = 14.dp,
+    actions: @Composable RowScope.() -> Unit = {},
     content: @Composable () -> Unit
 ) {
     val (colorPalette) = LocalAppearance.current
@@ -70,6 +95,7 @@ fun SettingsScreenLayout(
                         )
                     }
                 },
+                actions = actions,
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
                     titleContentColor = colorPalette.text

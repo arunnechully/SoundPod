@@ -70,11 +70,11 @@ fun BuiltInPlaylistScreen(
                 .fillMaxSize()
                 .padding(top = paddingValues.calculateTopPadding())
         ) {
-            NewBuiltInPlaylistSongs(
-                builtInPlaylist = builtInPlaylist,
-                onGoToAlbum = onGoToAlbum,
-                onGoToArtist = onGoToArtist
-            )
+//            NewBuiltInPlaylistSongs(
+//                builtInPlaylist = builtInPlaylist,
+//                onGoToAlbum = onGoToAlbum,
+//                onGoToArtist = onGoToArtist
+//            )
         }
     }
 }
