@@ -219,7 +219,7 @@
     <string name="suggest_an_idea">Proposer une idée</string>
     <string name="report_a_bug">Signaler un bug</string>
     <string name="seamless_update">Mise à jour transparente</string>
-    <string name="seamless_update_description">Installer les mises à jour directement depuis l\'application</string>
+    <string name="seamless_update_description">Installez les mises à jour directement depuis l\'application</string>
     <string name="enable_seamless_update">Activer les mises à jour transparentes ?</string>
     <string name="enable_seamless_update_description">Pour installer les mises à jour en interne, SoundPod doit disposer d\'une autorisation pour installer des applications inconnues.\nSinon, les mises à jour seront enregistrées dans votre dossier « Téléchargements ».</string>
     <string name="permissions">Autorisations</string>
@@ -254,7 +254,7 @@
     <string name="add_to_blocklist">Ajouter à la liste noire</string>
     <string name="reset_quick_picks_alert">Êtes-vous sûr de vouloir effacer tout l\'historique de la sélection rapide ? Cette action ne peut pas être annulée.</string>
     <string name="paperboat">Bateau en papier</string>
-    <string name="player_layout">Disposition du lecteur</string>
+    <string name="player_layout">Disposition du Lecteur</string>
     <string name="new_layout">Nouvelle mise en page</string>
     <string name="loading">Chargement en cours</string>
     <string name="clear">Effacer</string>
@@ -278,11 +278,11 @@
     <string name="add_custom">Ajouter une personnalisation</string>
     <string name="custom_image">Image Personnalisée</string>
     <string name="preset">Préréglage</string>
-    <string name="allowed">Allowed</string>
-    <string name="denied">Denied</string>
-    <string name="audio_permission">Audio Permission</string>
-    <string name="install_unknown_apps">Install Unknown Apps</string>
-    <string name="storage">Storage</string>
-    <string name="local_data">Local Data</string>
-    <string name="local_data_discription">SoundPod stores cache and database locally on your device.</string>
+    <string name="allowed">Autorisé</string>
+    <string name="denied">Refusé</string>
+    <string name="audio_permission">Autorisation Audio</string>
+    <string name="install_unknown_apps">Installer des applications inconnues</string>
+    <string name="storage">Stockage</string>
+    <string name="local_data">Données Locales</string>
+    <string name="local_data_discription">SoundPod stocke le cache et la base de données localement sur votre appareil.</string>
 </resources>
