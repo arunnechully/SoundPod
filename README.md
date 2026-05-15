@@ -5,7 +5,7 @@
 
 <p align="center">
   <strong>A minimalist, YouTube Music client for Android.</strong><br>
-  Built with Jetpack Compose and Material You for a modern, fluid experience.
+  Built with Jetpack Compose.
 </p>
 
 <p align="center">
