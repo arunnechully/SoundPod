@@ -104,8 +104,8 @@ fun AppearanceSettings(
 
                 SettingColum(
                     icon = IconSource.Vector(Icons.Default.BlurOn),
-                    title = "Background Style",
-                    description = "Choose your preferred background style",
+                    title = stringResource(id = R.string.background_style),
+                    description = stringResource(id = R.string.background_style_discription),
                     onClick = onBackgroundClick
                 )
             }

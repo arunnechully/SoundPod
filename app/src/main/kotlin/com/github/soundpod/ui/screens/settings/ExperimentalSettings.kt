@@ -48,15 +48,6 @@ fun ExperimentSettings(
                         viewModel.setNewSearchEnabled(isChecked)
                     },
                 )
-//                SwitchSetting(
-//                    icon = IconSource.Vector(Icons.Default.PlayArrow),
-//                    title = stringResource(id = R.string.new_player),
-//                    description = stringResource(id = R.string.new_player_description),
-//                    switchState = isNewSearchEnabled,
-//                    onSwitchChange = { isChecked ->
-//                        viewModel.setNewSearchEnabled(isChecked)
-//                    },
-//                )
             }
         }
     )
