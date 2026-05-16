@@ -285,6 +285,6 @@
     <string name="storage">Stockage</string>
     <string name="local_data">Données Locales</string>
     <string name="local_data_discription">SoundPod stocke le cache et la base de données localement sur votre appareil.</string>
-    <string name="f_droid_build">F-Droid Build</string>
-    <string name="language_selector_not_found">Couldn\'t find app language settings, please configure them manually</string>
+    <string name="f_droid_build">Version F-Droid</string>
+    <string name="language_selector_not_found">Impossible de trouver les paramètres de langue de l\'application. Veuillez les configurer manuellement.</string>
 </resources>
