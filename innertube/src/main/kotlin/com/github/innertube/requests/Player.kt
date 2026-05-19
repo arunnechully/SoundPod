@@ -47,8 +47,8 @@ suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
 
 
     val pipedInstances = listOf(
-        "https://pipedapi.syncpundit.io",
-        "https://pipedapi.moomoo.me",
+        "https://piped.private.coffee",
+        "https://pipedapi.orangenet.cc",
         "https://piped-api.garudalinux.org",
         "https://piped-api.lunar.icu",
         "https://pipedapi.tokhmi.xyz",
