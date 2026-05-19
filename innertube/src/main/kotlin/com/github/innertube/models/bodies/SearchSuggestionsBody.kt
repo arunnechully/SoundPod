@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SearchSuggestionsBody(
-    val context: Context = YouTubeClient.WEB_REMIX.toContext(),
+    val context: Context = YouTubeClient.MAC_SAFARI_WEB_REMIX.toContext(),
     val input: String
 )
