@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -27,18 +26,21 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
+import com.github.core.ui.favoritesIcon
 import com.github.soundpod.R
 import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.enums.SongSortBy
@@ -49,6 +51,7 @@ import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.songSortByKey
 import com.github.soundpod.utils.songSortOrderKey
 
+@Suppress("AssignedValueIsNeverRead")
 @OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
@@ -65,7 +68,7 @@ fun NewBuiltInPlaylistScreen(
     var selectedUids by remember { mutableStateOf(emptySet<String>()) }
     var isSearching by remember { mutableStateOf(false) }
 
-    var songCount by remember { mutableStateOf(0) }
+    var songCount by remember { mutableIntStateOf(0) }
 
     var sortBy by rememberPreference(songSortByKey, SongSortBy.Title)
     var sortOrder by rememberPreference(songSortOrderKey, SortOrder.Ascending)
@@ -130,10 +133,16 @@ fun NewBuiltInPlaylistScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.MusicNote,
+                    painter = when (builtInPlaylist) {
+                        BuiltInPlaylist.Favorites -> painterResource(id = R.drawable.heart)
+                        BuiltInPlaylist.Offline -> painterResource(id = R.drawable.offline)
+                    },
                     contentDescription = null,
                     modifier = Modifier.size(64.dp),
-                    tint = colorPalette.text.copy(alpha = 0.4f)
+                    tint = when (builtInPlaylist) {
+                        BuiltInPlaylist.Favorites -> colorPalette.favoritesIcon.copy(alpha = 0.5f)
+                        BuiltInPlaylist.Offline -> colorPalette.text.copy(alpha = 0.4f)
+                    },
                 )
             }
 
