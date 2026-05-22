@@ -2,6 +2,7 @@ package com.github.soundpod
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
@@ -14,21 +15,38 @@ import com.github.soundpod.enums.CoilDiskCacheMaxSize
 import com.github.soundpod.utils.coilDiskCacheMaxSizeKey
 import com.github.soundpod.utils.getEnum
 import com.github.soundpod.utils.preferences
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 class MainApplication : Application(), SingletonImageLoader.Factory {
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCreate() {
         super.onCreate()
         instance = this
         DatabaseInitializer.get(this)
+        fetchYouTubeSession()
+    }
 
-        @OptIn(DelicateCoroutinesApi::class)
-        GlobalScope.launch {
-            if (Innertube.visitorData.isNullOrBlank()) {
-                Innertube.visitorData = Innertube.visitorData().getOrNull()
+    private fun fetchYouTubeSession() {
+        appScope.launch {
+            try {
+                if (Innertube.visitorData.isNullOrBlank()) {
+                    Log.d("SoundPodApp", "Fetching fresh YouTube session token...")
+
+                    val result = Innertube.visitorData()
+
+                    result.onSuccess { token ->
+                        Innertube.visitorData = token
+                        Log.d("SoundPodApp", "Session secured successfully.")
+                    }.onFailure { error ->
+                        Log.e("SoundPodApp", "Failed to fetch session: ${error.message}")
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("SoundPodApp", "Unexpected error during session init: ${e.message}")
             }
         }
     }
@@ -38,7 +56,7 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
             .crossfade(true)
             .diskCache(
                 DiskCache.Builder()
-                    .directory(context.cacheDir.resolve("coil"))
+                    .directory(cacheDir.resolve("coil"))
                     .maxSizeBytes(
                         preferences.getEnum(
                             coilDiskCacheMaxSizeKey,
@@ -51,7 +69,7 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
     }
 
     companion object {
-        private lateinit var instance: MainApplication
-        val appContext: Context get() = instance.applicationContext
+        private var instance: MainApplication? = null
+        val appContext: Context get() = instance!!.applicationContext
     }
 }

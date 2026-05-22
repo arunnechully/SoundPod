@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,14 +25,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -92,27 +96,48 @@ fun LyricsOverlay(
         } else {
             when (val currentLyrics = lyricsData) {
                 is LyricsData.Synced -> {
+                    // NEW: State to track if we are in immersive auto-scroll mode or "free read" mode
+                    var isSyncedMode by remember { mutableStateOf(true) }
+
                     val activeIndex by remember(currentPositionMs, currentLyrics.lines) {
                         derivedStateOf {
                             viewModel.getActiveIndex(currentPositionMs, currentLyrics.lines)
                         }
                     }
 
-                    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                        val halfHeightDp = maxHeight / 2
+                    // PRO UX: If the user manually scrolls the list, instantly disable synced mode
+                    val isScrolling by remember { derivedStateOf { lazyListState.isScrollInProgress } }
+                    LaunchedEffect(isScrolling) {
+                        if (isScrolling) {
+                            isSyncedMode = false
+                        }
+                    }
 
-                        LaunchedEffect(activeIndex) {
-                            if (activeIndex >= 0) {
-                                if (!lazyListState.isScrollInProgress) {
-                                    coroutineScope.launch {
-                                        lazyListState.animateScrollToItem(
-                                            index = activeIndex,
-                                            scrollOffset = 0
-                                        )
-                                    }
+                    // NEW: Update LaunchedEffect to only auto-scroll when isSyncedMode is true
+                    LaunchedEffect(activeIndex, isSyncedMode) {
+                        if (isSyncedMode && activeIndex >= 0) {
+                            if (!lazyListState.isScrollInProgress) {
+                                coroutineScope.launch {
+                                    lazyListState.animateScrollToItem(
+                                        index = activeIndex,
+                                        scrollOffset = 0
+                                    )
                                 }
                             }
                         }
+                    }
+
+                    BoxWithConstraints(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            // NEW: Tap anywhere in the empty space to toggle modes
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onTap = { isSyncedMode = !isSyncedMode }
+                                )
+                            }
+                    ) {
+                        val halfHeightDp = maxHeight / 2
 
                         LazyColumn(
                             state = lazyListState,
@@ -142,8 +167,10 @@ fun LyricsOverlay(
                                     label = "scale"
                                 )
 
+                                // NEW: Dynamically drop the blur to 0f if they tap out of sync mode
                                 val blurRadius by animateFloatAsState(
                                     targetValue = when {
+                                        !isSyncedMode -> 0f
                                         isActive -> 0f
                                         distance == 1 -> 1.5f
                                         distance == 2 -> 3f
@@ -153,8 +180,10 @@ fun LyricsOverlay(
                                     label = "blur"
                                 )
 
+                                // NEW: Dynamically raise the alpha of all lines so they can actually read them
                                 val alpha by animateFloatAsState(
                                     targetValue = when {
+                                        !isSyncedMode -> if (isActive) 1f else 0.5f
                                         isActive -> 1f
                                         distance == 1 -> 0.7f
                                         distance == 2 -> 0.4f
@@ -182,7 +211,10 @@ fun LyricsOverlay(
                                         .clickable(
                                             interactionSource = remember { MutableInteractionSource() },
                                             indication = null
-                                        ) { onSeekTo(line.startMs) }
+                                        ) {
+                                            onSeekTo(line.startMs)
+                                            isSyncedMode = true
+                                        }
                                 )
                             }
                         }

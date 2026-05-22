@@ -307,7 +307,7 @@ class PlayerService : InvincibleService(), Player.Listener,
                 if (player.duration == C.TIME_UNSET) 0L else player.duration
             }
 
-            LyricsFetcher.fetchLyrics(mediaId, metadata, duration)
+            LyricsFetcher.fetchLyrics(mediaId)
         }
     }
 

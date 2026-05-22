@@ -133,6 +133,7 @@ fun ListItemContainer(
     isPlaceholder: Boolean = false,
     title: String,
     subtitle: String? = null,
+    titleColor: Color = Color.Unspecified,
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
     maxLines: Int = 1,
@@ -151,6 +152,7 @@ fun ListItemContainer(
             } else {
                 Text(
                     text = title,
+                    color = titleColor,
                     lineHeight = 16.sp,
                     maxLines = maxLines,
                     overflow = TextOverflow.Ellipsis
@@ -231,6 +233,7 @@ fun SongItem(
     song: Innertube.SongItem,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
+    titleColor: Color = Color.Unspecified,
     showThumbnail: Boolean = true,
     thumbnailContent: @Composable (() -> Unit)? = null,
     leadingContent: @Composable (() -> Unit)? = null,
@@ -241,6 +244,7 @@ fun SongItem(
         modifier = modifier,
         title = song.info?.name ?: "",
         subtitle = song.authors?.joinToString(separator = "") { it.name ?: "" },
+        titleColor = titleColor,
         onClick = onClick,
         onLongClick = onLongClick,
         leadingContent = leadingContent,
@@ -273,6 +277,7 @@ fun LocalSongItem(
     song: Song,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
+    titleColor: Color = Color.Unspecified,
     showThumbnail: Boolean = true,
     thumbnailContent: @Composable (() -> Unit)? = null,
     leadingContent: @Composable (() -> Unit)? = null,
@@ -283,6 +288,7 @@ fun LocalSongItem(
         modifier = modifier,
         title = song.title,
         subtitle = "${song.artistsText} • ${song.durationText}",
+        titleColor = titleColor,
         onClick = onClick,
         onLongClick = onLongClick,
         leadingContent = leadingContent,
@@ -316,6 +322,7 @@ fun MediaSongItem(
     song: MediaItem,
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
+    titleColor: Color = Color.Unspecified, // ADDED
     showThumbnail: Boolean = true,
     thumbnailContent: @Composable (() -> Unit)? = null,
     leadingContent: @Composable (() -> Unit)? = null,
@@ -330,6 +337,7 @@ fun MediaSongItem(
         } else {
             "${song.mediaMetadata.artist} • ${song.mediaMetadata.extras?.getString("durationText")}"
         },
+        titleColor = titleColor,
         onClick = onClick,
         onLongClick = onLongClick,
         containerColor = Color.Transparent,

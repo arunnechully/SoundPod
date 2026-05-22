@@ -69,7 +69,7 @@ class AlbumViewModel : ViewModel() {
                     _uiState.update { it.copy(albumPage = currentAlbumPage, isLoading = false) }
 
                     db.clearAlbum(browseId)
-                    
+
                     val currentAlbum = _uiState.value.album
                     db.upsert(
                         Album(
@@ -78,6 +78,7 @@ class AlbumViewModel : ViewModel() {
                             thumbnailUrl = currentAlbumPage.thumbnail?.url,
                             year = currentAlbumPage.year,
                             authorsText = currentAlbumPage.authors?.joinToString("") { it.name ?: "" },
+                            artistId = currentAlbumPage.authors?.firstOrNull()?.endpoint?.browseId,
                             shareUrl = currentAlbumPage.url,
                             timestamp = System.currentTimeMillis(),
                             bookmarkedAt = currentAlbum?.bookmarkedAt

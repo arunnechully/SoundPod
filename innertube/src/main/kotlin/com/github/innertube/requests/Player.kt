@@ -32,6 +32,7 @@ suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
     if (vrResponse.playabilityStatus?.status == "OK" && vrResponse.streamingData?.adaptiveFormats?.isNotEmpty() == true) {
         return@runCatchingNonCancellable vrResponse
     }
+
     val safePlayerResponse = client.post(PLAYER) {
         header("User-Agent", YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER.userAgent)
         setBody(
@@ -45,6 +46,9 @@ suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
         mask("playabilityStatus.status,playerConfig.audioConfig,streamingData.adaptiveFormats,videoDetails.videoId")
     }.body<PlayerResponse>()
 
+    if (safePlayerResponse.playabilityStatus?.status == "OK" && safePlayerResponse.streamingData?.adaptiveFormats?.isNotEmpty() == true) {
+        return@runCatchingNonCancellable safePlayerResponse
+    }
 
     val pipedInstances = listOf(
         "https://piped.private.coffee",
@@ -83,7 +87,6 @@ suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
         println("SoundPod: CRITICAL - All Piped fallbacks exhausted.")
         return@runCatchingNonCancellable safePlayerResponse
     }
-
     safePlayerResponse.copy(
         streamingData = safePlayerResponse.streamingData?.copy(
             adaptiveFormats = safePlayerResponse.streamingData.adaptiveFormats?.map { adaptiveFormat ->

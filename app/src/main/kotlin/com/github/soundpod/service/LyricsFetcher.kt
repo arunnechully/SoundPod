@@ -1,9 +1,7 @@
 package com.github.soundpod.service
 
-import androidx.media3.common.MediaMetadata
 import com.github.innertube.Innertube
 import com.github.innertube.requests.lyrics
-import com.github.kugou.KuGou // <-- Imported KuGou
 import com.github.soundpod.db
 import com.github.soundpod.models.Lyrics
 import kotlinx.coroutines.Dispatchers
@@ -17,44 +15,25 @@ import android.database.sqlite.SQLiteConstraintException
 object LyricsFetcher {
 
     suspend fun fetchLyrics(
-        mediaId: String,
-        mediaMetadata: MediaMetadata,
-        durationMs: Long
+        mediaId: String
     ): Boolean = withContext(Dispatchers.IO) {
 
+        // Fetch unsynced (fixed) lyrics from InnerTube
         val fixedDeferred = async {
             var fixedResult: String? = null
             Innertube.lyrics(videoId = mediaId)?.onSuccess { fixedResult = it }
             fixedResult
         }
 
+        // Fetch synced lyrics from your GitHub repository
         val syncedDeferred = async {
-            val gitHubLyrics = fetchFromGitHub(mediaId)
-            if (!gitHubLyrics.isNullOrBlank()) {
-                return@async gitHubLyrics
-            }
-
-            var kugouResult: String? = null
-
-            val artist = mediaMetadata.artist?.toString() ?: ""
-            val title = mediaMetadata.title?.toString() ?: ""
-
-            if (artist.isNotBlank() && title.isNotBlank()) {
-                KuGou.lyrics(
-                    artist = artist,
-                    title = title,
-                    duration = durationMs / 1000
-                )?.onSuccess { syncedLyrics ->
-                    kugouResult = syncedLyrics?.value
-                }
-            }
-
-            kugouResult
+            fetchFromGitHub(mediaId)
         }
 
         val fixedLyrics = fixedDeferred.await()
         val syncedLyrics = syncedDeferred.await()
 
+        // If either fetch succeeds, update the database
         if (!fixedLyrics.isNullOrBlank() || !syncedLyrics.isNullOrBlank()) {
             val currentLyrics = db.lyrics(mediaId).firstOrNull()
             try {
@@ -76,9 +55,9 @@ object LyricsFetcher {
 
     private fun fetchFromGitHub(mediaId: String): String? {
         return try {
-            val url = URL("https://raw.githubusercontent.com/arunnechully/SoundPod-LRC/main/lyrics/$mediaId.lrc")
+            val cdnUrl = "https://cdn.jsdelivr.net/gh/arunnechully/SoundPod-LRC@main/lyrics/$mediaId.lrc"
+            val url = URL(cdnUrl)
             val connection = url.openConnection() as HttpURLConnection
-
             connection.connectTimeout = 3000
             connection.readTimeout = 3000
 
