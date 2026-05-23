@@ -467,7 +467,7 @@ interface Database {
         QueuedMediaItem::class, Format::class, Event::class, Lyrics::class
     ],
     views = [SortedSongPlaylistMap::class],
-    version = 23,
+    version = 24,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -488,6 +488,7 @@ interface Database {
         AutoMigration(from = 19, to = 20),
         AutoMigration(from = 20, to = 21, spec = DatabaseInitializer.From20To21Migration::class),
         AutoMigration(from = 21, to = 22, spec = DatabaseInitializer.From21To22Migration::class),
+        AutoMigration(from = 23, to = 24),
     ],
 )
 @TypeConverters(Converters::class)

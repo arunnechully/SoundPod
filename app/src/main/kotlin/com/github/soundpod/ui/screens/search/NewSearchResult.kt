@@ -49,13 +49,12 @@ fun NewSearchResult(
     val menuState = LocalMenuState.current
     val emptyItemsText = stringResource(id = R.string.no_results_found)
 
-    val onAlbumClick: (String) -> Unit = { /* navigate */ }
-    val onArtistClick: (String) -> Unit = { /* navigate */ }
-    val onPlaylistClick: (String) -> Unit = { /* navigate */ }
+    val onAlbumClick: (String) -> Unit = { albumId -> navController.navigate("album/$albumId") }
+    val onArtistClick: (String) -> Unit = { artistId -> navController.navigate("artist/$artistId") }
+    val onPlaylistClick: (String) -> Unit = { playlistId -> navController.navigate("playlist/$playlistId") }
 
     SettingsScreenLayout(
         title = resultType ?: "Results",
-        description = "Song Count",
         onBackClick = { navController.popBackStack() },
         scrollable = false,
         horizontalPadding = 0.dp
