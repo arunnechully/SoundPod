@@ -19,10 +19,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -60,7 +61,9 @@ fun NewBuiltInPlaylistScreen(
     builtInPlaylist: BuiltInPlaylist,
     pop: () -> Unit,
     onGoToAlbum: (String) -> Unit,
-    onGoToArtist: (String) -> Unit
+    onGoToArtist: (String) -> Unit,
+    onSearchClick: () -> Unit,
+    onSettingsClick: () -> Unit
 ) {
     val (colorPalette) = LocalAppearance.current
 
@@ -110,12 +113,41 @@ fun NewBuiltInPlaylistScreen(
                 }
             }
 
-            IconButton(onClick = { isSearching = !isSearching }) {
+            IconButton(
+                onClick = onSearchClick
+            ) {
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = "Search"
                 )
             }
+        },
+        dropDownMenuContent = { dismissMenu ->
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text = "Sound quality and effects",
+                        color = colorPalette.text,
+                        style = typography.bodyLarge
+                    )
+                },
+                onClick = {
+                    /* TODO: Handle action */
+                    dismissMenu()
+                }
+            )
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text = stringResource(id = R.string.settings),
+                        color = colorPalette.text,
+                        style = typography.bodyLarge
+                    )
+                },
+                onClick = {
+                    onSettingsClick()
+                }
+            )
         }
     ) {
         Column(
@@ -154,7 +186,7 @@ fun NewBuiltInPlaylistScreen(
                     BuiltInPlaylist.Favorites -> stringResource(id = R.string.favorites)
                     BuiltInPlaylist.Offline -> stringResource(id = R.string.offline)
                 },
-                style = MaterialTheme.typography.headlineMedium,
+                style = typography.headlineMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = colorPalette.text,
                 maxLines = 1,
@@ -166,7 +198,7 @@ fun NewBuiltInPlaylistScreen(
             // Track Count Text
             Text(
                 text = pluralStringResource(id = R.plurals.number_of_songs, count = songCount, songCount),
-                style = MaterialTheme.typography.bodyMedium,
+                style = typography.bodyMedium,
                 color = colorPalette.text.copy(alpha = 0.5f)
             )
 

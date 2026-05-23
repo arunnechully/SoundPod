@@ -143,6 +143,7 @@ fun ListItemContainer(
     leadingContent: @Composable (() -> Unit)? = null,
     thumbnailHeight: Dp = 56.dp,
     thumbnailAspectRatio: Float = 1F,
+    showMoreVert: Boolean = true,
     trailingContent: @Composable (() -> Unit)? = null
 ) {
     ListItem(
@@ -194,12 +195,13 @@ fun ListItemContainer(
             }
         },
         trailingContent = {
-            if (trailingContent != null) trailingContent()
-            else if (onLongClick != null) {
+            if (trailingContent != null) {
+                trailingContent()
+            } else if (showMoreVert && onLongClick != null) {
                 IconButton(onClick = onLongClick) {
                     Icon(
                         imageVector = Icons.Outlined.MoreVert,
-                        contentDescription = null
+                        contentDescription = "More options"
                     )
                 }
             }
@@ -282,6 +284,7 @@ fun LocalSongItem(
     thumbnailContent: @Composable (() -> Unit)? = null,
     leadingContent: @Composable (() -> Unit)? = null,
     onThumbnailContent: @Composable (BoxScope.() -> Unit)? = null,
+    showMoreVert: Boolean = true,
     trailingContent: @Composable (() -> Unit)? = null
 ) {
     ListItemContainer(
@@ -311,7 +314,8 @@ fun LocalSongItem(
                 }
             }
         } else null,
-        trailingContent = trailingContent
+        trailingContent = trailingContent,
+        showMoreVert = showMoreVert
     )
 }
 
@@ -322,7 +326,7 @@ fun MediaSongItem(
     song: MediaItem,
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
-    titleColor: Color = Color.Unspecified, // ADDED
+    titleColor: Color = Color.Unspecified,
     showThumbnail: Boolean = true,
     thumbnailContent: @Composable (() -> Unit)? = null,
     leadingContent: @Composable (() -> Unit)? = null,

@@ -54,7 +54,7 @@ fun PlayerSettings(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Playback",
+                text = stringResource(R.string.play_back),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.ExtraBold,
                 color = colorPalette.text.copy(alpha = 0.7f)
@@ -96,7 +96,7 @@ fun PlayerSettings(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Audio",
+                text = stringResource(R.string.audio),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.ExtraBold,
                 color = colorPalette.text.copy(alpha = 0.7f)

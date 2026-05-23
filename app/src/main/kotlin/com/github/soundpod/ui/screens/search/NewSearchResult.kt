@@ -55,6 +55,7 @@ fun NewSearchResult(
 
     SettingsScreenLayout(
         title = resultType ?: "Results",
+        description = "Song Count",
         onBackClick = { navController.popBackStack() },
         scrollable = false,
         horizontalPadding = 0.dp
@@ -63,7 +64,8 @@ fun NewSearchResult(
             shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)
         ){
             when (resultType) {
-                "Songs" -> {
+
+                stringResource(R.string.songs) -> {
                     ItemsPage(
                         tag = "searchResults/$query/songs",
                         itemsPageProvider = { continuation ->

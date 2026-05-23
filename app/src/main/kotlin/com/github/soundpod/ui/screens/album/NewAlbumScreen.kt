@@ -3,25 +3,17 @@ package com.github.soundpod.ui.screens.album
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Album
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.MusicNote
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.typography
@@ -30,15 +22,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -48,9 +36,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
-import com.github.soundpod.models.Section
 import com.github.soundpod.ui.components.AdaptiveThumbnail
-import com.github.soundpod.utils.thumbnail
+import com.github.soundpod.ui.components.SettingsCard
+import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.viewmodels.AlbumViewModel
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalFoundationApi::class)
@@ -59,6 +47,8 @@ fun NewAlbumScreen(
     browseId: String,
     onGoToArtist: (String) -> Unit,
     onBack: () -> Unit,
+    onSearchClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     viewModel: AlbumViewModel = viewModel()
 ) {
     BackHandler { onBack() }
@@ -69,72 +59,21 @@ fun NewAlbumScreen(
 
     val uiState by viewModel.uiState.collectAsState()
     val album = uiState.album
+    val (colorPalette) = LocalAppearance.current
 
-    val(colorPalette) = LocalAppearance.current
-    val windowInfo = LocalWindowInfo.current
-
-    val (blurRadius, cornerRadius) = remember(windowInfo.containerSize) {
-        val blur = (windowInfo.containerSize.height * 0.15f).dp
-        val corner = (windowInfo.containerSize.width * 0.08f).dp.coerceAtMost(32.dp)
-        blur to corner
-    }
-
-    val tabs = listOf(
-        Section(stringResource(id = R.string.songs), Icons.Outlined.MusicNote),
-        Section(stringResource(id = R.string.other_versions), Icons.Outlined.Album),
-        Section(stringResource(id = R.string.related_albums), Icons.Outlined.AutoAwesome)
-    )
-
-    val pagerState = rememberPagerState(pageCount = { tabs.size })
-
-    LaunchedEffect(pagerState.currentPage) {
-        viewModel.onTabSelected(pagerState.currentPage)
-    }
-
-    val lowResForBlurUrl = remember(album?.thumbnailUrl) {
-        album?.thumbnailUrl?.thumbnail(10)
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colorPalette.background4)
-    ) {
-        // Blurred Background Image
-//        AsyncImage(
-//            model = lowResForBlurUrl,
-//            contentDescription = null,
-//            contentScale = ContentScale.Crop,
-//            modifier = Modifier
-//                .matchParentSize()
-//                .graphicsLayer {
-//                    alpha = 0.99f
-//                }
-//                .blur(blurRadius)
-//        )
-//
-//        Box(
-//            modifier = Modifier
-//                .matchParentSize()
-//                .background(colorPalette.background3.copy(alpha = 0.35f))
-//        )
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 48.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+    SettingsScreenLayout(
+        title = {},
+        scrollable = false,
+        horizontalPadding = 0.dp,
+        onBackClick = onBack,
+        actions = {
             IconButton(
-                onClick = onBack,
-                modifier = Modifier.size(40.dp)
+                onClick = onSearchClick
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.arrow_back),
-                    contentDescription = "Back",
-                    modifier = Modifier.size(24.dp),
-                    colorFilter = ColorFilter.tint(colorPalette.text)
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search",
+                    tint = colorPalette.text
                 )
             }
 
@@ -150,21 +89,48 @@ fun NewAlbumScreen(
                     modifier = Modifier.size(24.dp)
                 )
             }
+        },
+        dropDownMenuContent = { dismissMenu ->
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text = "Sound quality and effects",
+                        color = colorPalette.text,
+                        style = typography.bodyLarge
+                    )
+                },
+                onClick = {
+                    /* TODO: Handle action */
+                    dismissMenu()
+                }
+            )
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text = stringResource(id = R.string.settings),
+                        color = colorPalette.text,
+                        style = typography.bodyLarge
+                    )
+                },
+                onClick = {
+                    onSettingsClick()
+                }
+            )
         }
+    ) {
 
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.75f)
-                .align(Alignment.Center),
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
-        ){
+        ) {
+            Spacer(modifier = Modifier.height(14.dp))
+
             AdaptiveThumbnail(
                 isLoading = uiState.isLoading,
                 url = album?.thumbnailUrl,
                 modifier = Modifier.fillMaxWidth(0.55f)
             )
-
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = album?.title.orEmpty(),
                 style = typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
@@ -174,27 +140,25 @@ fun NewAlbumScreen(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.fillMaxWidth(0.5f)
             )
-
-            Box(
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = album?.authorsText.orEmpty(),
+                style = typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                color = colorPalette.text,
+                textAlign = TextAlign.Center,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
+                    .fillMaxWidth(0.8f)
+                    .basicMarquee()
                     .clickable(
                         enabled = album?.artistId != null,
                         onClick = {
                             album?.artistId?.let { onGoToArtist(it) }
                         }
                     )
-                    .basicMarquee()
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            ) {
-                Text(
-                    text = album?.authorsText.orEmpty(),
-                    style = typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = colorPalette.text,
-                    textAlign = TextAlign.Center
-                )
-            }
-
+            )
+            Spacer(modifier = Modifier.height(8.dp))
             album?.year?.let {
                 Text(
                     text = it,
@@ -204,14 +168,12 @@ fun NewAlbumScreen(
                 )
             }
         }
-
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .fillMaxHeight(0.53f)
-                .clip(RoundedCornerShape(topStart = cornerRadius, topEnd = cornerRadius))
-                .background(colorPalette.baseColor)
+        Spacer(modifier = Modifier.height(8.dp))
+        SettingsCard(
+            shape = RoundedCornerShape(
+                topStart = 25.dp,
+                topEnd = 25.dp
+            )
         ) {
             NewAlbumSongs(
                 browseId = browseId,

@@ -1,9 +1,9 @@
 package com.github.soundpod.ui.screens.search
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,12 +14,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -39,17 +43,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.github.core.ui.ColorPalette
 import com.github.core.ui.LocalAppearance
 import com.github.innertube.Innertube
 import com.github.innertube.requests.searchSuggestions
@@ -59,6 +66,7 @@ import com.github.soundpod.models.SearchQuery
 import com.github.soundpod.query
 import com.github.soundpod.ui.appearance.LoadingAnimation
 import com.github.soundpod.ui.components.SettingsCard
+import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.utils.pauseSearchHistoryKey
 import com.github.soundpod.utils.preferences
@@ -71,7 +79,7 @@ import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @Composable
-fun NewSearchScreen(
+fun NewSearchLayout(
     initialTextInput: String = "",
     navController: NavController,
     onAlbumClick: (String) -> Unit,
@@ -152,99 +160,149 @@ fun NewSearchScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colorPalette.background4)
-    ) {
-        Row(
-            verticalAlignment = Alignment.Top,
-            modifier = Modifier.statusBarsPadding()
-        ) {
-            NewSearchBar(
-                text = textFieldValue.text,
-                onTextChange = { textFieldValue = TextFieldValue(it) },
-                onSearch = { performSearch(it) },
-                placeholderText = stringResource(R.string.search),
+    SettingsScreenLayout(
+        title = {
+            BasicTextField(
+                value = textFieldValue,
+                onValueChange = { textFieldValue = it },
+                singleLine = true,
+                textStyle = typography.bodyMedium.copy(
+                    fontWeight = FontWeight.Medium,
+                    color = colorPalette.text,
+                    fontSize = 18.sp
+                ),
+                cursorBrush = SolidColor(colorPalette.text),
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(focusRequester),
-                onClear = {
-                    textFieldValue = TextFieldValue("")
-                    confirmedSearchQuery = null
-                    isLoadingSuggestions = false
+                decorationBox = { innerTextField ->
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        if (textFieldValue.text.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.search),
+                                style = typography.bodyLarge,
+                                color = colorPalette.text.copy(alpha = 0.5f)
+                            )
+                        }
+                        innerTextField()
+                    }
                 },
-                onMicClick = { launchVoiceSearch() },
-                onBackClick = { navController.popBackStack() },
-            )
-        }
-
-        Spacer(modifier = Modifier.height(6.dp))
-
-        when {
-            confirmedSearchQuery != null -> {
-                OnlineSearch(
-                    searchResults = searchViewModel.searchResults,
-                    isLoading = searchViewModel.isLoading,
-                    onAlbumClick = onAlbumClick,
-                    onArtistClick = onArtistClick,
-                    onViewAllClick = { category ->
-                        navController.navigate("${Routes.SearchResult}/${confirmedSearchQuery}/$category")
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(
+                    onSearch = {
+                        if (textFieldValue.text.isNotBlank()) {
+                            performSearch(textFieldValue.text)
+                        }
                     }
                 )
-            }
-
-            textFieldValue.text.isNotEmpty() -> {
-                SettingsCard(
-                    shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)
-                ){
-                    if (isLoadingSuggestions) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                LoadingAnimation(modifier = Modifier.size(50.dp))
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = stringResource(R.string.loading),
-                                    style = typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
+            )
+        },
+        scrollable = false,
+        horizontalPadding = 0.dp,
+        onBackClick = { navController.popBackStack() },
+        actions = {
+            Crossfade(targetState = textFieldValue.text.isEmpty(), label = "SearchActions") { isEmpty ->
+                if (isEmpty) {
+                    IconButton(onClick = { launchVoiceSearch() }) {
+                        Icon(
+                            imageVector = Icons.Outlined.Mic,
+                            contentDescription = "Voice Search",
+                            tint = colorPalette.text
+                        )
+                    }
+                } else {
+                    IconButton(
+                        onClick = {
+                            textFieldValue = TextFieldValue("")
+                            confirmedSearchQuery = null
+                            isLoadingSuggestions = false
+                            focusRequester.requestFocus()
                         }
-                    } else {
-                        LazyColumn {
-                            suggestionsResult?.getOrNull()?.let { suggestions ->
-                                items(items = suggestions) { suggestion ->
-                                    SuggestionItem(
-                                        text = suggestion,
-                                        onClick = { performSearch(suggestion) },
-                                        color = colorPalette.text
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = "Clear Search",
+                            tint = colorPalette.text
+                        )
+                    }
+                }
+            }
+        }
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(6.dp))
+
+            when {
+                confirmedSearchQuery != null -> {
+                    OnlineSearch(
+                        searchResults = searchViewModel.searchResults,
+                        isLoading = searchViewModel.isLoading,
+                        onAlbumClick = onAlbumClick,
+                        onArtistClick = onArtistClick,
+                        onViewAllClick = { category ->
+                            navController.navigate("${Routes.SearchResult}/${confirmedSearchQuery}/$category")
+                        }
+                    )
+                }
+
+                textFieldValue.text.isNotEmpty() -> {
+                    SettingsCard(
+                        shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)
+                    ) {
+                        if (isLoadingSuggestions) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    LoadingAnimation(modifier = Modifier.size(50.dp))
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = stringResource(R.string.loading),
+                                        style = typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
-                                    HorizontalDivider(
-                                        modifier = Modifier.padding(horizontal = 18.dp),
-                                        color = colorPalette.text.copy(alpha = 0.1f)
-                                    )
+                                }
+                            }
+                        } else {
+                            LazyColumn {
+                                suggestionsResult?.getOrNull()?.let { suggestions ->
+                                    items(items = suggestions) { suggestion ->
+                                        SuggestionItem(
+                                            text = suggestion,
+                                            onClick = { performSearch(suggestion) },
+                                            color = colorPalette.text
+                                        )
+                                        HorizontalDivider(
+                                            modifier = Modifier.padding(horizontal = 18.dp),
+                                            color = colorPalette.text.copy(alpha = 0.1f)
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            history.isNotEmpty() -> {
-                HistorySection(
-                    history = history,
-                    onHistoryClick = { performSearch(it) },
-                    onDeleteClick = { query { db.delete(it) } },
-                    onClearAllClick = { query { db.clearQueries() } },
-                    colorPalette = colorPalette
-                )
-            }
+                history.isNotEmpty() -> {
+                    HistorySection(
+                        history = history,
+                        onHistoryClick = { performSearch(it) },
+                        onDeleteClick = { query { db.delete(it) } },
+                        onClearAllClick = { query { db.clearQueries() } },
+                        colorPalette = colorPalette
+                    )
+                }
 
-            else -> {
-                EmptySearchPlaceholder(color = colorPalette.text)
+                else -> {
+                    EmptySearchPlaceholder(color = colorPalette.text)
+                }
             }
         }
     }
@@ -254,7 +312,11 @@ fun NewSearchScreen(
 }
 
 @Composable
-private fun SuggestionItem(text: String, onClick: () -> Unit, color: androidx.compose.ui.graphics.Color) {
+private fun SuggestionItem(
+    text: String,
+    onClick: () -> Unit,
+    color: androidx.compose.ui.graphics.Color
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -276,7 +338,7 @@ private fun HistorySection(
     onHistoryClick: (String) -> Unit,
     onDeleteClick: (SearchQuery) -> Unit,
     onClearAllClick: () -> Unit,
-    colorPalette: com.github.core.ui.ColorPalette
+    colorPalette: ColorPalette
 ) {
     Column {
         Text(

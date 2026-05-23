@@ -34,8 +34,8 @@ import com.github.soundpod.ui.screens.builtinplaylist.NewBuiltInPlaylistScreen
 import com.github.soundpod.ui.screens.home.HomeScreen
 import com.github.soundpod.ui.screens.localplaylist.LocalPlaylistScreen
 import com.github.soundpod.ui.screens.playlist.PlaylistScreen
+import com.github.soundpod.ui.screens.search.NewSearchLayout
 import com.github.soundpod.ui.screens.search.NewSearchResult
-import com.github.soundpod.ui.screens.search.NewSearchScreen
 import com.github.soundpod.ui.screens.search.SearchScreen
 import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
@@ -129,6 +129,8 @@ fun MainNavigation(
             NewAlbumScreen(
                 browseId = route.id,
                 onGoToArtist = navigateToArtist,
+                onSearchClick = {navController.navigate(route = Routes.Search)},
+                onSettingsClick = onNavigateToSettings,
                 onBack = {navController.popBackStack()}
             )
         }
@@ -149,7 +151,7 @@ fun MainNavigation(
             val useNewLayout by newSearchLayoutEnabled(context).collectAsState(initial = false)
 
             if (useNewLayout) {
-                NewSearchScreen(
+                NewSearchLayout(
                     initialTextInput = "",
                     navController = navController,
                     onAlbumClick = navigateToAlbum,
@@ -174,7 +176,9 @@ fun MainNavigation(
                 builtInPlaylist = BuiltInPlaylist.entries[route.index],
                 pop = popDestination,
                 onGoToAlbum = navigateToAlbum,
-                onGoToArtist = navigateToArtist
+                onGoToArtist = navigateToArtist,
+                onSearchClick = { navController.navigate(route = Routes.Search)},
+                onSettingsClick = onNavigateToSettings
             )
         }
 

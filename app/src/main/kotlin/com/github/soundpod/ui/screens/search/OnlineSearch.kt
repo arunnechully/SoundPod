@@ -118,15 +118,17 @@ fun OnlineSearch(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.Center
                         ) {
+                            val songsTitle = stringResource(R.string.songs)
+
                             TextButton(
-                                onClick = { onViewAllClick("Songs") },
+                                onClick = { onViewAllClick(songsTitle) },
                                 colors = ButtonDefaults.textButtonColors(
                                     contentColor = colorPalette.text
                                 ),
                                 contentPadding = PaddingValues(horizontal = 4.dp)
                             ) {
                                 Text(
-                                    text = "View all",
+                                    text = stringResource(R.string.view_all),
                                     style = MaterialTheme.typography.bodyMedium.copy(
                                         fontWeight = FontWeight.Medium
                                     )

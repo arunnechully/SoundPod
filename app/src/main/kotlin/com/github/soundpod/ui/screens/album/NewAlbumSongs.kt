@@ -122,6 +122,7 @@ fun NewAlbumSongs(
                 song = song,
                 showThumbnail = false,
                 titleColor = highlightColor,
+                showMoreVert = false,
                 leadingContent = {
                     Text(
                         text = "${index + 1}",
@@ -149,6 +150,7 @@ fun NewAlbumSongs(
                         )
                     }
                 }
+
             )
         }
     }
