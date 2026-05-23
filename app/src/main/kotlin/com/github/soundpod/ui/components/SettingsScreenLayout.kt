@@ -103,7 +103,7 @@ fun SettingsScreenLayout(
                         Icon(
                             painter = painterResource(R.drawable.arrow_back),
                             contentDescription = "Back",
-                            modifier = Modifier.size(22.dp),
+                            modifier = Modifier.size(18.dp),
                             tint = colorPalette.text
                         )
                     }

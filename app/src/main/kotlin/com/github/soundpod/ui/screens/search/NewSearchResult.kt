@@ -115,7 +115,7 @@ fun NewSearchResult(
                     )
                 }
 
-                "Albums" -> {
+                stringResource(R.string.albums) -> {
                     ItemsPage(
                         tag = "searchResults/$query/albums",
                         itemsPageProvider = { continuation ->
@@ -143,7 +143,7 @@ fun NewSearchResult(
                     )
                 }
 
-                "Artists" -> {
+                stringResource(R.string.artists) -> {
                     ItemsPage(
                         tag = "searchResults/$query/artists",
                         itemsPageProvider = { continuation ->
@@ -171,7 +171,7 @@ fun NewSearchResult(
                     )
                 }
 
-                "Playlists" -> {
+                stringResource(R.string.playlists) -> {
                     ItemsPage(
                         tag = "searchResults/$query/playlists",
                         itemsPageProvider = { continuation ->

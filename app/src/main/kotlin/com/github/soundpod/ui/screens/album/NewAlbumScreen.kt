@@ -114,6 +114,7 @@ fun NewAlbumScreen(
                 },
                 onClick = {
                     onSettingsClick()
+                    dismissMenu()
                 }
             )
         }

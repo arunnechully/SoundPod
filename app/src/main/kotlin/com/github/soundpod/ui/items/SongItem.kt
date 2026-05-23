@@ -20,7 +20,7 @@ fun SongItem(
     song: Innertube.SongItem,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
-    showThumbnail: Boolean = true, // Toggle
+    showThumbnail: Boolean = true,
     thumbnailContent: @Composable (() -> Unit)? = null,
     onThumbnailContent: @Composable (BoxScope.() -> Unit)? = null,
     trailingContent: @Composable (() -> Unit)? = null
@@ -61,6 +61,7 @@ fun LocalSongItem(
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     showThumbnail: Boolean = true,
+    showMoreVert: Boolean = true,
     thumbnailContent: @Composable (() -> Unit)? = null,
     onThumbnailContent: @Composable (BoxScope.() -> Unit)? = null,
     trailingContent: @Composable (() -> Unit)? = null
@@ -90,6 +91,7 @@ fun LocalSongItem(
                 }
             }
         } else null,
+        showMoreVert = showMoreVert,
         trailingContent = trailingContent
     )
 }
