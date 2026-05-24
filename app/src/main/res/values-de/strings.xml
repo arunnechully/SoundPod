@@ -289,4 +289,5 @@
     <string name="language_selector_not_found">Couldn\'t find app language settings, please configure them manually</string>
     <string name="play_back">Playback</string>
     <string name="audio">Audio</string>
+    <string name="playlist">Playlist</string>
 </resources>
