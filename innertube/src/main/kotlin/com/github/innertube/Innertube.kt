@@ -39,7 +39,7 @@ data class InnerTubeContext(
 )
 
 object Innertube {
-    var visitorData: String? = "Cgs1ckhIU0dWTEpuNCiJkMHQBjIKCgJJThIEGgAgbWLfAgrcAjE4LllUPVp1eEotTGxqYVJFLUI0S2pXNTBXX1lFU1k0dEZHYVA0VWFCQVZNT0tpMkEteV9Xb24tYTJvU0RNNHRqeXh1a21JN1hIdjI4Z2ZCMGxGQ2pKUEJEUnVzVU52QWdRYlJDcmdnTWpJUDJWSTNaTWtMMTY1MmlGS3lmTE0zQmtCcUVLbWR6QVdab3psV05VRmp1YmhodmI0OVZ0Q1phb1FFTFpIZGNQLXRUVVcxXzZ2Y29ENXRZRFFVOTdQblVFQkJ1TnFUbEFoYlpSQlMzUjdhcl9nOVJzd0RUdTBoTjFlX1NxWDJCR3dZNFI3c1J0ZWNhN0h4d2NvX3BFM3BZODZ4RG5UU1ROaFVidjZUM1dtdm9uYUZIR1RXYk9TNXQ4Ui1WTU1fbXc5bFc5Y1lsQlFkR0JaVTg2T3kwR2cwazlIVExNSW9uSnl0b1FYYjFfT00tZDQ1bHptZw%3D%3D"
+    var visitorData: String? = null
 
     val client = HttpClient(OkHttp) {
         expectSuccess = true
@@ -61,7 +61,7 @@ object Innertube {
                 contentType(ContentType.Application.Json)
 
                 //SPOOFING HEADERS
-                headers.append("X-Goog-Api-Key", InnerTubeKeys.FALLBACK_KEY)
+                headers.append("X-Goog-Api-Key", InnerTubeKeys.PRIMARY_KEY)
                 headers.append(HttpHeaders.UserAgent, "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Safari/605.1.15")
                 headers.append(HttpHeaders.Origin, "https://music.youtube.com")
                 headers.append(HttpHeaders.Referrer, "https://music.youtube.com/")

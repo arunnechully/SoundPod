@@ -94,19 +94,6 @@ fun NewAlbumScreen(
             DropdownMenuItem(
                 text = {
                     Text(
-                        text = "Sound quality and effects",
-                        color = colorPalette.text,
-                        style = typography.bodyLarge
-                    )
-                },
-                onClick = {
-                    /* TODO: Handle action */
-                    dismissMenu()
-                }
-            )
-            DropdownMenuItem(
-                text = {
-                    Text(
                         text = stringResource(id = R.string.settings),
                         color = colorPalette.text,
                         style = typography.bodyLarge

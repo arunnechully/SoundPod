@@ -82,7 +82,7 @@ fun SettingsScreenLayout(
 @Composable
 fun SettingsScreenLayout(
     title: @Composable () -> Unit,
-    onBackClick: () -> Unit,
+    onBackClick: (() -> Unit)? = null,
     scrollable: Boolean = true,
     horizontalPadding: Dp = 14.dp,
     actions: @Composable RowScope.() -> Unit = {},
@@ -99,13 +99,15 @@ fun SettingsScreenLayout(
             TopAppBar(
                 title = title,
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            painter = painterResource(R.drawable.arrow_back),
-                            contentDescription = "Back",
-                            modifier = Modifier.size(18.dp),
-                            tint = colorPalette.text
-                        )
+                    if (onBackClick != null) {
+                        IconButton(onClick = onBackClick) {
+                            Icon(
+                                painter = painterResource(R.drawable.arrow_back),
+                                contentDescription = "Back",
+                                modifier = Modifier.size(18.dp),
+                                tint = colorPalette.text
+                            )
+                        }
                     }
                 },
                 actions = {

@@ -18,8 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -128,19 +126,6 @@ fun NewBuiltInPlaylistScreen(
             DropdownMenuItem(
                 text = {
                     Text(
-                        text = "Sound quality and effects",
-                        color = colorPalette.text,
-                        style = typography.bodyLarge
-                    )
-                },
-                onClick = {
-                    /* TODO: Handle action */
-                    dismissMenu()
-                }
-            )
-            DropdownMenuItem(
-                text = {
-                    Text(
                         text = stringResource(id = R.string.settings),
                         color = colorPalette.text,
                         style = typography.bodyLarge
@@ -148,6 +133,7 @@ fun NewBuiltInPlaylistScreen(
                 },
                 onClick = {
                     onSettingsClick()
+                    dismissMenu()
                 }
             )
         }
