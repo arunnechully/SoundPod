@@ -25,6 +25,7 @@
   <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Player.png" width="30%" alt="Player View">
   <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Seekbar.png" width="30%" alt="Seeker View">
   <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Favorites.png" width="30%" alt="Seeker View">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Album.png" width="30%" alt="Seeker View">
 </p>
 
 ---
