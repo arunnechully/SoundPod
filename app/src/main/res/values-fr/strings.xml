@@ -289,4 +289,5 @@
     <string name="language_selector_not_found">Impossible de trouver les paramètres de langue de l\'application, Veuillez les configurer manuellement</string>
     <string name="play_back">Lecture</string>
     <string name="audio">Audio</string>
+    <string name="playlist">Playlist</string>
 </resources>
