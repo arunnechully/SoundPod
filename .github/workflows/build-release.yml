@@ -1,4 +1,4 @@
-name: Build F-Droid Release APK
+name: Build Release APKs
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Build APK on Linux
+    name: Build APKs on Linux
     runs-on: ubuntu-latest
 
     steps:
@@ -28,20 +28,43 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Extract Version Name
+        # Finds 'versionName = "X.X.X"' in your gradle file
         run: |
           VERSION=$(grep -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts)
           echo "VERSION_NAME=$VERSION" >> $GITHUB_ENV
 
-      - name: Build the F-Droid Release APK
-        run: ./gradlew assembleFdroidRelease
+      - name: Build Both Release Flavors
+        run: ./gradlew assembleFdroidRelease assembleGithubRelease
 
-      - name: Rename the APK
+      - name: Sign F-Droid APK
+        uses: r0adkll/sign-android-release@v1
+        id: sign_fdroid
+        with:
+          releaseDirectory: app/build/outputs/apk/fdroid/release
+          signingKeyBase64: ${{ secrets.KEYSTORE_BASE64 }}
+          alias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Sign GitHub APK
+        uses: r0adkll/sign-android-release@v1
+        id: sign_github
+        with:
+          releaseDirectory: app/build/outputs/apk/github/release
+          signingKeyBase64: ${{ secrets.KEYSTORE_BASE64 }}
+          alias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Rename the Signed APKs
         run: |
-          cd app/build/outputs/apk/fdroid/release/
-          mv *.apk SoundPod-v${{ env.VERSION_NAME }}-fdroid-release.apk
+          mv app/build/outputs/apk/fdroid/release/*-signed.apk SoundPod-v${{ env.VERSION_NAME }}-fdroid-release.apk
+          mv app/build/outputs/apk/github/release/*-signed.apk SoundPod-v${{ env.VERSION_NAME }}-github-release.apk
 
-      - name: Upload APK as Artifact
+      - name: Upload APKs as Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: SoundPod-v${{ env.VERSION_NAME }}-fdroid-release
-          path: app/build/outputs/apk/fdroid/release/SoundPod-v${{ env.VERSION_NAME }}-fdroid-release.apk
+          name: SoundPod-v${{ env.VERSION_NAME }}-Releases
+          path: |
+            SoundPod-v${{ env.VERSION_NAME }}-fdroid-release.apk
+            SoundPod-v${{ env.VERSION_NAME }}-github-release.apk
