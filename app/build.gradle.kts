@@ -142,3 +142,10 @@ dependencies {
 
     coreLibraryDesugaring(libs.desugaring)
 }
+
+// Disable Baseline/ART Profile generation to ensure F-Droid reproducibility
+tasks.configureEach {
+    if (name.contains("fdroid", ignoreCase = true) && name.contains("ArtProfile", ignoreCase = true)) {
+        enabled = false
+    }
+}
