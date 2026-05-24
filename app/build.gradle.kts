@@ -46,8 +46,9 @@ extensions.configure<ApplicationExtension>("android") {
     packaging {
         resources {
             excludes += setOf(
-                "assets/dexopt/baseline.prof",
-                "META-INF/*"
+                "**/*.prof",
+                "**/*.profi",
+                "META-INF/**"
             )
         }
     }

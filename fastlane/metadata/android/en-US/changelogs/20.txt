@@ -1,0 +1,6 @@
+* Redesigned the playlist and album screens with a cleaner look and built-in search
+* Added quick sorting options (by title or artist) along with new shuffle and play buttons for albums and playlists
+* The currently playing song is now easier to spot while browsing albums
+* Added automatic names for newly created playlists and improved the top bar navigation menus
+* Made major under-the-hood improvements for more reliable audio streaming and faster song loading
+* Expanded translation support across the app for a better localized experience
