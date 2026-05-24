@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.screens.builtinplaylist
+package com.github.soundpod.ui.screens.localplaylist
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,18 +39,12 @@ import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
 import com.github.soundpod.db
-import com.github.soundpod.enums.SongSortBy
-import com.github.soundpod.enums.SortOrder
 import com.github.soundpod.models.Playlist
 import com.github.soundpod.query
 import com.github.soundpod.ui.components.ConfirmationDialog
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.components.TextFieldDialog
-import com.github.soundpod.ui.screens.localplaylist.NewLocalPlaylistSongs
-import com.github.soundpod.utils.rememberPreference
-import com.github.soundpod.utils.songSortByKey
-import com.github.soundpod.utils.songSortOrderKey
 import kotlinx.coroutines.flow.filterNotNull
 
 @Suppress("AssignedValueIsNeverRead")
@@ -78,9 +71,6 @@ fun NewLocalPlaylistScreen(
     var isSearching by remember { mutableStateOf(false) }
 
     var songCount by remember { mutableIntStateOf(0) }
-    var sortBy by rememberPreference(songSortByKey, SongSortBy.Title)
-    var sortOrder by rememberPreference(songSortOrderKey, SortOrder.Ascending)
-
 
     LaunchedEffect(Unit) {
         db.playlist(playlistId).filterNotNull().collect { playlist = it }

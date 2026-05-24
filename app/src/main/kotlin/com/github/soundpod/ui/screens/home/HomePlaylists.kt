@@ -62,10 +62,13 @@ fun HomePlaylists(
         )
     }
 
+    val playlistName = stringResource(R.string.playlist)
+
     if (isCreatingANewPlaylist) {
         TextFieldDialog(
             title = stringResource(id = R.string.new_playlist),
             hintText = stringResource(id = R.string.playlist_name_hint),
+            initialTextInput = "$playlistName %03d".format(viewModel.items.size + 1),
             onDismiss = {
                 isCreatingANewPlaylist = false
             },
@@ -73,6 +76,7 @@ fun HomePlaylists(
                 query {
                     db.insert(Playlist(name = text))
                 }
+                isCreatingANewPlaylist = false
             }
         )
     }

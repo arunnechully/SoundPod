@@ -1,17 +1,25 @@
 package com.github.soundpod.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -22,30 +30,35 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.github.soundpod.R
 import kotlinx.coroutines.delay
 
@@ -64,71 +77,157 @@ fun TextFieldDialog(
     onCancel: () -> Unit = onDismiss,
     isTextInputValid: (String) -> Boolean = { it.isNotEmpty() }
 ) {
-    val focusRequester = remember {
-        FocusRequester()
-    }
+    val focusRequester = remember { FocusRequester() }
 
-    var textFieldValue by rememberSaveable(initialTextInput, stateSaver = TextFieldValue.Saver) {
+    var textFieldValue by remember {
         mutableStateOf(
             TextFieldValue(
                 text = initialTextInput,
-                selection = TextRange(initialTextInput.length)
+                selection = TextRange(0, initialTextInput.length)
             )
         )
     }
-
-    AlertDialog(
+    Dialog(
         onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    if (isTextInputValid(textFieldValue.text)) {
-                        onDismiss()
-                        onDone(textFieldValue.text)
-                    }
-                }
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false
+        )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .imePadding()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 16.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Surface(
+                modifier = modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp)
             ) {
-                Text(text = doneText)
-            }
-        },
-        modifier = modifier,
-        dismissButton = {
-            TextButton(onClick = onCancel) {
-                Text(text = cancelText)
-            }
-        },
-        title = {
-            Text(text = title)
-        },
-        text = {
-            OutlinedTextField(
-                value = textFieldValue,
-                onValueChange = { textFieldValue = it },
-                singleLine = singleLine,
-                maxLines = maxLines,
-                placeholder = {
-                    Text(text = hintText)
-                },
-                keyboardOptions = KeyboardOptions(imeAction = if (singleLine) ImeAction.Done else ImeAction.None),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        if (isTextInputValid(textFieldValue.text)) {
-                            onDismiss()
-                            onDone(textFieldValue.text)
+                Column(
+                    modifier = Modifier.padding(top = 24.dp, bottom = 8.dp)
+                ) {
+                    // Title
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 20.sp
+                        ),
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    BasicTextField(
+                        value = textFieldValue,
+                        onValueChange = { textFieldValue = it },
+                        singleLine = singleLine,
+                        maxLines = maxLines,
+                        textStyle = TextStyle(
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 16.sp
+                        ),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                        keyboardOptions = KeyboardOptions(imeAction = if (singleLine) ImeAction.Done else ImeAction.None),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                if (isTextInputValid(textFieldValue.text)) {
+                                    onDismiss()
+                                    onDone(textFieldValue.text)
+                                }
+                            }
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp)
+                            .focusRequester(focusRequester),
+                        decorationBox = { innerTextField ->
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    if (textFieldValue.text.isEmpty()) {
+                                        Text(
+                                            text = hintText,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                            fontSize = 16.sp
+                                        )
+                                    }
+                                    innerTextField()
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(2.dp)
+                                        .background(MaterialTheme.colorScheme.primary)
+                                )
+                            }
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Buttons
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextButton(
+                            onClick = onCancel,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = cancelText,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight(0.5f)
+                                .width(1.dp)
+                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f))
+                        )
+
+                        TextButton(
+                            onClick = {
+                                if (isTextInputValid(textFieldValue.text)) {
+                                    onDismiss()
+                                    onDone(textFieldValue.text)
+                                }
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = doneText,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.SemiBold
+                            )
                         }
                     }
-                ),
-                modifier = Modifier.focusRequester(focusRequester)
-            )
+                }
+            }
         }
-    )
+    }
 
     LaunchedEffect(Unit) {
-        delay(300)
+        delay(100)
         focusRequester.requestFocus()
+        textFieldValue = textFieldValue.copy(
+            selection = TextRange(0, textFieldValue.text.length)
+        )
     }
 }
-
 @Composable
 fun ConfirmationDialog(
     title: String,
