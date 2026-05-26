@@ -1,0 +1,6 @@
+* Added WorkManager-based automatic database backups with configurable backup frequency (daily, weekly, monthly) and custom storage location support.
+* Added "Select All", batch removal, and "Clear Playlist" actions for built-in playlists (Favorites and Offline).
+* Added empty state messages for playlists with no songs available.
+* Improved favorites sorting logic with proper in-memory sorting support for title, play time, date added, and artist.
+* Simplified InnerTube request headers and updated client context handling.
+* Updated app version to `1.2.0-rc2`.
