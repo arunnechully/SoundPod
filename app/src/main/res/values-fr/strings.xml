@@ -295,8 +295,8 @@
     <string name="daily">Daily</string>
     <string name="weekly">Weekly</string>
     <string name="monthly">Monthly</string>
-    <string name="backup_location">Backup Location</string>
-    <string name="backup_location_description">Tap to select a folder</string>
+    <string name="backup_location">Emplacement de sauvegarde</string>
+    <string name="backup_location_description">Appuyez pour sélectionner un dossier</string>
     <string name="remove_from_favorites">Remove from Favorites</string>
     <string name="clear_playlist">Remove Selected Songs?</string>
     <string name="clear_playlist_alert">Are you sure want to remove the song?</string>
