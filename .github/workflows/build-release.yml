@@ -33,6 +33,12 @@ jobs:
           VERSION=$(grep -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts)
           echo "VERSION_NAME=$VERSION" >> $GITHUB_ENV
 
+      - name: Setup Android Build Tools
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: 34
+          build-tools: 34.0.0
+
       - name: Build Both Release Flavors
         run: ./gradlew assembleFdroidRelease assembleGithubRelease
 
@@ -45,6 +51,7 @@ jobs:
           alias: ${{ secrets.KEY_ALIAS }}
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
+          buildToolsVersion: '34.0.0'
 
       - name: Sign GitHub APK
         uses: r0adkll/sign-android-release@v1
