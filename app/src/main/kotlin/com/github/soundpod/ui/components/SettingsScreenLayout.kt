@@ -81,7 +81,7 @@ fun SettingsScreenLayout(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreenLayout(
-    title: @Composable () -> Unit,
+    title: @Composable (() -> Unit)? = null,
     onBackClick: (() -> Unit)? = null,
     scrollable: Boolean = true,
     horizontalPadding: Dp = 14.dp,
@@ -97,7 +97,7 @@ fun SettingsScreenLayout(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = title,
+                title = { title?.invoke() },
                 navigationIcon = {
                     if (onBackClick != null) {
                         IconButton(onClick = onBackClick) {

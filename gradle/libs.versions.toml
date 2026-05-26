@@ -21,6 +21,7 @@ media = "1.8.0"
 media3 = "1.10.1"
 navigation = "2.9.8"
 palette-ktx = "1.0.0"
+preference-ktx = "1.2.1"
 reorderable = "3.1.0"
 room = "2.8.4"
 swipe = "1.3.0"
@@ -62,6 +63,7 @@ material-motion-compose = { group = "io.github.fornewid", name = "material-motio
 media = { group = "androidx.media", name = "media", version.ref = "media" }
 media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
 palette-ktx = { module = "androidx.palette:palette-ktx", version.ref = "palette-ktx" }
+preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "preference-ktx" }
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 room = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }

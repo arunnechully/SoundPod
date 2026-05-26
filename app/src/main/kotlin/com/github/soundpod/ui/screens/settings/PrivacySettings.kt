@@ -96,21 +96,21 @@ fun PrivacySettings(
             Spacer(modifier = Modifier.height(8.dp))
             SettingsCard {
                 if (BuildConfig.ENABLE_UPDATER) {
-                    SettingColum(
+                    SettingColumn(
                         icon = IconSource.Vector(Icons.Outlined.Notifications),
                         title = stringResource(id = R.string.notifications),
                         description = if (isNotificationGranted) stringResource(id = R.string.allowed) else stringResource(id = R.string.denied),
                         onClick = { openAppSettings(context) }
                     )
                 }
-                SettingColum(
+                SettingColumn(
                     icon = IconSource.Vector(Icons.Outlined.MusicNote),
                     title = stringResource(id = R.string.audio_permission),
                     description = if (isStorageGranted) stringResource(id = R.string.allowed) else stringResource(id = R.string.denied),
                     onClick = { openAppSettings(context) }
                 )
                 if (BuildConfig.ENABLE_UPDATER) {
-                    SettingColum(
+                    SettingColumn(
                         icon = IconSource.Vector(Icons.Outlined.Security),
                         title = stringResource(id = R.string.install_unknown_apps),
                         description = if (isInstallUnknownGranted) stringResource(id = R.string.allowed) else stringResource(id = R.string.denied),
@@ -139,7 +139,7 @@ fun PrivacySettings(
             Spacer(modifier = Modifier.height(8.dp))
 
             SettingsCard {
-                SettingColum(
+                SettingColumn(
                     icon = IconSource.Vector(Icons.Outlined.Folder),
                     title = stringResource(id = R.string.local_data),
                     description = stringResource(id = R.string.local_data_discription),

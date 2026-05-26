@@ -42,9 +42,11 @@ const val appTheme = "appTheme"
 const val progressBarStyle = "progressBarStyle"
 
 const val playerlayout = "playerlayout"
+
+const val autoBackup = "autoBackup"
+
+const val autoBackupUriPrefKey = "autoBackupUri"
 const val listGesturesEnabledKey = "listGesturesEnabled"
-const val playerGesturesEnabledKey = "songGesturesEnabled"
-const val miniplayerGesturesEnabledKey = "miniplayerGesturesEnabled"
 
 inline fun <reified T : Enum<T>> SharedPreferences.getEnum(
     key: String,

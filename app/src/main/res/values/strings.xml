@@ -295,4 +295,18 @@
     <string name="play_back">Playback</string>
     <string name="audio">Audio</string>
     <string name="playlist">Playlist</string>
+    <string name="auto_backup">Automatic Backup</string>
+    <string name="auto_backup_description">Automatically back up your database.</string>
+    <string name="daily">Daily</string>
+    <string name="weekly">Weekly</string>
+    <string name="monthly">Monthly</string>
+    <string name="backup_location">Backup Location</string>
+    <string name="backup_location_description">Tap to select a folder</string>
+    <string name="remove_from_favorites">Remove from Favorites</string>
+    <string name="clear_playlist">Remove Selected Songs?</string>
+    <string name="clear_playlist_alert">Are you sure want to remove the song?</string>
+    <string name="select_all">Select all</string>
+    <string name="deselect_all">Deselect all</string>
+    <string name="clear_playlist_confirmation">Are you sure you want to remove the selected songs?</string>
+    <string name="remove_songs_confirmation">Are you sure you want to remove the selected songs?</string>
 </resources>

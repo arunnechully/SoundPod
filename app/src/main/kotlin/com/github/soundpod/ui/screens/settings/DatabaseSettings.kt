@@ -124,7 +124,7 @@ fun CacheSettings(
             Spacer(modifier = Modifier.height(16.dp))
 
             SettingsCard {
-                SettingColum(
+                SettingColumn(
                     icon = IconSource.Vector(Icons.Outlined.RestartAlt),
                     title = stringResource(id = R.string.reset_quick_picks),
                     description = if (eventsCount > 0) {

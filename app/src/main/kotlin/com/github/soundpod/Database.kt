@@ -33,6 +33,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.github.soundpod.enums.AlbumSortBy
 import com.github.soundpod.enums.ArtistSortBy
+import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.enums.PlaylistSortBy
 import com.github.soundpod.enums.SongSortBy
 import com.github.soundpod.enums.SortOrder
@@ -58,7 +59,6 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface Database {
     // Note: Companion object removed to prevent circular dependency crash
-
     @Transaction
     @Query("SELECT * FROM Song WHERE totalPlayTimeMs > 0 ORDER BY ROWID ASC")
     @RewriteQueriesToDropUnusedColumns
@@ -353,6 +353,8 @@ interface Database {
     @Query("DELETE FROM Event WHERE songId = :songId")
     fun clearEventsFor(songId: String)
 
+
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     @Throws(SQLException::class)
     fun insert(event: Event)
@@ -421,6 +423,37 @@ interface Database {
             }
         }
     }
+
+    @Transaction
+    fun removeSongsFromPlaylist(playlist: BuiltInPlaylist, songIds: List<String>) {
+        when (playlist) {
+            BuiltInPlaylist.Favorites -> removeFavorites(songIds)
+            BuiltInPlaylist.Offline -> removeOffline(songIds)
+        }
+    }
+
+    @Transaction
+    fun clearPlaylist(playlist: BuiltInPlaylist) {
+        when (playlist) {
+            BuiltInPlaylist.Favorites -> clearFavorites()
+            BuiltInPlaylist.Offline -> clearOfflineAll()
+        }
+    }
+
+    //Favorites Database Logic
+    @Query("UPDATE Song SET likedAt = NULL WHERE id IN (:songIds)")
+    fun removeFavorites(songIds: List<String>)
+
+    @Query("UPDATE Song SET likedAt = NULL")
+    fun clearFavorites()
+
+    //Offline Database Logic
+    @Query("DELETE FROM Format WHERE songId IN (:songIds)")
+    fun removeOffline(songIds: List<String>)
+
+    @Query("DELETE FROM Format")
+    fun clearOfflineAll()
+
 
     @Update
     fun update(artist: Artist)
@@ -689,7 +722,6 @@ object Converters {
         }
     }
 
-    @Suppress("DEPRECATION")
     @TypeConverter
     fun mediaItemToByteArray(mediaItem: MediaItem?): ByteArray? {
         if (mediaItem == null) return null
@@ -705,9 +737,10 @@ object Converters {
                 mediaItem.mediaMetadata.extras?.let { extras ->
                     val extrasJson = org.json.JSONObject()
                     extras.keySet().forEach { key ->
-                        when (val extraVal = extras.get(key)) { // The deprecated call
-                            is String -> extrasJson.put(key, extraVal)
-                            is Boolean -> extrasJson.put(key, extraVal)
+
+                        @Suppress("DEPRECATION")
+                        when (val extraVal = extras.get(key)) {
+                            is String, is Boolean -> extrasJson.put(key, extraVal)
                             is ArrayList<*> -> extrasJson.put(key, org.json.JSONArray(extraVal))
                         }
                     }

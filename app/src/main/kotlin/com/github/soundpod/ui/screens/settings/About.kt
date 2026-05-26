@@ -206,17 +206,17 @@ fun AboutSettings(
                 Spacer(modifier = Modifier.height(Dimensions.spacer + 8.dp))
 
                 SettingsCard {
-                    SettingColum(
+                    SettingColumn(
                         icon = IconSource.Icon(painterResource(id = R.drawable.github)),
                         title = stringResource(id = R.string.source_code),
                         onClick = { uriHandler.openUri("https://github.com/arunnechully/SoundPod") },
                     )
-                    SettingColum(
+                    SettingColumn(
                         icon = IconSource.Icon(painterResource(id = R.drawable.idea)),
                         title = stringResource(id = R.string.suggest_an_idea),
                         onClick = { uriHandler.openUri("https://github.com/arunnechully/SoundPod/issues/new") },
                     )
-                    SettingColum(
+                    SettingColumn(
                         icon = IconSource.Icon(painterResource(id = R.drawable.bug)),
                         title = stringResource(id = R.string.report_a_bug),
                         onClick = { uriHandler.openUri("https://github.com/arunnechully/SoundPod/issues/new") },

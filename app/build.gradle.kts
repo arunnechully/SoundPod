@@ -24,10 +24,9 @@ extensions.configure<ApplicationExtension>("android") {
     defaultConfig {
         applicationId = "com.github.soundpod"
         minSdk = 23
-        //noinspection OldTargetApi
         targetSdk = 36
-        versionCode = 20
-        versionName = "1.2.0"
+        versionCode = 21
+        versionName = "1.2.0-rc2"
     }
 
     flavorDimensions += "store"
@@ -128,9 +127,10 @@ dependencies {
     implementation(libs.room)
     implementation(libs.swipe)
     implementation(libs.palette.ktx)
+    implementation(libs.work.runtime.ktx)
+    implementation(libs.preference.ktx)
     implementation(libs.compose.lottie)
     implementation(libs.datastore.preferences)
-    implementation(libs.work.runtime.ktx)
     implementation(libs.ui.geometry)
 
     ksp(libs.room.compiler)
@@ -143,7 +143,6 @@ dependencies {
     coreLibraryDesugaring(libs.desugaring)
 }
 
-// Disable Baseline/ART Profile generation to ensure F-Droid reproducibility
 tasks.configureEach {
     if (name.contains("fdroid", ignoreCase = true) && name.contains("ArtProfile", ignoreCase = true)) {
         enabled = false

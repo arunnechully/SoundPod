@@ -164,7 +164,7 @@ fun MoreSettings(
 
                     val languageSelectorNotFound = stringResource(id = R.string.language_selector_not_found)
 
-                    SettingColum(
+                    SettingColumn(
                         icon = IconSource.Vector(Icons.Outlined.Language),
                         title = stringResource(id = R.string.app_language),
                         description = stringResource(id = R.string.configure_app_language),
@@ -184,7 +184,7 @@ fun MoreSettings(
                         Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS,
                         "package:${context.packageName}".toUri()
                     )
-                    SettingColum(
+                    SettingColumn(
                         icon = IconSource.Vector(Icons.Outlined.AddLink),
                         title = stringResource(id = R.string.open_supported_links_by_default),
                         description = stringResource(id = R.string.configure_supported_links),
@@ -211,7 +211,7 @@ fun MoreSettings(
             Spacer(modifier = Modifier.height(8.dp))
 
             SettingsCard {
-                SettingColum(
+                SettingColumn(
                     icon = IconSource.Vector(Icons.Outlined.Battery0Bar),
                     title = stringResource(id = R.string.ignore_battery_optimizations),
                     description = if (isIgnoringBatteryOptimizations) {

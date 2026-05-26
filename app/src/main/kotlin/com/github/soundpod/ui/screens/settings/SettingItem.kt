@@ -78,7 +78,7 @@ inline fun <T> ValueSelectorSettingsEntry(
 
     }
 
-    SettingColum(
+    SettingColumn(
         icon = icon,
         title = title,
         description = valueText(selectedValue),
@@ -185,7 +185,7 @@ fun SettingRow(
 
 
 @Composable
-fun SettingColum(
+fun SettingColumn(
     icon: IconSource? = null,
     title: String,
     description: String? = null,

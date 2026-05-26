@@ -1,8 +1,7 @@
+@file:Suppress("SpellCheckingInspection")
+
 package com.github.innertube
 
-import com.github.innertube.models.NavigationEndpoint
-import com.github.innertube.models.Runs
-import com.github.innertube.models.Thumbnail
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.compression.ContentEncoding
@@ -12,35 +11,14 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.header
 import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.Serializable
+import com.github.innertube.models.NavigationEndpoint
+import com.github.innertube.models.Runs
+import com.github.innertube.models.Thumbnail
 import kotlinx.serialization.json.Json
-import java.util.Locale
-
-object InnerTubeKeys {
-    const val FALLBACK_KEY = "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30"
-    const val PRIMARY_KEY = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8"
-}
-
-@Serializable
-data class ClientContext(
-    val clientName: String = "WEB_REMIX",
-    val clientVersion: String = "1.20260519.01.00",
-    val hl: String = Locale.getDefault().toLanguageTag(),
-    val gl: String = Locale.getDefault().country.ifEmpty { "US" },
-    val visitorData: String? = Innertube.visitorData
-)
-
-@Serializable
-data class InnerTubeContext(
-    val client: ClientContext = ClientContext()
-)
 
 object Innertube {
-    var visitorData: String? = null
-
     val client = HttpClient(OkHttp) {
         expectSuccess = true
 
@@ -57,23 +35,16 @@ object Innertube {
         }
 
         defaultRequest {
-            url(scheme = "https", host = "music.youtube.com") {
+            url(scheme = "https", host ="music.youtube.com") {
                 contentType(ContentType.Application.Json)
-
-                //SPOOFING HEADERS
-                headers.append("X-Goog-Api-Key", InnerTubeKeys.PRIMARY_KEY)
-                headers.append(HttpHeaders.UserAgent, "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Safari/605.1.15")
-                headers.append(HttpHeaders.Origin, "https://music.youtube.com")
-                headers.append(HttpHeaders.Referrer, "https://music.youtube.com/")
-
-                visitorData?.let {
-                    headers.append("X-Goog-Visitor-Id", it)
-                }
-
+                headers.append("X-Goog-Api-Key", "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8")
                 parameters.append("prettyPrint", "false")
             }
         }
     }
+
+    var visitorData: String? = null
+
     internal const val BROWSE = "/youtubei/v1/browse"
     internal const val NEXT = "/youtubei/v1/next"
     internal const val PLAYER = "/youtubei/v1/player"
@@ -127,6 +98,7 @@ object Innertube {
         override val thumbnail: Thumbnail?
     ) : Item() {
         override val key get() = info!!.endpoint!!.videoId!!
+
         companion object
     }
 
@@ -156,6 +128,7 @@ object Innertube {
         override val thumbnail: Thumbnail?
     ) : Item() {
         override val key get() = info!!.endpoint!!.browseId!!
+
         companion object
     }
 
@@ -165,6 +138,7 @@ object Innertube {
         override val thumbnail: Thumbnail?
     ) : Item() {
         override val key get() = info!!.endpoint!!.browseId!!
+
         companion object
     }
 
@@ -175,6 +149,7 @@ object Innertube {
         override val thumbnail: Thumbnail?
     ) : Item() {
         override val key get() = info!!.endpoint!!.browseId!!
+
         companion object
     }
 

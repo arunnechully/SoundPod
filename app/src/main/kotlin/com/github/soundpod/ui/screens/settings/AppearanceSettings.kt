@@ -102,7 +102,7 @@ fun AppearanceSettings(
                     valueText = { stringResource(it.resourceId) }
                 )
 
-                SettingColum(
+                SettingColumn(
                     icon = IconSource.Vector(Icons.Default.BlurOn),
                     title = stringResource(id = R.string.background_style),
                     description = stringResource(id = R.string.background_style_discription),

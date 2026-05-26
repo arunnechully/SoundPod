@@ -31,6 +31,7 @@ import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -79,7 +80,7 @@ fun NewBuiltInPlaylistSongs(
     onSortByChange: (SongSortBy) -> Unit,
     sortOrder: SortOrder,
     onSortOrderChange: (SortOrder) -> Unit,
-    onSongsCountChange: (Int) -> Unit
+    onSongsChange: (List<Song>) -> Unit
 ) {
     val binder = LocalPlayerServiceBinder.current
     val menuState = LocalMenuState.current
@@ -100,8 +101,15 @@ fun NewBuiltInPlaylistSongs(
     LaunchedEffect(builtInPlaylist, sortBy, sortOrder) {
         when (builtInPlaylist) {
             BuiltInPlaylist.Favorites -> {
-                db.songs(sortBy, sortOrder)
-                    .map { allSongs -> allSongs.filter { it.likedAt != null } }
+                db.favorites()
+                    .map { favSongs ->
+                        when (sortBy) {
+                            SongSortBy.Title -> if (sortOrder == SortOrder.Ascending) favSongs.sortedBy { it.title } else favSongs.sortedByDescending { it.title }
+                            SongSortBy.PlayTime -> if (sortOrder == SortOrder.Ascending) favSongs.sortedBy { it.totalPlayTimeMs } else favSongs.sortedByDescending { it.totalPlayTimeMs }
+                            SongSortBy.DateAdded -> if (sortOrder == SortOrder.Ascending) favSongs.sortedBy { it.likedAt } else favSongs.sortedByDescending { it.likedAt }
+                            SongSortBy.Artist -> if (sortOrder == SortOrder.Ascending) favSongs.sortedBy { it.artistsText.toString() } else favSongs.sortedByDescending { it.artistsText.toString() }
+                        }
+                    }
                     .flowOn(Dispatchers.IO)
             }
             BuiltInPlaylist.Offline -> {
@@ -115,148 +123,158 @@ fun NewBuiltInPlaylistSongs(
             }
         }.collect {
             songs = it
-            onSongsCountChange(it.size)
+            onSongsChange(it)
         }
     }
+    Box(modifier = Modifier.fillMaxSize()) {
 
-    LazyColumn(
-        state = lazyListState,
-        contentPadding = PaddingValues(top = 0.dp, bottom = 16.dp + playerPadding),
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        item(key = "header") {
-            SortingHeader(
-                sortBy = sortBy,
-                changeSortBy = onSortByChange,
-                sortByEntries = SongSortBy.entries.toList(),
-                sortOrder = sortOrder,
-                toggleSortOrder = { onSortOrderChange(!sortOrder) },
-                size = songs.size,
-                onPlayClick = {
-                    binder?.stopRadio()
-                    binder?.player?.forcePlayAtIndex(songs.map(Song::asMediaItem), 0)
-                },
-                onShuffleClick = {
-                    binder?.stopRadio()
-                    val shuffledSongs = songs.shuffled()
-                    binder?.player?.forcePlayAtIndex(shuffledSongs.map(Song::asMediaItem), 0)
-                }
-            )
-        }
-
-        itemsIndexed(
-            items = songs,
-            key = { _, song -> song.id }
-        ) { index, song ->
-            val isChecked = selectedUids.contains(song.id)
-
-            // Centralized selection toggle logic
-            val toggleSelection = {
-                val newSelection = if (isChecked) selectedUids - song.id else selectedUids + song.id
-                onSelectedUidsChange(newSelection)
-                if (newSelection.isEmpty()) {
-                    onEditModeChange(false)
-                }
+        LazyColumn(
+            state = lazyListState,
+            contentPadding = PaddingValues(top = 0.dp, bottom = 16.dp + playerPadding),
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            item(key = "header") {
+                SortingHeader(
+                    sortBy = sortBy,
+                    changeSortBy = onSortByChange,
+                    sortByEntries = SongSortBy.entries.toList(),
+                    sortOrder = sortOrder,
+                    toggleSortOrder = { onSortOrderChange(!sortOrder) },
+                    size = songs.size,
+                    onPlayClick = {
+                        binder?.stopRadio()
+                        binder?.player?.forcePlayAtIndex(songs.map(Song::asMediaItem), 0)
+                    },
+                    onShuffleClick = {
+                        binder?.stopRadio()
+                        val shuffledSongs = songs.shuffled()
+                        binder?.player?.forcePlayAtIndex(shuffledSongs.map(Song::asMediaItem), 0)
+                    }
+                )
             }
 
-            ReorderableItem(
-                state = reorderableState,
-                key = song.id
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    AnimatedVisibility(
-                        visible = isEditMode,
-                        enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
-                        exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.Start)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .padding(start = 16.dp, end = 4.dp)
-                                .size(22.dp)
-                                .clip(CircleShape)
-                                .background(if (isChecked) MaterialTheme.colorScheme.primary else Color.Transparent)
-                                .border(
-                                    width = 1.5.dp,
-                                    color = if (isChecked) MaterialTheme.colorScheme.primary else colorPalette.text.copy(alpha = 0.5f),
-                                    shape = CircleShape
-                                )
-                                .clickable { toggleSelection() },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            SongsAnimatedVisibility(
-                                visible = isChecked,
-                                enter = scaleIn() + fadeIn(),
-                                exit = scaleOut() + fadeOut()
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onPrimary,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                            }
-                        }
-                    }
+            itemsIndexed(
+                items = songs,
+                key = { _, song -> song.id }
+            ) { index, song ->
+                val isChecked = selectedUids.contains(song.id)
 
-                    Box(modifier = Modifier.weight(1f)) {
-                        LocalSongItem(
-                            song = song,
-                            onClick = {
-                                if (isEditMode) {
-                                    toggleSelection()
-                                } else {
-                                    binder?.stopRadio()
-                                    binder?.player?.forcePlayAtIndex(
-                                        songs.map(Song::asMediaItem),
-                                        index
+                // Centralized selection toggle logic
+                val toggleSelection = {
+                    val newSelection = if (isChecked) selectedUids - song.id else selectedUids + song.id
+                    onSelectedUidsChange(newSelection)
+                    if (newSelection.isEmpty()) {
+                        onEditModeChange(false)
+                    }
+                }
+
+                ReorderableItem(
+                    state = reorderableState,
+                    key = song.id
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        AnimatedVisibility(
+                            visible = isEditMode,
+                            enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
+                            exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.Start)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .padding(start = 16.dp, end = 4.dp)
+                                    .size(22.dp)
+                                    .clip(CircleShape)
+                                    .background(if (isChecked) MaterialTheme.colorScheme.primary else Color.Transparent)
+                                    .border(
+                                        width = 1.5.dp,
+                                        color = if (isChecked) MaterialTheme.colorScheme.primary else colorPalette.text.copy(alpha = 0.5f),
+                                        shape = CircleShape
+                                    )
+                                    .clickable { toggleSelection() },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                SongsAnimatedVisibility(
+                                    visible = isChecked,
+                                    enter = scaleIn() + fadeIn(),
+                                    exit = scaleOut() + fadeOut()
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.size(14.dp)
                                     )
                                 }
-                            },
-                            onLongClick = {
-                                if (!isEditMode) {
-                                    onEditModeChange(true)
-                                    onSelectedUidsChange(setOf(song.id))
-                                }
-                            },
-                            trailingContent = {
-                                if (isEditMode) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(48.dp)
-                                            .draggableHandle(),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        CircleDragHandle()
-                                    }
-                                } else {
-                                    IconButton(
-                                        onClick = {
-                                            menuState.display {
-                                                NonQueuedMediaItemMenu(
-                                                    mediaItem = song.asMediaItem,
-                                                    onDismiss = menuState::hide,
-                                                    onGoToAlbum = onGoToAlbum,
-                                                    onGoToArtist = onGoToArtist
-                                                )
-                                            }
-                                        }
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Outlined.MoreVert,
-                                            contentDescription = "Menu",
-                                            tint = colorPalette.text
+                            }
+                        }
+
+                        Box(modifier = Modifier.weight(1f)) {
+                            LocalSongItem(
+                                song = song,
+                                onClick = {
+                                    if (isEditMode) {
+                                        toggleSelection()
+                                    } else {
+                                        binder?.stopRadio()
+                                        binder?.player?.forcePlayAtIndex(
+                                            songs.map(Song::asMediaItem),
+                                            index
                                         )
                                     }
+                                },
+                                onLongClick = {
+                                    if (!isEditMode) {
+                                        onEditModeChange(true)
+                                        onSelectedUidsChange(setOf(song.id))
+                                    }
+                                },
+                                trailingContent = {
+                                    if (isEditMode) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(48.dp)
+                                                .draggableHandle(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            CircleDragHandle()
+                                        }
+                                    } else {
+                                        IconButton(
+                                            onClick = {
+                                                menuState.display {
+                                                    NonQueuedMediaItemMenu(
+                                                        mediaItem = song.asMediaItem,
+                                                        onDismiss = menuState::hide,
+                                                        onGoToAlbum = onGoToAlbum,
+                                                        onGoToArtist = onGoToArtist
+                                                    )
+                                                }
+                                            }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Outlined.MoreVert,
+                                                contentDescription = "Menu",
+                                                tint = colorPalette.text
+                                            )
+                                        }
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
             }
+        }
+        if (songs.isEmpty()) {
+            Text(
+                text = "No songs available",
+                style = MaterialTheme.typography.bodyLarge,
+                color = colorPalette.text.copy(alpha = 0.5f),
+                modifier = Modifier.align(Alignment.Center)
+            )
         }
     }
 }
