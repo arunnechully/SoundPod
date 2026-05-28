@@ -73,7 +73,6 @@ import com.github.soundpod.utils.isLandscape
 import com.github.soundpod.utils.quickPicksSourceKey
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.viewmodels.home.QuickPicksViewModel
-import kotlinx.coroutines.launch
 import java.io.IOException
 
 @SuppressLint("ConfigurationScreenWidthHeight")
@@ -92,7 +91,6 @@ fun QuickPicks(
 
     val viewModel: QuickPicksViewModel = viewModel()
     val quickPicksSource by rememberPreference(quickPicksSourceKey, QuickPicksSource.Trending)
-    val scope = rememberCoroutineScope()
 
     val songThumbnailSizeDp = Dimensions.thumbnails.song
     val itemSize = 108.dp + 2 * 8.dp
@@ -271,9 +269,7 @@ fun QuickPicks(
                             Button(
                                 onClick = {
                                     viewModel.relatedPageResult = null
-                                    scope.launch {
-                                        viewModel.loadQuickPicks(quickPicksSource)
-                                    }
+                                    viewModel.loadQuickPicks(quickPicksSource)
                                 }
                             ) {
                                 Icon(imageVector = Icons.Outlined.Refresh, contentDescription = null)

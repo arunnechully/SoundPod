@@ -9,12 +9,14 @@ import com.github.innertube.models.MusicCarouselShelfRenderer
 import com.github.innertube.models.NextResponse
 import com.github.innertube.models.bodies.BrowseBody
 import com.github.innertube.models.bodies.NextBody
-import com.github.innertube.utils.findSectionByStrapline
-import com.github.innertube.utils.findSectionByTitle
 import com.github.innertube.utils.from
 import com.github.innertube.utils.runCatchingNonCancellable
 
 suspend fun Innertube.relatedPage(videoId: String) = runCatchingNonCancellable {
+    if (!hasRequiredTokens) {
+        waitForSession(timeoutMs = 10000)
+    }
+
     val nextResponse = client.post(NEXT) {
         setBody(NextBody(videoId = videoId))
         mask("contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs.tabRenderer(endpoint,title)")
@@ -36,7 +38,7 @@ suspend fun Innertube.relatedPage(videoId: String) = runCatchingNonCancellable {
     val response = client.post(BROWSE) {
         setBody(
             BrowseBody(
-                localized = false,
+                localized = true,
                 browseId = browseId
             )
         )
@@ -47,31 +49,46 @@ suspend fun Innertube.relatedPage(videoId: String) = runCatchingNonCancellable {
         .contents
         ?.sectionListRenderer
 
+    val carousels = sectionListRenderer
+        ?.contents
+        ?.mapNotNull { it.musicCarouselShelfRenderer }
+        ?: emptyList()
+
     Innertube.RelatedPage(
-        songs = sectionListRenderer
-            ?.findSectionByTitle("You might also like")
-            ?.musicCarouselShelfRenderer
+        songs = carousels
+            .firstOrNull { carousel ->
+                carousel.contents?.any { it.musicResponsiveListItemRenderer != null } == true
+            }
             ?.contents
             ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicResponsiveListItemRenderer)
             ?.mapNotNull(Innertube.SongItem::from),
-        playlists = sectionListRenderer
-            ?.findSectionByTitle("Recommended playlists")
-            ?.musicCarouselShelfRenderer
-            ?.contents
-            ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicTwoRowItemRenderer)
-            ?.mapNotNull(Innertube.PlaylistItem::from)
+        playlists = carousels
+            .filter { carousel ->
+                carousel.contents?.any { it.musicTwoRowItemRenderer != null } == true
+            }
+            .map { carousel ->
+                carousel.contents?.mapNotNull(MusicCarouselShelfRenderer.Content::musicTwoRowItemRenderer)
+                    ?.mapNotNull(Innertube.PlaylistItem::from)
+            }
+            .firstOrNull { !it.isNullOrEmpty() }
             ?.sortedByDescending { it.channel?.name == "YouTube Music" },
-        albums = sectionListRenderer
-            ?.findSectionByStrapline("MORE FROM")
-            ?.musicCarouselShelfRenderer
-            ?.contents
-            ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicTwoRowItemRenderer)
-            ?.mapNotNull(Innertube.AlbumItem::from),
-        artists = sectionListRenderer
-            ?.findSectionByTitle("Similar artists")
-            ?.musicCarouselShelfRenderer
-            ?.contents
-            ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicTwoRowItemRenderer)
-            ?.mapNotNull(Innertube.ArtistItem::from),
+        albums = carousels
+            .filter { carousel ->
+                carousel.header?.musicCarouselShelfBasicHeaderRenderer?.strapline != null
+            }
+            .map { carousel ->
+                carousel.contents?.mapNotNull(MusicCarouselShelfRenderer.Content::musicTwoRowItemRenderer)
+                    ?.mapNotNull(Innertube.AlbumItem::from)
+            }
+            .firstOrNull { !it.isNullOrEmpty() },
+        artists = carousels
+            .filter { carousel ->
+                carousel.contents?.any { it.musicTwoRowItemRenderer != null } == true
+            }
+            .map { carousel ->
+                carousel.contents?.mapNotNull(MusicCarouselShelfRenderer.Content::musicTwoRowItemRenderer)
+                    ?.mapNotNull(Innertube.ArtistItem::from)
+            }
+            .lastOrNull { !it.isNullOrEmpty() },
     )
 }

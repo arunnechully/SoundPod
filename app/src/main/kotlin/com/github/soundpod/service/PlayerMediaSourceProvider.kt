@@ -23,8 +23,9 @@ import com.github.soundpod.utils.preferences
 import org.schabi.newpipe.extractor.ServiceList
 import org.schabi.newpipe.extractor.stream.AudioStream
 import org.schabi.newpipe.extractor.stream.VideoStream
-
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 @UnstableApi
 class PlayerMediaSourceProvider(
@@ -32,6 +33,7 @@ class PlayerMediaSourceProvider(
     private val cacheManager: PlayerCacheManager
 ) {
     private val urlCache = ConcurrentHashMap<String, Pair<Uri, Long>>()
+    private val resolutionLocks = ConcurrentHashMap<String, ReentrantLock>()
     
     companion object {
         private const val CACHE_EXPIRATION_MS = 3600000L
@@ -72,72 +74,78 @@ class PlayerMediaSourceProvider(
             if (cacheManager.cache.isCached(videoId, dataSpec.position, 100 * 1024L)) {
                 dataSpec
             } else {
-                val cachedEntry = urlCache[videoId]
-                val currentTime = System.currentTimeMillis()
-
-                val validCachedUri = if (cachedEntry != null && (currentTime - cachedEntry.second) < CACHE_EXPIRATION_MS) {
-                    cachedEntry.first
-                } else {
-                    null
-                }
-
-                if (validCachedUri != null) {
-                    dataSpec.withUri(validCachedUri)
-                } else {
-                    val urlResult = runCatching {
-                        val streamExtractor = ServiceList.YouTube.getStreamExtractor("https://www.youtube.com/watch?v=$videoId")
-                        streamExtractor.fetchPage()
-
-                        val audioStreams = streamExtractor.audioStreams
-                        val videoStreams = streamExtractor.videoStreams
-
-                        val bestAudio = audioStreams.maxByOrNull { it.averageBitrate }
-                            ?: videoStreams.maxByOrNull { it.bitrate }
-                            ?: audioStreams.firstOrNull()
-                            ?: videoStreams.firstOrNull()
-                            ?: throw Exception("No playable streams found by NewPipe for videoId: $videoId. This may be due to regional restrictions, the video being unavailable, or it being a live stream.")
-
-                        val song = com.github.soundpod.models.Song(
-                            id = videoId,
-                            title = streamExtractor.name,
-                            artistsText = streamExtractor.uploaderName,
-                            durationText = null,
-                            thumbnailUrl = streamExtractor.thumbnails.firstOrNull()?.url
-                        )
-
-                        query {
-                            db.insert(song)
-                            db.insert(
-                                com.github.soundpod.models.Format(
-                                    songId = videoId,
-                                    itag = when (bestAudio) {
-                                        is AudioStream -> bestAudio.formatId
-                                        is VideoStream -> bestAudio.formatId
-                                        else -> -1
-                                    },
-                                    mimeType = bestAudio.format?.mimeType,
-                                    bitrate = when (bestAudio) {
-                                        is AudioStream -> bestAudio.averageBitrate.toLong()
-                                        is VideoStream -> bestAudio.bitrate.toLong()
-                                        else -> -1L
-                                    },
-                                    loudnessDb = null, // NewPipe handles normalization natively, so we skip logging it
-                                    contentLength = null, // contentLength is sometimes unavailable or named differently in this extractor version
-                                    lastModified = null
-                                )
-                            )
-                        }
-
-                        bestAudio.content
-                    }
-
-                    val rawUrl = urlResult.getOrThrow()
-                    val newUri = rawUrl.toUri()
-                    urlCache[videoId] = Pair(newUri, System.currentTimeMillis())
-
-                    dataSpec.withUri(newUri)
-                }
+                val uri = resolveUrl(videoId)
+                dataSpec.withUri(uri)
             }
+        }
+    }
+
+    fun resolveUrl(videoId: String): Uri {
+        val lock = resolutionLocks.getOrPut(videoId) { ReentrantLock() }
+        
+        lock.withLock {
+            val cachedEntry = urlCache[videoId]
+            val currentTime = System.currentTimeMillis()
+
+            if (cachedEntry != null && (currentTime - cachedEntry.second) < CACHE_EXPIRATION_MS) {
+                return cachedEntry.first
+            }
+
+            val urlResult = runCatching {
+                val streamExtractor = ServiceList.YouTube.getStreamExtractor("https://www.youtube.com/watch?v=$videoId")
+                streamExtractor.fetchPage()
+
+                val audioStreams = streamExtractor.audioStreams
+                val videoStreams = streamExtractor.videoStreams
+
+                val bestAudio = audioStreams.maxByOrNull { it.averageBitrate }
+                    ?: videoStreams.maxByOrNull { it.bitrate }
+                    ?: audioStreams.firstOrNull()
+                    ?: videoStreams.firstOrNull()
+                    ?: throw Exception("No playable streams found by NewPipe for videoId: $videoId")
+
+                val song = com.github.soundpod.models.Song(
+                    id = videoId,
+                    title = streamExtractor.name,
+                    artistsText = streamExtractor.uploaderName,
+                    durationText = null,
+                    thumbnailUrl = streamExtractor.thumbnails.firstOrNull()?.url
+                )
+
+                query {
+                    db.insert(song)
+                    db.insert(
+                        com.github.soundpod.models.Format(
+                            songId = videoId,
+                            itag = when (bestAudio) {
+                                is AudioStream -> bestAudio.formatId
+                                is VideoStream -> bestAudio.formatId
+                                else -> -1
+                            },
+                            mimeType = bestAudio.format?.mimeType,
+                            bitrate = when (bestAudio) {
+                                is AudioStream -> bestAudio.averageBitrate.toLong()
+                                is VideoStream -> bestAudio.bitrate.toLong()
+                                else -> -1L
+                            },
+                            loudnessDb = null,
+                            contentLength = null,
+                            lastModified = null
+                        )
+                    )
+                }
+
+                bestAudio.content
+            }
+
+            val rawUrl = urlResult.getOrThrow()
+            val newUri = rawUrl.toUri()
+            urlCache[videoId] = Pair(newUri, System.currentTimeMillis())
+            
+            // Clean up the lock map to prevent leaks
+            resolutionLocks.remove(videoId)
+            
+            return newUri
         }
     }
 }

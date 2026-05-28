@@ -2,7 +2,6 @@
 
 package com.github.soundpod.ui.screens.player
 
-import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.media.audiofx.AudioEffect
@@ -10,6 +9,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.EaseInOutSine
 import androidx.compose.animation.core.LinearEasing
@@ -246,7 +246,6 @@ fun NewPlayPauseButton(
     }
 }
 
-@SuppressLint("SuspiciousIndentation")
 @Composable
 fun MiniPlayerControl(
     playing: Boolean,
@@ -290,30 +289,36 @@ fun MiniPlayerControl(
             )
         }
         //play or pause button
-        if (isBuffering) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = modifier.size(48.dp)
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    color = colorPalette.iconColor,
-                    strokeWidth = 2.dp
-                )
-            }
-        } else {
-            AnimatedIconButton(
-                onClick = onClick,
-                modifier = modifier
-                    .semantics { contentDescription = if (playing) "Pause" else "Play" }
-            ) {
-                Icon(
-                    painter = painterResource(id = if (playing) R.drawable.pause else R.drawable.play),
-                    contentDescription = null,
-                    tint = colorPalette.iconColor,
-                    modifier = Modifier
-                        .size(28.dp)
-                )
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = modifier.size(48.dp)
+        ) {
+            Crossfade(
+                targetState = isBuffering,
+                animationSpec = tween(200),
+                label = "MiniPlayerPlayPauseTransition"
+            ) { buffering ->
+                if (buffering) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = colorPalette.iconColor,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    AnimatedIconButton(
+                        onClick = onClick,
+                        modifier = Modifier
+                            .semantics { contentDescription = if (playing) "Pause" else "Play" }
+                    ) {
+                        Icon(
+                            painter = painterResource(id = if (playing) R.drawable.pause else R.drawable.play),
+                            contentDescription = null,
+                            tint = colorPalette.iconColor,
+                            modifier = Modifier
+                                .size(28.dp)
+                        )
+                    }
+                }
             }
         }
 
@@ -468,28 +473,34 @@ fun PlayerControlBottom(
             )
         }
 
-        if (isBuffering) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.size(if (playerLayout == PlayerLayout.New) 84.dp else 68.dp)
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(32.dp),
-                    color = if (playerLayout == PlayerLayout.New) MaterialTheme.colorScheme.primary else colorPalette.iconColor,
-                    strokeWidth = 3.dp
-                )
-            }
-        } else {
-            if (playerLayout == PlayerLayout.New) {
-                NewPlayPauseButton(
-                    playing = shouldBePlaying,
-                    onClick = onPlayPauseClick
-                )
-            } else if (playerLayout == PlayerLayout.Default) {
-                PlayPauseButton(
-                    playing = shouldBePlaying,
-                    onClick = onPlayPauseClick
-                )
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.size(if (playerLayout == PlayerLayout.New) 84.dp else 72.dp)
+        ) {
+            Crossfade(
+                targetState = isBuffering,
+                animationSpec = tween(200),
+                label = "PlayerPlayPauseTransition"
+            ) { buffering ->
+                if (buffering) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(32.dp),
+                        color = if (playerLayout == PlayerLayout.New) MaterialTheme.colorScheme.primary else colorPalette.iconColor,
+                        strokeWidth = 3.dp
+                    )
+                } else {
+                    if (playerLayout == PlayerLayout.New) {
+                        NewPlayPauseButton(
+                            playing = shouldBePlaying,
+                            onClick = onPlayPauseClick
+                        )
+                    } else if (playerLayout == PlayerLayout.Default) {
+                        PlayPauseButton(
+                            playing = shouldBePlaying,
+                            onClick = onPlayPauseClick
+                        )
+                    }
+                }
             }
         }
 

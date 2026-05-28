@@ -6,6 +6,7 @@ import android.content.SharedPreferences
 import android.content.pm.ServiceInfo
 import android.content.res.Configuration
 import android.graphics.Color
+import android.net.Uri
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
@@ -20,6 +21,11 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.audio.SonicAudioProcessor
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DataSpec
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.datasource.cache.CacheWriter
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.RenderersFactory
 import androidx.media3.exoplayer.analytics.PlaybackStatsListener
@@ -90,6 +96,7 @@ class PlayerService : InvincibleService(), Player.Listener,
 
     private lateinit var queueManager: QueuePersistenceManager
     private lateinit var bitmapProvider: BitmapProvider
+    private lateinit var mediaSourceProvider: PlayerMediaSourceProvider
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO) + Job()
 
@@ -152,7 +159,7 @@ class PlayerService : InvincibleService(), Player.Listener,
 
         cacheManager = PlayerCacheManager(this)
 
-        val mediaSourceProvider = PlayerMediaSourceProvider(this, cacheManager)
+        mediaSourceProvider = PlayerMediaSourceProvider(this, cacheManager)
 
         player = ExoPlayer.Builder(this, createRendersFactory(), mediaSourceProvider.createMediaSourceFactory())
             .setHandleAudioBecomingNoisy(true)
@@ -272,6 +279,7 @@ class PlayerService : InvincibleService(), Player.Listener,
         audioEffectManager.maybeNormalizeVolume()
         maybeProcessRadio()
         maybeFetchLyrics(mediaItem)
+        prefetchNextTrack()
 
         if (mediaItem == null) {
             bitmapProvider.listener?.invoke(null)
@@ -287,6 +295,45 @@ class PlayerService : InvincibleService(), Player.Listener,
     override fun onTimelineChanged(timeline: Timeline, reason: Int) {
         if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) {
             mediaSessionManager.updateQueue(timeline)
+            prefetchNextTrack()
+        }
+    }
+
+    private fun prefetchNextTrack() {
+        val nextIndex = player.nextMediaItemIndex
+        if (nextIndex != C.INDEX_UNSET) {
+            val nextMediaItem = player.getMediaItemAt(nextIndex)
+            val videoId = nextMediaItem.mediaId
+            coroutineScope.launch {
+                runCatching {
+                    val uri = mediaSourceProvider.resolveUrl(videoId)
+                    cacheTrack(videoId, uri)
+                }
+            }
+        }
+    }
+
+    private fun cacheTrack(videoId: String, uri: Uri) {
+        if (cacheManager.cache.isCached(videoId, 0, 100 * 1024L)) return
+
+        val dataSpec = DataSpec.Builder()
+            .setUri(uri)
+            .setKey(videoId)
+            .setPosition(0)
+            .setLength(512 * 1024L) // Cache the first 512KB
+            .build()
+
+        val upstreamDataSource = DefaultHttpDataSource.Factory()
+            .setAllowCrossProtocolRedirects(true)
+            .createDataSource()
+
+        val cacheDataSource = CacheDataSource.Factory()
+            .setCache(cacheManager.cache)
+            .setUpstreamDataSourceFactory { upstreamDataSource }
+            .createDataSource()
+
+        runCatching {
+            CacheWriter(cacheDataSource, dataSpec, null, null).cache()
         }
     }
 
