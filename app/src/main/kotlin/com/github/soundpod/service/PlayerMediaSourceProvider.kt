@@ -7,47 +7,56 @@ import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.cache.CacheDataSink
 import androidx.media3.datasource.cache.CacheDataSource
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
+import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy
+import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.extractor.DefaultExtractorsFactory
-import com.github.innertube.Innertube
-import com.github.innertube.requests.player
 import com.github.soundpod.db
 import com.github.soundpod.query
-import com.github.soundpod.utils.RingBuffer
-import com.github.soundpod.utils.findNextMediaItemById
 import com.github.soundpod.utils.pauseSongCacheKey
 import com.github.soundpod.utils.preferences
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
+import org.schabi.newpipe.extractor.ServiceList
+import org.schabi.newpipe.extractor.stream.AudioStream
+import org.schabi.newpipe.extractor.stream.VideoStream
+
+import java.util.concurrent.ConcurrentHashMap
 
 @UnstableApi
 class PlayerMediaSourceProvider(
     private val context: Context,
-    private val cacheManager: PlayerCacheManager,
-    private val playerProvider: () -> ExoPlayer
+    private val cacheManager: PlayerCacheManager
 ) {
+    private val urlCache = ConcurrentHashMap<String, Pair<Uri, Long>>()
+    
+    companion object {
+        private const val CACHE_EXPIRATION_MS = 3600000L
+        private const val DEFAULT_USER_AGENT = "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.193 Mobile Safari/537.36"
+    }
 
     fun createMediaSourceFactory(): MediaSource.Factory {
         return DefaultMediaSourceFactory(createDataSourceFactory(), DefaultExtractorsFactory())
+            .setLoadErrorHandlingPolicy(YouTube403ErrorPolicy(urlCache))
     }
 
     private fun createCacheDataSource(): DataSource.Factory {
         val upstreamFactory = DefaultHttpDataSource.Factory()
             .setConnectTimeoutMs(16000)
             .setReadTimeoutMs(8000)
-            .setUserAgent("Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0")
-        
+            .setAllowCrossProtocolRedirects(true)
+            .setUserAgent(DEFAULT_USER_AGENT)
+
         return DataSource.Factory {
             val pauseSongCache = context.preferences.getBoolean(pauseSongCacheKey, false)
 
             val cacheFactory = CacheDataSource.Factory()
                 .setCache(cacheManager.cache)
                 .setUpstreamDataSourceFactory(upstreamFactory)
+
             if (pauseSongCache) {
                 cacheFactory.setCacheWriteDataSinkFactory(null)
             } else {
@@ -58,82 +67,100 @@ class PlayerMediaSourceProvider(
     }
 
     private fun createDataSourceFactory(): DataSource.Factory {
-        val chunkLength = 512 * 1024L
-        val ringBuffer = RingBuffer<Pair<String, Uri>?>(2) { null }
-
         return ResolvingDataSource.Factory(createCacheDataSource()) { dataSpec ->
             val videoId = dataSpec.key ?: throw java.io.IOException("A key must be set")
-
-            if (cacheManager.cache.isCached(videoId, dataSpec.position, chunkLength)) {
+            if (cacheManager.cache.isCached(videoId, dataSpec.position, 100 * 1024L)) {
                 dataSpec
             } else {
-                when (videoId) {
-                    ringBuffer.getOrNull(0)?.first -> dataSpec.withUri(ringBuffer.getOrNull(0)!!.second)
-                    ringBuffer.getOrNull(1)?.first -> dataSpec.withUri(ringBuffer.getOrNull(1)!!.second)
-                    else -> {
-                        val urlResult = runBlocking(Dispatchers.IO) {
-                            Innertube.player(videoId = videoId)
-                        }?.mapCatching { body ->
+                val cachedEntry = urlCache[videoId]
+                val currentTime = System.currentTimeMillis()
 
-                            when (val status = body.playabilityStatus?.status) {
-                                "OK" -> {
-                                    val stream = body.streamingData?.adaptiveFormats
-                                        ?.filter { it.mimeType.contains("audio") && it.url != null }
-                                        ?.maxByOrNull {
-                                            when (it.itag) {
-                                                251 -> 1000000L
-                                                140 -> 900000L
-                                                else -> it.bitrate ?: 0L
-                                            }
-                                        }
-                                        ?: body.streamingData?.formats?.firstOrNull { it.url != null } // Fallback to progressive
+                val validCachedUri = if (cachedEntry != null && (currentTime - cachedEntry.second) < CACHE_EXPIRATION_MS) {
+                    cachedEntry.first
+                } else {
+                    null
+                }
 
-                                    val player = playerProvider()
-                                    val mediaItem = runBlocking(Dispatchers.Main) {
-                                        player.findNextMediaItemById(videoId)
-                                    }
-                                    if (mediaItem?.mediaMetadata?.extras?.getString("durationText") == null) {
-                                    }
+                if (validCachedUri != null) {
+                    dataSpec.withUri(validCachedUri)
+                } else {
+                    val urlResult = runCatching {
+                        val streamExtractor = ServiceList.YouTube.getStreamExtractor("https://www.youtube.com/watch?v=$videoId")
+                        streamExtractor.fetchPage()
 
-                                    query {
-                                        mediaItem?.let(db::insert)
-                                        db.insert(
-                                            com.github.soundpod.models.Format(
-                                                songId = videoId,
-                                                itag = stream?.itag,
-                                                mimeType = stream?.mimeType,
-                                                bitrate = stream?.bitrate,
-                                                loudnessDb = body.playerConfig?.audioConfig?.normalizedLoudnessDb,
-                                                contentLength = stream?.contentLength,
-                                                lastModified = stream?.lastModified
-                                            )
-                                        )
-                                    }
+                        val audioStreams = streamExtractor.audioStreams
+                        val videoStreams = streamExtractor.videoStreams
 
-                                    stream?.url ?: throw Exception("PlayableFormatNotFoundException: Stream URL is null (Possible encrypted stream)")
-                                }
+                        val bestAudio = audioStreams.maxByOrNull { it.averageBitrate }
+                            ?: videoStreams.maxByOrNull { it.bitrate }
+                            ?: audioStreams.firstOrNull()
+                            ?: videoStreams.firstOrNull()
+                            ?: throw Exception("No playable streams found by NewPipe for videoId: $videoId. This may be due to regional restrictions, the video being unavailable, or it being a live stream.")
 
-                                "UNPLAYABLE" -> {
-                                    val reason = body.playabilityStatus?.reason ?: "No reason provided"
-                                    Log.e("SoundPod-Debug", "UNPLAYABLE RESPONSE ($videoId): $reason")
-                                    throw java.io.IOException("Unplayable: $reason")
-                                }
-                                "LOGIN_REQUIRED" -> throw java.io.IOException("LoginRequiredException")
-                                else -> throw java.io.IOException("Remote error ($status): ${body.playabilityStatus?.reason}")
-                            }
+                        val song = com.github.soundpod.models.Song(
+                            id = videoId,
+                            title = streamExtractor.name,
+                            artistsText = streamExtractor.uploaderName,
+                            durationText = null,
+                            thumbnailUrl = streamExtractor.thumbnails.firstOrNull()?.url
+                        )
+
+                        query {
+                            db.insert(song)
+                            db.insert(
+                                com.github.soundpod.models.Format(
+                                    songId = videoId,
+                                    itag = when (bestAudio) {
+                                        is AudioStream -> bestAudio.formatId
+                                        is VideoStream -> bestAudio.formatId
+                                        else -> -1
+                                    },
+                                    mimeType = bestAudio.format?.mimeType,
+                                    bitrate = when (bestAudio) {
+                                        is AudioStream -> bestAudio.averageBitrate.toLong()
+                                        is VideoStream -> bestAudio.bitrate.toLong()
+                                        else -> -1L
+                                    },
+                                    loudnessDb = null, // NewPipe handles normalization natively, so we skip logging it
+                                    contentLength = null, // contentLength is sometimes unavailable or named differently in this extractor version
+                                    lastModified = null
+                                )
+                            )
                         }
 
-                        urlResult?.getOrThrow()?.let { url ->
-                            ringBuffer.append(videoId to url.toUri())
-                            dataSpec.withUri(url.toUri())
-                                .subrange(dataSpec.uriPositionOffset, chunkLength)
-                        } ?: throw java.io.IOException(
-                            "Failed to resolve URL",
-                            urlResult?.exceptionOrNull()
-                        )
+                        bestAudio.content
                     }
+
+                    val rawUrl = urlResult.getOrThrow()
+                    val newUri = rawUrl.toUri()
+                    urlCache[videoId] = Pair(newUri, System.currentTimeMillis())
+
+                    dataSpec.withUri(newUri)
                 }
             }
         }
+    }
+}
+@UnstableApi
+private class YouTube403ErrorPolicy(
+    private val urlCache: ConcurrentHashMap<String, Pair<Uri, Long>>
+) : DefaultLoadErrorHandlingPolicy() {
+
+    override fun getRetryDelayMsFor(loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo): Long {
+        val exception = loadErrorInfo.exception
+
+        if (exception is HttpDataSource.InvalidResponseCodeException && exception.responseCode == 403) {
+            val videoId = loadErrorInfo.loadEventInfo.dataSpec.key
+            Log.w("SoundPod-Debug", "Hit a 403 Forbidden for $videoId! Evicting URL cache and retrying...")
+            
+            if (videoId != null) {
+                urlCache.remove(videoId)
+            } else {
+                urlCache.clear()
+            }
+            return 1000L
+        }
+
+        return super.getRetryDelayMsFor(loadErrorInfo)
     }
 }

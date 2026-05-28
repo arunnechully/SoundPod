@@ -12,6 +12,8 @@ import com.github.soundpod.enums.CoilDiskCacheMaxSize
 import com.github.soundpod.utils.coilDiskCacheMaxSizeKey
 import com.github.soundpod.utils.getEnum
 import com.github.soundpod.utils.preferences
+import org.schabi.newpipe.extractor.NewPipe
+
 
 class MainApplication : Application(), SingletonImageLoader.Factory {
 
@@ -19,6 +21,7 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
         super.onCreate()
         instance = this
         DatabaseInitializer.get(this)
+        NewPipe.init(NewPipeDownloader.getInstance())
     }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader {

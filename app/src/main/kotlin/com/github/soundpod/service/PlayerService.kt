@@ -152,7 +152,7 @@ class PlayerService : InvincibleService(), Player.Listener,
 
         cacheManager = PlayerCacheManager(this)
 
-        val mediaSourceProvider = PlayerMediaSourceProvider(this, cacheManager) { player }
+        val mediaSourceProvider = PlayerMediaSourceProvider(this, cacheManager)
 
         player = ExoPlayer.Builder(this, createRendersFactory(), mediaSourceProvider.createMediaSourceFactory())
             .setHandleAudioBecomingNoisy(true)

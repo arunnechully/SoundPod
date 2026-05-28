@@ -134,6 +134,8 @@ dependencies {
     implementation(libs.datastore.preferences)
     implementation(libs.ui.geometry)
 
+    implementation(libs.newpipeextractor)
+
     ksp(libs.room.compiler)
 
     implementation(projects.core.ui)
