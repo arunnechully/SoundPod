@@ -69,7 +69,6 @@ import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.ui.navigation.SettingsDestinations
 import com.github.soundpod.ui.screens.player.SharedPlayer
 import com.github.soundpod.ui.styling.AppTheme
-import com.github.soundpod.utils.YouTubeScraper
 import com.github.soundpod.utils.appTheme
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlay
@@ -170,24 +169,6 @@ class MainActivity : ComponentActivity() {
                 Box(
                     modifier = Modifier.fillMaxSize()
                 ) {
-
-                    if (!Innertube.isSessionReady) {
-                        AndroidView(
-                            factory = { context ->
-                                WebView(context).apply {
-                                    YouTubeScraper.setupScraperWebView(this) { token, poToken ->
-                                        Innertube.visitorData = token
-                                        Innertube.poToken = poToken
-                                        Innertube.isSessionReady = true
-
-                                        Log.d("SoundPodApp", "Tokens successfully captured!")
-                                    }
-                                }
-                            },
-                            modifier = Modifier.size(1.dp)
-                        )
-                    }
-
                     CompositionLocalProvider(value = LocalPlayerServiceBinder provides binder) {
                         val menuState = LocalMenuState.current
 
@@ -266,13 +247,6 @@ class MainActivity : ComponentActivity() {
 
             LaunchedEffect(data) {
                 val uri = data ?: return@LaunchedEffect
-
-                val isReady = Innertube.waitForSession(timeoutMs = 10000)
-
-                if (!isReady) {
-                    Log.e("SoundPodApp", "Navigation aborted: Ghost WebView failed to load.")
-                    return@LaunchedEffect
-                }
 
                 lifecycleScope.launch(Dispatchers.Main) {
                     when (val path = uri.pathSegments.firstOrNull()) {

@@ -44,14 +44,17 @@ import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.remember
@@ -251,8 +254,25 @@ fun MiniPlayerControl(
     modifier: Modifier = Modifier
 ) {
     val binder = LocalPlayerServiceBinder.current
+    val player = binder?.player ?: return
     val (colorPalette) = LocalAppearance.current
-    
+
+    var playbackState by remember { mutableIntStateOf(player.playbackState) }
+
+    DisposableEffect(player) {
+        val listener = object : Player.Listener {
+            override fun onPlaybackStateChanged(state: Int) {
+                playbackState = state
+            }
+        }
+        player.addListener(listener)
+        onDispose {
+            player.removeListener(listener)
+        }
+    }
+
+    val isBuffering = playbackState == Player.STATE_BUFFERING
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -260,7 +280,7 @@ fun MiniPlayerControl(
     ) {
         //skip back button
         AnimatedIconButton(
-            onClick = { binder?.player?.forceSeekToPrevious() }, modifier = modifier.size(42.dp)
+            onClick = { player.forceSeekToPrevious() }, modifier = modifier.size(42.dp)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.fast_backward),
@@ -270,23 +290,36 @@ fun MiniPlayerControl(
             )
         }
         //play or pause button
-        AnimatedIconButton(
-            onClick = onClick,
-            modifier = modifier
-                .semantics { contentDescription = if (playing) "Pause" else "Play" }
-        ) {
-            Icon(
-                painter = painterResource(id = if (playing) R.drawable.pause else R.drawable.play),
-                contentDescription = null,
-                tint = colorPalette.iconColor,
-                modifier = Modifier
-                    .size(28.dp)
-            )
+        if (isBuffering) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = modifier.size(48.dp)
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = colorPalette.iconColor,
+                    strokeWidth = 2.dp
+                )
+            }
+        } else {
+            AnimatedIconButton(
+                onClick = onClick,
+                modifier = modifier
+                    .semantics { contentDescription = if (playing) "Pause" else "Play" }
+            ) {
+                Icon(
+                    painter = painterResource(id = if (playing) R.drawable.pause else R.drawable.play),
+                    contentDescription = null,
+                    tint = colorPalette.iconColor,
+                    modifier = Modifier
+                        .size(28.dp)
+                )
+            }
         }
 
         //skip forward button
         AnimatedIconButton(
-            onClick = { binder?.player?.forceSeekToNext() }, modifier = modifier.size(42.dp)
+            onClick = { player.forceSeekToNext() }, modifier = modifier.size(42.dp)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.fast_forward),
@@ -385,6 +418,22 @@ fun PlayerControlBottom(
     var trackLoopEnabled by rememberPreference(trackLoopEnabledKey, defaultValue = false)
     var queueLoopEnabled by rememberPreference(queueLoopEnabledKey, defaultValue = false)
 
+    var playbackState by remember { mutableIntStateOf(player.playbackState) }
+
+    DisposableEffect(player) {
+        val listener = object : Player.Listener {
+            override fun onPlaybackStateChanged(state: Int) {
+                playbackState = state
+            }
+        }
+        player.addListener(listener)
+        onDispose {
+            player.removeListener(listener)
+        }
+    }
+
+    val isBuffering = playbackState == Player.STATE_BUFFERING
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -419,16 +468,29 @@ fun PlayerControlBottom(
             )
         }
 
-        if (playerLayout == PlayerLayout.New) {
-            NewPlayPauseButton(
-                playing = shouldBePlaying,
-                onClick = onPlayPauseClick
-            )
-        } else if (playerLayout == PlayerLayout.Default) {
-            PlayPauseButton(
-                playing = shouldBePlaying,
-                onClick = onPlayPauseClick
-            )
+        if (isBuffering) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.size(if (playerLayout == PlayerLayout.New) 84.dp else 68.dp)
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(32.dp),
+                    color = if (playerLayout == PlayerLayout.New) MaterialTheme.colorScheme.primary else colorPalette.iconColor,
+                    strokeWidth = 3.dp
+                )
+            }
+        } else {
+            if (playerLayout == PlayerLayout.New) {
+                NewPlayPauseButton(
+                    playing = shouldBePlaying,
+                    onClick = onPlayPauseClick
+                )
+            } else if (playerLayout == PlayerLayout.Default) {
+                PlayPauseButton(
+                    playing = shouldBePlaying,
+                    onClick = onPlayPauseClick
+                )
+            }
         }
 
         // Next

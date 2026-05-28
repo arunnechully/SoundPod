@@ -2,10 +2,12 @@
 
 package com.github.innertube
 
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
+import com.github.innertube.models.NavigationEndpoint
+import com.github.innertube.models.Runs
+import com.github.innertube.models.Thumbnail
+import com.github.innertube.models.YouTubeClient
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.plugins.compression.brotli
@@ -13,18 +15,18 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
-import com.github.innertube.models.NavigationEndpoint
-import com.github.innertube.models.Runs
-import com.github.innertube.models.Thumbnail
-import kotlinx.coroutines.delay
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 object Innertube {
 
-    var isSessionReady by mutableStateOf(false)
+    var visitorData: String? = null
+    var poToken: String? = null
 
     val client = HttpClient(OkHttp) {
         expectSuccess = true
@@ -55,20 +57,33 @@ object Innertube {
         }
     }
 
-    suspend fun waitForSession(timeoutMs: Long = 10000): Boolean {
-        val start = System.currentTimeMillis()
-        while (!isSessionReady) {
-            if (System.currentTimeMillis() - start > timeoutMs) return false
-            delay(100)
+    @Serializable
+    private data class VisitorDataResponse(
+        val responseContext: ResponseContext
+    ) {
+        @Serializable
+        data class ResponseContext(
+            val visitorData: String
+        )
+    }
+
+    suspend fun fetchVisitorData(): String? {
+        return runCatching {
+            client.post("https://music.youtube.com/youtubei/v1/music/get_search_suggestions") {
+                setBody(mapOf("context" to YouTubeClient.WEB_REMIX.toContext(), "input" to ""))
+            }.body<VisitorDataResponse>().responseContext.visitorData
+        }.getOrNull()?.also {
+            visitorData = it
         }
-        return true
+    }
+
+    suspend fun waitForSession(timeoutMs: Long = 10000): Boolean {
+        if (visitorData != null) return true
+        return fetchVisitorData() != null
     }
 
     val hasRequiredTokens: Boolean
-        get() = !visitorData.isNullOrBlank() && !poToken.isNullOrBlank()
-
-    var visitorData: String? = null
-    var poToken: String? = null
+        get() = !visitorData.isNullOrBlank()
 
     internal const val BROWSE = "/youtubei/v1/browse"
     internal const val NEXT = "/youtubei/v1/next"
