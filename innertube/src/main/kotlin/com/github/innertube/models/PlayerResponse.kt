@@ -11,7 +11,8 @@ data class PlayerResponse(
 ) {
     @Serializable
     data class PlayabilityStatus(
-        val status: String?
+        val status: String?,
+        val reason: String? = null
     )
 
     @Serializable
@@ -23,7 +24,6 @@ data class PlayerResponse(
             private val loudnessDb: Double?,
             private val perceptualLoudnessDb: Double?
         ) {
-            // For music clients only
             val normalizedLoudnessDb: Float?
                 get() = (loudnessDb ?: perceptualLoudnessDb)?.plus(7)?.toFloat()
         }
@@ -31,10 +31,19 @@ data class PlayerResponse(
 
     @Serializable
     data class StreamingData(
-        val adaptiveFormats: List<AdaptiveFormat>?
+        val adaptiveFormats: List<AdaptiveFormat>?,
+        val formats: List<AdaptiveFormat>?,
     ) {
         val highestQualityFormat: AdaptiveFormat?
-            get() = adaptiveFormats?.findLast { it.itag == 251 || it.itag == 140 }
+            get() = (adaptiveFormats.orEmpty() + formats.orEmpty())
+                .filter { it.mimeType.contains("audio") && it.url != null }
+                .maxByOrNull {
+                    when (it.itag) {
+                        251 -> 1000000L
+                        140 -> 900000L
+                        else -> it.bitrate ?: 0L
+                    }
+                }
 
         @Serializable
         data class AdaptiveFormat(

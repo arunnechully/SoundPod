@@ -2,8 +2,8 @@ package com.github.soundpod.service
 
 import android.content.Context
 import android.net.Uri
-import android.text.format.DateUtils
 import androidx.core.net.toUri
+import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultHttpDataSource
@@ -76,46 +76,50 @@ class PlayerMediaSourceProvider(
                         }?.mapCatching { body ->
 
                             when (val status = body.playabilityStatus?.status) {
-                                "OK" -> body.streamingData?.highestQualityFormat?.let { format ->
+                                "OK" -> {
+                                    val stream = body.streamingData?.adaptiveFormats
+                                        ?.filter { it.mimeType.contains("audio") && it.url != null }
+                                        ?.maxByOrNull {
+                                            when (it.itag) {
+                                                251 -> 1000000L
+                                                140 -> 900000L
+                                                else -> it.bitrate ?: 0L
+                                            }
+                                        }
+                                        ?: body.streamingData?.formats?.firstOrNull { it.url != null } // Fallback to progressive
+
                                     val player = playerProvider()
                                     val mediaItem = runBlocking(Dispatchers.Main) {
                                         player.findNextMediaItemById(videoId)
                                     }
-
                                     if (mediaItem?.mediaMetadata?.extras?.getString("durationText") == null) {
-                                        format.approxDurationMs?.div(1000)
-                                            ?.let(DateUtils::formatElapsedTime)?.removePrefix("0")
-                                            ?.let { durationText ->
-                                                mediaItem?.mediaMetadata?.extras?.putString(
-                                                    "durationText",
-                                                    durationText
-                                                )
-                                                db.updateDurationText(videoId, durationText)
-                                            }
                                     }
 
                                     query {
                                         mediaItem?.let(db::insert)
-
                                         db.insert(
                                             com.github.soundpod.models.Format(
                                                 songId = videoId,
-                                                itag = format.itag,
-                                                mimeType = format.mimeType,
-                                                bitrate = format.bitrate,
+                                                itag = stream?.itag,
+                                                mimeType = stream?.mimeType,
+                                                bitrate = stream?.bitrate,
                                                 loudnessDb = body.playerConfig?.audioConfig?.normalizedLoudnessDb,
-                                                contentLength = format.contentLength,
-                                                lastModified = format.lastModified
+                                                contentLength = stream?.contentLength,
+                                                lastModified = stream?.lastModified
                                             )
                                         )
                                     }
 
-                                    format.url
-                                } ?: throw Exception("PlayableFormatNotFoundException")
+                                    stream?.url ?: throw Exception("PlayableFormatNotFoundException: Stream URL is null (Possible encrypted stream)")
+                                }
 
-                                "UNPLAYABLE" -> throw Exception("UnplayableException")
-                                "LOGIN_REQUIRED" -> throw Exception("LoginRequiredException")
-                                else -> throw java.io.IOException("Remote error: $status")
+                                "UNPLAYABLE" -> {
+                                    val reason = body.playabilityStatus?.reason ?: "No reason provided"
+                                    Log.e("SoundPod-Debug", "UNPLAYABLE RESPONSE ($videoId): $reason")
+                                    throw java.io.IOException("Unplayable: $reason")
+                                }
+                                "LOGIN_REQUIRED" -> throw java.io.IOException("LoginRequiredException")
+                                else -> throw java.io.IOException("Remote error ($status): ${body.playabilityStatus?.reason}")
                             }
                         }
 

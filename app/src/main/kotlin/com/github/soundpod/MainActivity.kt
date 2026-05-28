@@ -1,6 +1,7 @@
 package com.github.soundpod
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
@@ -9,6 +10,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
+import android.webkit.WebView
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -43,6 +46,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
@@ -65,6 +69,7 @@ import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.ui.navigation.SettingsDestinations
 import com.github.soundpod.ui.screens.player.SharedPlayer
 import com.github.soundpod.ui.styling.AppTheme
+import com.github.soundpod.utils.YouTubeScraper
 import com.github.soundpod.utils.appTheme
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlay
@@ -165,6 +170,24 @@ class MainActivity : ComponentActivity() {
                 Box(
                     modifier = Modifier.fillMaxSize()
                 ) {
+
+                    if (!Innertube.isSessionReady) {
+                        AndroidView(
+                            factory = { context ->
+                                WebView(context).apply {
+                                    YouTubeScraper.setupScraperWebView(this) { token, poToken ->
+                                        Innertube.visitorData = token
+                                        Innertube.poToken = poToken
+                                        Innertube.isSessionReady = true
+
+                                        Log.d("SoundPodApp", "Tokens successfully captured!")
+                                    }
+                                }
+                            },
+                            modifier = Modifier.size(1.dp)
+                        )
+                    }
+
                     CompositionLocalProvider(value = LocalPlayerServiceBinder provides binder) {
                         val menuState = LocalMenuState.current
 
@@ -243,6 +266,13 @@ class MainActivity : ComponentActivity() {
 
             LaunchedEffect(data) {
                 val uri = data ?: return@LaunchedEffect
+
+                val isReady = Innertube.waitForSession(timeoutMs = 10000)
+
+                if (!isReady) {
+                    Log.e("SoundPodApp", "Navigation aborted: Ghost WebView failed to load.")
+                    return@LaunchedEffect
+                }
 
                 lifecycleScope.launch(Dispatchers.Main) {
                     when (val path = uri.pathSegments.firstOrNull()) {

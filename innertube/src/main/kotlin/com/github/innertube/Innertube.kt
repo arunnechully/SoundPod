@@ -2,6 +2,9 @@
 
 package com.github.innertube
 
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.compression.ContentEncoding
@@ -16,9 +19,13 @@ import io.ktor.serialization.kotlinx.json.json
 import com.github.innertube.models.NavigationEndpoint
 import com.github.innertube.models.Runs
 import com.github.innertube.models.Thumbnail
+import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 
 object Innertube {
+
+    var isSessionReady by mutableStateOf(false)
+
     val client = HttpClient(OkHttp) {
         expectSuccess = true
 
@@ -38,12 +45,30 @@ object Innertube {
             url(scheme = "https", host ="music.youtube.com") {
                 contentType(ContentType.Application.Json)
                 headers.append("X-Goog-Api-Key", "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8")
+                visitorData?.let {
+                    headers.append("X-Goog-Visitor-Id", it)
+                }
+                headers.append("Origin", "https://music.youtube.com")
+                headers.append("Referer", "https://music.youtube.com/")
                 parameters.append("prettyPrint", "false")
             }
         }
     }
 
+    suspend fun waitForSession(timeoutMs: Long = 10000): Boolean {
+        val start = System.currentTimeMillis()
+        while (!isSessionReady) {
+            if (System.currentTimeMillis() - start > timeoutMs) return false
+            delay(100)
+        }
+        return true
+    }
+
+    val hasRequiredTokens: Boolean
+        get() = !visitorData.isNullOrBlank() && !poToken.isNullOrBlank()
+
     var visitorData: String? = null
+    var poToken: String? = null
 
     internal const val BROWSE = "/youtubei/v1/browse"
     internal const val NEXT = "/youtubei/v1/next"

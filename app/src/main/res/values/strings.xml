@@ -309,4 +309,6 @@
     <string name="deselect_all">Deselect all</string>
     <string name="clear_playlist_confirmation">Are you sure you want to remove the selected songs?</string>
     <string name="remove_songs_confirmation">Are you sure you want to remove the selected songs?</string>
+    <string name="beta_updates">Early access (Beta)</string>
+    <string name="beta_updates_description">Enable to receive preview builds.</string>
 </resources>

@@ -28,11 +28,12 @@ import androidx.navigation.navArgument
 import androidx.navigation.toRoute
 import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.ui.common.newSearchLayoutEnabled
+import com.github.soundpod.ui.components.PlaylistScreenLayout
 import com.github.soundpod.ui.screens.album.NewAlbumScreen
 import com.github.soundpod.ui.screens.artist.ArtistScreen
 import com.github.soundpod.ui.screens.builtinplaylist.NewBuiltInPlaylistScreen
-import com.github.soundpod.ui.screens.localplaylist.NewLocalPlaylistScreen
 import com.github.soundpod.ui.screens.home.HomeScreen
+import com.github.soundpod.ui.screens.localplaylist.NewLocalPlaylistScreen
 import com.github.soundpod.ui.screens.playlist.PlaylistScreen
 import com.github.soundpod.ui.screens.search.NewSearchLayout
 import com.github.soundpod.ui.screens.search.NewSearchResult

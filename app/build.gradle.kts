@@ -109,6 +109,7 @@ dependencies {
     implementation(libs.compose.activity)
     implementation(libs.coil.compose)
     implementation(libs.coil.network)
+    implementation(libs.foundation)
     implementation(libs.material)
     implementation(libs.compose.material.icons)
     implementation(libs.compose.material3)

@@ -54,7 +54,7 @@ import coil3.compose.AsyncImage
 import com.github.core.ui.LocalAppearance
 import com.github.core.ui.favoritesIcon
 import com.github.innertube.Innertube
-import com.github.innertube.requests.visitorData
+//import com.github.innertube.requests.visitorData
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.db
@@ -114,7 +114,7 @@ fun Thumbnail(
 
             else -> {
                 runBlocking {
-                    Innertube.visitorData = Innertube.visitorData().getOrNull()
+//                    Innertube.visitorData = Innertube.visitorData().getOrNull()
                 }
                 player.prepare()
             }

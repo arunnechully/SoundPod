@@ -7,7 +7,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,8 +41,7 @@ import com.github.soundpod.db
 import com.github.soundpod.models.Playlist
 import com.github.soundpod.query
 import com.github.soundpod.ui.components.ConfirmationDialog
-import com.github.soundpod.ui.components.SettingsCard
-import com.github.soundpod.ui.components.SettingsScreenLayout
+import com.github.soundpod.ui.components.PlaylistScreenLayout
 import com.github.soundpod.ui.components.TextFieldDialog
 import kotlinx.coroutines.flow.filterNotNull
 
@@ -52,7 +50,7 @@ import kotlinx.coroutines.flow.filterNotNull
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
 @Composable
-fun NewLocalPlaylistScreen1 (
+fun NewLocalPlaylistScreen(
     playlistId: Long,
     pop: () -> Unit,
     onGoToAlbum: (String) -> Unit,
@@ -91,10 +89,24 @@ fun NewLocalPlaylistScreen1 (
         }
     }
 
-    SettingsScreenLayout(
-        title = {},
-        scrollable = false,
-        horizontalPadding = 0.dp,
+    PlaylistScreenLayout(
+        title = {
+            Column {
+                Text(
+                    text = playlist?.name ?: "",
+                    style = typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colorPalette.text,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = pluralStringResource(id = R.plurals.number_of_songs, count = songCount, songCount),
+                    style = typography.bodySmall,
+                    color = colorPalette.text.copy(alpha = 0.7f)
+                )
+            }
+        },
         onBackClick = {
             if (isSearching) {
                 isSearching = false
@@ -111,7 +123,8 @@ fun NewLocalPlaylistScreen1 (
             ) {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "Search"
+                    contentDescription = "Search",
+                    tint = colorPalette.text
                 )
             }
         },
@@ -155,12 +168,8 @@ fun NewLocalPlaylistScreen1 (
                     dismissMenu()
                 }
             )
-        }
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        },
+        headerContent = {
             Spacer(modifier = Modifier.height(16.dp))
 
             // Centered Playlist Cover Placeholder
@@ -200,21 +209,18 @@ fun NewLocalPlaylistScreen1 (
                 color = colorPalette.text.copy(alpha = 0.5f)
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
-            SettingsCard(
-                shape = RoundedCornerShape(
-                    topStart = 25.dp,
-                    topEnd = 25.dp
-                )
-            ) {
-                NewLocalPlaylistSongs(
-                    playlistId = playlistId,
-                    onGoToAlbum = onGoToAlbum,
-                    onGoToArtist = onGoToArtist
-                )
-            }
+            Spacer(modifier = Modifier.height(32.dp))
+        },
+        content = {
+            // SettingsCard removed; PlaylistScreenLayout handles the background shape now
+            NewLocalPlaylistSongs(
+                playlistId = playlistId,
+                onGoToAlbum = onGoToAlbum,
+                onGoToArtist = onGoToArtist
+            )
         }
-    }
+    )
+
     if (isRenaming) {
         TextFieldDialog(
             title = stringResource(id = R.string.rename_playlist),
