@@ -98,7 +98,6 @@ fun AboutSettings(
     var seamlessUpdateEnabled by remember { mutableStateOf(false) }
     var showPermissionDialog by remember { mutableStateOf(false) }
     var showAlertEnabled by rememberSaveable { mutableStateOf(true) }
-    var betaUpdateEnabled by rememberSaveable { mutableStateOf(true) }
 
     BackHandler(onBack = onBackClick)
 

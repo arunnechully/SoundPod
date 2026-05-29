@@ -75,7 +75,7 @@ import kotlin.math.roundToInt
 import kotlin.system.exitProcess
 import android.os.Binder as AndroidBinder
 
-@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+@androidx.annotation.OptIn(UnstableApi::class)
 class PlayerService : InvincibleService(), Player.Listener,
     SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -346,11 +346,11 @@ class PlayerService : InvincibleService(), Player.Listener,
 
     private fun maybeFetchLyrics(mediaItem: MediaItem?) {
         val mediaId = mediaItem?.mediaId ?: return
-        val metadata = mediaItem.mediaMetadata
+        mediaItem.mediaMetadata
 
         coroutineScope.launch(Dispatchers.IO) {
 
-            val duration = withContext(Dispatchers.Main) {
+            withContext(Dispatchers.Main) {
                 if (player.duration == C.TIME_UNSET) 0L else player.duration
             }
 
