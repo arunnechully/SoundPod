@@ -6,6 +6,7 @@ import io.ktor.client.request.setBody
 import com.github.innertube.Innertube
 import com.github.innertube.models.BrowseResponse
 import com.github.innertube.models.MusicCarouselShelfRenderer
+import com.github.innertube.models.MusicPlaylistShelfRenderer
 import com.github.innertube.models.MusicShelfRenderer
 import com.github.innertube.models.SectionListRenderer
 import com.github.innertube.models.bodies.BrowseBody
@@ -26,15 +27,13 @@ suspend fun Innertube.artistPage(browseId: String): Result<Innertube.ArtistPage>
         }.body<BrowseResponse>()
 
         fun findSectionByTitle(text: String): SectionListRenderer.Content? {
-            return response
-                .contents
-                ?.singleColumnBrowseResultsRenderer
-                ?.tabs
-                ?.get(0)
-                ?.tabRenderer
-                ?.content
-                ?.sectionListRenderer
-                ?.findSectionByTitle(text)
+            val tabs = (response.contents?.singleColumnBrowseResultsRenderer?.tabs
+                ?: response.contents?.twoColumnBrowseResultsRenderer?.tabs)
+
+            tabs?.forEach { tab ->
+                tab.tabRenderer?.content?.sectionListRenderer?.findSectionByTitle(text)?.let { return it }
+            }
+            return null
         }
 
         val artistName = response
@@ -43,11 +42,18 @@ suspend fun Innertube.artistPage(browseId: String): Result<Innertube.ArtistPage>
             ?.title
             ?.text
 
-        val songsSection = findSectionByTitle("Top songs")?.musicShelfRenderer
-        val albumsSection = findSectionByTitle("Albums")?.musicCarouselShelfRenderer
-        val singlesSection = findSectionByTitle("Singles & EPs")?.musicCarouselShelfRenderer
-        val playlistsSection =
-            findSectionByTitle("Playlists by $artistName")?.musicCarouselShelfRenderer
+        val songsSection = (findSectionByTitle("Top songs")
+            ?: findSectionByTitle("Songs"))
+        val songsShelf = songsSection?.musicShelfRenderer
+        val songsPlaylistShelf = songsSection?.musicPlaylistShelfRenderer
+
+        val albumsSection = (findSectionByTitle("Albums")
+            ?: findSectionByTitle("Discography"))?.musicCarouselShelfRenderer
+        val singlesSection = (findSectionByTitle("Singles & EPs")
+            ?: findSectionByTitle("Singles")
+            ?: findSectionByTitle("Singles & albums"))?.musicCarouselShelfRenderer
+        val playlistsSection = (findSectionByTitle("Playlists by $artistName")
+            ?: findSectionByTitle("Playlists"))?.musicCarouselShelfRenderer
         val featuredPlaylistsSection = findSectionByTitle("Featured on")?.musicCarouselShelfRenderer
         val relatedArtistsSection =
             findSectionByTitle("Fans might also like")?.musicCarouselShelfRenderer
@@ -85,11 +91,15 @@ suspend fun Innertube.artistPage(browseId: String): Result<Innertube.ArtistPage>
                 ?.buttonRenderer
                 ?.navigationEndpoint
                 ?.watchEndpoint,
-            songs = songsSection
+            songs = songsShelf
                 ?.contents
                 ?.mapNotNull(MusicShelfRenderer.Content::musicResponsiveListItemRenderer)
-                ?.mapNotNull(Innertube.SongItem::from),
-            songsEndpoint = songsSection
+                ?.mapNotNull { Innertube.SongItem.from(it) }
+                ?: songsPlaylistShelf
+                    ?.contents
+                    ?.mapNotNull(MusicPlaylistShelfRenderer.Content::musicResponsiveListItemRenderer)
+                    ?.mapNotNull { Innertube.SongItem.from(it) },
+            songsEndpoint = songsShelf
                 ?.bottomEndpoint
                 ?.browseEndpoint,
             albums = albumsSection

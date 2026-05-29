@@ -18,27 +18,33 @@ suspend fun Innertube.charts(): Result<List<Innertube.SongItem>?>? = runCatching
         waitForSession(timeoutMs = 10000)
     }
 
-    val response = client.post(BROWSE) {
-        setBody(
-            BrowseBody(
-                browseId = "FEcharts",
-                context = YouTubeClient.WEB_REMIX.toContext(
-                    hl = "en",
-                    gl = Locale.getDefault().country.ifBlank { "US" },
+    suspend fun fetchCharts(browseId: String): List<Innertube.SongItem>? {
+        val response = client.post(BROWSE) {
+            setBody(
+                BrowseBody(
+                    browseId = browseId,
+                    context = YouTubeClient.WEB_REMIX.toContext(
+                        hl = "en",
+                        gl = Locale.getDefault().country.ifBlank { "US" },
+                    )
                 )
             )
-        )
-        mask("contents.sectionListRenderer.contents.musicCarouselShelfRenderer(header.musicCarouselShelfBasicHeaderRenderer(title),contents($MUSIC_RESPONSIVE_LIST_ITEM_RENDERER_MASK))")
-    }.body<BrowseResponse>()
+        }.body<BrowseResponse>()
 
-    val sectionListRenderer = response
-        .contents
-        ?.sectionListRenderer
+        val sectionListRenderer = response
+            .contents
+            ?.sectionListRenderer
 
-    sectionListRenderer
-        ?.findSectionByTitle("Top songs")
-        ?.musicCarouselShelfRenderer
-        ?.contents
-        ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicResponsiveListItemRenderer)
-        ?.mapNotNull(Innertube.SongItem::from)
+        return (sectionListRenderer?.findSectionByTitle("Top songs")
+            ?: sectionListRenderer?.findSectionByTitle("Top music videos")
+            ?: sectionListRenderer?.findSectionByTitle("Trending")
+            ?: sectionListRenderer?.contents?.firstOrNull { it.musicCarouselShelfRenderer != null })
+            ?.musicCarouselShelfRenderer
+            ?.contents
+            ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicResponsiveListItemRenderer)
+            ?.mapNotNull(Innertube.SongItem::from)
+            ?.takeIf { it.isNotEmpty() }
+    }
+
+    fetchCharts("FEcharts") ?: fetchCharts("FEmusic_charts") ?: fetchCharts("FEmusic_home") ?: fetchCharts("FEmusic_explore")
 }

@@ -1,6 +1,6 @@
 package com.github.soundpod.ui.screens.home
 
-import android.annotation.SuppressLint
+  import android.annotation.SuppressLint
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -37,7 +37,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -119,7 +118,7 @@ fun QuickPicks(
     ) {
         val result = viewModel.relatedPageResult
         val related = result?.getOrNull()
-        val error = result?.exceptionOrNull()
+        val error = result?.exceptionOrNull() ?: if (result != null && related == null) Exception("Empty response") else null
 
         if (related != null) {
             Text(

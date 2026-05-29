@@ -39,8 +39,30 @@ class QuickPicksViewModel : ViewModel() {
                     coroutineScope {
                         val chartsDeferred = if (song == null) async { Innertube.charts()?.getOrNull() } else null
                         
-                        val videoId = song?.id ?: chartsDeferred?.await()?.firstOrNull()?.key ?: "fJ9rUzIMcZQ"
-                        relatedPageResult = Innertube.relatedPage(videoId = videoId)
+                        val charts = try { chartsDeferred?.await() } catch (e: Exception) { null }
+                        val videoId = song?.id ?: charts?.randomOrNull()?.key
+                        
+                        var result = if (videoId != null) Innertube.relatedPage(videoId = videoId) else null
+                        
+                        if (result?.getOrNull() == null && song == null) {
+                            val fallbackSongs = charts ?: emptyList()
+                            for (fallbackSong in fallbackSongs.shuffled().take(3)) {
+                                if (fallbackSong.key == videoId) continue
+                                val fallbackResult = Innertube.relatedPage(videoId = fallbackSong.key)
+                                if (fallbackResult?.getOrNull() != null) {
+                                    result = fallbackResult
+                                    break
+                                }
+                            }
+                        }
+
+                        if (result?.getOrNull() == null) {
+                            val globalFallbacks = listOf("fJ9rUzIMcZQ", "kJQP7kiw5Fk", "JGwWNGJdvx8", "OPf0YbXqDm0")
+                            val fallbackResult = Innertube.relatedPage(videoId = globalFallbacks.random())
+                            relatedPageResult = fallbackResult ?: Result.failure(Exception("Failed to load Quick Picks"))
+                        } else {
+                            relatedPageResult = result
+                        }
                     }
                 }
 
