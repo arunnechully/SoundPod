@@ -1,0 +1,7 @@
+* Major Fix: Integrated NewPipe for more reliable music streaming
+* Instant track starts: Music now loads in the background so there’s no waiting between songs
+* Faster loading: Optimized the home screen to load your favorites almost instantly
+* Faster app start: Removed the background delay when opening the app
+* Refined and cleaned up Playlist and Album screens
+* Improved overall app stability and performance
+* General bug fixes
