@@ -212,59 +212,59 @@ fun NewBuiltInPlaylistScreen(
             )
         }
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(16.dp))
+//        Column(
+//            modifier = Modifier.fillMaxWidth(),
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        ) {
+//            Spacer(modifier = Modifier.height(16.dp))
 
             // Centered Playlist Cover Placeholder
-            Box(
-                modifier = Modifier
-                    .size(160.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(colorPalette.text.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = when (builtInPlaylist) {
-                        BuiltInPlaylist.Favorites -> painterResource(id = R.drawable.heart)
-                        BuiltInPlaylist.Offline -> painterResource(id = R.drawable.offline)
-                    },
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp),
-                    tint = when (builtInPlaylist) {
-                        BuiltInPlaylist.Favorites -> colorPalette.favoritesIcon.copy(alpha = 0.5f)
-                        BuiltInPlaylist.Offline -> colorPalette.text.copy(alpha = 0.4f)
-                    },
-                )
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
+//            Box(
+//                modifier = Modifier
+//                    .size(160.dp)
+//                    .clip(RoundedCornerShape(24.dp))
+//                    .background(colorPalette.text.copy(alpha = 0.1f)),
+//                contentAlignment = Alignment.Center
+//            ) {
+//                Icon(
+//                    painter = when (builtInPlaylist) {
+//                        BuiltInPlaylist.Favorites -> painterResource(id = R.drawable.heart)
+//                        BuiltInPlaylist.Offline -> painterResource(id = R.drawable.offline)
+//                    },
+//                    contentDescription = null,
+//                    modifier = Modifier.size(64.dp),
+//                    tint = when (builtInPlaylist) {
+//                        BuiltInPlaylist.Favorites -> colorPalette.favoritesIcon.copy(alpha = 0.5f)
+//                        BuiltInPlaylist.Offline -> colorPalette.text.copy(alpha = 0.4f)
+//                    },
+//                )
+//            }
+//
+//            Spacer(modifier = Modifier.height(20.dp))
 
             // Centered Title Text
-            Text(
-                text = when (builtInPlaylist) {
-                    BuiltInPlaylist.Favorites -> stringResource(id = R.string.favorites)
-                    BuiltInPlaylist.Offline -> stringResource(id = R.string.offline)
-                },
-                style = typography.headlineMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = colorPalette.text,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
+//            Text(
+//                text = when (builtInPlaylist) {
+//                    BuiltInPlaylist.Favorites -> stringResource(id = R.string.favorites)
+//                    BuiltInPlaylist.Offline -> stringResource(id = R.string.offline)
+//                },
+//                style = typography.headlineMedium,
+//                fontWeight = FontWeight.SemiBold,
+//                color = colorPalette.text,
+//                maxLines = 1,
+//                overflow = TextOverflow.Ellipsis
+//            )
+//
+//            Spacer(modifier = Modifier.height(6.dp))
 
             // Track Count Text
-            Text(
-                text = pluralStringResource(id = R.plurals.number_of_songs, count = songCount, songCount),
-                style = typography.bodyMedium,
-                color = colorPalette.text.copy(alpha = 0.5f)
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
+//            Text(
+//                text = pluralStringResource(id = R.plurals.number_of_songs, count = songCount, songCount),
+//                style = typography.bodyMedium,
+//                color = colorPalette.text.copy(alpha = 0.5f)
+//            )
+//
+//            Spacer(modifier = Modifier.height(24.dp))
             SettingsCard(
                 shape = RoundedCornerShape(
                     topStart = 25.dp,
@@ -286,6 +286,6 @@ fun NewBuiltInPlaylistScreen(
                     onSongsChange = { currentSongs = it }
                 )
             }
-        }
+//        }
     }
 }

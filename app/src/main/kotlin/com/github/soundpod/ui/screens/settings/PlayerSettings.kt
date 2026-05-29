@@ -48,6 +48,7 @@ fun PlayerSettings(
 
     SettingsScreenLayout(
         title = stringResource(id = R.string.player),
+        shape = MaterialTheme.shapes.extraSmall,
         onBackClick = onBackClick,
         content = {
 

@@ -2,10 +2,12 @@
 
 package com.github.soundpod.ui.screens.settings
 
+import android.graphics.drawable.shapes.Shape
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -32,6 +34,7 @@ fun SettingsScreen(
 
     SettingsScreenLayout(
         title = stringResource(id = R.string.settings),
+        shape = MaterialTheme.shapes.extraSmall,
         onBackClick = onBackClick,
         content = {
             Spacer(modifier = Modifier.height(8.dp))

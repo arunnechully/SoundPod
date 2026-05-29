@@ -9,7 +9,6 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.EaseInOutSine
 import androidx.compose.animation.core.LinearEasing
@@ -148,27 +147,32 @@ fun PlayPauseButton(
     isBuffering: Boolean = false,
     onClick: () -> Unit,
 
-) {
+    ) {
     val (colorPalette) = LocalAppearance.current
 
-    AnimatedIconButton(
-        onClick = onClick,
-        modifier = modifier
-            .semantics { contentDescription = if (playing) "Pause" else "Play" }
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier.size(58.dp)
     ) {
-        Box(contentAlignment = Alignment.Center) {
-            Icon(
-                painter = painterResource(id = if (playing) R.drawable.pause else R.drawable.play),
-                contentDescription = null,
-                tint = colorPalette.iconColor.copy(alpha = if (isBuffering) 0.5f else 1f),
-                modifier = Modifier.size(68.dp)
-            )
-            if (isBuffering) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(76.dp),
-                    color = colorPalette.iconColor,
-                    strokeWidth = 3.dp
+        AnimatedIconButton(
+            onClick = onClick,
+            modifier = Modifier
+                .semantics { contentDescription = if (playing) "Pause" else "Play" }
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    painter = painterResource(id = if (playing) R.drawable.pause else R.drawable.play),
+                    contentDescription = null,
+                    tint = colorPalette.iconColor.copy(alpha = if (isBuffering) 0.5f else 1f),
+                    modifier = Modifier.size(38.dp)
                 )
+                if (isBuffering) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(52.dp),
+                        color = colorPalette.iconColor,
+                        strokeWidth = 2.dp
+                    )
+                }
             }
         }
     }
@@ -180,8 +184,9 @@ fun NewPlayPauseButton(
     playing: Boolean,
     isBuffering: Boolean = false,
     onClick: () -> Unit,
-    color: Color = MaterialTheme.colorScheme.primary
+    color: Color = LocalAppearance.current.colorPalette.iconColor
 ) {
+    val (colorPalette) = LocalAppearance.current
     val infiniteTransition = rememberInfiniteTransition(label = "organic_dialer_button")
     val phase by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -211,7 +216,7 @@ fun NewPlayPauseButton(
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .size(84.dp)
+            .size(74.dp)
             .clip(CircleShape)
             .clickable(
                 onClick = onClick,
@@ -219,7 +224,11 @@ fun NewPlayPauseButton(
                 indication = null
             )
     ) {
-        Canvas(modifier = Modifier.fillMaxSize().alpha(if (isBuffering) 0.5f else 1f)) {
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(if (isBuffering) 0.5f else 1f)
+        ) {
             val center = Offset(size.width / 2, size.height / 2)
             val baseRadius = size.minDimension / 2.2f
             val path = Path()
@@ -247,19 +256,23 @@ fun NewPlayPauseButton(
                 color = color
             )
         }
-        Icon(
-            imageVector = if (playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-            contentDescription = if (playing) "Pause" else "Play",
-            modifier = Modifier.size(52.dp),
-            tint = MaterialTheme.colorScheme.onPrimary.copy(alpha = if (isBuffering) 0.5f else 1f)
-        )
-
-        if (isBuffering) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(84.dp),
-                color = MaterialTheme.colorScheme.onPrimary,
-                strokeWidth = 3.dp
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = modifier.size(48.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = if (playing) R.drawable.pause else R.drawable.play),
+                contentDescription = null,
+                tint = colorPalette.background4.copy(alpha = if (isBuffering) 0.5f else 1f),
+                modifier = Modifier.size(34.dp)
             )
+            if (isBuffering) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(44.dp),
+                    color = colorPalette.background4,
+                    strokeWidth = 2.dp
+                )
+            }
         }
     }
 }
@@ -290,7 +303,13 @@ fun MiniPlayerControl(
     }
 
     val isBuffering = playbackState == Player.STATE_BUFFERING &&
-            (player.currentMediaItem?.mediaId?.let { binder.cache.isCached(it, player.currentPosition, 1024L) } != true)
+            (player.currentMediaItem?.mediaId?.let {
+                binder.cache.isCached(
+                    it,
+                    player.currentPosition,
+                    1024L
+                )
+            } != true)
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -303,7 +322,7 @@ fun MiniPlayerControl(
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.fast_backward),
-                contentDescription = null,
+                contentDescription = if (playing) "Pause" else "Play",
                 tint = colorPalette.iconColor,
                 modifier = Modifier.size(16.dp)
             )
@@ -409,7 +428,7 @@ fun PlayerMiddleControl(
 
         AnimatedIconButton(
             onClick = {
-                Toast.makeText(ctx,"Function not setup yet", Toast.LENGTH_SHORT).show()
+                Toast.makeText(ctx, "Function not setup yet", Toast.LENGTH_SHORT).show()
             },
         ) {
             Icon(
@@ -452,7 +471,13 @@ fun PlayerControlBottom(
     }
 
     val isBuffering = playbackState == Player.STATE_BUFFERING &&
-            (player.currentMediaItem?.mediaId?.let { binder.cache.isCached(it, player.currentPosition, 1024L) } != true)
+            (player.currentMediaItem?.mediaId?.let {
+                binder.cache.isCached(
+                    it,
+                    player.currentPosition,
+                    1024L
+                )
+            } != true)
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -602,7 +627,7 @@ fun PlayerTopControl(
 
         IconButton(
             onClick = onBack,
-        ){
+        ) {
             Icon(
                 painter = painterResource(
                     id = if (isPlaylistShowing) R.drawable.arrow_back else R.drawable.arrow_down
@@ -620,7 +645,7 @@ fun PlayerTopControl(
 
             Text(
                 text = formatTime(sleepTimerMillisLeft ?: 0L),
-                color =colorPalette.text,
+                color = colorPalette.text,
                 style = MaterialTheme.typography.bodyMedium.copy(
                     fontWeight = FontWeight.Bold
                 ),
@@ -755,6 +780,7 @@ fun PlayerSeekBar(
                 duration = duration
             )
         }
+
         ProgressBar.Paperboat -> {
             BoatAnimation(
                 mediaId = mediaId,
@@ -891,6 +917,7 @@ private fun PlayerSeekBarDefault(
         }
     }
 }
+
 @Composable
 private fun WaveAnimation(
     mediaId: String,

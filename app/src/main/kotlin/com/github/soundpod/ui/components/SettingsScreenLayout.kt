@@ -39,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -55,6 +56,7 @@ fun SettingsScreenLayout(
     description: String? = null,
     onBackClick: () -> Unit,
     scrollable: Boolean = true,
+    shape: Shape = RoundedCornerShape(25.dp),
     horizontalPadding: Dp = 14.dp,
     actions: @Composable RowScope.() -> Unit = {},
     dropDownMenuContent: @Composable (ColumnScope.(dismissMenu: () -> Unit) -> Unit)? = null,
@@ -83,6 +85,7 @@ fun SettingsScreenLayout(
         },
         onBackClick = onBackClick,
         scrollable = scrollable,
+        shape = shape,
         horizontalPadding = horizontalPadding,
         actions = actions,
         dropDownMenuContent = dropDownMenuContent,
@@ -96,6 +99,7 @@ fun SettingsScreenLayout(
     title: @Composable (() -> Unit)? = null,
     onBackClick: (() -> Unit)? = null,
     scrollable: Boolean = true,
+    shape: Shape = RoundedCornerShape(25.dp),
     horizontalPadding: Dp = 14.dp,
     actions: @Composable RowScope.() -> Unit = {},
     dropDownMenuContent: @Composable (ColumnScope.(dismissMenu: () -> Unit) -> Unit)? = null,
@@ -106,6 +110,8 @@ fun SettingsScreenLayout(
     var showDropDown by remember { mutableStateOf(false) }
 
     Scaffold(
+        modifier = Modifier
+            .fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
@@ -154,9 +160,12 @@ fun SettingsScreenLayout(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = innerPadding.calculateTopPadding())
+                .padding(
+                    top = innerPadding.calculateTopPadding(),
+                    bottom = innerPadding.calculateBottomPadding()
+                )
                 .padding(horizontal = horizontalPadding)
-                .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                .clip(shape)
                 .then(if (scrollable) Modifier.verticalScroll(scrollState) else Modifier)
         ) {
             content()
@@ -202,7 +211,10 @@ fun PlaylistScreenLayout(
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        modifier = Modifier
+            .clip(RoundedCornerShape(25.dp))
+            .background(Color.Transparent),
+        containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -280,7 +292,7 @@ fun PlaylistScreenLayout(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = screenHeight)
-                        .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                        .clip(RoundedCornerShape(24.dp))
                         .background(colorPalette.boxColor)
                         .padding(top = 16.dp)
                 ) {

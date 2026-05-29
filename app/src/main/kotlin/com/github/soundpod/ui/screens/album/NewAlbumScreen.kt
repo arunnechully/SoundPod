@@ -68,16 +68,6 @@ fun NewAlbumScreen(
         onBackClick = onBack,
         actions = {
             IconButton(
-                onClick = onSearchClick
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search",
-                    tint = colorPalette.text
-                )
-            }
-
-            IconButton(
                 onClick = { viewModel.toggleLove() }
             ) {
                 Icon(
@@ -89,6 +79,17 @@ fun NewAlbumScreen(
                     modifier = Modifier.size(24.dp)
                 )
             }
+
+            IconButton(
+                onClick = onSearchClick
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search",
+                    tint = colorPalette.text
+                )
+            }
+
         },
         dropDownMenuContent = { dismissMenu ->
             DropdownMenuItem(

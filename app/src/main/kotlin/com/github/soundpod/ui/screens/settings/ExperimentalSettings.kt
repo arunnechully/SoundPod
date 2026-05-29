@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -32,6 +33,7 @@ fun ExperimentSettings(
 
     SettingsScreenLayout(
         title = stringResource(id = R.string.experimental),
+        shape = MaterialTheme.shapes.extraSmall,
         onBackClick = onBackClick,
         content = {
 

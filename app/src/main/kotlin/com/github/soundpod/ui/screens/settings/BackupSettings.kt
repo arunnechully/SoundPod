@@ -131,6 +131,7 @@ fun BackupSettings(
 
     SettingsScreenLayout(
         title = stringResource(id = R.string.backup_restore),
+        shape = MaterialTheme.shapes.extraSmall,
         onBackClick = onBackClick,
         content = {
             Spacer(modifier = Modifier.height(Dimensions.spacer))

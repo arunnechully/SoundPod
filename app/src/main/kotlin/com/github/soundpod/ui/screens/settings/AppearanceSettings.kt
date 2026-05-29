@@ -44,6 +44,7 @@ fun AppearanceSettings(
 
     SettingsScreenLayout(
         title = stringResource(id = R.string.appearance),
+        shape = MaterialTheme.shapes.extraSmall,
         onBackClick = onBackClick,
         content = {
 
@@ -59,7 +60,6 @@ fun AppearanceSettings(
             Spacer(modifier = Modifier.height(8.dp))
 
             SettingsCard{
-
                 EnumValueSelectorSettingsEntry(
                     title = stringResource(id = R.string.app_theme),
                     selectedValue = appThemeColor,

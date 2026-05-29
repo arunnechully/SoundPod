@@ -98,6 +98,7 @@ fun BackgroundSettings(onBackClick: () -> Unit) {
 
     SettingsScreenLayout(
         title = stringResource(id = R.string.player_background),
+        shape = MaterialTheme.shapes.extraSmall,
         onBackClick = onBackClick
     ) {
         Spacer(modifier = Modifier.height(16.dp))

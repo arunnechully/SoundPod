@@ -97,6 +97,7 @@ fun MoreSettings(
 
     SettingsScreenLayout(
         title = stringResource(id = R.string.more_settings),
+        shape = MaterialTheme.shapes.extraSmall,
         onBackClick = onBackClick,
         content = {
             Spacer(modifier = Modifier.height(Dimensions.spacer))

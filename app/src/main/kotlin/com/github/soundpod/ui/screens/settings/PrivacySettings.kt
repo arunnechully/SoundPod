@@ -84,6 +84,7 @@ fun PrivacySettings(
 
     SettingsScreenLayout(
         title = stringResource(id = R.string.privacy),
+        shape = MaterialTheme.shapes.extraSmall,
         onBackClick = onBackClick,
         content = {
             Spacer(modifier = Modifier.height(8.dp))

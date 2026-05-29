@@ -90,6 +90,7 @@ fun CacheSettings(
 
     SettingsScreenLayout(
         title = stringResource(id = R.string.database),
+        shape = MaterialTheme.shapes.extraSmall,
         onBackClick = onBackClick,
         content = {
 

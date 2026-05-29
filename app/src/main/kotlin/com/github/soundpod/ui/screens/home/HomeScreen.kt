@@ -97,12 +97,7 @@ fun HomeScreen(
     ) {
         HorizontalTabs(pagerState = pagerState)
 
-        SettingsCard(
-            shape = RoundedCornerShape(
-                topStart = 25.dp,
-                topEnd = 25.dp
-            )
-        ) {
+        SettingsCard{
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier

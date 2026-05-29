@@ -36,7 +36,10 @@ import androidx.media3.exoplayer.audio.MediaCodecAudioRenderer
 import androidx.media3.exoplayer.audio.SilenceSkippingAudioProcessor
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import com.github.innertube.models.NavigationEndpoint
+import com.github.innertube.Innertube
+import com.github.innertube.requests.player
 import com.github.soundpod.db
+import com.github.soundpod.models.Format
 import com.github.soundpod.query
 import com.github.soundpod.utils.InvincibleService
 import com.github.soundpod.utils.broadCastPendingIntent
@@ -300,14 +303,51 @@ class PlayerService : InvincibleService(), Player.Listener,
     }
 
     private fun prefetchNextTrack() {
-        val nextIndex = player.nextMediaItemIndex
-        if (nextIndex != C.INDEX_UNSET) {
+        val currentIndex = player.currentMediaItemIndex
+        val totalItems = player.mediaItemCount
+
+        // Prefetch the next 3 tracks
+        for (i in 1..3) {
+            val nextIndex = currentIndex + i
+            if (nextIndex >= totalItems || nextIndex < 0) break
+
             val nextMediaItem = player.getMediaItemAt(nextIndex)
             val videoId = nextMediaItem.mediaId
+
             coroutineScope.launch {
                 runCatching {
+                    // 1. Resolve URL (NewPipe)
                     val uri = mediaSourceProvider.resolveUrl(videoId)
+
+                    // 2. Cache track (1MB)
                     cacheTrack(videoId, uri)
+
+                    // 3. Prefetch lyrics
+                    LyricsFetcher.fetchLyrics(videoId)
+
+                    // 4. Prefetch extra metadata from InnerTube
+                    Innertube.player(videoId)?.onSuccess { response ->
+                        val highestQualityFormat = response.streamingData?.highestQualityFormat
+                        val loudnessDb = response.playerConfig?.audioConfig?.normalizedLoudnessDb
+                        query {
+                            db.insert(
+                                Format(
+                                    songId = videoId,
+                                    itag = highestQualityFormat?.itag,
+                                    mimeType = highestQualityFormat?.mimeType,
+                                    bitrate = highestQualityFormat?.bitrate,
+                                    contentLength = highestQualityFormat?.contentLength,
+                                    lastModified = highestQualityFormat?.lastModified,
+                                    loudnessDb = loudnessDb
+                                )
+                            )
+                        }
+                    }
+
+                    // 5. Prefetch artwork
+                    nextMediaItem.mediaMetadata.artworkUri?.let { artworkUri ->
+                        bitmapProvider.load(artworkUri) { }
+                    }
                 }
             }
         }
@@ -320,7 +360,7 @@ class PlayerService : InvincibleService(), Player.Listener,
             .setUri(uri)
             .setKey(videoId)
             .setPosition(0)
-            .setLength(512 * 1024L) // Cache the first 512KB
+            .setLength(1024 * 1024L) // Cache the first 1MB
             .build()
 
         val upstreamDataSource = DefaultHttpDataSource.Factory()
