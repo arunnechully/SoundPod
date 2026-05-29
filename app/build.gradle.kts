@@ -47,7 +47,11 @@ extensions.configure<ApplicationExtension>("android") {
             excludes += setOf(
                 "**/*.prof",
                 "**/*.profi",
-                "META-INF/**"
+                "META-INF/version-control-info.textproto",
+                "META-INF/com/android/build/gradle/app-metadata.properties",
+                "META-INF/*.RSA",
+                "META-INF/*.SF",
+                "META-INF/*.DSA"
             )
         }
     }
