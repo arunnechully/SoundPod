@@ -212,7 +212,6 @@ fun NewLocalPlaylistScreen(
             Spacer(modifier = Modifier.height(32.dp))
         },
         content = {
-            // SettingsCard removed; PlaylistScreenLayout handles the background shape now
             NewLocalPlaylistSongs(
                 playlistId = playlistId,
                 onGoToAlbum = onGoToAlbum,

@@ -67,7 +67,9 @@ enum class YouTubeClient(
     );
     fun toContext(
         localized: Boolean = true,
-        visitorData: String? = null
+        visitorData: String? = null,
+        gl: String? = null,
+        hl: String? = null
     ) = Context(
         client = Context.Client(
             clientName = clientName,
@@ -95,8 +97,8 @@ enum class YouTubeClient(
                 else -> "DESKTOP"
             },
             userAgent = userAgent,
-            gl = if (localized) Locale.getDefault().country.ifBlank { "US" } else "US",
-            hl = if (localized) Locale.getDefault().toLanguageTag().ifBlank { "en" } else "en",
+            gl = gl ?: if (localized) Locale.getDefault().country.ifBlank { "US" } else "US",
+            hl = hl ?: if (localized) Locale.getDefault().toLanguageTag().ifBlank { "en" } else "en",
             visitorData = visitorData ?: ""
         )
     )

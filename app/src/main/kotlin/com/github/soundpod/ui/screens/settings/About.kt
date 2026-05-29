@@ -350,21 +350,21 @@ fun AboutSettings(
                         )
                     }
                 }
-                if (BuildConfig.ENABLE_UPDATER) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    SettingsCard {
-                        SwitchSetting(
-                            icon = IconSource.Vector(Icons.Default.NewReleases),
-                            title = stringResource(id = R.string.beta_updates),
-                            description = stringResource(id = R.string.beta_updates_description),
-                            switchState = betaUpdateEnabled,
-                            onSwitchChange = {
-                                enabled ->
-                                betaUpdateEnabled = enabled
-                            }
-                        )
-                    }
-                }
+//                if (BuildConfig.ENABLE_UPDATER) {
+//                    Spacer(modifier = Modifier.height(8.dp))
+//                    SettingsCard {
+//                        SwitchSetting(
+//                            icon = IconSource.Vector(Icons.Default.NewReleases),
+//                            title = stringResource(id = R.string.beta_updates),
+//                            description = stringResource(id = R.string.beta_updates_description),
+//                            switchState = betaUpdateEnabled,
+//                            onSwitchChange = {
+//                                enabled ->
+//                                betaUpdateEnabled = enabled
+//                            }
+//                        )
+//                    }
+//                }
             }
         }
     )

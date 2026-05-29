@@ -6,9 +6,12 @@ import io.ktor.client.request.setBody
 import com.github.innertube.Innertube
 import com.github.innertube.models.BrowseResponse
 import com.github.innertube.models.MusicCarouselShelfRenderer
+import com.github.innertube.models.YouTubeClient
 import com.github.innertube.models.bodies.BrowseBody
+import com.github.innertube.utils.findSectionByTitle
 import com.github.innertube.utils.from
 import com.github.innertube.utils.runCatchingNonCancellable
+import java.util.Locale
 
 suspend fun Innertube.charts(): Result<List<Innertube.SongItem>?>? = runCatchingNonCancellable {
     if (!hasRequiredTokens) {
@@ -16,7 +19,15 @@ suspend fun Innertube.charts(): Result<List<Innertube.SongItem>?>? = runCatching
     }
 
     val response = client.post(BROWSE) {
-        setBody(BrowseBody(browseId = "FEcharts"))
+        setBody(
+            BrowseBody(
+                browseId = "FEcharts",
+                context = YouTubeClient.WEB_REMIX.toContext(
+                    hl = "en",
+                    gl = Locale.getDefault().country.ifBlank { "US" },
+                )
+            )
+        )
         mask("contents.sectionListRenderer.contents.musicCarouselShelfRenderer(header.musicCarouselShelfBasicHeaderRenderer(title),contents($MUSIC_RESPONSIVE_LIST_ITEM_RENDERER_MASK))")
     }.body<BrowseResponse>()
 
@@ -25,11 +36,8 @@ suspend fun Innertube.charts(): Result<List<Innertube.SongItem>?>? = runCatching
         ?.sectionListRenderer
 
     sectionListRenderer
-        ?.contents
-        ?.mapNotNull { it.musicCarouselShelfRenderer }
-        ?.firstOrNull { shelf -> 
-            shelf.contents?.any { it.musicResponsiveListItemRenderer != null } == true 
-        }
+        ?.findSectionByTitle("Top songs")
+        ?.musicCarouselShelfRenderer
         ?.contents
         ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicResponsiveListItemRenderer)
         ?.mapNotNull(Innertube.SongItem::from)

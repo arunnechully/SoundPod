@@ -143,9 +143,11 @@ fun AnimatedIconButton(
 
 @Composable
 fun PlayPauseButton(
+    modifier: Modifier = Modifier,
     playing: Boolean,
+    isBuffering: Boolean = false,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+
 ) {
     val (colorPalette) = LocalAppearance.current
 
@@ -154,21 +156,30 @@ fun PlayPauseButton(
         modifier = modifier
             .semantics { contentDescription = if (playing) "Pause" else "Play" }
     ) {
-        Icon(
-            painter = painterResource(id = if (playing) R.drawable.pause else R.drawable.play),
-            contentDescription = null,
-            tint = colorPalette.iconColor,
-            modifier = Modifier
-                .size(68.dp)
-        )
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                painter = painterResource(id = if (playing) R.drawable.pause else R.drawable.play),
+                contentDescription = null,
+                tint = colorPalette.iconColor.copy(alpha = if (isBuffering) 0.5f else 1f),
+                modifier = Modifier.size(68.dp)
+            )
+            if (isBuffering) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(76.dp),
+                    color = colorPalette.iconColor,
+                    strokeWidth = 3.dp
+                )
+            }
+        }
     }
 }
 
 @Composable
 fun NewPlayPauseButton(
-    playing: Boolean,
-    onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    playing: Boolean,
+    isBuffering: Boolean = false,
+    onClick: () -> Unit,
     color: Color = MaterialTheme.colorScheme.primary
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "organic_dialer_button")
@@ -208,7 +219,7 @@ fun NewPlayPauseButton(
                 indication = null
             )
     ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
+        Canvas(modifier = Modifier.fillMaxSize().alpha(if (isBuffering) 0.5f else 1f)) {
             val center = Offset(size.width / 2, size.height / 2)
             val baseRadius = size.minDimension / 2.2f
             val path = Path()
@@ -236,16 +247,24 @@ fun NewPlayPauseButton(
                 color = color
             )
         }
-
         Icon(
             imageVector = if (playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
             contentDescription = if (playing) "Pause" else "Play",
             modifier = Modifier.size(52.dp),
-            tint = MaterialTheme.colorScheme.onPrimary
+            tint = MaterialTheme.colorScheme.onPrimary.copy(alpha = if (isBuffering) 0.5f else 1f)
         )
+
+        if (isBuffering) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(84.dp),
+                color = MaterialTheme.colorScheme.onPrimary,
+                strokeWidth = 3.dp
+            )
+        }
     }
 }
 
+@OptIn(UnstableApi::class)
 @Composable
 fun MiniPlayerControl(
     playing: Boolean,
@@ -270,7 +289,8 @@ fun MiniPlayerControl(
         }
     }
 
-    val isBuffering = playbackState == Player.STATE_BUFFERING
+    val isBuffering = playbackState == Player.STATE_BUFFERING &&
+            (player.currentMediaItem?.mediaId?.let { binder.cache.isCached(it, player.currentPosition, 1024L) } != true)
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -288,34 +308,27 @@ fun MiniPlayerControl(
                 modifier = Modifier.size(16.dp)
             )
         }
-        //play or pause button
         Box(
             contentAlignment = Alignment.Center,
             modifier = modifier.size(48.dp)
         ) {
-            Crossfade(
-                targetState = isBuffering,
-                animationSpec = tween(200),
-                label = "MiniPlayerPlayPauseTransition"
-            ) { buffering ->
-                if (buffering) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        color = colorPalette.iconColor,
-                        strokeWidth = 2.dp
+            AnimatedIconButton(
+                onClick = onClick,
+                modifier = Modifier
+                    .semantics { contentDescription = if (playing) "Pause" else "Play" }
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        painter = painterResource(id = if (playing) R.drawable.pause else R.drawable.play),
+                        contentDescription = null,
+                        tint = colorPalette.iconColor.copy(alpha = if (isBuffering) 0.5f else 1f),
+                        modifier = Modifier.size(28.dp)
                     )
-                } else {
-                    AnimatedIconButton(
-                        onClick = onClick,
-                        modifier = Modifier
-                            .semantics { contentDescription = if (playing) "Pause" else "Play" }
-                    ) {
-                        Icon(
-                            painter = painterResource(id = if (playing) R.drawable.pause else R.drawable.play),
-                            contentDescription = null,
-                            tint = colorPalette.iconColor,
-                            modifier = Modifier
-                                .size(28.dp)
+                    if (isBuffering) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(36.dp),
+                            color = colorPalette.iconColor,
+                            strokeWidth = 2.dp
                         )
                     }
                 }
@@ -409,6 +422,7 @@ fun PlayerMiddleControl(
     }
 }
 
+@OptIn(UnstableApi::class)
 @Composable
 fun PlayerControlBottom(
     shouldBePlaying: Boolean,
@@ -437,7 +451,8 @@ fun PlayerControlBottom(
         }
     }
 
-    val isBuffering = playbackState == Player.STATE_BUFFERING
+    val isBuffering = playbackState == Player.STATE_BUFFERING &&
+            (player.currentMediaItem?.mediaId?.let { binder.cache.isCached(it, player.currentPosition, 1024L) } != true)
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -473,34 +488,23 @@ fun PlayerControlBottom(
             )
         }
 
+        // Play/Pause Control (Crossfade Removed)
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier.size(if (playerLayout == PlayerLayout.New) 84.dp else 72.dp)
         ) {
-            Crossfade(
-                targetState = isBuffering,
-                animationSpec = tween(200),
-                label = "PlayerPlayPauseTransition"
-            ) { buffering ->
-                if (buffering) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(32.dp),
-                        color = if (playerLayout == PlayerLayout.New) MaterialTheme.colorScheme.primary else colorPalette.iconColor,
-                        strokeWidth = 3.dp
-                    )
-                } else {
-                    if (playerLayout == PlayerLayout.New) {
-                        NewPlayPauseButton(
-                            playing = shouldBePlaying,
-                            onClick = onPlayPauseClick
-                        )
-                    } else if (playerLayout == PlayerLayout.Default) {
-                        PlayPauseButton(
-                            playing = shouldBePlaying,
-                            onClick = onPlayPauseClick
-                        )
-                    }
-                }
+            if (playerLayout == PlayerLayout.New) {
+                NewPlayPauseButton(
+                    playing = shouldBePlaying,
+                    isBuffering = isBuffering, // Passed directly
+                    onClick = onPlayPauseClick
+                )
+            } else if (playerLayout == PlayerLayout.Default) {
+                PlayPauseButton(
+                    playing = shouldBePlaying,
+                    isBuffering = isBuffering, // Passed directly
+                    onClick = onPlayPauseClick
+                )
             }
         }
 
@@ -515,6 +519,8 @@ fun PlayerControlBottom(
                 modifier = Modifier.size(18.dp)
             )
         }
+
+        // Repeat
         AnimatedIconButton(
             onClick = {
                 if (trackLoopEnabled) {
