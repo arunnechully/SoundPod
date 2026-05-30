@@ -170,9 +170,6 @@ fun NewLocalPlaylistScreen(
             )
         },
         headerContent = {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Centered Playlist Cover Placeholder
             Box(
                 modifier = Modifier
                     .size(160.dp)
@@ -187,29 +184,6 @@ fun NewLocalPlaylistScreen(
                     tint = colorPalette.text.copy(alpha = 0.4f)
                 )
             }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Centered Title Text
-            Text(
-                text = playlist?.name ?: "",
-                style = typography.headlineMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = colorPalette.text,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // Track Count Text
-            Text(
-                text = pluralStringResource(id = R.plurals.number_of_songs, count = songCount, songCount),
-                style = typography.bodyMedium,
-                color = colorPalette.text.copy(alpha = 0.5f)
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
         },
         content = {
             NewLocalPlaylistSongs(

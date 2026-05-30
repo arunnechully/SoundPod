@@ -19,12 +19,12 @@ kotlin {
 
 extensions.configure<ApplicationExtension>("android") {
     namespace = "com.github.soundpod"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.github.soundpod"
         minSdk = 23
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 22
         versionName = "1.2.0"
     }
@@ -123,7 +123,6 @@ dependencies {
     implementation(libs.compose.shimmer)
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.util)
-    implementation(libs.core.splashscreen)
     implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.material.motion.compose)
     implementation(libs.media)

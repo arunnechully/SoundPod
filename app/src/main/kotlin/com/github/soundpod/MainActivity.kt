@@ -46,7 +46,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-//import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -103,7 +102,6 @@ class MainActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-//        installSplashScreen()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             enableEdgeToEdge(
                 statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
@@ -120,19 +118,20 @@ class MainActivity : ComponentActivity() {
         }
         super.onCreate(savedInstanceState)
 
-        val updateFile = File(externalCacheDir, "update.apk")
-        if (updateFile.exists()) {
-            updateFile.delete()
-        }
-        externalCacheDir?.listFiles()?.forEach {
-            if (it.name.startsWith("update_") && it.name.endsWith(".apk")) it.delete()
+        lifecycleScope.launch(Dispatchers.IO) {
+            val updateFile = File(externalCacheDir, "update.apk")
+            if (updateFile.exists()) {
+                updateFile.delete()
+            }
+            externalCacheDir?.listFiles()?.forEach {
+                if (it.name.startsWith("update_") && it.name.endsWith(".apk")) it.delete()
+            }
+            setupUpdateWorker()
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
-
-        setupUpdateWorker()
 
         val launchedFromNotification = intent?.extras?.getBoolean("expandPlayerBottomSheet") == true
         data = intent?.data ?: intent?.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
