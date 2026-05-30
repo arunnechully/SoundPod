@@ -306,4 +306,5 @@
     <string name="remove_songs_confirmation">Êtes-vous sûr de vouloir supprimer les titres sélectionnés ?</string>
     <string name="beta_updates">Accès anticipé (Bêta)</string>
     <string name="beta_updates_description">Activer la réception des versions préliminaires.</string>
+    <string name="player_style">Player Style</string>
 </resources>
