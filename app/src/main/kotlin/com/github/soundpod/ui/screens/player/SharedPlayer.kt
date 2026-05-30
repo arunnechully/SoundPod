@@ -51,6 +51,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SharedPlayer(
     navController: NavController,
+    onNavigateToSettings: () -> Unit,
     sheetState: SheetState,
     scaffoldPadding: PaddingValues,
     showPlayer: Boolean,
@@ -190,6 +191,7 @@ fun SharedPlayer(
                                         scope.launch { sheetState.partialExpand() }
                                         navController.navigate(route = Routes.Artist(id = browseId))
                                     },
+                                    onGoToTrackDetails = { navController.navigate(route = Routes.TrackDetails)},
                                     onBack = {
                                         if (showLyrics) {
                                             showLyrics = false
@@ -206,6 +208,7 @@ fun SharedPlayer(
                                         showPlaylist = false
                                     },
                                     showLyrics = showLyrics,
+                                    onSettingsClick = onNavigateToSettings,
                                     onTogglePlaylist = {
                                         showPlaylist = it
                                         if (it) showLyrics = false

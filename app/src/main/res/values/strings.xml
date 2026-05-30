@@ -312,4 +312,6 @@
     <string name="beta_updates">Early access (Beta)</string>
     <string name="beta_updates_description">Enable to receive preview builds.</string>
     <string name="player_style">Player Style</string>
+    <string name="track_details">Track details</string>
+    <string name="album">Album</string>
 </resources>

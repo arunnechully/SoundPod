@@ -23,36 +23,26 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.github.soundpod.LocalPlayerServiceBinder
-import com.github.soundpod.db
-import com.github.soundpod.enums.PlayerLayout // Important import
+import com.github.soundpod.enums.PlayerLayout
 import com.github.soundpod.enums.ProgressBar
 import com.github.soundpod.ui.screens.player.lyrics.LyricsOverlay
 import com.github.soundpod.ui.styling.Dimensions
-import com.github.soundpod.utils.DisposableListener
 import com.github.soundpod.utils.isLandscape
-import com.github.soundpod.utils.positionAndDurationState
 import com.github.soundpod.utils.progressBarStyle
 import com.github.soundpod.utils.rememberPreference
-import com.github.soundpod.utils.shouldBePlaying
+import com.github.soundpod.viewmodels.PlayerViewModel // Ensure this is imported
 import com.github.soundpod.viewmodels.PlaylistViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
 
 @OptIn(UnstableApi::class)
 @kotlin.OptIn(
@@ -76,28 +66,18 @@ fun MainPlayerContent(
 
     val playlistViewModel = remember(player) { PlaylistViewModel(player) }
 
-    var nullableMediaItem by remember {
-        mutableStateOf(player.currentMediaItem, neverEqualPolicy())
-    }
-    val mediaItem = nullableMediaItem ?: return
+    // --- Initialize ViewModels ---
+    val playerViewModel = remember(player) { PlayerViewModel(player) }
 
-    var artistId: String? by remember(mediaItem) {
-        mutableStateOf(
-            mediaItem.mediaMetadata.extras?.getStringArrayList("artistIds")?.let {
-                if (it.size == 1) it.first() else null
-            }
-        )
-    }
+    // --- Observe UI State ---
+    val uiState by playerViewModel.uiState.collectAsState()
 
-    var shouldBePlaying by remember { mutableStateOf(player.shouldBePlaying) }
-    var currentPositionMs by remember { mutableLongStateOf(0L) }
-
-    LaunchedEffect(player.isPlaying, mediaItem) {
-        while (player.isPlaying) {
-            currentPositionMs = player.currentPosition
-            delay(250)
-        }
-    }
+    // --- Extract values safely ---
+    val mediaItem = uiState.mediaItem ?: return
+    val artistId = uiState.artistId
+    val shouldBePlaying = uiState.isPlaying
+    val currentPositionMs = uiState.currentPositionMs
+    val durationMs = uiState.durationMs
 
     val handleGoToAlbum: (String) -> Unit = remember(onGoToAlbum, onBack) {
         { id -> onBack(); onGoToAlbum(id) }
@@ -107,39 +87,12 @@ fun MainPlayerContent(
         { id -> onBack(); onGoToArtist(id) }
     }
 
-    player.DisposableListener {
-        object : Player.Listener {
-            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                @Suppress("AssignedValueIsNeverRead")
-                nullableMediaItem = mediaItem
-            }
-            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-                shouldBePlaying = player.shouldBePlaying
-            }
-            override fun onPlaybackStateChanged(playbackState: Int) {
-                shouldBePlaying = player.shouldBePlaying
-            }
-        }
-    }
-
-    LaunchedEffect(mediaItem) {
-        if (artistId == null) {
-            withContext(Dispatchers.IO) {
-                val artistsInfo = db.songArtistInfo(mediaItem.mediaId)
-                if (artistsInfo.size == 1) {
-                    artistId = artistsInfo.first().id
-                }
-            }
-        }
-    }
-
     BackHandler(enabled = true) {
         if (showPlaylist) onTogglePlaylist(false) else onBack()
     }
 
     var isDraggingSeekBar by remember { mutableStateOf(false) }
 
-    val positionAndDuration by player.positionAndDurationState()
     val progressBarStyleState = rememberPreference(progressBarStyle, ProgressBar.Default)
     val currentProgressStyle = progressBarStyleState.value
 
@@ -197,8 +150,8 @@ fun MainPlayerContent(
                                 modifier = Modifier.weight(1f),
                                 mediaId = mediaItem.mediaId,
                                 mediaMetadata = mediaItem.mediaMetadata,
-                                currentPositionMs = currentPositionMs,
-                                onSeekTo = { timeMs -> player.seekTo(timeMs) }
+                                currentPositionMs = currentPositionMs, // mapped from UI state
+                                onSeekTo = { timeMs -> playerViewModel.seekTo(timeMs) } // mapped to ViewModel
                             )
                             Spacer(modifier = Modifier.height(26.dp))
                         }
@@ -233,7 +186,7 @@ fun MainPlayerContent(
                                 } else {
                                     PlayerControlBottom(
                                         shouldBePlaying = shouldBePlaying,
-                                        onPlayPauseClick = { handlePlayPauseClick(player, shouldBePlaying) }
+                                        onPlayPauseClick = { playerViewModel.togglePlayPause() } // mapped to ViewModel
                                     )
                                 }
                             }
@@ -245,8 +198,8 @@ fun MainPlayerContent(
 
                 PlayerSeekBar(
                     mediaId = mediaItem.mediaId,
-                    position = positionAndDuration.first,
-                    duration = positionAndDuration.second,
+                    position = currentPositionMs, // mapped from UI state
+                    duration = durationMs, // mapped from UI state
                     progressBarStyle = currentProgressStyle,
                     onDraggingStateChange = { isDraggingSeekBar = it }
                 )
@@ -256,7 +209,7 @@ fun MainPlayerContent(
                 if (layoutMode == PlayerLayout.Default) {
                     PlayerControlBottom(
                         shouldBePlaying = shouldBePlaying,
-                        onPlayPauseClick = { handlePlayPauseClick(player, shouldBePlaying) }
+                        onPlayPauseClick = { playerViewModel.togglePlayPause() } // mapped to ViewModel
                     )
                 } else {
                     PlayerMiddleControl(
@@ -267,19 +220,5 @@ fun MainPlayerContent(
                 }
             }
         }
-    }
-}
-@UnstableApi
-private fun handlePlayPauseClick(player: Player, shouldBePlaying: Boolean) {
-    if (shouldBePlaying) {
-        player.pause()
-    } else {
-        when (player.playbackState) {
-            Player.STATE_IDLE -> player.prepare()
-            Player.STATE_ENDED -> player.seekToDefaultPosition(0)
-            Player.STATE_BUFFERING,
-            Player.STATE_READY -> {}
-        }
-        player.play()
     }
 }

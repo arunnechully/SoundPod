@@ -176,7 +176,11 @@ class MainActivity : ComponentActivity() {
                             navController = navController,
                             sheetState = playerState,
                             scaffoldPadding = WindowInsets.navigationBars.asPaddingValues(),
-                            showPlayer = isPlayerVisible
+                            showPlayer = isPlayerVisible,
+                            onNavigateToSettings = {
+                                val intent = Intent(context, SettingsActivity::class.java)
+                                context.startActivity(intent)
+                            }
                         ) {
                             MainNavigation(
                                 navController = navController,

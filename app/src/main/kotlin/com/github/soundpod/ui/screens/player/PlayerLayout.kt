@@ -9,9 +9,11 @@ import com.github.soundpod.utils.rememberPreference
 fun PlayerLayout(
     onGoToAlbum: (String) -> Unit,
     onGoToArtist: (String) -> Unit,
+    onGoToTrackDetails: (String) -> Unit,
     onBack: () -> Unit,
     showPlaylist: Boolean,
     onLyricsClick: () -> Unit = {},
+    onSettingsClick: () -> Unit,
     showLyrics: Boolean,
     onTogglePlaylist: (Boolean) -> Unit
 ) {
@@ -22,10 +24,13 @@ fun PlayerLayout(
         layoutMode = currentLayout,
         onGoToAlbum = onGoToAlbum,
         onGoToArtist = onGoToArtist,
+//        onGoToTrackDetails = onGoToTrackDetails,
         onBack = onBack,
         showPlaylist = showPlaylist,
         onLyricsClick = onLyricsClick,
+//        onSettingsClick = onSettingsClick,
         showLyrics = showLyrics,
         onTogglePlaylist = onTogglePlaylist
+
     )
 }

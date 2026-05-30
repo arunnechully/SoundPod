@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -57,6 +58,7 @@ fun SettingsScreenLayout(
     onBackClick: () -> Unit,
     scrollable: Boolean = true,
     shape: Shape = RoundedCornerShape(25.dp),
+    backIcon: Int = R.drawable.arrow_back,
     horizontalPadding: Dp = 14.dp,
     actions: @Composable RowScope.() -> Unit = {},
     dropDownMenuContent: @Composable (ColumnScope.(dismissMenu: () -> Unit) -> Unit)? = null,
@@ -86,6 +88,7 @@ fun SettingsScreenLayout(
         onBackClick = onBackClick,
         scrollable = scrollable,
         shape = shape,
+        backIcon = backIcon,
         horizontalPadding = horizontalPadding,
         actions = actions,
         dropDownMenuContent = dropDownMenuContent,
@@ -100,7 +103,9 @@ fun SettingsScreenLayout(
     onBackClick: (() -> Unit)? = null,
     scrollable: Boolean = true,
     shape: Shape = RoundedCornerShape(25.dp),
+    backIcon: Int = R.drawable.arrow_back,
     horizontalPadding: Dp = 14.dp,
+    actionsHorizontalPadding: Dp = 0.dp,
     actions: @Composable RowScope.() -> Unit = {},
     dropDownMenuContent: @Composable (ColumnScope.(dismissMenu: () -> Unit) -> Unit)? = null,
     content: @Composable () -> Unit
@@ -110,9 +115,7 @@ fun SettingsScreenLayout(
     var showDropDown by remember { mutableStateOf(false) }
 
     Scaffold(
-        modifier = Modifier
-            .fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background,
+        modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
                 title = { title?.invoke() },
@@ -120,7 +123,7 @@ fun SettingsScreenLayout(
                     if (onBackClick != null) {
                         IconButton(onClick = onBackClick) {
                             Icon(
-                                painter = painterResource(R.drawable.arrow_back),
+                                painter = painterResource(backIcon),
                                 contentDescription = "Back",
                                 modifier = Modifier.size(18.dp),
                                 tint = colorPalette.text
@@ -129,23 +132,29 @@ fun SettingsScreenLayout(
                     }
                 },
                 actions = {
-                    actions()
-                    if (dropDownMenuContent != null) {
-                        Box(contentAlignment = Alignment.TopEnd) {
-                            IconButton(onClick = { showDropDown = true }) {
-                                Icon(
-                                    imageVector = Icons.Default.MoreVert,
-                                    contentDescription = "More Options",
-                                    tint = colorPalette.text,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
+                    Row(
+                        modifier = Modifier.padding(horizontal = actionsHorizontalPadding),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        actions()
 
-                            CustomDropdownMenu(
-                                expanded = showDropDown,
-                                onDismissRequest = { showDropDown = false }
-                            ) {
-                                dropDownMenuContent { showDropDown = false }
+                        if (dropDownMenuContent != null) {
+                            Box(contentAlignment = Alignment.TopEnd) {
+                                IconButton(onClick = { showDropDown = true }) {
+                                    Icon(
+                                        imageVector = Icons.Default.MoreVert,
+                                        contentDescription = "More Options",
+                                        tint = colorPalette.text,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+
+                                CustomDropdownMenu(
+                                    expanded = showDropDown,
+                                    onDismissRequest = { showDropDown = false }
+                                ) {
+                                    dropDownMenuContent { showDropDown = false }
+                                }
                             }
                         }
                     }
@@ -182,6 +191,7 @@ fun PlaylistScreenLayout(
     headerContent: @Composable () -> Unit,
     content: @Composable () -> Unit,
     onBackClick: (() -> Unit)? = null,
+    backIcon: Int = R.drawable.arrow_back,
 ) {
     val (colorPalette) = LocalAppearance.current
     val listState = rememberLazyListState()
@@ -211,9 +221,7 @@ fun PlaylistScreenLayout(
     }
 
     Scaffold(
-        modifier = Modifier
-            .clip(RoundedCornerShape(25.dp))
-            .background(Color.Transparent),
+        modifier = Modifier.fillMaxSize(),
         containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
@@ -225,7 +233,7 @@ fun PlaylistScreenLayout(
                     if (onBackClick != null) {
                         IconButton(onClick = onBackClick) {
                             Icon(
-                                painter = painterResource(R.drawable.arrow_back),
+                                painter = painterResource(backIcon),
                                 contentDescription = "Back",
                                 modifier = Modifier.size(18.dp),
                                 tint = colorPalette.text
