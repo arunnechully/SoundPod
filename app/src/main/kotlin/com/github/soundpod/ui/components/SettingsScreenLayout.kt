@@ -57,7 +57,8 @@ fun SettingsScreenLayout(
     description: String? = null,
     onBackClick: () -> Unit,
     scrollable: Boolean = true,
-    shape: Shape = RoundedCornerShape(25.dp),
+    shape: Shape = MaterialTheme.shapes.extraLarge,
+    backgroundColor: Color = LocalAppearance.current.colorPalette.boxColor,
     backIcon: Int = R.drawable.arrow_back,
     horizontalPadding: Dp = 14.dp,
     actions: @Composable RowScope.() -> Unit = {},
@@ -88,6 +89,7 @@ fun SettingsScreenLayout(
         onBackClick = onBackClick,
         scrollable = scrollable,
         shape = shape,
+        backgroundColor = backgroundColor,
         backIcon = backIcon,
         horizontalPadding = horizontalPadding,
         actions = actions,
@@ -102,7 +104,8 @@ fun SettingsScreenLayout(
     title: @Composable (() -> Unit)? = null,
     onBackClick: (() -> Unit)? = null,
     scrollable: Boolean = true,
-    shape: Shape = RoundedCornerShape(25.dp),
+    shape: Shape = MaterialTheme.shapes.extraLarge,
+    backgroundColor : Color = LocalAppearance.current.colorPalette.boxColor,
     backIcon: Int = R.drawable.arrow_back,
     horizontalPadding: Dp = 14.dp,
     actionsHorizontalPadding: Dp = 0.dp,
@@ -115,7 +118,6 @@ fun SettingsScreenLayout(
     var showDropDown by remember { mutableStateOf(false) }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
                 title = { title?.invoke() },
@@ -173,6 +175,7 @@ fun SettingsScreenLayout(
                     top = innerPadding.calculateTopPadding(),
                     bottom = innerPadding.calculateBottomPadding()
                 )
+
                 .padding(horizontal = horizontalPadding)
                 .clip(shape)
                 .then(if (scrollable) Modifier.verticalScroll(scrollState) else Modifier)

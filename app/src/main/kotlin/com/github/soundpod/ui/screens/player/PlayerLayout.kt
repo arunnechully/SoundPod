@@ -28,7 +28,7 @@ fun PlayerLayout(
         onBack = onBack,
         showPlaylist = showPlaylist,
         onLyricsClick = onLyricsClick,
-//        onSettingsClick = onSettingsClick,
+        onSettingsClick = onSettingsClick,
         showLyrics = showLyrics,
         onTogglePlaylist = onTogglePlaylist
 

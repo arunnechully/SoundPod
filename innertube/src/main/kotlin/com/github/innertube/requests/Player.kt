@@ -59,7 +59,7 @@ suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
                         serviceIntegrityDimensions = poToken
                     )
                 )
-                mask("playabilityStatus.status,playabilityStatus.reason,playerConfig.audioConfig,streamingData.adaptiveFormats,streamingData.formats,videoDetails.videoId")
+                mask("playabilityStatus.status,playabilityStatus.reason,playerConfig.audioConfig,streamingData.adaptiveFormats,streamingData.formats,videoDetails.videoId,videoDetails.thumbnail")
             }.body<PlayerResponse>()
         }.getOrNull()
 

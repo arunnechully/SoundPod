@@ -108,9 +108,13 @@ object Innertube {
     ) {
         @Suppress("UNCHECKED_CAST")
         constructor(run: Runs.Run) : this(
-            name = run.text,
+            name = run.text?.removeSuffix(" - Topic")?.takeIf { it != "null" },
             endpoint = run.navigationEndpoint?.endpoint as T?
         )
+
+        companion object {
+            fun cleanName(name: String?): String? = name?.removeSuffix(" - Topic")?.takeIf { it != "null" }
+        }
     }
 
     @JvmInline

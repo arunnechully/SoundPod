@@ -41,7 +41,7 @@ import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.utils.isLandscape
 import com.github.soundpod.utils.progressBarStyle
 import com.github.soundpod.utils.rememberPreference
-import com.github.soundpod.viewmodels.PlayerViewModel // Ensure this is imported
+import com.github.soundpod.viewmodels.PlayerViewModel
 import com.github.soundpod.viewmodels.PlaylistViewModel
 
 @OptIn(UnstableApi::class)
@@ -57,6 +57,7 @@ fun MainPlayerContent(
     onGoToArtist: (String) -> Unit,
     onBack: () -> Unit,
     showPlaylist: Boolean,
+    onSettingsClick: () -> Unit = {},
     onLyricsClick: () -> Unit = {},
     onTogglePlaylist: (Boolean) -> Unit,
     showLyrics: Boolean
@@ -66,13 +67,10 @@ fun MainPlayerContent(
 
     val playlistViewModel = remember(player) { PlaylistViewModel(player) }
 
-    // --- Initialize ViewModels ---
     val playerViewModel = remember(player) { PlayerViewModel(player) }
 
-    // --- Observe UI State ---
     val uiState by playerViewModel.uiState.collectAsState()
 
-    // --- Extract values safely ---
     val mediaItem = uiState.mediaItem ?: return
     val artistId = uiState.artistId
     val shouldBePlaying = uiState.isPlaying
@@ -127,6 +125,7 @@ fun MainPlayerContent(
                     onGoToAlbum = handleGoToAlbum,
                     onGoToArtist = handleGoToArtist,
                     onLyricsClick = onLyricsClick,
+                    onSettingsClick = onSettingsClick,
                     onBack = {
                         if (showPlaylist) onTogglePlaylist(false) else onBack()
                     },
@@ -150,8 +149,8 @@ fun MainPlayerContent(
                                 modifier = Modifier.weight(1f),
                                 mediaId = mediaItem.mediaId,
                                 mediaMetadata = mediaItem.mediaMetadata,
-                                currentPositionMs = currentPositionMs, // mapped from UI state
-                                onSeekTo = { timeMs -> playerViewModel.seekTo(timeMs) } // mapped to ViewModel
+                                currentPositionMs = currentPositionMs,
+                                onSeekTo = { timeMs -> playerViewModel.seekTo(timeMs) }
                             )
                             Spacer(modifier = Modifier.height(26.dp))
                         }
@@ -186,7 +185,7 @@ fun MainPlayerContent(
                                 } else {
                                     PlayerControlBottom(
                                         shouldBePlaying = shouldBePlaying,
-                                        onPlayPauseClick = { playerViewModel.togglePlayPause() } // mapped to ViewModel
+                                        onPlayPauseClick = { playerViewModel.togglePlayPause() }
                                     )
                                 }
                             }
@@ -198,8 +197,8 @@ fun MainPlayerContent(
 
                 PlayerSeekBar(
                     mediaId = mediaItem.mediaId,
-                    position = currentPositionMs, // mapped from UI state
-                    duration = durationMs, // mapped from UI state
+                    position = currentPositionMs,
+                    duration = durationMs,
                     progressBarStyle = currentProgressStyle,
                     onDraggingStateChange = { isDraggingSeekBar = it }
                 )
@@ -209,7 +208,7 @@ fun MainPlayerContent(
                 if (layoutMode == PlayerLayout.Default) {
                     PlayerControlBottom(
                         shouldBePlaying = shouldBePlaying,
-                        onPlayPauseClick = { playerViewModel.togglePlayPause() } // mapped to ViewModel
+                        onPlayPauseClick = { playerViewModel.togglePlayPause() }
                     )
                 } else {
                     PlayerMiddleControl(

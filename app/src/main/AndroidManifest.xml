@@ -36,14 +36,14 @@
         android:localeConfig="@xml/locales_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.App.Starting"
-        tools:targetApi="35">
+        android:theme="@style/Theme.SoundPod"
+        tools:targetApi="36">
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
-            android:theme="@style/Theme.App.Starting">
+            android:theme="@style/Theme.SoundPod">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -102,7 +102,7 @@
             android:name=".SettingsActivity"
             android:exported="false"
             android:label="@string/settings"
-            android:theme="@style/Theme.MusicYou.Settings" />
+            android:theme="@style/Theme.SoundPod.Settings" />
 
         <service
             android:name=".service.PlayerService"

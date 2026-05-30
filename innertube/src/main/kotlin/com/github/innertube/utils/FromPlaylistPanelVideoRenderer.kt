@@ -6,9 +6,9 @@ import com.github.innertube.models.PlaylistPanelVideoRenderer
 fun Innertube.SongItem.Companion.from(renderer: PlaylistPanelVideoRenderer): Innertube.SongItem? {
     return Innertube.SongItem(
         info = Innertube.Info(
-            name = renderer
+            name = Innertube.Info.cleanName(renderer
                 .title
-                ?.text,
+                ?.text),
             endpoint = renderer
                 .navigationEndpoint
                 ?.watchEndpoint
@@ -27,7 +27,7 @@ fun Innertube.SongItem.Companion.from(renderer: PlaylistPanelVideoRenderer): Inn
         thumbnail = renderer
             .thumbnail
             ?.thumbnails
-            ?.getOrNull(0),
+            ?.lastOrNull(),
         durationText = renderer
             .lengthText
             ?.text

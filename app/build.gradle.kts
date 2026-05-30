@@ -128,6 +128,7 @@ dependencies {
     implementation(libs.material.motion.compose)
     implementation(libs.media)
     implementation(libs.media3.exoplayer)
+    implementation(libs.media3.session)
     implementation(libs.reorderable)
     implementation(libs.room)
     implementation(libs.swipe)

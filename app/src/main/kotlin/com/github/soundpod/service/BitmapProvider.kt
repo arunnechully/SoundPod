@@ -10,6 +10,9 @@ import coil3.imageLoader
 import coil3.request.Disposable
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
+import coil3.request.bitmapConfig
+import coil3.size.Precision
+import coil3.size.Scale
 import coil3.toBitmap
 import com.github.soundpod.utils.thumbnail
 
@@ -61,25 +64,57 @@ class BitmapProvider(
         return lastBitmap == null
     }
 
+    private var isLoading = false
+    private val pendingCallbacks = mutableListOf<(Bitmap) -> Unit>()
+
     fun load(uri: Uri?, onDone: (Bitmap) -> Unit) {
-        if (lastUri == uri) return
+        if (lastUri == uri && uri != null) {
+            if (lastBitmap != null) {
+                onDone(lastBitmap!!)
+            } else if (isLoading) {
+                pendingCallbacks.add(onDone)
+            } else {
+                onDone(defaultBitmap)
+            }
+            return
+        }
 
         lastEnqueued?.dispose()
         lastUri = uri
+        lastBitmap = null
+        isLoading = true
+        pendingCallbacks.clear()
+        pendingCallbacks.add(onDone)
+
+        if (uri == null) {
+            isLoading = false
+            onDone(defaultBitmap)
+            listener?.invoke(null)
+            return
+        }
 
         lastEnqueued = context.applicationContext.imageLoader.enqueue(
             ImageRequest.Builder(context.applicationContext)
                 .data(uri.thumbnail(bitmapSize))
+                .size(bitmapSize)
+                .precision(Precision.EXACT)
+                .scale(Scale.FILL)
+                .bitmapConfig(Bitmap.Config.ARGB_8888)
                 .allowHardware(false)
                 .listener(
                     onError = { _, _ ->
-                        lastBitmap = null
-                        onDone(bitmap)
-                        listener?.invoke(lastBitmap)
+                        isLoading = false
+                        val callbacks = ArrayList(pendingCallbacks)
+                        pendingCallbacks.clear()
+                        callbacks.forEach { it(defaultBitmap) }
+                        listener?.invoke(null)
                     },
                     onSuccess = { _, result ->
+                        isLoading = false
                         lastBitmap = result.image.toBitmap()
-                        onDone(bitmap)
+                        val callbacks = ArrayList(pendingCallbacks)
+                        pendingCallbacks.clear()
+                        callbacks.forEach { it(lastBitmap!!) }
                         listener?.invoke(lastBitmap)
                     }
                 )

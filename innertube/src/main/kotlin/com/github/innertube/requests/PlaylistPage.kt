@@ -71,9 +71,9 @@ suspend fun Innertube.playlistPage(
     }
 
     Innertube.PlaylistOrAlbumPage(
-        title = header
+        title = Innertube.Info.cleanName(header
             ?.title
-            ?.text,
+            ?.text),
         thumbnail = header
             ?.thumbnail
             ?.musicThumbnailRenderer

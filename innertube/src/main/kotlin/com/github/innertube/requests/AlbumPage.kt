@@ -13,7 +13,7 @@ suspend fun Innertube.albumPage(browseId: String): Result<Innertube.PlaylistOrAl
         } ?: album
     }?.map { album ->
         val albumInfo = Innertube.Info(
-            name = album.title,
+            name = Innertube.Info.cleanName(album.title),
             endpoint = NavigationEndpoint.Endpoint.Browse(browseId = browseId)
         )
 

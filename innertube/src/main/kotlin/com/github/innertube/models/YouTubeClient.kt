@@ -13,20 +13,20 @@ enum class YouTubeClient(
 ) {
     WEB_REMIX(
         clientName = "WEB_REMIX",
-        clientVersion = "1.20250210.01.00",
-        userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        clientVersion = "1.20250416.01.00",
+        userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
         platform = "DESKTOP",
         clientId = "67"
     ),
     IOS(
         clientName = "IOS",
-        clientVersion = "19.34.2",
-        userAgent = "com.google.ios.youtube/19.34.2 (iPhone16,2; U; CPU iOS 17_6 like Mac OS X; en_US)"
+        clientVersion = "19.45.4",
+        userAgent = "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1 like Mac OS X; en_US)"
     ),
     MWEB(
         clientName = "MWEB",
-        clientVersion = "2.20250210.01.00",
-        userAgent = "Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36"
+        clientVersion = "2.20250416.01.00",
+        userAgent = "Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Mobile Safari/537.36"
     ),
     ANDROID(
         clientName = "ANDROID",
@@ -35,8 +35,8 @@ enum class YouTubeClient(
     ),
     ANDROID_MUSIC(
         clientName = "ANDROID_MUSIC",
-        clientVersion = "7.03.52",
-        userAgent = "com.google.android.apps.youtube.music/7.03.52 (Linux; U; Android 14; en_US; SM-S928B Build/UP1A.231005.007)"
+        clientVersion = "7.07.51",
+        userAgent = "com.google.android.apps.youtube.music/7.07.51 (Linux; U; Android 14; en_US; SM-S928B Build/UP1A.231005.007)"
     ),
     ANDROID_TESTSUITE(
         clientName = "ANDROID_TESTSUITE",
@@ -53,14 +53,14 @@ enum class YouTubeClient(
     ANDROID_VR(
         clientName = "ANDROID_VR",
         clientVersion = "1.71.26",
-        userAgent = "com.google.android.apps.youtube.vr.oculus/1.71.26 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip",
-        osVersion = "12L",
+        userAgent = "com.google.android.apps.youtube.vr.oculus/1.71.26 (Linux; U; Android 14; eureka-user Build/SQ3A.220605.009.A1) gzip",
+        osVersion = "14",
         clientId = "28"
     ),
     MAC_SAFARI_WEB_REMIX(
         clientName = "WEB_REMIX",
-        clientVersion = "1.20250210.01.00",
-        userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15,gzip(gfe)",
+        clientVersion = "1.20250416.01.00",
+        userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15,gzip(gfe)",
         platform = "DESKTOP",
         osVersion = "10_15_7",
         clientId = "67"

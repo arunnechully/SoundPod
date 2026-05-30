@@ -36,17 +36,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Timer
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -69,6 +70,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -78,16 +80,14 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.github.core.ui.LocalAppearance
 import com.github.core.ui.favoritesIcon
-import com.github.innertube.models.NavigationEndpoint
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.db
 import com.github.soundpod.enums.PlayerLayout
 import com.github.soundpod.enums.ProgressBar
-import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.models.Song
 import com.github.soundpod.query
-import com.github.soundpod.ui.components.BaseMediaItemMenu
+import com.github.soundpod.ui.components.CustomDropdownMenu
 import com.github.soundpod.ui.screens.player.seekbar.PaperBoatAnimation
 import com.github.soundpod.ui.screens.player.seekbar.SeekBar
 import com.github.soundpod.ui.screens.player.seekbar.SimpleWave
@@ -98,7 +98,6 @@ import com.github.soundpod.utils.formatAsDuration
 import com.github.soundpod.utils.playerlayout
 import com.github.soundpod.utils.queueLoopEnabledKey
 import com.github.soundpod.utils.rememberPreference
-import com.github.soundpod.utils.seamlessPlay
 import com.github.soundpod.utils.shuffleQueue
 import com.github.soundpod.utils.toast
 import com.github.soundpod.utils.trackLoopEnabledKey
@@ -591,10 +590,9 @@ fun PlayerTopControl(
     onGoToArtist: (String) -> Unit,
     onBack: () -> Unit,
     onLyricsClick: () -> Unit = {},
-    isPlaylistShowing: Boolean
-
+    isPlaylistShowing: Boolean,
+    onSettingsClick: () -> Unit
 ) {
-    val menuState = LocalMenuState.current
     val (colorPalette) = LocalAppearance.current
     val binder = LocalPlayerServiceBinder.current
     binder?.player ?: return
@@ -613,16 +611,17 @@ fun PlayerTopControl(
     val mediaItem = nullableMediaItem ?: return
 
     var isShowingSleepTimerDialog by rememberSaveable { mutableStateOf(false) }
-    val sleepTimerMillisLeft by (binder.sleepTimerMillisLeft
-        ?: flowOf(null))
-        .collectAsState(initial = null)
+    val sleepTimerMillisLeft by (binder.sleepTimerMillisLeft ?: flowOf(null)).collectAsState(initial = null)
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 15.dp, vertical = 24.dp)
+            .statusBarsPadding()
+            .padding(
+                horizontal = 15.dp,
+            )
     ) {
 
         IconButton(
@@ -642,11 +641,10 @@ fun PlayerTopControl(
         Spacer(modifier = Modifier.weight(1f))
 
         if (sleepTimerMillisLeft != null) {
-
             Text(
                 text = formatTime(sleepTimerMillisLeft ?: 0L),
                 color = colorPalette.text,
-                style = MaterialTheme.typography.bodyMedium.copy(
+                style = typography.bodyMedium.copy(
                     fontWeight = FontWeight.Bold
                 ),
                 modifier = Modifier
@@ -656,9 +654,7 @@ fun PlayerTopControl(
                     }
                     .padding(horizontal = 10.dp, vertical = 4.dp)
             )
-
         } else {
-
             IconButton(
                 onClick = { isShowingSleepTimerDialog = true },
             ) {
@@ -709,30 +705,64 @@ fun PlayerTopControl(
             )
         }
 
-        IconButton(
-            onClick = {
-                menuState.display {
-                    BaseMediaItemMenu(
-                        onDismiss = menuState::hide,
-                        mediaItem = mediaItem,
-                        onStartRadio = {
-                            binder.stopRadio()
-                            binder.player.seamlessPlay(mediaItem)
-                            binder.setupRadio(NavigationEndpoint.Endpoint.Watch(videoId = mediaItem.mediaId))
-                        },
-                        onGoToAlbum = onGoToAlbum,
-                        onGoToArtist = onGoToArtist
-                    )
-                }
-            }
+        var showDropDown by remember { mutableStateOf(false) }
+
+        Box(
+            contentAlignment = Alignment.TopEnd
         ) {
-            Icon(
-                imageVector = Icons.Outlined.MoreVert,
-                tint = colorPalette.iconColor,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(28.dp)
-            )
+            IconButton(onClick = { showDropDown = true }) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "More Options",
+                    tint = colorPalette.text,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            CustomDropdownMenu(
+                expanded = showDropDown,
+                onDismissRequest = { showDropDown = false }
+            ) {
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = stringResource(id = R.string.album),
+                            color = colorPalette.text,
+                            style = typography.bodyLarge
+                        )
+                    },
+                    onClick = {
+                        showDropDown = false
+                        onGoToAlbum(mediaItem.mediaId)
+                    }
+                )
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = stringResource(id = R.string.artist),
+                            color = colorPalette.text,
+                            style = typography.bodyLarge
+                        )
+                    },
+                    onClick = {
+                        showDropDown = false
+                        onGoToArtist(mediaItem.mediaId)
+                    }
+                )
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = stringResource(id = R.string.settings),
+                            color = colorPalette.text,
+                            style = typography.bodyLarge
+                        )
+                    },
+                    onClick = {
+                        showDropDown = false
+                        onSettingsClick()
+                    }
+                )
+
+            }
         }
     }
     if (isShowingSleepTimerDialog) {
@@ -851,7 +881,7 @@ private fun PlayerSeekBarDefault(
                 Text(
                     text = formatAsDuration(currentDisplayPosition),
                     color = LocalAppearance.current.colorPalette.text,
-                    style = MaterialTheme.typography.labelLarge.copy(
+                    style = typography.labelLarge.copy(
                         fontWeight = FontWeight.Bold
                     ),
                     modifier = Modifier
@@ -900,7 +930,7 @@ private fun PlayerSeekBarDefault(
             Text(
                 text = formatAsDuration(position),
                 color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.labelMedium,
+                style = typography.labelMedium,
                 maxLines = 1,
                 modifier = Modifier.graphicsLayer { alpha = bottomLabelsAlpha }
             )
@@ -909,7 +939,7 @@ private fun PlayerSeekBarDefault(
                 Text(
                     text = formatAsDuration(duration),
                     color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = typography.labelMedium,
                     maxLines = 1,
                     modifier = Modifier.graphicsLayer { alpha = bottomLabelsAlpha }
                 )
@@ -956,14 +986,14 @@ private fun WaveAnimation(
             Text(
                 text = formatAsDuration((scrubbingPosition ?: position.toFloat()).toLong()),
                 color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.labelMedium
+                style = typography.labelMedium
             )
 
             if (duration != C.TIME_UNSET) {
                 Text(
                     text = formatAsDuration(duration),
                     color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.labelMedium
+                    style = typography.labelMedium
                 )
             }
         }
@@ -1008,14 +1038,14 @@ private fun BoatAnimation(
             Text(
                 text = formatAsDuration((scrubbingPosition ?: position.toFloat()).toLong()),
                 color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.labelMedium
+                style = typography.labelMedium
             )
 
             if (duration != C.TIME_UNSET) {
                 Text(
                     text = formatAsDuration(duration),
                     color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.labelMedium
+                    style = typography.labelMedium
                 )
             }
         }

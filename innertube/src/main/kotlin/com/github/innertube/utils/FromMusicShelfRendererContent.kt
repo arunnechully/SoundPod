@@ -68,9 +68,9 @@ fun Innertube.AlbumItem.Companion.from(content: MusicShelfRenderer.Content): Inn
 
     return Innertube.AlbumItem(
         info = Innertube.Info(
-            name = mainRuns
+            name = Innertube.Info.cleanName(mainRuns
                 .firstOrNull()
-                ?.text,
+                ?.text),
             endpoint = content
                 .musicResponsiveListItemRenderer
                 ?.navigationEndpoint
@@ -93,9 +93,9 @@ fun Innertube.ArtistItem.Companion.from(content: MusicShelfRenderer.Content): In
 
     return Innertube.ArtistItem(
         info = Innertube.Info(
-            name = mainRuns
+            name = Innertube.Info.cleanName(mainRuns
                 .firstOrNull()
-                ?.text,
+                ?.text),
             endpoint = content
                 .musicResponsiveListItemRenderer
                 ?.navigationEndpoint
@@ -115,9 +115,9 @@ fun Innertube.PlaylistItem.Companion.from(content: MusicShelfRenderer.Content): 
 
     return Innertube.PlaylistItem(
         info = Innertube.Info(
-            name = mainRuns
+            name = Innertube.Info.cleanName(mainRuns
                 .firstOrNull()
-                ?.text,
+                ?.text),
             endpoint = content
                 .musicResponsiveListItemRenderer
                 ?.navigationEndpoint
