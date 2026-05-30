@@ -134,15 +134,10 @@ fun BackupSettings(
         shape = MaterialTheme.shapes.extraSmall,
         onBackClick = onBackClick,
         content = {
-            Spacer(modifier = Modifier.height(Dimensions.spacer))
-            Text(
-                text = stringResource(id = R.string.localbackup),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.ExtraBold,
-                color = colorPalette.text.copy(alpha = 0.7f)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            SettingsCard {
+
+            SettingsGroup(
+                title = stringResource(id = R.string.localbackup)
+            ) {
                 SettingColumn(
                     icon = IconSource.Icon(painterResource(id = R.drawable.local_backup)),
                     title = stringResource(id = R.string.backup),
@@ -178,8 +173,7 @@ fun BackupSettings(
                     },
                 )
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            SettingsCard {
+            SettingsGroup{
                 SwitchSetting(
                     icon = IconSource.Vector(Icons.Default.Autorenew),
                     title = stringResource(id = R.string.auto_backup),
@@ -216,7 +210,6 @@ fun BackupSettings(
                     }
                 }
             }
-
             SettingsInformation(text = stringResource(id = R.string.restore_information))
         }
     )

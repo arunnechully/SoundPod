@@ -9,8 +9,6 @@ import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddLink
 import androidx.compose.material.icons.outlined.Battery0Bar
@@ -28,21 +26,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
 import com.github.soundpod.service.PlayerMediaBrowserService
 import com.github.soundpod.ui.common.IconSource
-import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.components.SwitchSetting
-import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.utils.isAtLeastAndroid12
 import com.github.soundpod.utils.isAtLeastAndroid13
 import com.github.soundpod.utils.isIgnoringBatteryOptimizations
@@ -91,8 +84,6 @@ fun MoreSettings(
         isShowingThumbnailInLockscreenKey,
         false
     )
-    val (colorPalette) = LocalAppearance.current
-
     BackHandler(onBack = onBackClick)
 
     SettingsScreenLayout(
@@ -100,18 +91,10 @@ fun MoreSettings(
         shape = MaterialTheme.shapes.extraSmall,
         onBackClick = onBackClick,
         content = {
-            Spacer(modifier = Modifier.height(Dimensions.spacer))
 
-            Text(
-                text = stringResource(id = R.string.general),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.ExtraBold,
-                color = colorPalette.text.copy(alpha = 0.7f)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            SettingsCard {
-
+            SettingsGroup(
+                title = stringResource(id = R.string.general)
+            ) {
                 if (!isAtLeastAndroid13) {
                     SwitchSetting(
                         icon = IconSource.Vector(Icons.Outlined.Image),
@@ -154,9 +137,7 @@ fun MoreSettings(
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
-
-            SettingsCard {
+            SettingsGroup{
                 if (isAtLeastAndroid13) {
                     val intent = Intent(
                         Settings.ACTION_APP_LOCALE_SETTINGS,
@@ -200,18 +181,9 @@ fun MoreSettings(
                 }
             }
 
-            Spacer(modifier = Modifier.height(Dimensions.spacer))
-
-            Text(
-                text = stringResource(id = R.string.service_lifetime),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.ExtraBold,
-                color = colorPalette.text.copy(alpha = 0.7f)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            SettingsCard {
+            SettingsGroup(
+                title = stringResource(id = R.string.service_lifetime)
+            ) {
                 SettingColumn(
                     icon = IconSource.Vector(Icons.Outlined.Battery0Bar),
                     title = stringResource(id = R.string.ignore_battery_optimizations),

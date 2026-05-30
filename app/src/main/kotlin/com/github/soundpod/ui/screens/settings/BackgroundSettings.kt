@@ -101,13 +101,10 @@ fun BackgroundSettings(onBackClick: () -> Unit) {
         shape = MaterialTheme.shapes.extraSmall,
         onBackClick = onBackClick
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
 
-        SectionHeader(
-            stringResource(id = R.string.style),
-        )
-
-        SettingsCard {
+        SettingsGroup(
+            title = stringResource(id = R.string.style)
+        ) {
             BackgroundOptionItem(
                 title = stringResource(id = R.string.dynamic_colors),
                 description = stringResource(id = R.string.dynamic_colors_discription),

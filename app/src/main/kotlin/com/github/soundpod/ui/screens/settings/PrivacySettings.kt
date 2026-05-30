@@ -8,8 +8,6 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.MusicNote
@@ -17,18 +15,14 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
@@ -37,7 +31,6 @@ import com.github.core.ui.LocalAppearance
 import com.github.soundpod.BuildConfig
 import com.github.soundpod.R
 import com.github.soundpod.ui.common.IconSource
-import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 
 @Suppress("KotlinConstantConditions")
@@ -46,7 +39,6 @@ import com.github.soundpod.ui.components.SettingsScreenLayout
 fun PrivacySettings(
     onBackClick: () -> Unit
 ) {
-    val (colorPalette) = LocalAppearance.current
     val context = LocalContext.current
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
@@ -87,15 +79,10 @@ fun PrivacySettings(
         shape = MaterialTheme.shapes.extraSmall,
         onBackClick = onBackClick,
         content = {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = stringResource(id = R.string.permissions),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.ExtraBold,
-                color = colorPalette.text.copy(alpha = 0.7f)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            SettingsCard {
+
+            SettingsGroup(
+                title = stringResource(id = R.string.permissions)
+            ) {
                 if (BuildConfig.ENABLE_UPDATER) {
                     SettingColumn(
                         icon = IconSource.Vector(Icons.Outlined.Notifications),
@@ -127,19 +114,9 @@ fun PrivacySettings(
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = stringResource(id = R.string.storage),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.ExtraBold,
-                color = colorPalette.text.copy(alpha = 0.7f)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            SettingsCard {
+            SettingsGroup(
+                title = stringResource(id = R.string.storage)
+            ) {
                 SettingColumn(
                     icon = IconSource.Vector(Icons.Outlined.Folder),
                     title = stringResource(id = R.string.local_data),

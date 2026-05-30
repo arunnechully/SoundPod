@@ -29,11 +29,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import coil3.imageLoader
-import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.db
@@ -42,7 +39,6 @@ import com.github.soundpod.enums.ExoPlayerDiskCacheMaxSize
 import com.github.soundpod.enums.QuickPicksSource
 import com.github.soundpod.query
 import com.github.soundpod.ui.common.IconSource
-import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.components.SwitchSetting
 import com.github.soundpod.ui.styling.Dimensions
@@ -83,7 +79,6 @@ fun CacheSettings(
 
     var quickPicksSource by rememberPreference(quickPicksSourceKey, QuickPicksSource.Trending)
 
-    val (colorPalette) = LocalAppearance.current
     var showClearQuickPicksDialog by remember { mutableStateOf(false) }
 
     BackHandler(onBack = onBackClick)
@@ -94,8 +89,7 @@ fun CacheSettings(
         onBackClick = onBackClick,
         content = {
 
-            SettingsCard {
-
+            SettingsGroup{
                 EnumValueSelectorSettingsEntry(
                     title = stringResource(id = R.string.quick_picks_source),
                     selectedValue = quickPicksSource,
@@ -119,12 +113,8 @@ fun CacheSettings(
                     switchState = pauseSongCache,
                     onSwitchChange = { pauseSongCache = it }
                 )
-
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            SettingsCard {
+            SettingsGroup{
                 SettingColumn(
                     icon = IconSource.Vector(Icons.Outlined.RestartAlt),
                     title = stringResource(id = R.string.reset_quick_picks),
@@ -150,8 +140,8 @@ fun CacheSettings(
                     confirmButton = {
                         TextButton(
                             onClick = {
-                                query(db::clearEvents) // Clear the DB
-                                showClearQuickPicksDialog = false // Close the dialog
+                                query(db::clearEvents)
+                                showClearQuickPicksDialog = false
                             }
                         ) {
                             Text(text = stringResource(android.R.string.ok))
@@ -166,18 +156,10 @@ fun CacheSettings(
                     }
                 )
             }
-            Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = stringResource(id = R.string.image_cache),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.ExtraBold,
-                color = colorPalette.text.copy(alpha = 0.7f)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            SettingsCard {
+            SettingsGroup(
+                title = stringResource(id = R.string.image_cache)
+            ) {
                 context.imageLoader.diskCache?.let { diskCache ->
                     val diskCacheSize = remember(diskCache) {
                         diskCache.size
@@ -203,18 +185,9 @@ fun CacheSettings(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = stringResource(id = R.string.song_cache),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.ExtraBold,
-                color = colorPalette.text.copy(alpha = 0.7f)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            SettingsCard{
+            SettingsGroup(
+                title = stringResource(id = R.string.song_cache)
+            ) {
                 binder?.cache?.let { cache ->
                     val diskCacheSize by remember {
                         derivedStateOf {
