@@ -394,7 +394,7 @@ interface Database {
         val song = Song(
             id = mediaItem.mediaId,
             title = mediaItem.mediaMetadata.title!!.toString(),
-            artistsText = mediaItem.mediaMetadata.artist?.toString(),
+            artistsText = com.github.innertube.Innertube.Info.cleanName(mediaItem.mediaMetadata.artist?.toString()),
             durationText = mediaItem.mediaMetadata.extras?.getString("durationText"),
             thumbnailUrl = mediaItem.mediaMetadata.artworkUri?.toString()
         ).let(block).also { songInstance ->

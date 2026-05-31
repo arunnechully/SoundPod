@@ -21,7 +21,7 @@ fun Innertube.AlbumItem.Companion.from(renderer: MusicTwoRowItemRenderer): Inner
             ?.musicThumbnailRenderer
             ?.thumbnail
             ?.thumbnails
-            ?.firstOrNull()
+            ?.lastOrNull()
     ).takeIf { it.info?.endpoint?.browseId != null }
 }
 
@@ -42,7 +42,7 @@ fun Innertube.ArtistItem.Companion.from(renderer: MusicTwoRowItemRenderer): Inne
             ?.musicThumbnailRenderer
             ?.thumbnail
             ?.thumbnails
-            ?.firstOrNull()
+            ?.lastOrNull()
     ).takeIf { it.info?.endpoint?.browseId != null }
 }
 
@@ -71,6 +71,6 @@ fun Innertube.PlaylistItem.Companion.from(renderer: MusicTwoRowItemRenderer): In
             ?.musicThumbnailRenderer
             ?.thumbnail
             ?.thumbnails
-            ?.firstOrNull()
+            ?.lastOrNull()
     ).takeIf { it.info?.endpoint?.browseId != null }
 }

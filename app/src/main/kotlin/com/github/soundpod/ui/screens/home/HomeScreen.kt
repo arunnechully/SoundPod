@@ -97,7 +97,7 @@ fun HomeScreen(
     ) {
         HorizontalTabs(pagerState = pagerState)
 
-        SettingsCard{
+        SettingsCard {
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier
@@ -139,8 +139,6 @@ fun HomeScreen(
                 }
             }
         }
-
-
     }
 
 }

@@ -36,11 +36,11 @@ suspend fun Innertube.artistPage(browseId: String): Result<Innertube.ArtistPage>
             return null
         }
 
-        val artistName = response
+        val artistName = Innertube.Info.cleanName(response
             .header
             ?.musicImmersiveHeaderRenderer
             ?.title
-            ?.text
+            ?.text)
 
         val songsSection = (findSectionByTitle("Top songs")
             ?: findSectionByTitle("Songs"))

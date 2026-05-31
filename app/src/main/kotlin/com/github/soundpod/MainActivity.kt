@@ -1,7 +1,8 @@
+@file:Suppress("SpellCheckingInspection")
+
 package com.github.soundpod
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
@@ -10,8 +11,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
-import android.webkit.WebView
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -46,9 +45,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -105,7 +102,6 @@ class MainActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             enableEdgeToEdge(
                 statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
@@ -122,19 +118,20 @@ class MainActivity : ComponentActivity() {
         }
         super.onCreate(savedInstanceState)
 
-        val updateFile = File(externalCacheDir, "update.apk")
-        if (updateFile.exists()) {
-            updateFile.delete()
-        }
-        externalCacheDir?.listFiles()?.forEach {
-            if (it.name.startsWith("update_") && it.name.endsWith(".apk")) it.delete()
+        lifecycleScope.launch(Dispatchers.IO) {
+            val updateFile = File(externalCacheDir, "update.apk")
+            if (updateFile.exists()) {
+                updateFile.delete()
+            }
+            externalCacheDir?.listFiles()?.forEach {
+                if (it.name.startsWith("update_") && it.name.endsWith(".apk")) it.delete()
+            }
+            setupUpdateWorker()
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
-
-        setupUpdateWorker()
 
         val launchedFromNotification = intent?.extras?.getBoolean("expandPlayerBottomSheet") == true
         data = intent?.data ?: intent?.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
@@ -143,7 +140,7 @@ class MainActivity : ComponentActivity() {
             val context = LocalContext.current
             val navController = rememberNavController()
             val scope = rememberCoroutineScope()
-            var isPlayerVisible by remember { mutableStateOf(false) }
+            var isPlayerVisible by remember { mutableStateOf(true) }
 
             val playerState = rememberStandardBottomSheetState(
                 initialValue = SheetValue.PartiallyExpanded,
@@ -176,7 +173,11 @@ class MainActivity : ComponentActivity() {
                             navController = navController,
                             sheetState = playerState,
                             scaffoldPadding = WindowInsets.navigationBars.asPaddingValues(),
-                            showPlayer = isPlayerVisible
+                            showPlayer = isPlayerVisible,
+                            onNavigateToSettings = {
+                                val intent = Intent(context, SettingsActivity::class.java)
+                                context.startActivity(intent)
+                            }
                         ) {
                             MainNavigation(
                                 navController = navController,
@@ -212,9 +213,7 @@ class MainActivity : ComponentActivity() {
             DisposableEffect(binder?.player) {
                 val player = binder?.player ?: return@DisposableEffect onDispose { }
 
-                isPlayerVisible = player.currentMediaItem != null
-
-                if (isPlayerVisible) {
+                if (player.currentMediaItem != null) {
                     if (launchedFromNotification) {
                         intent.replaceExtras(Bundle())
                         scope.launch { playerState.expand() }
@@ -223,19 +222,9 @@ class MainActivity : ComponentActivity() {
 
                 val listener = object : Player.Listener {
                     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                        isPlayerVisible = mediaItem != null
-
                         if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED && mediaItem != null) {
                             if (mediaItem.mediaMetadata.extras?.getBoolean("isFromPersistentQueue") != true) {
                                 scope.launch { playerState.expand() }
-                            }
-                        }
-                    }
-
-                    override fun onEvents(player: Player, events: Player.Events) {
-                        if (events.contains(Player.EVENT_TIMELINE_CHANGED)) {
-                            if (player.mediaItemCount == 0) {
-                                isPlayerVisible = false
                             }
                         }
                     }

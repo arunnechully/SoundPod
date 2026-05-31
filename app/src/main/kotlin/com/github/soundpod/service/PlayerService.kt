@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.github.soundpod.service
 
 import android.app.Notification
@@ -48,12 +50,16 @@ import com.github.soundpod.utils.isAtLeastAndroid13
 import com.github.soundpod.utils.isAtLeastAndroid8
 import com.github.soundpod.utils.isInvincibilityEnabledKey
 import com.github.soundpod.utils.isShowingThumbnailInLockscreenKey
+import com.github.soundpod.utils.pauseOnAppCloseKey
 import com.github.soundpod.utils.persistentQueueKey
+import com.github.soundpod.utils.playbackPitchKey
+import com.github.soundpod.utils.playbackSpeedKey
 import com.github.soundpod.utils.preferences
 import com.github.soundpod.utils.queueLoopEnabledKey
 import com.github.soundpod.utils.resumePlaybackWhenDeviceConnectedKey
 import com.github.soundpod.utils.shouldBePlaying
 import com.github.soundpod.utils.skipSilenceKey
+import com.github.soundpod.utils.stopAfterCurrentKey
 import com.github.soundpod.utils.trackLoopEnabledKey
 import com.github.soundpod.utils.volumeNormalizationKey
 import kotlinx.coroutines.CoroutineScope
@@ -71,6 +77,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
@@ -184,6 +191,11 @@ class PlayerService : InvincibleService(), Player.Listener,
         }
 
         player.skipSilenceEnabled = preferences.getBoolean(skipSilenceKey, false)
+        player.pauseAtEndOfMediaItems = preferences.getBoolean(stopAfterCurrentKey, false)
+        player.playbackParameters = androidx.media3.common.PlaybackParameters(
+            preferences.getFloat(playbackSpeedKey, 1f),
+            preferences.getFloat(playbackPitchKey, 1f)
+        )
         player.addListener(this)
         player.addAnalyticsListener(PlaybackStatsListener(false, PlaybackAnalyticsTracker()))
 
@@ -238,22 +250,23 @@ class PlayerService : InvincibleService(), Player.Listener,
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        if (!player.shouldBePlaying) {
+        if (preferences.getBoolean(pauseOnAppCloseKey, false)) {
+            stopSelf()
+        } else if (!player.shouldBePlaying) {
             broadCastPendingIntent<NotificationDismissReceiver>().send()
         }
         super.onTaskRemoved(rootIntent)
     }
 
     override fun onDestroy() {
-
         queueManager.saveQueue(isPersistentQueueEnabled)
-
         preferences.unregisterOnSharedPreferenceChangeListener(this)
 
         player.removeListener(this)
         player.stop()
         player.release()
 
+        playerNotificationManager.notificationManager?.cancel(NOTIFICATION_ID)
         playerNotificationManager.release()
 
         mediaSessionManager.release()
@@ -539,6 +552,13 @@ class PlayerService : InvincibleService(), Player.Listener,
 
             volumeNormalizationKey -> audioEffectManager.maybeNormalizeVolume()
 
+            playbackSpeedKey, playbackPitchKey -> if (sharedPreferences != null) {
+                player.playbackParameters = androidx.media3.common.PlaybackParameters(
+                    sharedPreferences.getFloat(playbackSpeedKey, 1f),
+                    sharedPreferences.getFloat(playbackPitchKey, 1f)
+                )
+            }
+
             resumePlaybackWhenDeviceConnectedKey -> maybeResumePlaybackWhenDeviceConnected()
 
             isInvincibilityEnabledKey -> if (sharedPreferences != null) {
@@ -548,6 +568,10 @@ class PlayerService : InvincibleService(), Player.Listener,
 
             skipSilenceKey -> if (sharedPreferences != null) {
                 player.skipSilenceEnabled = sharedPreferences.getBoolean(key, false)
+            }
+
+            stopAfterCurrentKey -> if (sharedPreferences != null) {
+                player.pauseAtEndOfMediaItems = sharedPreferences.getBoolean(key, false)
             }
 
             isShowingThumbnailInLockscreenKey -> {

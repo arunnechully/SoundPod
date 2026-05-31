@@ -1,5 +1,6 @@
 package com.github.soundpod.utils
 
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -11,6 +12,13 @@ import com.github.innertube.Innertube
 import com.github.innertube.requests.playlistPageContinuation
 import com.github.innertube.utils.plus
 import com.github.soundpod.models.Song
+import java.io.ByteArrayOutputStream
+
+fun Bitmap.toByteArray(): ByteArray {
+    val stream = ByteArrayOutputStream()
+    compress(Bitmap.CompressFormat.JPEG, 90, stream)
+    return stream.toByteArray()
+}
 
 val Innertube.SongItem.asMediaItem: MediaItem
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
@@ -21,7 +29,7 @@ val Innertube.SongItem.asMediaItem: MediaItem
         .setMediaMetadata(
             MediaMetadata.Builder()
                 .setTitle(info?.name)
-                .setArtist(authors?.joinToString("") { it.name ?: "" })
+                .setArtist(authors?.mapNotNull { it.name }?.joinToString(" • ")?.trim()?.removeSuffix("-")?.removeSuffix(" -")?.trim())
                 .setAlbumTitle(album?.name)
                 .setArtworkUri(thumbnail?.url?.toUri())
                 .setExtras(
@@ -49,7 +57,7 @@ val Innertube.VideoItem.asMediaItem: MediaItem
         .setMediaMetadata(
             MediaMetadata.Builder()
                 .setTitle(info?.name)
-                .setArtist(authors?.joinToString("") { it.name ?: "" })
+                .setArtist(authors?.mapNotNull { it.name }?.joinToString(" • ")?.trim()?.removeSuffix("-")?.removeSuffix(" -")?.trim())
                 .setArtworkUri(thumbnail?.url?.toUri())
                 .setExtras(
                     Bundle().apply {
@@ -97,12 +105,16 @@ fun String?.thumbnail(size: Int): String? {
             .replace("sddefault.jpg", "maxresdefault.jpg")
     }
 
-    val cleanUrl = this.substringBefore("=")
-    return "$cleanUrl=w$size-h$size"
+    if (this.contains("googleusercontent.com") || this.contains("ggpht.com")) {
+        val cleanUrl = this.substringBefore("=")
+        return "$cleanUrl=w$size-h$size-p-l100-rj"
+    }
+
+    return this
 }
 
 fun Uri?.thumbnail(size: Int): Uri? {
-    return toString().thumbnail(size)?.toUri()
+    return this?.toString()?.thumbnail(size)?.toUri()
 }
 
 fun formatAsDuration(millis: Long) = DateUtils.formatElapsedTime(millis / 1000).removePrefix("0")

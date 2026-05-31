@@ -27,6 +27,10 @@ const val trackLoopEnabledKey = "trackLoopEnabled"
 const val queueLoopEnabledKey = "queueLoopEnabled"
 const val skipSilenceKey = "skipSilence"
 const val volumeNormalizationKey = "volumeNormalization"
+const val playbackSpeedKey = "playbackSpeed"
+const val playbackPitchKey = "playbackPitch"
+const val pauseOnAppCloseKey = "pauseOnAppClose"
+const val stopAfterCurrentKey = "stopAfterCurrent"
 const val resumePlaybackWhenDeviceConnectedKey = "resumePlaybackWhenDeviceConnected"
 const val persistentQueueKey = "persistentQueue"
 const val isShowingSynchronizedLyricsKey = "isShowingSynchronizedLyrics"
@@ -144,6 +148,33 @@ fun rememberPreference(key: String, defaultValue: String): MutableState<String> 
     LaunchedEffect(state.value) {
         if (state.value != (preferences.getString(key, null) ?: defaultValue)) {
             preferences.edit { putString(key, state.value) }
+        }
+    }
+
+    return state
+}
+
+@Composable
+fun rememberPreference(key: String, defaultValue: Float): MutableState<Float> {
+    val context = LocalContext.current
+    val preferences = context.preferences
+    val state = remember { mutableStateOf(preferences.getFloat(key, defaultValue)) }
+
+    DisposableEffect(key) {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPrefs, changedKey ->
+            if (changedKey == key) {
+                state.value = sharedPrefs.getFloat(key, defaultValue)
+            }
+        }
+        preferences.registerOnSharedPreferenceChangeListener(listener)
+        onDispose {
+            preferences.unregisterOnSharedPreferenceChangeListener(listener)
+        }
+    }
+
+    LaunchedEffect(state.value) {
+        if (state.value != preferences.getFloat(key, defaultValue)) {
+            preferences.edit { putFloat(key, state.value) }
         }
     }
 

@@ -2,9 +2,10 @@ package com.github.soundpod.ui.screens.localplaylist
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -12,7 +13,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.db
@@ -55,36 +55,35 @@ fun NewLocalPlaylistSongs(
         }
     }
 
-    // Replaced LazyColumn with a standard Column
-    Column(
+    LazyColumn(
         modifier = Modifier
-            .fillMaxSize()
-            // contentPadding replaced with standard padding
-            .padding(bottom = 16.dp + playerPadding)
+            .fillMaxSize(),
+        contentPadding = PaddingValues(bottom = playerPadding)
     ) {
+        item {
+            SortingHeader(
+                sortBy = sortBy,
+                changeSortBy = { sortBy = it },
+                sortByEntries = SongSortBy.entries.toList(),
+                sortOrder = sortOrder,
+                toggleSortOrder = {
+                    sortOrder =
+                        if (sortOrder.name == "Ascending") SortOrder.Descending else SortOrder.Ascending
+                },
+                size = playlistSongs.size,
+                onPlayClick = {
+                    binder?.stopRadio()
+                    binder?.player?.forcePlayAtIndex(playlistSongs.map(Song::asMediaItem), 0)
+                },
+                onShuffleClick = {
+                    binder?.stopRadio()
+                    val shuffledSongs = playlistSongs.shuffled()
+                    binder?.player?.forcePlayAtIndex(shuffledSongs.map(Song::asMediaItem), 0)
+                }
+            )
+        }
 
-        SortingHeader(
-            sortBy = sortBy,
-            changeSortBy = { sortBy = it },
-            sortByEntries = SongSortBy.entries.toList(),
-            sortOrder = sortOrder,
-            toggleSortOrder = {
-                sortOrder = if (sortOrder.name == "Ascending") SortOrder.Descending else SortOrder.Ascending
-            },
-            size = playlistSongs.size,
-            onPlayClick = {
-                binder?.stopRadio()
-                binder?.player?.forcePlayAtIndex(playlistSongs.map(Song::asMediaItem), 0)
-            },
-            onShuffleClick = {
-                binder?.stopRadio()
-                val shuffledSongs = playlistSongs.shuffled()
-                binder?.player?.forcePlayAtIndex(shuffledSongs.map(Song::asMediaItem), 0)
-            }
-        )
-
-        // Replaced itemsIndexed with a standard loop
-        playlistSongs.forEachIndexed { index, song ->
+        itemsIndexed(playlistSongs) { index, song ->
             LocalSongItem(
                 song = song,
                 onClick = {

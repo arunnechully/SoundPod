@@ -63,6 +63,7 @@ data class PlayerResponse(
 
     @Serializable
     data class VideoDetails(
-        val videoId: String?
+        val videoId: String?,
+        val thumbnail: ThumbnailRenderer.MusicThumbnailRenderer.Thumbnail? = null
     )
 }

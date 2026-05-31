@@ -44,10 +44,5 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
     companion object {
         private var instance: MainApplication? = null
         val appContext: Context get() = instance!!.applicationContext
-
-        // The Traffic Light State for ExoPlayer
-        // Defaults to false. MainActivity will flip this to true!
-        @Volatile
-        var isSessionReady: Boolean = false
     }
 }
