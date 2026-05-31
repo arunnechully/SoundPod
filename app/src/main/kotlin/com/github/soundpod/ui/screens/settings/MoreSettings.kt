@@ -40,7 +40,6 @@ import com.github.soundpod.utils.isAtLeastAndroid12
 import com.github.soundpod.utils.isAtLeastAndroid13
 import com.github.soundpod.utils.isIgnoringBatteryOptimizations
 import com.github.soundpod.utils.isInvincibilityEnabledKey
-import com.github.soundpod.utils.isShowingThumbnailInLockscreenKey
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.toast
 
@@ -80,10 +79,7 @@ fun MoreSettings(
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             isIgnoringBatteryOptimizations = context.isIgnoringBatteryOptimizations
         }
-    var isShowingThumbnailInLockscreen by rememberPreference(
-        isShowingThumbnailInLockscreenKey,
-        false
-    )
+
     BackHandler(onBack = onBackClick)
 
     SettingsScreenLayout(
@@ -95,16 +91,6 @@ fun MoreSettings(
             SettingsGroup(
                 title = stringResource(id = R.string.general)
             ) {
-                if (!isAtLeastAndroid13) {
-                    SwitchSetting(
-                        icon = IconSource.Vector(Icons.Outlined.Image),
-                        title = stringResource(id = R.string.show_song_cover),
-                        description = stringResource(id = R.string.show_song_cover_description),
-                        switchState = isShowingThumbnailInLockscreen,
-                        onSwitchChange = { isShowingThumbnailInLockscreen = it }
-                    )
-                }
-
                 SwitchSetting(
                     icon = IconSource.Icon(painterResource(id= R.drawable.android_auto)),
                     title = stringResource(id = R.string.android_auto),

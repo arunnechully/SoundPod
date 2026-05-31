@@ -41,6 +41,13 @@
     <string name="equalizer_description">Interact with the system equalizer</string>
     <string name="show_song_cover">Show song cover</string>
     <string name="show_song_cover_description">Use the playing song cover as the lockscreen wallpaper</string>
+    <string name="stop_on_app_close">Stop on app close</string>
+    <string name="stop_on_app_close_description">Stop playback when the app is swiped away from recent tasks</string>
+    <string name="stop_after_current">Stop after current</string>
+    <string name="stop_after_current_description">Stop playback after the current song finishes</string>
+    <string name="play_pitch">Play pitch</string>
+    <string name="lockscreen">Lockscreen</string>
+    <string name="advanced">Advanced</string>
     <string name="settings">Settings</string>
     <string name="image_cache">Image cache</string>
     <string name="song_cache">Song cache</string>
