@@ -40,6 +40,13 @@
     <string name="equalizer_description">Interagir avec l\'égaliseur du système</string>
     <string name="show_song_cover">Afficher la pochette</string>
     <string name="show_song_cover_description">Utiliser la pochette du titre en cours de lecture comme fond d\'écran de verrouillage</string>
+    <string name="stop_on_app_close">Stop on app close</string>
+    <string name="stop_on_app_close_description">Stop playback when the app is swiped away from recent tasks</string>
+    <string name="stop_after_current">Stop after current</string>
+    <string name="stop_after_current_description">Stop playback after the current song finishes</string>
+    <string name="play_pitch">Play pitch</string>
+    <string name="lockscreen">Lockscreen</string>
+    <string name="advanced">Advanced</string>
     <string name="settings">Paramètres</string>
     <string name="image_cache">Cache d\'images</string>
     <string name="song_cache">Cache des titres</string>
@@ -307,4 +314,6 @@
     <string name="beta_updates">Accès anticipé (Bêta)</string>
     <string name="beta_updates_description">Activer la réception des versions préliminaires.</string>
     <string name="player_style">Player Style</string>
+    <string name="track_details">Track details</string>
+    <string name="album">Album</string>
 </resources>
