@@ -21,6 +21,7 @@ data class PlayerUiState(
     val playbackState: Int = Player.STATE_IDLE,
     val currentPositionMs: Long = 0L,
     val durationMs: Long = 0L,
+    val playbackSpeed: Float = 1f,
     val artistId: String? = null
 )
 
@@ -49,6 +50,10 @@ class PlayerViewModel(
             _uiState.update { it.copy(playbackState = playbackState) }
         }
 
+        override fun onPlaybackParametersChanged(playbackParameters: androidx.media3.common.PlaybackParameters) {
+            _uiState.update { it.copy(playbackSpeed = playbackParameters.speed) }
+        }
+
         override fun onEvents(player: Player, events: Player.Events) {
             if (events.contains(Player.EVENT_POSITION_DISCONTINUITY) ||
                 events.contains(Player.EVENT_TIMELINE_CHANGED)
@@ -71,6 +76,7 @@ class PlayerViewModel(
                 mediaItem = player.currentMediaItem,
                 isPlaying = player.isPlaying,
                 playbackState = player.playbackState,
+                playbackSpeed = player.playbackParameters.speed,
                 currentPositionMs = player.currentPosition,
                 durationMs = player.duration.coerceAtLeast(0L)
             )
@@ -130,6 +136,10 @@ class PlayerViewModel(
 
     fun skipToPrevious() {
         player.seekToPrevious()
+    }
+
+    fun setPlaybackSpeed(speed: Float) {
+        player.setPlaybackSpeed(speed)
     }
 
     override fun onCleared() {

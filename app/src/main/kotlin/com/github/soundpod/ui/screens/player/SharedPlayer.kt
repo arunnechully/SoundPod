@@ -47,6 +47,7 @@ import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.ui.appearance.PlayerBackground
 import com.github.soundpod.ui.navigation.Routes
+import com.github.soundpod.utils.isLandscape
 import kotlinx.coroutines.launch
 import androidx.media3.common.Player
 import androidx.media3.common.MediaItem
@@ -252,6 +253,7 @@ fun SharedPlayer(
                         ) {
                             SharedThumbnail(
                                 expandProgress = expandProgress,
+                                isLandscape = isLandscape
                             )
                         }
                     }

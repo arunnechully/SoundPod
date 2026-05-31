@@ -11,10 +11,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
@@ -109,7 +112,69 @@ fun MainPlayerContent(
         val thumbnailSize = containerWidth * 0.85f
 
         if (isLandscape) {
-            // TODO: Landscape implementation
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+                    )
+            ) {
+                // Left side: Thumbnail spacer
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Right side: Controls
+                Column(
+                    modifier = Modifier
+                        .weight(1.2f)
+                        .fillMaxHeight()
+                        .padding(end = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    PlayerTopControl(
+                        onGoToAlbum = handleGoToAlbum,
+                        onGoToArtist = handleGoToArtist,
+                        onLyricsClick = onLyricsClick,
+                        onSettingsClick = onSettingsClick,
+                        onBack = {
+                            if (showPlaylist) onTogglePlaylist(false) else onBack()
+                        },
+                        isPlaylistShowing = if (layoutMode == PlayerLayout.Default) showPlaylist || showLyrics else showPlaylist
+                    )
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    PlayerMediaItem(
+                        onGoToArtist = artistId?.let { artist -> { handleGoToArtist(artist) } }
+                    )
+
+                    Spacer(modifier = Modifier.height(Dimensions.spacer))
+
+                    PlayerSeekBar(
+                        mediaId = mediaItem.mediaId,
+                        position = currentPositionMs,
+                        duration = durationMs,
+                        progressBarStyle = currentProgressStyle,
+                        onDraggingStateChange = { isDraggingSeekBar = it }
+                    )
+
+                    Spacer(modifier = Modifier.height(Dimensions.spacer))
+
+                    if (layoutMode == PlayerLayout.Default) {
+                        PlayerControlBottom(
+                            shouldBePlaying = shouldBePlaying,
+                            onPlayPauseClick = { playerViewModel.togglePlayPause() }
+                        )
+                    } else {
+                        PlayerMiddleControl(
+                            showPlaylist = false,
+                            onTogglePlaylist = onTogglePlaylist,
+                            mediaId = mediaItem.mediaId
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
         } else {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,

@@ -44,6 +44,7 @@ import com.github.soundpod.utils.thumbnail
 @Composable
 fun SharedThumbnail(
     expandProgress: Float,
+    isLandscape: Boolean = false
 ) {
     val binder = LocalPlayerServiceBinder.current
     val player = binder?.player ?: return
@@ -98,17 +99,30 @@ fun SharedThumbnail(
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val containerWidth = maxWidth
+        val containerHeight = maxHeight
         
-        val expandedSize = containerWidth * 0.85f
+        val expandedSize = if (isLandscape) {
+            (containerHeight * 0.8f).coerceAtMost(containerWidth * 0.45f)
+        } else {
+            containerWidth * 0.85f
+        }
         val collapsedSize = 40.dp
         
         val expandedRadius = 32.dp
         val collapsedRadius = 20.dp
         
-        val expandedX = (containerWidth - expandedSize) / 2
+        val expandedX = if (isLandscape) {
+            (containerWidth * 0.5f - expandedSize) / 2
+        } else {
+            (containerWidth - expandedSize) / 2
+        }
         val collapsedX = 10.dp
         
-        val expandedY = 100.dp
+        val expandedY = if (isLandscape) {
+            (containerHeight - expandedSize) / 2
+        } else {
+            100.dp
+        }
         val collapsedY = 10.dp
 
         val (colorPalette, _) = LocalAppearance.current
