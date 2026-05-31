@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.github.soundpod.service
 
 import android.app.Notification
@@ -49,6 +51,7 @@ import com.github.soundpod.utils.isAtLeastAndroid8
 import com.github.soundpod.utils.isInvincibilityEnabledKey
 import com.github.soundpod.utils.isShowingThumbnailInLockscreenKey
 import com.github.soundpod.utils.persistentQueueKey
+import com.github.soundpod.utils.playbackSpeedKey
 import com.github.soundpod.utils.preferences
 import com.github.soundpod.utils.queueLoopEnabledKey
 import com.github.soundpod.utils.resumePlaybackWhenDeviceConnectedKey
@@ -71,6 +74,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
@@ -184,6 +188,7 @@ class PlayerService : InvincibleService(), Player.Listener,
         }
 
         player.skipSilenceEnabled = preferences.getBoolean(skipSilenceKey, false)
+        player.setPlaybackSpeed(preferences.getFloat(playbackSpeedKey, 1f))
         player.addListener(this)
         player.addAnalyticsListener(PlaybackStatsListener(false, PlaybackAnalyticsTracker()))
 
@@ -538,6 +543,10 @@ class PlayerService : InvincibleService(), Player.Listener,
             }
 
             volumeNormalizationKey -> audioEffectManager.maybeNormalizeVolume()
+
+            playbackSpeedKey -> if (sharedPreferences != null) {
+                player.setPlaybackSpeed(sharedPreferences.getFloat(key, 1f))
+            }
 
             resumePlaybackWhenDeviceConnectedKey -> maybeResumePlaybackWhenDeviceConnected()
 

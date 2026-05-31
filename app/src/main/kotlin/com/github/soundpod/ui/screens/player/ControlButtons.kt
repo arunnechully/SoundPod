@@ -616,7 +616,6 @@ fun PlayerTopControl(
     val mediaItem = nullableMediaItem ?: return
 
     var isShowingSleepTimerDialog by rememberSaveable { mutableStateOf(false) }
-    var isShowingPlaybackSpeedDialog by rememberSaveable { mutableStateOf(false) }
     val sleepTimerMillisLeft by (binder.sleepTimerMillisLeft ?: flowOf(null)).collectAsState(initial = null)
 
     Row(
@@ -767,19 +766,6 @@ fun PlayerTopControl(
                         onSettingsClick()
                     }
                 )
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = "Playback Speed",
-                            color = colorPalette.text,
-                            style = typography.bodyLarge
-                        )
-                    },
-                    onClick = {
-                        showDropDown = false
-                        isShowingPlaybackSpeedDialog = true
-                    }
-                )
 
             }
         }
@@ -790,11 +776,6 @@ fun PlayerTopControl(
             onDismiss = { isShowingSleepTimerDialog = false }
         )
     }
-    if (isShowingPlaybackSpeedDialog) {
-        PlaybackSpeedDialog(
-            onDismiss = { isShowingPlaybackSpeedDialog = false }
-        )
-    }
 }
 
 fun formatTime(ms: Long): String {
@@ -802,102 +783,6 @@ fun formatTime(ms: Long): String {
     val minutes = totalSeconds / 60
     val seconds = totalSeconds % 60
     return "%02d:%02d".format(minutes, seconds)
-}
-
-@Composable
-fun PlaybackSpeedDialog(
-    onDismiss: () -> Unit
-) {
-    val binder = LocalPlayerServiceBinder.current
-    val player = binder?.player ?: return
-    val (colorPalette) = LocalAppearance.current
-
-    var speed by remember { mutableStateOf(player.playbackParameters.speed) }
-
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = RoundedCornerShape(28.dp),
-            color = colorPalette.boxColor,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Playback Speed",
-                    style = typography.titleLarge,
-                    color = colorPalette.text,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Text(
-                    text = "%.2fx".format(speed),
-                    style = typography.headlineMedium,
-                    color = colorPalette.text,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Slider(
-                    value = speed,
-                    onValueChange = {
-                        speed = it
-                        player.setPlaybackSpeed(it)
-                    },
-                    valueRange = 0.5f..2f,
-                    colors = SliderDefaults.colors(
-                        thumbColor = colorPalette.text,
-                        activeTrackColor = colorPalette.text,
-                        inactiveTrackColor = colorPalette.text.copy(alpha = 0.2f)
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    listOf(0.5f, 1.0f, 1.25f, 1.5f, 2.0f).forEach { s ->
-                        Box(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .clickable {
-                                    speed = s
-                                    player.setPlaybackSpeed(s)
-                                }
-                                .padding(8.dp)
-                        ) {
-                            Text(
-                                text = "${if (s == 1.0f) "1" else s}x",
-                                color = if (speed == s) colorPalette.favoritesIcon else colorPalette.text,
-                                fontWeight = if (speed == s) FontWeight.Bold else FontWeight.Normal
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Text(
-                    text = "Done",
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable(onClick = onDismiss)
-                        .padding(horizontal = 24.dp, vertical = 12.dp),
-                    color = colorPalette.text,
-                    style = typography.labelLarge,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-    }
 }
 
 

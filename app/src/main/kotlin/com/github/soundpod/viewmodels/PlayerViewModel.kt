@@ -138,10 +138,6 @@ class PlayerViewModel(
         player.seekToPrevious()
     }
 
-    fun setPlaybackSpeed(speed: Float) {
-        player.setPlaybackSpeed(speed)
-    }
-
     override fun onCleared() {
         super.onCleared()
         player.removeListener(playerListener)

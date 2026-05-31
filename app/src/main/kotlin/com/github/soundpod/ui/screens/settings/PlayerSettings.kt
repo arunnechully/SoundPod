@@ -15,12 +15,15 @@ import androidx.compose.ui.res.stringResource
 import com.github.soundpod.R
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsScreenLayout
+import com.github.soundpod.ui.components.SliderSettingsItem
 import com.github.soundpod.ui.components.SwitchSetting
 import com.github.soundpod.utils.persistentQueueKey
+import com.github.soundpod.utils.playbackSpeedKey
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.resumePlaybackWhenDeviceConnectedKey
 import com.github.soundpod.utils.skipSilenceKey
 import com.github.soundpod.utils.volumeNormalizationKey
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,6 +37,7 @@ fun PlayerSettings(
         false
     )
     var persistentQueue by rememberPreference(persistentQueueKey, false)
+    var playSpeed by rememberPreference(playbackSpeedKey, 1f)
 
     BackHandler(onBack = onBackClick)
 
@@ -89,6 +93,21 @@ fun PlayerSettings(
                     }
                 )
             }
+            SettingsGroup(
+                title = "Advanced"
+            ) {
+                SliderSettingsItem(
+                    label = "Play speed",
+                    value = playSpeed,
+                    onValueChange = { playSpeed = it },
+                    valueRange = 0.5f..2.0f,
+                    valueLabel = { String.format(Locale.US, "%.1fx", it) },
+                    hapticUseIntegerStep = false,
+                    hapticUseFloatStep = true,
+                    hapticFloatStep = 0.1f
+                )
+            }
+                
         }
     )
 }
