@@ -149,7 +149,7 @@
         </receiver>
 
         <receiver
-            android:name=".service.PlayerService$NotificationDismissReceiver"
+            android:name=".service.NotificationDismissReceiver"
             android:exported="false" />
 
         <meta-data
