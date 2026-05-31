@@ -1,6 +1,7 @@
 package com.github.soundpod.ui.screens.player
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -23,6 +24,7 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -30,13 +32,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
@@ -46,6 +48,9 @@ import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.ui.appearance.PlayerBackground
 import com.github.soundpod.ui.navigation.Routes
 import kotlinx.coroutines.launch
+import androidx.media3.common.Player
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Timeline
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,7 +71,10 @@ fun SharedPlayer(
 
     val expandProgress by animateFloatAsState(
         targetValue = targetExpandProgress,
-        animationSpec = spring(stiffness = 400f),
+        animationSpec = spring(
+            dampingRatio = 0.85f,
+            stiffness = Spring.StiffnessLow
+        ),
         label = "expandAnimation"
     )
 
@@ -76,20 +84,36 @@ fun SharedPlayer(
         mutableStateOf(player?.currentMediaItem?.mediaMetadata?.artworkUri?.toString())
     }
 
-    LaunchedEffect(player) {
-        if (player == null) return@LaunchedEffect
+    var hasMediaItems by remember {
+        mutableStateOf((player?.mediaItemCount ?: 0) > 0)
+    }
 
-        snapshotFlow { player.currentMediaItem }
-            .collect { mediaItem ->
+    DisposableEffect(player) {
+        if (player == null) return@DisposableEffect onDispose {}
+
+        val listener = object : Player.Listener {
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 val metadata = mediaItem?.mediaMetadata
-                // Check the standard URI first, then fall back to extras
-                val url = metadata?.artworkUri?.toString()
-                    ?: metadata?.extras?.getString("artwork_url") // Common custom key
+                currentArtworkUrl = metadata?.artworkUri?.toString()
+                    ?: metadata?.extras?.getString("artwork_url")
                     ?: ""
-
-                currentArtworkUrl = url
-                println("Debug: Current Artwork URL is -> $url") // Check your Logcat!
+                hasMediaItems = player.mediaItemCount > 0
             }
+
+            override fun onTimelineChanged(timeline: Timeline, reason: Int) {
+                hasMediaItems = player.mediaItemCount > 0
+            }
+        }
+        player.addListener(listener)
+
+        hasMediaItems = player.mediaItemCount > 0
+        currentArtworkUrl = player.currentMediaItem?.mediaMetadata?.artworkUri?.toString()
+            ?: player.currentMediaItem?.mediaMetadata?.extras?.getString("artwork_url")
+            ?: ""
+
+        onDispose {
+            player.removeListener(listener)
+        }
     }
 
     LaunchedEffect(expandProgress) {
@@ -100,14 +124,16 @@ fun SharedPlayer(
     }
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val density = LocalDensity.current
         val exactScreenHeight = maxHeight
         val exactScreenWidth = maxWidth
+        val screenHeightPx = with(density) { exactScreenHeight.toPx() }
 
         val systemBottomPadding = scaffoldPadding.calculateBottomPadding()
-        val activeBottomPadding = lerp(systemBottomPadding, 0.dp, expandProgress)
-        val playerHeight = lerp(60.dp, exactScreenHeight, expandProgress)
+        val activeBottomPadding = lerp(systemBottomPadding, 0.dp, expandProgress).coerceAtLeast(0.dp)
+        val playerHeight = lerp(60.dp, exactScreenHeight, expandProgress).coerceAtLeast(0.dp)
 
-        val cornerRadius = lerp(28.dp, 0.dp, expandProgress)
+        val cornerRadius = lerp(28.dp, 0.dp, expandProgress).coerceAtLeast(0.dp)
 
         CompositionLocalProvider(value = LocalPlayerPadding provides (60.dp + systemBottomPadding)) {
             Surface(
@@ -121,18 +147,20 @@ fun SharedPlayer(
         }
 
         if (showPlayer) {
-            val dragGestureModifier = if (showPlaylist || showLyrics) {
+            val dragGestureModifier = if (showPlaylist || showLyrics || !hasMediaItems) {
                 Modifier
             } else {
-                Modifier.pointerInput(Unit) {
+                Modifier.pointerInput(screenHeightPx) {
                     detectVerticalDragGestures(
                         onVerticalDrag = { change, dragAmount ->
                             change.consume()
-                            val sensitivity = 0.0015f
-                            targetExpandProgress = (targetExpandProgress - dragAmount * sensitivity).coerceIn(0f, 1f)
+                            // Higher multiplier for even lighter feel (3x)
+                            val delta = (dragAmount / screenHeightPx) * 3f
+                            targetExpandProgress = (targetExpandProgress - delta).coerceIn(0f, 1f)
                         },
                         onDragEnd = {
-                            targetExpandProgress = if (targetExpandProgress > 0.4f) 1f else 0f
+                            // Even more generous snapping (20% threshold)
+                            targetExpandProgress = if (targetExpandProgress > 0.2f) 1f else 0f
                             scope.launch {
                                 if (targetExpandProgress == 1f) sheetState.expand() else sheetState.partialExpand()
                             }

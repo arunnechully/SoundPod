@@ -140,7 +140,7 @@ class MainActivity : ComponentActivity() {
             val context = LocalContext.current
             val navController = rememberNavController()
             val scope = rememberCoroutineScope()
-            var isPlayerVisible by remember { mutableStateOf(false) }
+            var isPlayerVisible by remember { mutableStateOf(true) }
 
             val playerState = rememberStandardBottomSheetState(
                 initialValue = SheetValue.PartiallyExpanded,
@@ -213,9 +213,7 @@ class MainActivity : ComponentActivity() {
             DisposableEffect(binder?.player) {
                 val player = binder?.player ?: return@DisposableEffect onDispose { }
 
-                isPlayerVisible = player.currentMediaItem != null
-
-                if (isPlayerVisible) {
+                if (player.currentMediaItem != null) {
                     if (launchedFromNotification) {
                         intent.replaceExtras(Bundle())
                         scope.launch { playerState.expand() }
@@ -224,19 +222,9 @@ class MainActivity : ComponentActivity() {
 
                 val listener = object : Player.Listener {
                     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                        isPlayerVisible = mediaItem != null
-
                         if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED && mediaItem != null) {
                             if (mediaItem.mediaMetadata.extras?.getBoolean("isFromPersistentQueue") != true) {
                                 scope.launch { playerState.expand() }
-                            }
-                        }
-                    }
-
-                    override fun onEvents(player: Player, events: Player.Events) {
-                        if (events.contains(Player.EVENT_TIMELINE_CHANGED)) {
-                            if (player.mediaItemCount == 0) {
-                                isPlayerVisible = false
                             }
                         }
                     }

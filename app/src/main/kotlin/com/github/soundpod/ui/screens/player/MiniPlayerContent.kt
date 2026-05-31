@@ -62,8 +62,6 @@ fun MiniPlayerContent(
         }
     }
 
-    val mediaItem = nullableMediaItem ?: return
-
     Column(
         verticalArrangement = Arrangement.Center,
         modifier = Modifier
@@ -71,16 +69,16 @@ fun MiniPlayerContent(
             .height(60.dp)
             .clip(MaterialTheme.shapes.extraLarge)
             .clickable(
-                interactionSource = remember {MutableInteractionSource() },
+                interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onClick = openPlayer
+                onClick = { if (nullableMediaItem != null) openPlayer() }
             )
     ) {
         ListItem(
             headlineContent = {
                 Box(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = mediaItem.mediaMetadata.title?.toString() ?: "",
+                        text = nullableMediaItem?.mediaMetadata?.title?.toString() ?: "SoundPod",
                         modifier = Modifier.basicMarquee(),
                         maxLines = 1,
                         overflow = TextOverflow.Clip
@@ -90,7 +88,7 @@ fun MiniPlayerContent(
             supportingContent = {
                 Box(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = mediaItem.mediaMetadata.artist?.toString() ?: "",
+                        text = nullableMediaItem?.mediaMetadata?.artist?.toString() ?: "Not playing",
                         modifier = Modifier.basicMarquee(),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -104,16 +102,18 @@ fun MiniPlayerContent(
                 MiniPlayerControl(
                     playing = shouldBePlaying,
                     onClick = {
-                        if (shouldBePlaying) {
-                            player.pause()
-                        } else {
-                            when (player.playbackState) {
-                                Player.STATE_IDLE -> player.prepare()
-                                Player.STATE_ENDED -> player.seekToDefaultPosition(0)
-                                Player.STATE_BUFFERING,
-                                Player.STATE_READY -> {}
+                        if (nullableMediaItem != null) {
+                            if (shouldBePlaying) {
+                                player.pause()
+                            } else {
+                                when (player.playbackState) {
+                                    Player.STATE_IDLE -> player.prepare()
+                                    Player.STATE_ENDED -> player.seekToDefaultPosition(0)
+                                    Player.STATE_BUFFERING,
+                                    Player.STATE_READY -> {}
+                                }
+                                player.play()
                             }
-                            player.play()
                         }
                     }
                 )
