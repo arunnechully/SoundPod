@@ -40,6 +40,13 @@
     <string name="equalizer_description">Interactúa con el ecualizador del sistema</string>
     <string name="show_song_cover">Mostrar la carátura de la canción</string>
     <string name="show_song_cover_description">Usa la carátula de la canción en reproducción como fondo de la pantalla de bloqueo</string>
+    <string name="stop_on_app_close">Stop on app close</string>
+    <string name="stop_on_app_close_description">Stop playback when the app is swiped away from recent tasks</string>
+    <string name="stop_after_current">Stop after current</string>
+    <string name="stop_after_current_description">Stop playback after the current song finishes</string>
+    <string name="play_pitch">Play pitch</string>
+    <string name="lockscreen">Lockscreen</string>
+    <string name="advanced">Advanced</string>
     <string name="settings">Ajustes</string>
     <string name="image_cache">Caché de imágenes</string>
     <string name="song_cache">Caché de canciones</string>
@@ -307,4 +314,6 @@
     <string name="beta_updates">Early access (Beta)</string>
     <string name="beta_updates_description">Enable to receive preview builds.</string>
     <string name="player_style">Player Style</string>
+    <string name="track_details">Track details</string>
+    <string name="album">Album</string>
 </resources>
