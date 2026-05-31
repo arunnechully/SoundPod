@@ -173,10 +173,9 @@ fun MainPlayerContent(
                                     .graphicsLayer {
                                         alpha = expandProgress.coerceIn(0f, 1f)
                                         
-                                        // Link movement to the thumbnail scale (Samsung Music style)
-                                        // When thumbnail shrinks, text moves UP to follow its edge
-                                        val currentScale = lerp(1f, playingScale, expandProgress)
-                                        val visualGap = (thumbnailSize.toPx() * (1f - currentScale)) / 2f
+                                        // Move text UP only when the thumbnail shrinks (Paused)
+                                        // We use playingScale directly so it doesn't move during expand/collapse
+                                        val visualGap = (thumbnailSize.toPx() * (1f - playingScale)) / 2f
                                         translationY = -visualGap
                                     }
                             ) {

@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -25,6 +26,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.util.lerp
@@ -109,27 +111,25 @@ fun SharedThumbnail(
         val expandedY = 100.dp
         val collapsedY = 10.dp
 
-        // Using graphicsLayer for all animated properties to avoid layout passes
-        val currentSize = lerp(collapsedSize, expandedSize, expandProgress)
-        val cornerRadius = lerp(collapsedRadius, expandedRadius, expandProgress)
-        val xOffset = lerp(collapsedX, expandedX, expandProgress)
-        val yOffset = lerp(collapsedY, expandedY, expandProgress)
-
         val (colorPalette, _) = LocalAppearance.current
         val isDarkTheme = colorPalette.background2.luminance() < 0.5f
         val glassColor = if (isDarkTheme) Color.White.copy(alpha = 0.07f) else Color.Black.copy(alpha = 0.04f)
 
         Box(
             modifier = Modifier
+                .offset {
+                    IntOffset(
+                        x = lerp(collapsedX, expandedX, expandProgress).roundToPx(),
+                        y = lerp(collapsedY, expandedY, expandProgress).roundToPx()
+                    )
+                }
+                .size(lerp(collapsedSize, expandedSize, expandProgress))
                 .graphicsLayer {
-                    translationX = xOffset.toPx()
-                    translationY = yOffset.toPx()
                     scaleX = finalScale
                     scaleY = finalScale
-                    shape = RoundedCornerShape(cornerRadius.toPx())
+                    shape = RoundedCornerShape(lerp(collapsedRadius, expandedRadius, expandProgress).toPx())
                     clip = true
                 }
-                .size(currentSize)
                 .background(glassColor)
         ) {
             // Placeholder Layer
