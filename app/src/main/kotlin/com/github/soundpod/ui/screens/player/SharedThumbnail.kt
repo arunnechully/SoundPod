@@ -70,10 +70,10 @@ fun SharedThumbnail(
     val isEffectivelyPlaying = playWhenReady && playbackState != Player.STATE_ENDED
 
     val playingScale by animateFloatAsState(
-        targetValue = if (isEffectivelyPlaying) 1f else 0.85f,
+        targetValue = if (isEffectivelyPlaying) 1f else 0.7f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessLow
+            stiffness = Spring.StiffnessMediumLow
         ),
         label = "playingScale"
     )

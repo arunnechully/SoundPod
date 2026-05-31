@@ -211,6 +211,7 @@ fun SharedPlayer(
                                     .alpha(expandProgress)
                             ) {
                                 PlayerLayout(
+                                    expandProgress = expandProgress,
                                     onGoToAlbum = { browseId ->
                                         scope.launch { sheetState.partialExpand() }
                                         navController.navigate(route = Routes.Album(id = browseId))

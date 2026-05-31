@@ -7,6 +7,7 @@ import com.github.soundpod.utils.rememberPreference
 
 @Composable
 fun PlayerLayout(
+    expandProgress: Float,
     onGoToAlbum: (String) -> Unit,
     onGoToArtist: (String) -> Unit,
     onGoToTrackDetails: (String) -> Unit,
@@ -21,6 +22,7 @@ fun PlayerLayout(
     val currentLayout = playerLayoutState.value
 
     MainPlayerContent(
+        expandProgress = expandProgress,
         layoutMode = currentLayout,
         onGoToAlbum = onGoToAlbum,
         onGoToArtist = onGoToArtist,

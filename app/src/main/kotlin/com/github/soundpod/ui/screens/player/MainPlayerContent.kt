@@ -4,7 +4,6 @@ import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -32,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.lerp
 import androidx.media3.common.util.UnstableApi
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.enums.PlayerLayout
@@ -52,6 +52,7 @@ import com.github.soundpod.viewmodels.PlaylistViewModel
 )
 @Composable
 fun MainPlayerContent(
+    expandProgress: Float,
     layoutMode: PlayerLayout,
     onGoToAlbum: (String) -> Unit,
     onGoToArtist: (String) -> Unit,
@@ -94,18 +95,18 @@ fun MainPlayerContent(
     val progressBarStyleState = rememberPreference(progressBarStyle, ProgressBar.Default)
     val currentProgressStyle = progressBarStyleState.value
 
+    val playingScale by animateFloatAsState(
+        targetValue = if (shouldBePlaying) 1f else 0.7f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioNoBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        ),
+        label = "playingScale"
+    )
+
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val containerWidth = maxWidth
         val thumbnailSize = containerWidth * 0.85f
-
-        val textYOffset by animateDpAsState(
-            targetValue = if (shouldBePlaying) 0.dp else -(thumbnailSize * 0.15f) / 2f,
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioLowBouncy,
-                stiffness = Spring.StiffnessLow
-            ),
-            label = "textYOffset"
-        )
 
         if (isLandscape) {
             // TODO: Landscape implementation
@@ -159,9 +160,26 @@ fun MainPlayerContent(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier.fillMaxSize()
                         ) {
+                            Spacer(modifier = Modifier.height(Dimensions.spacer))
+
+                            // Static placeholder for thumbnail area
                             Spacer(modifier = Modifier.size(thumbnailSize))
 
-                            Box(modifier = Modifier.offset(y = textYOffset)) {
+                            // Extra padding
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Box(
+                                modifier = Modifier
+                                    .graphicsLayer {
+                                        alpha = expandProgress.coerceIn(0f, 1f)
+                                        
+                                        // Link movement to the thumbnail scale (Samsung Music style)
+                                        // When thumbnail shrinks, text moves UP to follow its edge
+                                        val currentScale = lerp(1f, playingScale, expandProgress)
+                                        val visualGap = (thumbnailSize.toPx() * (1f - currentScale)) / 2f
+                                        translationY = -visualGap
+                                    }
+                            ) {
                                 PlayerMediaItem(
                                     onGoToArtist = artistId?.let { artist -> { handleGoToArtist(artist) } }
                                 )
