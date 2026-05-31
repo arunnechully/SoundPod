@@ -28,7 +28,7 @@ fun SongItem(
     ListItemContainer(
         modifier = modifier,
         title = song.info?.name ?: "",
-        subtitle = song.authors?.joinToString(separator = "") { it.name ?: "" },
+        subtitle = song.authors?.mapNotNull { it.name }?.joinToString(" • "),
         onClick = onClick,
         onLongClick = onLongClick,
         thumbnail = if (showThumbnail) {
@@ -69,7 +69,7 @@ fun LocalSongItem(
     ListItemContainer(
         modifier = modifier,
         title = song.title,
-        subtitle = "${song.artistsText} • ${song.durationText}",
+        subtitle = listOfNotNull(song.artistsText, song.durationText).joinToString(" • "),
         onClick = onClick,
         onLongClick = onLongClick,
         thumbnail = if (showThumbnail) {

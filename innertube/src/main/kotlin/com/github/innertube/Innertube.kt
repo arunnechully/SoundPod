@@ -108,12 +108,22 @@ object Innertube {
     ) {
         @Suppress("UNCHECKED_CAST")
         constructor(run: Runs.Run) : this(
-            name = run.text?.removeSuffix(" - Topic")?.takeIf { it != "null" },
+            name = cleanName(run.text),
             endpoint = run.navigationEndpoint?.endpoint as T?
         )
 
         companion object {
-            fun cleanName(name: String?): String? = name?.removeSuffix(" - Topic")?.takeIf { it != "null" }
+            fun cleanName(name: String?): String? {
+                if (name == null || name.lowercase() == "null" || name.isBlank()) return null
+                
+                // Remove "- Topic", " - Topic", "(Topic)", " Topic", etc. with various hyphens
+                val cleaned = name
+                    .replace(Regex("[\\s\\-–—]+Topic$", RegexOption.IGNORE_CASE), "")
+                    .replace(Regex("[\\s\\-–—]*\\(?Topic\\)?\\s*$", RegexOption.IGNORE_CASE), "")
+                    .trim()
+                
+                return if (cleaned.lowercase() == "topic" || cleaned.isEmpty()) null else cleaned
+            }
         }
     }
 

@@ -107,7 +107,7 @@ class PlayerMediaSourceProvider(
                 val song = com.github.soundpod.models.Song(
                     id = videoId,
                     title = streamExtractor.name,
-                    artistsText = streamExtractor.uploaderName,
+                    artistsText = com.github.innertube.Innertube.Info.cleanName(streamExtractor.uploaderName),
                     durationText = null,
                     thumbnailUrl = streamExtractor.thumbnails.firstOrNull()?.url
                 )

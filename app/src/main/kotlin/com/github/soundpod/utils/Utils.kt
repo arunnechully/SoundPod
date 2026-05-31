@@ -29,7 +29,7 @@ val Innertube.SongItem.asMediaItem: MediaItem
         .setMediaMetadata(
             MediaMetadata.Builder()
                 .setTitle(info?.name)
-                .setArtist(authors?.joinToString("") { it.name ?: "" })
+                .setArtist(authors?.mapNotNull { it.name }?.joinToString(" • ")?.trim()?.removeSuffix("-")?.removeSuffix(" -")?.trim())
                 .setAlbumTitle(album?.name)
                 .setArtworkUri(thumbnail?.url?.toUri())
                 .setExtras(
@@ -57,7 +57,7 @@ val Innertube.VideoItem.asMediaItem: MediaItem
         .setMediaMetadata(
             MediaMetadata.Builder()
                 .setTitle(info?.name)
-                .setArtist(authors?.joinToString("") { it.name ?: "" })
+                .setArtist(authors?.mapNotNull { it.name }?.joinToString(" • ")?.trim()?.removeSuffix("-")?.removeSuffix(" -")?.trim())
                 .setArtworkUri(thumbnail?.url?.toUri())
                 .setExtras(
                     Bundle().apply {
