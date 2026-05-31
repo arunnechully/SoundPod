@@ -40,7 +40,7 @@
     <string name="equalizer_description">Interactúa con el ecualizador del sistema</string>
     <string name="show_song_cover">Mostrar la carátura de la canción</string>
     <string name="show_song_cover_description">Usa la carátula de la canción en reproducción como fondo de la pantalla de bloqueo</string>
-    <string name="stop_on_app_close">Stop on app close</string>
+    <string name="stop_on_app_close">Detener al cerrar la aplicación</string>
     <string name="stop_on_app_close_description">Stop playback when the app is swiped away from recent tasks</string>
     <string name="stop_after_current">Stop after current</string>
     <string name="stop_after_current_description">Stop playback after the current song finishes</string>
