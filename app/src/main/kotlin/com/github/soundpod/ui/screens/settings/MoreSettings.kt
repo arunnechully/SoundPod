@@ -6,17 +6,15 @@ import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.Settings
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddLink
 import androidx.compose.material.icons.outlined.Battery0Bar
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Stars
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,7 +30,6 @@ import androidx.core.net.toUri
 import com.github.soundpod.R
 import com.github.soundpod.service.PlayerMediaBrowserService
 import com.github.soundpod.ui.common.IconSource
-import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.components.SwitchSetting
 import com.github.soundpod.utils.isAtLeastAndroid12
 import com.github.soundpod.utils.isAtLeastAndroid13
@@ -42,11 +39,8 @@ import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.toast
 
 @SuppressLint("BatteryLife")
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MoreSettings(
-    onBackClick: () -> Unit
-) {
+fun MoreSettingsContent() {
     val context = LocalContext.current
 
     var isAndroidAutoEnabled by remember {
@@ -78,136 +72,129 @@ fun MoreSettings(
             isIgnoringBatteryOptimizations = context.isIgnoringBatteryOptimizations
         }
 
-    BackHandler(onBack = onBackClick)
+    Column {
 
-    SettingsScreenLayout(
-        title = stringResource(id = R.string.more_settings),
-        shape = MaterialTheme.shapes.extraSmall,
-        onBackClick = onBackClick,
-        content = {
+        SettingsGroup(
+            title = stringResource(id = R.string.general)
+        ) {
+            SwitchSetting(
+                icon = IconSource.Icon(painterResource(id = R.drawable.android_auto)),
+                title = stringResource(id = R.string.android_auto),
+                description = stringResource(id = R.string.android_auto_description),
+                switchState = isAndroidAutoEnabled,
+                onSwitchChange = { enabled ->
+                    isAndroidAutoEnabled = enabled
+                    if (enabled) {
+                        showInfoDialog = true
+                    }
+                }
+            )
 
-            SettingsGroup(
-                title = stringResource(id = R.string.general)
-            ) {
-                SwitchSetting(
-                    icon = IconSource.Icon(painterResource(id= R.drawable.android_auto)),
-                    title = stringResource(id = R.string.android_auto),
-                    description = stringResource(id = R.string.android_auto_description),
-                    switchState = isAndroidAutoEnabled,
-                    onSwitchChange = { enabled ->
-                        isAndroidAutoEnabled = enabled
-                        if (enabled) {
-                            showInfoDialog = true
+            if (showInfoDialog) {
+                AlertDialog(
+                    onDismissRequest = { showInfoDialog = false },
+                    title = {
+                        Text(text = stringResource(id = R.string.android_auto))
+                    },
+                    text = {
+                        SettingsInformation(
+                            text = stringResource(id = R.string.android_auto_information)
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { showInfoDialog = false }) {
+                            Text(stringResource(id = R.string.ok))
+                        }
+                    }
+                )
+            }
+        }
+        SettingsGroup {
+            if (isAtLeastAndroid13) {
+                val intent = Intent(
+                    Settings.ACTION_APP_LOCALE_SETTINGS,
+                    "package:${context.packageName}".toUri()
+                )
+
+                val languageSelectorNotFound = stringResource(id = R.string.language_selector_not_found)
+
+                SettingsColumn(
+                    icon = IconSource.Vector(Icons.Outlined.Language),
+                    title = stringResource(id = R.string.app_language),
+                    description = stringResource(id = R.string.configure_app_language),
+                    onClick = {
+                        try {
+                            context.startActivity(intent)
+                        } catch (_: ActivityNotFoundException) {
+                            context.toast(languageSelectorNotFound)
                         }
                     }
                 )
 
-                if (showInfoDialog) {
-                    AlertDialog(
-                        onDismissRequest = { showInfoDialog = false },
-                        title = {
-                            Text(text = stringResource(id = R.string.android_auto))
-                        },
-                        text = {
-                            SettingsInformation(
-                                text = stringResource(id = R.string.android_auto_information)
-                            )
-                        },
-                        confirmButton = {
-                            TextButton(onClick = { showInfoDialog = false }) {
-                                Text(stringResource(id = R.string.ok))
-                            }
-                        }
-                    )
-                }
-            }
-            SettingsGroup{
-                if (isAtLeastAndroid13) {
-                    val intent = Intent(
-                        Settings.ACTION_APP_LOCALE_SETTINGS,
-                        "package:${context.packageName}".toUri()
-                    )
-
-                    val languageSelectorNotFound = stringResource(id = R.string.language_selector_not_found)
-
-                    SettingsColumn(
-                        icon = IconSource.Vector(Icons.Outlined.Language),
-                        title = stringResource(id = R.string.app_language),
-                        description = stringResource(id = R.string.configure_app_language),
-                        onClick = {
-                            try {
-                                context.startActivity(intent)
-                            } catch (_: ActivityNotFoundException) {
-                                context.toast(languageSelectorNotFound)
-                            }
-                        }
-                    )
-
-                }
-
-                if (isAtLeastAndroid12) {
-                    val intent = Intent(
-                        Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS,
-                        "package:${context.packageName}".toUri()
-                    )
-                    SettingsColumn(
-                        icon = IconSource.Vector(Icons.Outlined.AddLink),
-                        title = stringResource(id = R.string.open_supported_links_by_default),
-                        description = stringResource(id = R.string.configure_supported_links),
-                        onClick = {
-                            try {
-                                context.startActivity(intent)
-                            } catch (_: Exception) {
-                                context.toast("Couldn't find supported links settings, please configure them manually")
-                            }
-                        }
-                    )
-                }
             }
 
-            SettingsGroup(
-                title = stringResource(id = R.string.service_lifetime)
-            ) {
+            if (isAtLeastAndroid12) {
+                val intent = Intent(
+                    Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS,
+                    "package:${context.packageName}".toUri()
+                )
                 SettingsColumn(
-                    icon = IconSource.Vector(Icons.Outlined.Battery0Bar),
-                    title = stringResource(id = R.string.ignore_battery_optimizations),
-                    description = if (isIgnoringBatteryOptimizations) {
-                        stringResource(id = R.string.already_unrestricted)
-                    } else {
-                        stringResource(id = R.string.disable_background_restrictions)
-                    },
+                    icon = IconSource.Vector(Icons.Outlined.AddLink),
+                    title = stringResource(id = R.string.open_supported_links_by_default),
+                    description = stringResource(id = R.string.configure_supported_links),
                     onClick = {
                         try {
-                            activityResultLauncher.launch(
-                                Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                                    data = "package:${context.packageName}".toUri()
-                                }
-                            )
-                        } catch (_: ActivityNotFoundException) {
-                            try {
-                                activityResultLauncher.launch(
-                                    Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
-                                )
-                            } catch (_: ActivityNotFoundException) {
-                                context.toast("Couldn't find battery optimization settings, please whitelist SoundPod manually")
-                            }
+                            context.startActivity(intent)
+                        } catch (_: Exception) {
+                            context.toast("Couldn't find supported links settings, please configure them manually")
                         }
-                    },
-                    isEnabled = !isIgnoringBatteryOptimizations
-                )
-
-                SwitchSetting(
-                    icon = IconSource.Vector(Icons.Outlined.Stars),
-                    title = stringResource(id = R.string.service_lifetime),
-                    description = stringResource(id = R.string.service_lifetime_description),
-                    switchState = isInvincibilityEnabled,
-                    onSwitchChange = { isInvincibilityEnabled = it }
+                    }
                 )
             }
-            SettingsInformation(
-                text = stringResource(id = R.string.service_lifetime_information) +
-                        if (isAtLeastAndroid12) "\n" + stringResource(id = R.string.service_lifetime_information_plus) else ""
+        }
+
+        SettingsGroup(
+            title = stringResource(id = R.string.service_lifetime)
+        ) {
+            SettingsColumn(
+                icon = IconSource.Vector(Icons.Outlined.Battery0Bar),
+                title = stringResource(id = R.string.ignore_battery_optimizations),
+                description = if (isIgnoringBatteryOptimizations) {
+                    stringResource(id = R.string.already_unrestricted)
+                } else {
+                    stringResource(id = R.string.disable_background_restrictions)
+                },
+                onClick = {
+                    try {
+                        activityResultLauncher.launch(
+                            Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                                data = "package:${context.packageName}".toUri()
+                            }
+                        )
+                    } catch (_: ActivityNotFoundException) {
+                        try {
+                            activityResultLauncher.launch(
+                                Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                            )
+                        } catch (_: ActivityNotFoundException) {
+                            context.toast("Couldn't find battery optimization settings, please whitelist SoundPod manually")
+                        }
+                    }
+                },
+                isEnabled = !isIgnoringBatteryOptimizations
+            )
+
+            SwitchSetting(
+                icon = IconSource.Vector(Icons.Outlined.Stars),
+                title = stringResource(id = R.string.service_lifetime),
+                description = stringResource(id = R.string.service_lifetime_description),
+                switchState = isInvincibilityEnabled,
+                onSwitchChange = { isInvincibilityEnabled = it }
             )
         }
-    )
+        SettingsInformation(
+            text = stringResource(id = R.string.service_lifetime_information) +
+                    if (isAtLeastAndroid12) "\n" + stringResource(id = R.string.service_lifetime_information_plus) else ""
+        )
+    }
 }

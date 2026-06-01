@@ -1,6 +1,5 @@
 package com.github.soundpod.ui.screens.settings
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -23,7 +22,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Timer
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -57,7 +55,6 @@ import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
-import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.components.SwitchSetting
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.selectedSleepTimerPresetKey
@@ -68,13 +65,11 @@ import java.util.Locale
 import kotlin.math.abs
 
 @Suppress("AssignedValueIsNeverRead")
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SleepTimerSettings(
-    onBackClick: () -> Unit
-) {
+fun SleepTimerSettingsContent() {
     val binder = LocalPlayerServiceBinder.current
-    val sleepTimerMillisLeft by (binder?.sleepTimerMillisLeft ?: kotlinx.coroutines.flow.flowOf(null)).collectAsState(initial = null)
+    val sleepTimerMillisLeft by (binder?.sleepTimerMillisLeft
+        ?: kotlinx.coroutines.flow.flowOf(null)).collectAsState(initial = null)
     var stopAfterCurrent by rememberPreference(stopAfterCurrentKey, false)
 
     var isCustomDialogShowing by remember { mutableStateOf(false) }
@@ -86,8 +81,6 @@ fun SleepTimerSettings(
             selectedPreset = -1
         }
     }
-
-    BackHandler(onBack = onBackClick)
 
     if (isCustomDialogShowing) {
         CustomSleepTimerDialog(
@@ -106,12 +99,8 @@ fun SleepTimerSettings(
         )
     }
 
-    SettingsScreenLayout(
-        title = stringResource(id = R.string.sleep_timer),
-        shape = MaterialTheme.shapes.extraSmall,
-        onBackClick = onBackClick,
-    ){
-        SettingsCard{
+    Column {
+        SettingsCard {
             SleepTimerOption(
                 title = stringResource(id = R.string.off),
                 selected = sleepTimerMillisLeft == null,
@@ -171,13 +160,13 @@ fun SleepTimerSettings(
             )
         }
 
-        SettingsGroup{
+        SettingsGroup {
             SwitchSetting(
                 icon = IconSource.Vector(Icons.Outlined.Timer),
                 title = stringResource(R.string.stop_after_current),
                 description = stringResource(R.string.stop_after_current_description),
                 switchState = stopAfterCurrent,
-                onSwitchChange = { 
+                onSwitchChange = {
                     stopAfterCurrent = it
                     if (it) {
                         binder?.cancelSleepTimer()
@@ -261,7 +250,9 @@ fun CustomSleepTimerDialog(
                         style = MaterialTheme.typography.titleMedium.copy(
                             color = colorPalette.text
                         ),
-                        modifier = Modifier.align(Alignment.Start).padding(horizontal = 24.dp)
+                        modifier = Modifier
+                            .align(Alignment.Start)
+                            .padding(horizontal = 24.dp)
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -392,7 +383,7 @@ fun NumberPicker(
         ) {
             items(1000 * size) { index ->
                 val value = range.first + (index % size)
-                
+
                 val inactiveColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                 val activeColor = MaterialTheme.colorScheme.primary
 
@@ -401,11 +392,12 @@ fun NumberPicker(
                         val layoutInfo = listState.layoutInfo
                         val itemInfo = layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
                         if (itemInfo != null) {
-                            val viewportCenter = (layoutInfo.viewportEndOffset + layoutInfo.viewportStartOffset) / 2f
+                            val viewportCenter =
+                                (layoutInfo.viewportEndOffset + layoutInfo.viewportStartOffset) / 2f
                             val itemCenter = itemInfo.offset + itemInfo.size / 2f
                             val distanceFromCenter = abs(viewportCenter - itemCenter)
                             val fraction = (1f - (distanceFromCenter / itemHeightPx)).coerceIn(0f, 1f)
-                            
+
                             val scale = 0.8f + (0.4f * fraction)
                             val color = lerp(
                                 start = inactiveColor,
@@ -426,7 +418,8 @@ fun NumberPicker(
                         .graphicsLayer {
                             scaleX = scaleAndColor.first
                             scaleY = scaleAndColor.first
-                            alpha = ((scaleAndColor.first - 0.8f) / 0.4f * 0.4f + 0.6f).coerceIn(0.6f, 1f)
+                            alpha =
+                                ((scaleAndColor.first - 0.8f) / 0.4f * 0.4f + 0.6f).coerceIn(0.6f, 1f)
                         },
                     contentAlignment = Alignment.Center
                 ) {

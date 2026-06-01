@@ -8,6 +8,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,7 +16,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -26,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -44,6 +50,7 @@ fun SliderSettingsItem(
     onValueChange: (Float) -> Unit,
     valueRange: ClosedFloatingPointRange<Float>,
     valueLabel: (Float) -> String,
+    defaultValue: Float? = null,
     hapticStep: Float = 0.05f,
     hapticUseIntegerStep: Boolean = false,
     hapticUseFloatStep: Boolean = false,
@@ -70,12 +77,32 @@ fun SliderSettingsItem(
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 12.dp)
     ) {
-        Text(
-            text = label,
-            color = colorPalette.text,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Medium
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = label,
+                color = colorPalette.text,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.weight(1f)
+            )
+
+            if (defaultValue != null && abs(value - defaultValue) > 0.001f) {
+                IconButton(
+                    onClick = { onValueChange(defaultValue) },
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.RestartAlt,
+                        contentDescription = "Reset",
+                        tint = colorPalette.accent,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        }
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = valueLabel(value),
@@ -91,7 +118,6 @@ fun SliderSettingsItem(
             onValueChange = { newValue ->
 
                 if (hapticUseIntegerStep) {
-                    // 1 tick per whole number
                     val currentInt = newValue.toInt()
                     if (currentInt != lastValue.toInt()) {
                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
@@ -107,7 +133,6 @@ fun SliderSettingsItem(
                     }
 
                 } else {
-                    // percent-based fallback
                     val fullRange = valueRange.endInclusive - valueRange.start
                     val percentMoved = abs(newValue - lastValue) / fullRange
 
@@ -121,7 +146,8 @@ fun SliderSettingsItem(
             },
             valueRange = valueRange,
             interactionSource = interactionSource,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth(),
 
             thumb = {
                 Box(
@@ -145,13 +171,14 @@ fun SliderSettingsItem(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(trackHeight)
-                        .background(colorPalette.onAccent, CircleShape)
+                        .clip(CircleShape)
+                        .background(colorPalette.onAccent)
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxHeight()
                             .fillMaxWidth(fraction)
-                            .background(colorPalette.accent, CircleShape)
+                            .background(colorPalette.accent)
                     )
                 }
             },

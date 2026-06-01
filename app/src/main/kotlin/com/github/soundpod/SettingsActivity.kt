@@ -9,27 +9,20 @@ import android.os.Bundle
 import android.os.IBinder
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.github.soundpod.enums.AppThemeColor
 import com.github.soundpod.service.PlayerService
 import com.github.soundpod.ui.navigation.SettingsDestinations
-import com.github.soundpod.ui.screens.settings.AboutSettings
-import com.github.soundpod.ui.screens.settings.AppearanceSettings
-import com.github.soundpod.ui.screens.settings.BackgroundSettings
-import com.github.soundpod.ui.screens.settings.BackupSettings
-import com.github.soundpod.ui.screens.settings.CacheSettings
-import com.github.soundpod.ui.screens.settings.ExperimentSettings
-import com.github.soundpod.ui.screens.settings.MoreSettings
-import com.github.soundpod.ui.screens.settings.PlayerSettings
-import com.github.soundpod.ui.screens.settings.PrivacySettings
 import com.github.soundpod.ui.screens.settings.SettingsScreen
-import com.github.soundpod.ui.screens.settings.SleepTimerSettings
 import com.github.soundpod.ui.styling.AppTheme
 import com.github.soundpod.utils.appTheme
 import com.github.soundpod.utils.rememberPreference
@@ -77,10 +70,23 @@ class SettingsActivity : ComponentActivity() {
             window.navigationBarColor = Color.BLACK
         }
 
-        val screenId = intent.getStringExtra("SCREEN_ID") ?: SettingsDestinations.MAIN
+        val initialScreenId = intent.getStringExtra("SCREEN_ID") ?: SettingsDestinations.MAIN
 
         setContent {
             val appTheme by rememberPreference(appTheme, AppThemeColor.System)
+            var currentScreenId by remember { mutableStateOf(initialScreenId) }
+            val screenStack = remember { mutableStateListOf(initialScreenId) }
+
+            val onBack: () -> Unit = {
+                if (screenStack.size > 1) {
+                    screenStack.removeAt(screenStack.size - 1)
+                    currentScreenId = screenStack.last()
+                } else {
+                    finish()
+                }
+            }
+
+            BackHandler(onBack = onBack)
 
             val darkTheme = when (appTheme) {
                 AppThemeColor.System -> isSystemInDarkTheme()
@@ -94,41 +100,16 @@ class SettingsActivity : ComponentActivity() {
                 useMaterialNeutral = false,
             ) {
                 CompositionLocalProvider(value = LocalPlayerServiceBinder provides binder) {
-                    when (screenId) {
-                        SettingsDestinations.MAIN -> {
-                            SettingsScreen(
-                                onBackClick = { finish() },
-                                onOptionClick = { routeId -> launchSubScreen(routeId) }
-                            )
+                    SettingsScreen(
+                        screenId = currentScreenId,
+                        onBackClick = onBack,
+                        onOptionClick = { routeId ->
+                            screenStack.add(routeId)
+                            currentScreenId = routeId
                         }
-
-                        SettingsDestinations.APPEARANCE -> AppearanceSettings(
-                            onBackClick = { finish() },
-                            onBackgroundClick = { launchSubScreen(SettingsDestinations.BACKGROUND) }
-                        )
-
-                        SettingsDestinations.BACKGROUND -> BackgroundSettings(onBackClick = { finish() })
-                        SettingsDestinations.PLAYER -> PlayerSettings(
-                            onBackClick = { finish() },
-                            onSleepTimerClick = { launchSubScreen(SettingsDestinations.SLEEP_TIMER) }
-                        )
-                        SettingsDestinations.SLEEP_TIMER -> SleepTimerSettings(onBackClick = { finish() })
-                        SettingsDestinations.PRIVACY -> PrivacySettings(onBackClick = { finish() })
-                        SettingsDestinations.BACKUP -> BackupSettings(onBackClick = { finish() })
-                        SettingsDestinations.DATABASE -> CacheSettings(onBackClick = { finish() })
-                        SettingsDestinations.MORE -> MoreSettings(onBackClick = { finish() })
-                        SettingsDestinations.EXPERIMENT -> ExperimentSettings(onBackClick = { finish() })
-                        SettingsDestinations.ABOUT -> AboutSettings(onBackClick = { finish() })
-                    }
+                    )
                 }
             }
         }
-    }
-
-    private fun launchSubScreen(screenId: String) {
-        val intent = Intent(this, SettingsActivity::class.java).apply {
-            putExtra("SCREEN_ID", screenId)
-        }
-        startActivity(intent)
     }
 }
