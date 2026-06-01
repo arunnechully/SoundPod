@@ -54,6 +54,15 @@ Download the latest stable APK directly from GitHub, or get it on F-Droid to rec
 
 ---
 
+## Translation
+
+Localization is managed using [Crowdin](https://crowdin.com/project/soundpod). If you wish to contribute and help translate SoundPod into your language, your help is greatly appreciated!
+
+A special thanks to our translators:
+* **French:** [Mickael81](https://github.com/Mickael81)
+
+---
+
 ## Credits & Inspiration
 
 SoundPod is built upon the foundation of incredible open-source projects and creative resources. A special thanks to the developers and communities behind:
