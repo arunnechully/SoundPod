@@ -50,7 +50,6 @@ Download the latest stable APK directly from GitHub, or get it on F-Droid to rec
   <a href="https://github.com/arunnechully/SoundPod/releases/latest">
     <img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" alt="Get it on GitHub" height="60">
   </a>
-  &nbsp;&nbsp;&nbsp;
   <a href="https://f-droid.org/packages/com.github.soundpod/">
     <img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="60">
   </a>
@@ -64,6 +63,7 @@ SoundPod is built upon the foundation of incredible open-source projects and cre
 
 **Open-Source Projects:**
 * [**NewPipe**](https://github.com/TeamNewPipe/NewPipe)
+* [**NewPipe Extractor**](https://github.com/TeamNewPipe/NewPipeExtractor)
 * [**music-you**](https://github.com/DanielSevillano/music-you)
 * [**ViMusic**](https://github.com/vfsfitvnm/ViMusic)
 * [**RiMusic**](https://github.com/fast4x/RiMusic)
