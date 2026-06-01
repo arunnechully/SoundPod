@@ -139,6 +139,8 @@ dependencies {
     implementation(libs.ui.geometry)
 
     implementation(libs.newpipeextractor)
+    implementation(libs.kotlin.coroutines)
+    implementation(libs.ktor.serialization.json)
 
     ksp(libs.room.compiler)
 

@@ -20,6 +20,8 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -79,7 +81,14 @@ object Innertube {
 
     suspend fun waitForSession(timeoutMs: Long = 10000): Boolean {
         if (visitorData != null) return true
-        return fetchVisitorData() != null
+        
+        // Attempt to fetch visitor data in parallel to avoid blocking the first request too much
+        return coroutineScope {
+            val result = withTimeoutOrNull(timeoutMs) {
+                if (visitorData == null) fetchVisitorData() else visitorData
+            }
+            result != null
+        }
     }
 
     val hasRequiredTokens: Boolean

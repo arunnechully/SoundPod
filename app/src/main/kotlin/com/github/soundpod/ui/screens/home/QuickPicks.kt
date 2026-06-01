@@ -121,11 +121,51 @@ fun QuickPicks(
         val error = result?.exceptionOrNull() ?: if (result != null && related == null) Exception("Empty response") else null
 
         if (related != null) {
-            Text(
-                text = stringResource(id = R.string.quick_picks),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = sectionTextModifier
-            )
+            // New "Top Pick" / "Hero" Section for a less boring UI
+            viewModel.trending?.let { song ->
+                Text(
+                    text = stringResource(id = R.string.quick_picks),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = sectionTextModifier.padding(top = 8.dp)
+                )
+                
+                LocalSongItem(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .fillMaxWidth(),
+                    song = song,
+                    onClick = {
+                        val mediaItem = song.asMediaItem
+                        binder?.stopRadio()
+                        binder?.player?.forcePlay(mediaItem)
+                        binder?.setupRadio(
+                            NavigationEndpoint.Endpoint.Watch(videoId = mediaItem.mediaId)
+                        )
+                    },
+                    onLongClick = {
+                        menuState.display {
+                            NonQueuedMediaItemMenu(
+                                onDismiss = menuState::hide,
+                                mediaItem = song.asMediaItem,
+                                onRemoveFromQuickPicks = {
+                                    query { db.clearEventsFor(song.id) }
+                                },
+                                onGoToAlbum = onAlbumClick,
+                                onGoToArtist = onArtistClick
+                            )
+                        }
+                    }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            if (viewModel.trending == null) {
+                Text(
+                    text = stringResource(id = R.string.quick_picks),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = sectionTextModifier
+                )
+            }
 
             LazyHorizontalGrid(
                 state = quickPicksLazyGridState,
@@ -134,44 +174,9 @@ fun QuickPicks(
                     .fillMaxWidth()
                     .height((songThumbnailSizeDp + Dimensions.itemsVerticalPadding * 2) * 4)
             ) {
-                viewModel.trending?.let { song ->
-                    item {
-                        LocalSongItem(
-                            modifier = Modifier
-                                .animateItem()
-                                .width(itemInHorizontalGridWidth),
-                            song = song,
-                            onClick = {
-                                val mediaItem = song.asMediaItem
-                                binder?.stopRadio()
-                                binder?.player?.forcePlay(mediaItem)
-                                binder?.setupRadio(
-                                    NavigationEndpoint.Endpoint.Watch(videoId = mediaItem.mediaId)
-                                )
-                            },
-                            onLongClick = {
-                                menuState.display {
-                                    NonQueuedMediaItemMenu(
-                                        onDismiss = menuState::hide,
-                                        mediaItem = song.asMediaItem,
-                                        onRemoveFromQuickPicks = {
-                                            query {
-                                                db.clearEventsFor(song.id)
-                                            }
-                                        },
-                                        onGoToAlbum = onAlbumClick,
-                                        onGoToArtist = onArtistClick
-                                    )
-                                }
-                            }
-                        )
-                    }
-                }
-
                 items(
-                    items = related.songs?.dropLast(if (viewModel.trending == null) 0 else 1)
-                        ?: emptyList(),
-                    key = Innertube.SongItem::key
+                    items = related.songs ?: emptyList(),
+                    key = { it.key + it.info?.endpoint?.playlistId.orEmpty() }
                 ) { song ->
                     SongItem(
                         modifier = Modifier

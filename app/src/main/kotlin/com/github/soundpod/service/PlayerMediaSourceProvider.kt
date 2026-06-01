@@ -36,8 +36,9 @@ class PlayerMediaSourceProvider(
     private val resolutionLocks = ConcurrentHashMap<String, ReentrantLock>()
     
     companion object {
-        private const val CACHE_EXPIRATION_MS = 3600000L
-        private const val DEFAULT_USER_AGENT = "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.193 Mobile Safari/537.36"
+        // Increase cache time to 4 hours since YouTube URLs usually last that long
+        private const val CACHE_EXPIRATION_MS = 4 * 3600000L 
+        private const val DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
 
     fun createMediaSourceFactory(): MediaSource.Factory {
@@ -92,7 +93,7 @@ class PlayerMediaSourceProvider(
             }
 
             val urlResult = runCatching {
-                val streamExtractor = ServiceList.YouTube.getStreamExtractor("https://www.youtube.com/watch?v=$videoId")
+                val streamExtractor = ServiceList.YouTube.getStreamExtractor("https://music.youtube.com/watch?v=$videoId")
                 streamExtractor.fetchPage()
 
                 val audioStreams = streamExtractor.audioStreams
