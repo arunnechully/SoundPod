@@ -42,7 +42,7 @@
     <string name="show_song_cover_description">Utiliser la pochette du titre en cours de lecture comme fond d\'écran de verrouillage</string>
     <string name="settings">Paramètres</string>
     <string name="image_cache">Cache d\'images</string>
-    <string name="song_cache">Cache des titres</string>
+    <string name="audio_cache">Cache des titres</string>
     <string name="max_size">Taille maximale</string>
     <string name="cache_information">Lorsque le cache manque d\'espace, les ressources qui n\'ont pas été utilisées depuis longtemps sont effacées.</string>
     <string name="backup">Sauvegarde</string>

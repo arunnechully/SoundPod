@@ -4,30 +4,39 @@ package com.github.soundpod.ui.screens.settings
 
 import android.annotation.SuppressLint
 import android.text.format.Formatter
+import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.ManageHistory
 import androidx.compose.material.icons.outlined.MusicNote
 import androidx.compose.material.icons.outlined.RestartAlt
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import coil3.imageLoader
+import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.db
@@ -37,7 +46,6 @@ import com.github.soundpod.enums.QuickPicksSource
 import com.github.soundpod.query
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SwitchSetting
-import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.utils.coilDiskCacheMaxSizeKey
 import com.github.soundpod.utils.exoPlayerDiskCacheMaxSizeKey
 import com.github.soundpod.utils.pauseSearchHistoryKey
@@ -47,12 +55,13 @@ import com.github.soundpod.utils.rememberPreference
 import kotlinx.coroutines.flow.distinctUntilChanged
 
 @SuppressLint("LocalContextGetResourceValueCall")
-@androidx.annotation.OptIn(UnstableApi::class)
+@OptIn(UnstableApi::class)
 @Composable
 fun CacheSettingsContent() {
 
     val context = LocalContext.current
     val binder = LocalPlayerServiceBinder.current
+    LocalAppearance.current.colorPalette
 
     var coilDiskCacheMaxSize by rememberPreference(
         coilDiskCacheMaxSizeKey,
@@ -76,7 +85,7 @@ fun CacheSettingsContent() {
     var showClearImageCacheDialog by remember { mutableStateOf(false) }
     var showClearSongCacheDialog by remember { mutableStateOf(false) }
 
-    var refreshTrigger by remember { androidx.compose.runtime.mutableIntStateOf(0) }
+    var refreshTrigger by remember { mutableIntStateOf(0) }
 
     Column {
 
@@ -115,168 +124,150 @@ fun CacheSettingsContent() {
                     stringResource(id = R.string.quick_picks_cleared)
                 },
                 onClick = { showClearQuickPicksDialog = true },
-                isEnabled = eventsCount > 0
+                isEnabled = eventsCount > 0,
             )
         }
 
         if (showClearQuickPicksDialog) {
-            AlertDialog(
+            SettingsAlertDialog(
+                title = stringResource(id = R.string.reset_quick_picks),
                 onDismissRequest = { showClearQuickPicksDialog = false },
-                title = {
-                    Text(text = stringResource(id = R.string.reset_quick_picks))
+                onConfirmClick = {
+                    query(db::clearEvents)
+                    showClearQuickPicksDialog = false
                 },
-                text = {
-                    Text(text = stringResource(id = R.string.reset_quick_picks_alert))
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            query(db::clearEvents)
-                            showClearQuickPicksDialog = false
-                        }
-                    ) {
-                        Text(text = stringResource(android.R.string.ok))
-                    }
-                },
-                dismissButton = {
-                    TextButton(
-                        onClick = { showClearQuickPicksDialog = false }
-                    ) {
-                        Text(text = stringResource(android.R.string.cancel))
-                    }
-                }
+                alertMessage = stringResource(id = R.string.reset_quick_picks_alert)
             )
         }
 
         SettingsGroup(
             title = stringResource(id = R.string.image_cache)
         ) {
+            val (colorPalette) = LocalAppearance.current
             context.imageLoader.diskCache?.let { diskCache ->
                 val diskCacheSize = remember(diskCache, refreshTrigger) {
                     diskCache.size
                 }
-                Spacer(modifier = Modifier.height(Dimensions.spacer))
-
-                SettingsProgress(
-                    text = Formatter.formatShortFileSize(
-                        context,
-                        diskCacheSize
-                    ),
-                    progress = diskCacheSize.toFloat() / coilDiskCacheMaxSize.bytes.coerceAtLeast(
-                        minimumValue = 1
-                    ).toFloat()
-                )
-
-                EnumValueSelectorSettingsEntry(
-                    title = stringResource(id = R.string.max_size),
-                    selectedValue = coilDiskCacheMaxSize,
-                    onValueSelected = { coilDiskCacheMaxSize = it },
-                    icon = IconSource.Vector(Icons.Outlined.Image)
-                )
-
-                TextButton(
-                    onClick = { showClearImageCacheDialog = true }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = stringResource(id = R.string.clear_cache))
+                    SettingsProgress(
+                        modifier = Modifier.weight(1f),
+                        text = Formatter.formatShortFileSize(
+                            context,
+                            diskCacheSize
+                        ),
+                        progress = diskCacheSize.toFloat() / coilDiskCacheMaxSize.bytes.coerceAtLeast(
+                            minimumValue = 1
+                        ).toFloat()
+                    )
+
+                    TextButton(
+                        onClick = { showClearImageCacheDialog = true },
+                        modifier = Modifier.padding(start = 8.dp),
+                        shape = CircleShape,
+                        colors = ButtonDefaults.textButtonColors(
+                            containerColor = colorPalette.accent.copy(alpha = 0.1f),
+                            contentColor = colorPalette.accent
+                        ),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.clear_cache),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
-        }
-
-        if (showClearImageCacheDialog) {
-            AlertDialog(
-                onDismissRequest = { showClearImageCacheDialog = false },
-                title = {
-                    Text(text = stringResource(id = R.string.clear_cache))
-                },
-                text = {
-                    Text(text = "This process won't be able to revert back. Are you sure you want to clear the image cache?")
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            context.imageLoader.diskCache?.clear()
-                            refreshTrigger++
-                            showClearImageCacheDialog = false
-                        }
-                    ) {
-                        Text(text = stringResource(android.R.string.ok))
-                    }
-                },
-                dismissButton = {
-                    TextButton(
-                        onClick = { showClearImageCacheDialog = false }
-                    ) {
-                        Text(text = stringResource(android.R.string.cancel))
-                    }
-                }
+            EnumValueSelectorSettingsEntry(
+                title = stringResource(id = R.string.max_size),
+                selectedValue = coilDiskCacheMaxSize,
+                onValueSelected = { coilDiskCacheMaxSize = it },
+                icon = IconSource.Vector(Icons.Outlined.Image)
             )
         }
 
+        if (showClearImageCacheDialog) {
+
+            SettingsAlertDialog(
+                title = stringResource(id = R.string.clear_cache),
+                onDismissRequest = { showClearImageCacheDialog = false },
+                onConfirmClick = {
+                    context.imageLoader.diskCache?.clear()
+                    refreshTrigger++
+                    showClearImageCacheDialog = false
+                },
+                alertMessage = stringResource(id = R.string.clear_image_cache)
+            )
+        }
+        val (colorPalette) = LocalAppearance.current
+
         SettingsGroup(
-            title = stringResource(id = R.string.song_cache)
+            title = stringResource(id = R.string.audio_cache)
         ) {
             binder?.cache?.let { cache ->
                 val diskCacheSize = remember(cache, refreshTrigger) {
                     cache.cacheSpace
                 }
-
-                Spacer(modifier = Modifier.height(Dimensions.spacer))
-
-                SettingsProgress(
-                    text = Formatter.formatShortFileSize(
-                        context,
-                        diskCacheSize
-                    ),
-                    progress = when (val size = exoPlayerDiskCacheMaxSize) {
-                        ExoPlayerDiskCacheMaxSize.Unlimited -> 0F
-                        else -> (diskCacheSize.toFloat() / size.bytes.toFloat())
-                    }
-                )
-
-                EnumValueSelectorSettingsEntry(
-                    title = stringResource(id = R.string.max_size),
-                    selectedValue = exoPlayerDiskCacheMaxSize,
-                    onValueSelected = { exoPlayerDiskCacheMaxSize = it },
-                    icon = IconSource.Vector(Icons.Outlined.MusicNote)
-                )
-
-                TextButton(
-                    onClick = { showClearSongCacheDialog = true }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = stringResource(id = R.string.clear_cache))
+                    SettingsProgress(
+                        modifier = Modifier.weight(1f),
+                        text = Formatter.formatShortFileSize(
+                            context,
+                            diskCacheSize
+                        ),
+                        progress = when (val size = exoPlayerDiskCacheMaxSize) {
+                            ExoPlayerDiskCacheMaxSize.Unlimited -> 0F
+                            else -> (diskCacheSize.toFloat() / size.bytes.toFloat())
+                        }
+                    )
+
+                    TextButton(
+                        onClick = { showClearSongCacheDialog = true },
+                        modifier = Modifier.padding(start = 8.dp),
+                        shape = CircleShape,
+                        colors = ButtonDefaults.textButtonColors(
+                            containerColor = colorPalette.accent.copy(alpha = 0.1f),
+                            contentColor = colorPalette.accent
+                        ),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.clear_cache),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
+            EnumValueSelectorSettingsEntry(
+                title = stringResource(id = R.string.max_size),
+                selectedValue = exoPlayerDiskCacheMaxSize,
+                onValueSelected = { exoPlayerDiskCacheMaxSize = it },
+                icon = IconSource.Vector(Icons.Outlined.MusicNote)
+            )
         }
 
         if (showClearSongCacheDialog) {
-            AlertDialog(
+
+            SettingsAlertDialog(
+                title = stringResource(id = R.string.clear_cache),
                 onDismissRequest = { showClearSongCacheDialog = false },
-                title = {
-                    Text(text = stringResource(id = R.string.clear_cache))
-                },
-                text = {
-                    Text(text = "This process won't be able to revert back. Are you sure you want to clear the song cache?")
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            binder?.cache?.let { cache ->
-                                cache.keys.forEach { cache.removeResource(it) }
-                            }
-                            refreshTrigger++
-                            showClearSongCacheDialog = false
-                        }
-                    ) {
-                        Text(text = stringResource(android.R.string.ok))
+                onConfirmClick = {
+                    binder?.cache?.let { cache ->
+                        cache.keys.forEach { cache.removeResource(it) }
                     }
+                    refreshTrigger++
+                    showClearSongCacheDialog = false
                 },
-                dismissButton = {
-                    TextButton(
-                        onClick = { showClearSongCacheDialog = false }
-                    ) {
-                        Text(text = stringResource(android.R.string.cancel))
-                    }
-                }
+                alertMessage = stringResource(id = R.string.clear_audio_cache)
             )
         }
         SettingsInformation(text = stringResource(id = R.string.cache_information))

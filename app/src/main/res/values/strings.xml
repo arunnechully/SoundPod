@@ -50,7 +50,7 @@
     <string name="advanced">Advanced</string>
     <string name="settings">Settings</string>
     <string name="image_cache">Image cache</string>
-    <string name="song_cache">Song cache</string>
+    <string name="audio_cache">Audio cache</string>
     <string name="max_size">Max size</string>
     <string name="cache_information">When the cache runs out of space, the resources that haven\'t been accessed for the longest time are cleared.</string>
     <string name="backup">Backup</string>
@@ -327,4 +327,6 @@
     <string name="player_style">Player Style</string>
     <string name="track_details">Track details</string>
     <string name="album">Album</string>
+    <string name="clear_image_cache">Are you sure you want to clear the image cache? This action cannot be undone.</string>
+    <string name="clear_audio_cache">Are you sure you want to clear the audio cache? This action cannot be undone.</string>
 </resources>

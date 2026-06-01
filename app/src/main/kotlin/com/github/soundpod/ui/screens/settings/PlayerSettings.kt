@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.ui.common.IconSource
@@ -67,7 +68,8 @@ fun PlayerSettingsContent(
                 sleepTimerMillisLeft != null -> formatAsDuration(sleepTimerMillisLeft!!)
                 else -> stringResource(R.string.off)
             },
-            onClick = onSleepTimerClick
+            descriptionColor = LocalAppearance.current.colorPalette.accent,
+            onClick = onSleepTimerClick,
         )
     }
     SettingsGroup {

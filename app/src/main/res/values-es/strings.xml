@@ -42,7 +42,7 @@
     <string name="show_song_cover_description">Usa la carátula de la canción en reproducción como fondo de la pantalla de bloqueo</string>
     <string name="settings">Ajustes</string>
     <string name="image_cache">Caché de imágenes</string>
-    <string name="song_cache">Caché de canciones</string>
+    <string name="audio_cache">Caché de canciones</string>
     <string name="max_size">Tamaño máximo</string>
     <string name="cache_information">Cuando la caché se queda sin espacio, los recursos a los que no se ha accedido durante más tiempo se borran.</string>
     <string name="backup">Copia de seguridad</string>
