@@ -54,7 +54,7 @@ fun AboutSettingsContent(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.packageManager.canRequestPackageInstalls()
             } else true
-        } catch (e: SecurityException) {
+        } catch (_: SecurityException) {
             false
         }
     }

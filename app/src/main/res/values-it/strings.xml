@@ -42,7 +42,7 @@
     <string name="show_song_cover_description">Usa la copertura della canzone in riproduzione come sfondo della schermata di blocco</string>
     <string name="settings">Impostazioni</string>
     <string name="image_cache">Cache delle immagini</string>
-    <string name="song_cache">Cache delle canzoni</string>
+    <string name="audio_cache">Cache delle canzoni</string>
     <string name="max_size">Dimensione massima</string>
     <string name="cache_information">Quando la cache è piena, le risorse non accessibili da più tempo vengono eliminate.</string>
     <string name="backup">Backup</string>

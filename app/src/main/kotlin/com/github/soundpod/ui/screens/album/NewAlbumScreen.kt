@@ -75,7 +75,7 @@ fun NewAlbumScreen(
                         if (uiState.isLoved) R.drawable.heart else R.drawable.heart_outline
                     ),
                     contentDescription = if (uiState.isLoved) "Unlike" else "Like",
-                    tint = (if (uiState.isLoved) Color.Red else colorPalette.text),
+                    tint = (if (uiState.isLoved) colorPalette.accent else colorPalette.text),
                     modifier = Modifier.size(24.dp)
                 )
             }

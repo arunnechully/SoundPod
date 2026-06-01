@@ -128,7 +128,7 @@ fun MoreSettingsContent() {
                         } catch (_: ActivityNotFoundException) {
                             context.toast(languageSelectorNotFound)
                         }
-                    }
+                    },
                 )
 
             }
@@ -148,7 +148,7 @@ fun MoreSettingsContent() {
                         } catch (_: Exception) {
                             context.toast("Couldn't find supported links settings, please configure them manually")
                         }
-                    }
+                    },
                 )
             }
         }
@@ -181,7 +181,7 @@ fun MoreSettingsContent() {
                         }
                     }
                 },
-                isEnabled = !isIgnoringBatteryOptimizations
+                isEnabled = !isIgnoringBatteryOptimizations,
             )
 
             SwitchSetting(

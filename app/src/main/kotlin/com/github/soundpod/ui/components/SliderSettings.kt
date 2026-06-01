@@ -172,7 +172,7 @@ fun SliderSettingsItem(
                         .fillMaxWidth()
                         .height(trackHeight)
                         .clip(CircleShape)
-                        .background(colorPalette.onAccent)
+                        .background(colorPalette.text.copy(alpha = 0.1f))
                 ) {
                     Box(
                         modifier = Modifier

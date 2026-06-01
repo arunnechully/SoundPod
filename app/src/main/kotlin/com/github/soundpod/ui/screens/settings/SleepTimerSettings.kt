@@ -25,6 +25,7 @@ import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -186,18 +187,25 @@ fun SleepTimerOption(
     isEnabled: Boolean = true,
     showDivider: Boolean = true
 ) {
+    val colorPalette = LocalAppearance.current.colorPalette
+
     SettingsColumn(
-        title = title,
-        onClick = onClick,
-        showDivider = showDivider,
-        isEnabled = isEnabled,
         leadingContent = {
             RadioButton(
                 selected = selected,
                 onClick = null,
-                enabled = isEnabled
+                enabled = isEnabled,
+                colors = RadioButtonDefaults.colors(
+                    selectedColor = colorPalette.accent, // Applies your custom color when checked
+                    unselectedColor = colorPalette.text.copy(alpha = 0.6f) // Optional: custom unselected color
+                )
+
             )
-        }
+        },
+        title = title,
+        onClick = onClick,
+        isEnabled = isEnabled,
+        showDivider = showDivider,
     )
 }
 

@@ -71,11 +71,17 @@ fun AppTheme(
         else -> OffsetWhiteColorScheme
     }
 
+    val materialAccentColor = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        dynamicLightColorScheme(context).primary
+    } else {
+        null
+    }
+
     val appearance = appearance(
-        source = ColorSource.Default,
+        source = if (materialAccentColor != null) ColorSource.MaterialYou else ColorSource.Default,
         mode = if (darkTheme) ColorMode.Dark else ColorMode.Light,
         darkness = if (usePureBlack && darkTheme) Darkness.AMOLED else Darkness.Normal,
-        materialAccentColor = null,
+        materialAccentColor = materialAccentColor,
         sampleBitmap = null,
         fontFamily = System,
         applyFontPadding = true,

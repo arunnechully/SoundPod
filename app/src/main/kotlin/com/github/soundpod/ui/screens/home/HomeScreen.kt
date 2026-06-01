@@ -57,7 +57,7 @@ fun HomeScreen(
                 text = "SoundPod",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = colorPalette.text
+                color = colorPalette.accent
             )
         },
         scrollable = false,
@@ -73,7 +73,7 @@ fun HomeScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "Search",
+                    contentDescription = stringResource(R.string.search),
                     tint = colorPalette.text
                 )
 

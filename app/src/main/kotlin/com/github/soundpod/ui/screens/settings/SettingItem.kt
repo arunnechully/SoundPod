@@ -10,14 +10,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,7 +28,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
@@ -42,7 +46,7 @@ inline fun <reified T : Enum<T>> EnumValueSelectorSettingsEntry(
     icon: IconSource? = null,
     isEnabled: Boolean = true,
     crossinline valueText: @Composable (T) -> String = { it.name },
-    noinline trailingContent: @Composable (() -> Unit)? = null
+    noinline trailingContent: @Composable (() -> Unit)? = null,
 ) {
     ValueSelectorSettingsEntry(
         title = title,
@@ -52,6 +56,7 @@ inline fun <reified T : Enum<T>> EnumValueSelectorSettingsEntry(
         icon = icon,
         isEnabled = isEnabled,
         valueText = valueText,
+        descriptionColor = LocalAppearance.current.colorPalette.accent,
         trailingContent = trailingContent,
     )
 }
@@ -66,7 +71,8 @@ inline fun <T> ValueSelectorSettingsEntry(
     icon: IconSource? = null,
     isEnabled: Boolean = true,
     crossinline valueText: @Composable (T) -> String = { it.toString() },
-    noinline trailingContent: @Composable (() -> Unit)? = null
+    noinline trailingContent: @Composable (() -> Unit)? = null,
+    descriptionColor: Color = LocalAppearance.current.colorPalette.text
 ) {
     var isShowingDialog by remember { mutableStateOf(false) }
 
@@ -88,9 +94,10 @@ inline fun <T> ValueSelectorSettingsEntry(
         icon = icon,
         title = title,
         description = valueText(selectedValue),
+        descriptionColor = descriptionColor,
         onClick = { isShowingDialog = true },
         isEnabled = isEnabled,
-        trailingContent = trailingContent
+        trailingContent = trailingContent,
     )
 }
 
@@ -116,29 +123,39 @@ fun SettingsInformation(
 }
 
 @Composable
-fun SettingsProgress(text: String, progress: Float) {
-    Column(
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Row(
-            modifier = Modifier.width(240.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelLarge
-            )
+fun SettingsProgress(
+    text: String,
+    progress: Float,
+    modifier: Modifier = Modifier
+) {
+    val (colorPalette) = LocalAppearance.current
 
-            Text(
-                text = "${(progress * 100).toInt()}%",
-                style = MaterialTheme.typography.labelMedium
-            )
-        }
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = colorPalette.text.copy(alpha = 0.8f)
+        )
 
         LinearProgressIndicator(
             progress = { progress },
-            modifier = Modifier.clip(RoundedCornerShape(8.dp)),
+            modifier = Modifier
+                .weight(1f)
+                .height(10.dp)
+                .clip(CircleShape),
+            trackColor = colorPalette.text.copy(alpha = 0.1f),
+            color = colorPalette.accent
+        )
+
+        Text(
+            text = "${(progress * 100).toInt()}%",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = colorPalette.accent
         )
     }
 }
@@ -199,7 +216,8 @@ fun SettingsColumn(
     onClick: (() -> Unit)? = null,
     isEnabled: Boolean = true,
     trailingContent: @Composable (() -> Unit)? = null,
-    showDivider: Boolean = false
+    showDivider: Boolean = false,
+    descriptionColor: Color = LocalAppearance.current.colorPalette.text.copy(alpha = 0.7f)
 ) {
     val (colorPalette) = LocalAppearance.current
 
@@ -258,10 +276,11 @@ fun SettingsColumn(
                         color = colorPalette.text
                     )
                     if (description != null) {
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = description,
                             style = MaterialTheme.typography.bodySmall,
-                            color = colorPalette.text.copy(alpha = 0.7f)
+                            color = descriptionColor
                         )
                     }
                 }
@@ -276,6 +295,52 @@ fun SettingsColumn(
     }
 }
 
+@Composable
+fun SettingsAlertDialog(
+    title: String,
+    onDismissRequest: () -> Unit,
+    onConfirmClick: () -> Unit,
+    alertMessage: String
+) {
+    val colorPalette = LocalAppearance.current.colorPalette
+
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        containerColor = colorPalette.boxColor,
+        title = {
+            Text(
+                text = title,
+                color = colorPalette.text
+            )
+        },
+        text = {
+            Text(
+                text = alertMessage,
+                color = colorPalette.text.copy(alpha = 0.8f)
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirmClick
+            ) {
+                Text(
+                    text = stringResource(android.R.string.ok),
+                    color = colorPalette.text
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismissRequest
+            ) {
+                Text(
+                    text = stringResource(android.R.string.cancel),
+                    color = colorPalette.text
+                )
+            }
+        }
+    )
+}
 
 
 @Composable

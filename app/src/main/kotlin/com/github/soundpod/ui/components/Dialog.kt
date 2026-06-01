@@ -31,6 +31,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -59,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
 import kotlinx.coroutines.delay
 
@@ -333,7 +335,7 @@ inline fun <T> ThemeSelectorDialog(
     var tempSelected by remember { mutableStateOf(selectedValue) }
 
     val haptic = LocalHapticFeedback.current
-
+    val colorPalette = LocalAppearance.current.colorPalette
     BasicAlertDialog(
         onDismissRequest = onDismiss,
         modifier = Modifier
@@ -382,6 +384,10 @@ inline fun <T> ThemeSelectorDialog(
                         ) {
                             RadioButton(
                                 selected = tempSelected == value,
+                                colors = RadioButtonDefaults.colors(
+                                    selectedColor = colorPalette.accent,
+                                    unselectedColor = colorPalette.text.copy(alpha = 0.6f)
+                                ),
                                 onClick = {
                                     tempSelected = value
                                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
@@ -410,7 +416,7 @@ inline fun <T> ThemeSelectorDialog(
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                     TextButton(
                         onClick = {
@@ -418,7 +424,7 @@ inline fun <T> ThemeSelectorDialog(
                             onDismiss()
                         }
                     ) {
-                        Text("OK")
+                        Text(stringResource(R.string.ok))
                     }
                 }
             }

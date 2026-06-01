@@ -125,7 +125,7 @@ fun BackupSettingsContent() {
                     } catch (_: ActivityNotFoundException) {
                         context.toast("Couldn't find an application to create documents")
                     }
-                }
+                },
             )
 
             SettingsColumn(
@@ -144,7 +144,7 @@ fun BackupSettingsContent() {
                     } catch (_: ActivityNotFoundException) {
                         context.toast("Couldn't find an application to open documents")
                     }
-                },
+                }
             )
         }
         SettingsGroup {
@@ -170,7 +170,7 @@ fun BackupSettingsContent() {
                         title = stringResource(id = R.string.backup_location),
                         description = autoBackupUri?.lastPathSegment
                             ?: stringResource(R.string.backup_location_description),
-                        onClick = { directoryPickerLauncher.launch(null) }
+                        onClick = { directoryPickerLauncher.launch(null) },
                     )
                     EnumValueSelectorSettingsEntry(
                         title = stringResource(id = R.string.auto_backup),

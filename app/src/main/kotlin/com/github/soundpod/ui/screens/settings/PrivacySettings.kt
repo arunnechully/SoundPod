@@ -85,7 +85,7 @@ fun PrivacySettingsContent() {
                     description = if (isNotificationGranted) stringResource(id = R.string.allowed) else stringResource(
                         id = R.string.denied
                     ),
-                    onClick = { openAppSettings(context) }
+                    onClick = { openAppSettings(context) },
                 )
             }
             SettingsColumn(
@@ -94,7 +94,7 @@ fun PrivacySettingsContent() {
                 description = if (isStorageGranted) stringResource(id = R.string.allowed) else stringResource(
                     id = R.string.denied
                 ),
-                onClick = { openAppSettings(context) }
+                onClick = { openAppSettings(context) },
             )
             if (BuildConfig.ENABLE_UPDATER) {
                 SettingsColumn(
@@ -111,7 +111,7 @@ fun PrivacySettingsContent() {
                                 }
                             context.startActivity(intent)
                         }
-                    }
+                    },
                 )
             }
         }
@@ -122,7 +122,6 @@ fun PrivacySettingsContent() {
                 icon = IconSource.Vector(Icons.Outlined.Folder),
                 title = stringResource(id = R.string.local_data),
                 description = stringResource(id = R.string.local_data_discription),
-                onClick = null
             )
         }
     }

@@ -42,7 +42,7 @@
     <string name="show_song_cover_description">Verwenden Sie das Cover des gespielten Songs als Hintergrundbild für den Sperrbildschirm</string>
     <string name="settings">Einstellungen</string>
     <string name="image_cache">Bild-Cache</string>
-    <string name="song_cache">Song-Cache</string>
+    <string name="audio_cache">Song-Cache</string>
     <string name="max_size">Max. Größe</string>
     <string name="cache_information">Wenn der Platz im Cache erschöpft ist, werden die Ressourcen, auf die am längsten nicht mehr zugegriffen wurde, geleert.</string>
     <string name="backup">Sichern</string>
