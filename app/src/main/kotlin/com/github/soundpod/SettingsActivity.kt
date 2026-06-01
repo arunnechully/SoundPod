@@ -94,6 +94,13 @@ class SettingsActivity : ComponentActivity() {
                 AppThemeColor.Light -> false
             }
 
+            androidx.compose.runtime.LaunchedEffect(darkTheme) {
+                enableEdgeToEdge(
+                    statusBarStyle = SystemBarStyle.auto(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT) { darkTheme },
+                    navigationBarStyle = SystemBarStyle.auto(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT) { darkTheme }
+                )
+            }
+
             AppTheme(
                 darkTheme = darkTheme,
                 usePureBlack = false,

@@ -18,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -74,6 +73,10 @@ fun CacheSettingsContent() {
     var quickPicksSource by rememberPreference(quickPicksSourceKey, QuickPicksSource.Trending)
 
     var showClearQuickPicksDialog by remember { mutableStateOf(false) }
+    var showClearImageCacheDialog by remember { mutableStateOf(false) }
+    var showClearSongCacheDialog by remember { mutableStateOf(false) }
+
+    var refreshTrigger by remember { androidx.compose.runtime.mutableIntStateOf(0) }
 
     Column {
 
@@ -149,7 +152,7 @@ fun CacheSettingsContent() {
             title = stringResource(id = R.string.image_cache)
         ) {
             context.imageLoader.diskCache?.let { diskCache ->
-                val diskCacheSize = remember(diskCache) {
+                val diskCacheSize = remember(diskCache, refreshTrigger) {
                     diskCache.size
                 }
                 Spacer(modifier = Modifier.height(Dimensions.spacer))
@@ -170,17 +173,51 @@ fun CacheSettingsContent() {
                     onValueSelected = { coilDiskCacheMaxSize = it },
                     icon = IconSource.Vector(Icons.Outlined.Image)
                 )
+
+                TextButton(
+                    onClick = { showClearImageCacheDialog = true }
+                ) {
+                    Text(text = stringResource(id = R.string.clear_cache))
+                }
             }
+        }
+
+        if (showClearImageCacheDialog) {
+            AlertDialog(
+                onDismissRequest = { showClearImageCacheDialog = false },
+                title = {
+                    Text(text = stringResource(id = R.string.clear_cache))
+                },
+                text = {
+                    Text(text = "This process won't be able to revert back. Are you sure you want to clear the image cache?")
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            context.imageLoader.diskCache?.clear()
+                            refreshTrigger++
+                            showClearImageCacheDialog = false
+                        }
+                    ) {
+                        Text(text = stringResource(android.R.string.ok))
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showClearImageCacheDialog = false }
+                    ) {
+                        Text(text = stringResource(android.R.string.cancel))
+                    }
+                }
+            )
         }
 
         SettingsGroup(
             title = stringResource(id = R.string.song_cache)
         ) {
             binder?.cache?.let { cache ->
-                val diskCacheSize by remember {
-                    derivedStateOf {
-                        cache.cacheSpace
-                    }
+                val diskCacheSize = remember(cache, refreshTrigger) {
+                    cache.cacheSpace
                 }
 
                 Spacer(modifier = Modifier.height(Dimensions.spacer))
@@ -202,7 +239,45 @@ fun CacheSettingsContent() {
                     onValueSelected = { exoPlayerDiskCacheMaxSize = it },
                     icon = IconSource.Vector(Icons.Outlined.MusicNote)
                 )
+
+                TextButton(
+                    onClick = { showClearSongCacheDialog = true }
+                ) {
+                    Text(text = stringResource(id = R.string.clear_cache))
+                }
             }
+        }
+
+        if (showClearSongCacheDialog) {
+            AlertDialog(
+                onDismissRequest = { showClearSongCacheDialog = false },
+                title = {
+                    Text(text = stringResource(id = R.string.clear_cache))
+                },
+                text = {
+                    Text(text = "This process won't be able to revert back. Are you sure you want to clear the song cache?")
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            binder?.cache?.let { cache ->
+                                cache.keys.forEach { cache.removeResource(it) }
+                            }
+                            refreshTrigger++
+                            showClearSongCacheDialog = false
+                        }
+                    ) {
+                        Text(text = stringResource(android.R.string.ok))
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showClearSongCacheDialog = false }
+                    ) {
+                        Text(text = stringResource(android.R.string.cancel))
+                    }
+                }
+            )
         }
         SettingsInformation(text = stringResource(id = R.string.cache_information))
     }

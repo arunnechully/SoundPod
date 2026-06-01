@@ -44,7 +44,7 @@ fun SettingsScreen(
 
     SettingsScreenLayout(
         title = title,
-        shape = MaterialTheme.shapes.extraSmall,
+        shape = MaterialTheme.shapes.extraLarge,
         onBackClick = onBackClick,
         content = {
             when (screenId) {

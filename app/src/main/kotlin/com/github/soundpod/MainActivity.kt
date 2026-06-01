@@ -158,6 +158,13 @@ class MainActivity : ComponentActivity() {
                 AppThemeColor.Light -> false
             }
 
+            LaunchedEffect(darkTheme) {
+                enableEdgeToEdge(
+                    statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { darkTheme },
+                    navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { darkTheme }
+                )
+            }
+
             AppTheme(
                 darkTheme = darkTheme,
                 usePureBlack = false,
