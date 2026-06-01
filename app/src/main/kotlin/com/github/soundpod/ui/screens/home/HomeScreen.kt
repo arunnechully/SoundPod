@@ -29,19 +29,20 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.soundpod.ui.components.HorizontalTabs
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.navigation.Routes
+import com.github.soundpod.viewmodels.home.HomeViewModel
 
 @Composable
 fun HomeScreen(
     navController: NavController,
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
 ) {
-
-
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 5 })
+    val homeViewModel: HomeViewModel = viewModel()
+    val pagerState = rememberPagerState(initialPage = 0) { homeViewModel.tabs.size }
     val navigateToAlbum = { browseId: String ->
         navController.navigate(route = Routes.Album(id = browseId))
     }
@@ -95,11 +96,17 @@ fun HomeScreen(
             }
         }
     ) {
-        HorizontalTabs(pagerState = pagerState)
+        HorizontalTabs(
+            pagerState = pagerState,
+            tabs = homeViewModel.tabs
+        )
 
-        SettingsCard {
+        SettingsCard(
+            modifier = Modifier.weight(1f)
+        ) {
             HorizontalPager(
                 state = pagerState,
+                beyondViewportPageCount = 4,
                 modifier = Modifier
                     .fillMaxSize()
             ) { page ->

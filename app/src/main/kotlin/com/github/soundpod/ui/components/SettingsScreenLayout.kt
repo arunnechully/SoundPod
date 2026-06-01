@@ -49,7 +49,7 @@ fun SettingsScreenLayout(
     horizontalPadding: Dp = 14.dp,
     actions: @Composable RowScope.() -> Unit = {},
     dropDownMenuContent: @Composable (ColumnScope.(dismissMenu: () -> Unit) -> Unit)? = null,
-    content: @Composable () -> Unit
+    content: @Composable ColumnScope.() -> Unit
 ) {
     val (colorPalette) = LocalAppearance.current
 
@@ -95,7 +95,7 @@ fun SettingsScreenLayout(
     actionsHorizontalPadding: Dp = 0.dp,
     actions: @Composable RowScope.() -> Unit = {},
     dropDownMenuContent: @Composable (ColumnScope.(dismissMenu: () -> Unit) -> Unit)? = null,
-    content: @Composable () -> Unit
+    content: @Composable ColumnScope.() -> Unit
 ) {
     val (colorPalette) = LocalAppearance.current
     val scrollState = rememberScrollState()

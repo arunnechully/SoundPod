@@ -382,7 +382,6 @@ fun NumberPicker(
             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
             shape = MaterialTheme.shapes.medium
         ) {}
-
         LazyColumn(
             state = listState,
             flingBehavior = flingBehavior,
