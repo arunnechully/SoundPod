@@ -19,8 +19,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,17 +55,19 @@ fun HorizontalTabs(
 
     val isTabsDragged by tabPagerState.interactionSource.collectIsDraggedAsState()
     val isContentDragged by pagerState.interactionSource.collectIsDraggedAsState()
+    var isContentCatchingUp by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         snapshotFlow { pagerState.currentPage + pagerState.currentPageOffsetFraction }
             .collect { position ->
-                if (!isTabsDragged) {
+                if (!isTabsDragged && !isContentCatchingUp) {
                     val page = position.roundToInt().coerceIn(0, tabs.size - 1)
                     val offset = (position - page).coerceIn(-0.5f, 0.5f)
                     tabPagerState.scrollToPage(page, offset)
                 }
             }
     }
+
     LaunchedEffect(isTabsDragged) {
         if (!isTabsDragged) {
             snapshotFlow { tabPagerState.isScrollInProgress }
@@ -72,7 +76,9 @@ fun HorizontalTabs(
                     if (!isContentDragged && !pagerState.isScrollInProgress) {
                         val targetPage = tabPagerState.currentPage
                         if (targetPage != pagerState.currentPage) {
+                            isContentCatchingUp = true
                             pagerState.animateScrollToPage(targetPage)
+                            isContentCatchingUp = false
                         }
                     }
                 }
@@ -89,7 +95,6 @@ fun HorizontalTabs(
         contentAlignment = Alignment.Center
     ) {
         val centerPadding = (maxWidth - itemWidth) / 2
-
         HorizontalPager(
             state = tabPagerState,
             pageSize = PageSize.Fixed(itemWidth),
@@ -104,7 +109,7 @@ fun HorizontalTabs(
                     calculateTabTransformation(
                         index = index,
                         pagerState = tabPagerState,
-                        accentColor = colorPalette.accent,
+                        accentColor = colorPalette.text,
                         secondaryColor = colorPalette.textSecondary
                     )
                 }
@@ -118,8 +123,11 @@ fun HorizontalTabs(
                         indication = null
                     ) {
                         scope.launch {
-                            launch { tabPagerState.animateScrollToPage(index) }
-                            launch { pagerState.animateScrollToPage(index) }
+                            isContentCatchingUp = true
+                            try {
+                                launch { tabPagerState.animateScrollToPage(index) }
+                                pagerState.animateScrollToPage(index)
+                            } finally { isContentCatchingUp = false }
                         }
                     }
                     .graphicsLayer {
