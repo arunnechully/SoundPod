@@ -151,6 +151,7 @@
     <string name="app_language">App language</string>
     <string name="configure_app_language">Configure app language</string>
     <string name="most_played">Most played</string>
+    <string name="trending">Trending</string>
     <string name="last_played">Last played</string>
     <string name="general">General</string>
     <string name="history">History</string>

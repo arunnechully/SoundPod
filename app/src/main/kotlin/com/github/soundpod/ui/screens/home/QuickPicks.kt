@@ -51,7 +51,6 @@ import com.github.innertube.models.NavigationEndpoint
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
-import com.github.soundpod.db
 import com.github.soundpod.enums.QuickPicksSource
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.query
@@ -121,51 +120,11 @@ fun QuickPicks(
         val error = result?.exceptionOrNull() ?: if (result != null && related == null) Exception("Empty response") else null
 
         if (related != null) {
-            // New "Top Pick" / "Hero" Section for a less boring UI
-            viewModel.trending?.let { song ->
-                Text(
-                    text = stringResource(id = R.string.quick_picks),
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = sectionTextModifier.padding(top = 8.dp)
-                )
-                
-                LocalSongItem(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .fillMaxWidth(),
-                    song = song,
-                    onClick = {
-                        val mediaItem = song.asMediaItem
-                        binder?.stopRadio()
-                        binder?.player?.forcePlay(mediaItem)
-                        binder?.setupRadio(
-                            NavigationEndpoint.Endpoint.Watch(videoId = mediaItem.mediaId)
-                        )
-                    },
-                    onLongClick = {
-                        menuState.display {
-                            NonQueuedMediaItemMenu(
-                                onDismiss = menuState::hide,
-                                mediaItem = song.asMediaItem,
-                                onRemoveFromQuickPicks = {
-                                    query { db.clearEventsFor(song.id) }
-                                },
-                                onGoToAlbum = onAlbumClick,
-                                onGoToArtist = onArtistClick
-                            )
-                        }
-                    }
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            if (viewModel.trending == null) {
-                Text(
-                    text = stringResource(id = R.string.quick_picks),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = sectionTextModifier
-                )
-            }
+            Text(
+                text = stringResource(id = R.string.quick_picks),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = sectionTextModifier.padding(top = 8.dp)
+            )
 
             LazyHorizontalGrid(
                 state = quickPicksLazyGridState,

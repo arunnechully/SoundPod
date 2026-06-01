@@ -332,13 +332,26 @@ interface Database {
     fun songArtistInfo(songId: String): List<Info>
 
     @Transaction
+    @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId GROUP BY songId ORDER BY SUM(CAST(playTime AS REAL) / (((:now - timestamp) / 86400000) + 1)) DESC LIMIT :limit")
+    @RewriteQueriesToDropUnusedColumns
+    fun trending(limit: Int, now: Long = System.currentTimeMillis()): Flow<List<Song>>
+
+    @Transaction
     @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId GROUP BY songId ORDER BY SUM(CAST(playTime AS REAL) / (((:now - timestamp) / 86400000) + 1)) DESC LIMIT 1")
     @RewriteQueriesToDropUnusedColumns
     fun trending(now: Long = System.currentTimeMillis()): Flow<Song?>
 
     @Transaction
+    @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId GROUP BY songId ORDER BY timestamp DESC LIMIT :limit")
+    fun lastPlayed(limit: Int): Flow<List<Song>>
+
+    @Transaction
     @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId GROUP BY songId ORDER BY timestamp DESC LIMIT 1")
     fun lastPlayed(): Flow<Song?>
+
+    @Transaction
+    @Query("SELECT * FROM Song ORDER BY RANDOM() LIMIT :limit")
+    fun randomSongs(limit: Int): Flow<List<Song>>
 
     @Transaction
     @Query("SELECT * FROM Song ORDER BY RANDOM() LIMIT 1")

@@ -111,6 +111,7 @@ object Innertube {
     internal fun HttpRequestBuilder.mask(value: String = "*") =
         header("X-Goog-FieldMask", value)
 
+    @Serializable
     data class Info<T : NavigationEndpoint.Endpoint>(
         val name: String?,
         val endpoint: T?
@@ -148,11 +149,13 @@ object Innertube {
         }
     }
 
+    @Serializable
     sealed class Item {
         abstract val thumbnail: Thumbnail?
         abstract val key: String
     }
 
+    @Serializable
     data class SongItem(
         val info: Info<NavigationEndpoint.Endpoint.Watch>?,
         val authors: List<Info<NavigationEndpoint.Endpoint.Browse>>?,
@@ -165,6 +168,7 @@ object Innertube {
         companion object
     }
 
+    @Serializable
     data class VideoItem(
         val info: Info<NavigationEndpoint.Endpoint.Watch>?,
         val authors: List<Info<NavigationEndpoint.Endpoint.Browse>>?,
@@ -184,6 +188,7 @@ object Innertube {
         companion object
     }
 
+    @Serializable
     data class AlbumItem(
         val info: Info<NavigationEndpoint.Endpoint.Browse>?,
         val authors: List<Info<NavigationEndpoint.Endpoint.Browse>>?,
@@ -195,6 +200,7 @@ object Innertube {
         companion object
     }
 
+    @Serializable
     data class ArtistItem(
         val info: Info<NavigationEndpoint.Endpoint.Browse>?,
         val subscribersCountText: String?,
@@ -205,6 +211,7 @@ object Innertube {
         companion object
     }
 
+    @Serializable
     data class PlaylistItem(
         val info: Info<NavigationEndpoint.Endpoint.Browse>?,
         val channel: Info<NavigationEndpoint.Endpoint.Browse>?,
@@ -216,6 +223,7 @@ object Innertube {
         companion object
     }
 
+    @Serializable
     data class ArtistPage(
         val name: String?,
         val description: String?,
@@ -233,6 +241,7 @@ object Innertube {
         val relatedArtists: List<ArtistItem>?
     )
 
+    @Serializable
     data class PlaylistOrAlbumPage(
         val title: String?,
         val authors: List<Info<NavigationEndpoint.Endpoint.Browse>>?,
@@ -244,6 +253,7 @@ object Innertube {
         val relatedAlbums: List<AlbumItem>?
     )
 
+    @Serializable
     data class NextPage(
         val itemsPage: ItemsPage<SongItem>?,
         val playlistId: String?,
@@ -251,6 +261,7 @@ object Innertube {
         val playlistSetVideoId: String? = null
     )
 
+    @Serializable
     data class RelatedPage(
         val songs: List<SongItem>? = null,
         val playlists: List<PlaylistItem>? = null,
@@ -258,6 +269,7 @@ object Innertube {
         val artists: List<ArtistItem>? = null,
     )
 
+    @Serializable
     data class ItemsPage<T : Item>(
         val items: List<T>?,
         val continuation: String?

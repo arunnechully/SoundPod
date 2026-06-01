@@ -7,7 +7,7 @@ enum class QuickPicksSource(
     @StringRes val resourceId: Int
 ) {
     Trending(
-        resourceId = R.string.most_played,
+        resourceId = R.string.trending,
     ),
     LastPlayed(
         resourceId = R.string.last_played,
