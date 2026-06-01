@@ -48,9 +48,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.typography
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -78,7 +75,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -92,7 +88,6 @@ import com.github.soundpod.enums.ProgressBar
 import com.github.soundpod.models.Song
 import com.github.soundpod.query
 import com.github.soundpod.ui.components.CustomDropdownMenu
-import com.github.soundpod.ui.components.FloatingDropdownMenuItem
 import com.github.soundpod.ui.screens.player.seekbar.PaperBoatAnimation
 import com.github.soundpod.ui.screens.player.seekbar.SeekBar
 import com.github.soundpod.ui.screens.player.seekbar.SimpleWave
@@ -104,11 +99,9 @@ import com.github.soundpod.utils.playerlayout
 import com.github.soundpod.utils.queueLoopEnabledKey
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.shuffleQueue
-import com.github.soundpod.utils.stopAfterCurrentKey
 import com.github.soundpod.utils.toast
 import com.github.soundpod.utils.trackLoopEnabledKey
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flowOf
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -587,7 +580,6 @@ fun PlayerControlBottom(
     }
 }
 
-@Suppress("AssignedValueIsNeverRead")
 @OptIn(UnstableApi::class)
 @UnstableApi
 @Composable
@@ -617,7 +609,7 @@ fun PlayerTopControl(
 
     val mediaItem = nullableMediaItem ?: return
 
-    val sleepTimerMillisLeft by (binder.sleepTimerMillisLeft ?: flowOf(null)).collectAsState(initial = null)
+    val sleepTimerMillisLeft by binder.sleepTimerMillisLeft.collectAsState(initial = null)
 
     Row(
         verticalAlignment = Alignment.CenterVertically,

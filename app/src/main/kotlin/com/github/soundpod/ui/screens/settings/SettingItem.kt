@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
@@ -215,7 +216,8 @@ fun SettingsColumn(
         modifier = Modifier
             .fillMaxWidth()
             .then(clickModifier)
-            .padding(start = 12.dp, end = 12.dp),
+            .padding(start = 12.dp, end = 12.dp)
+            .graphicsLayer { alpha = if (isEnabled) 1f else 0.5f },
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (leadingContent != null) {

@@ -115,6 +115,7 @@ fun SleepTimerSettings(
             SleepTimerOption(
                 title = stringResource(id = R.string.off),
                 selected = sleepTimerMillisLeft == null,
+                isEnabled = !stopAfterCurrent,
                 onClick = {
                     binder?.cancelSleepTimer()
                     selectedPreset = -1
@@ -124,6 +125,7 @@ fun SleepTimerSettings(
             SleepTimerOption(
                 title = stringResource(id = R.string.minutes_30),
                 selected = selectedPreset == 0 || (sleepTimerMillisLeft != null && sleepTimerMillisLeft!! > 29 * 60 * 1000L && sleepTimerMillisLeft!! <= 30 * 60 * 1000L),
+                isEnabled = !stopAfterCurrent,
                 onClick = {
                     binder?.startSleepTimer(30 * 60 * 1000L)
                     selectedPreset = 0
@@ -133,6 +135,7 @@ fun SleepTimerSettings(
             SleepTimerOption(
                 title = stringResource(id = R.string.hour_1),
                 selected = selectedPreset == 1 || (sleepTimerMillisLeft != null && sleepTimerMillisLeft!! > 59 * 60 * 1000L && sleepTimerMillisLeft!! <= 60 * 60 * 1000L),
+                isEnabled = !stopAfterCurrent,
                 onClick = {
                     binder?.startSleepTimer(60 * 60 * 1000L)
                     selectedPreset = 1
@@ -142,6 +145,7 @@ fun SleepTimerSettings(
             SleepTimerOption(
                 title = stringResource(id = R.string.hour_1_30),
                 selected = selectedPreset == 2 || (sleepTimerMillisLeft != null && sleepTimerMillisLeft!! > 89 * 60 * 1000L && sleepTimerMillisLeft!! <= 90 * 60 * 1000L),
+                isEnabled = !stopAfterCurrent,
                 onClick = {
                     binder?.startSleepTimer(90 * 60 * 1000L)
                     selectedPreset = 2
@@ -151,6 +155,7 @@ fun SleepTimerSettings(
             SleepTimerOption(
                 title = stringResource(id = R.string.hours_2),
                 selected = selectedPreset == 3 || (sleepTimerMillisLeft != null && sleepTimerMillisLeft!! > 119 * 60 * 1000L && sleepTimerMillisLeft!! <= 120 * 60 * 1000L),
+                isEnabled = !stopAfterCurrent,
                 onClick = {
                     binder?.startSleepTimer(120 * 60 * 1000L)
                     selectedPreset = 3
@@ -160,6 +165,7 @@ fun SleepTimerSettings(
             SleepTimerOption(
                 title = stringResource(id = R.string.custom),
                 selected = selectedPreset == 4,
+                isEnabled = !stopAfterCurrent,
                 onClick = { isCustomDialogShowing = true },
                 showDivider = false
             )
@@ -171,7 +177,13 @@ fun SleepTimerSettings(
                 title = stringResource(R.string.stop_after_current),
                 description = stringResource(R.string.stop_after_current_description),
                 switchState = stopAfterCurrent,
-                onSwitchChange = { stopAfterCurrent = it }
+                onSwitchChange = { 
+                    stopAfterCurrent = it
+                    if (it) {
+                        binder?.cancelSleepTimer()
+                        selectedPreset = -1
+                    }
+                }
             )
         }
     }
@@ -182,16 +194,19 @@ fun SleepTimerOption(
     title: String,
     selected: Boolean,
     onClick: () -> Unit,
+    isEnabled: Boolean = true,
     showDivider: Boolean = true
 ) {
     SettingsColumn(
         title = title,
         onClick = onClick,
         showDivider = showDivider,
+        isEnabled = isEnabled,
         leadingContent = {
             RadioButton(
                 selected = selected,
-                onClick = null
+                onClick = null,
+                enabled = isEnabled
             )
         }
     )
