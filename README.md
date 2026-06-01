@@ -15,6 +15,7 @@
   <a title="Crowdin" target="_blank" href="https://crowdin.com/project/soundpod"><img src="https://badges.crowdin.net/soundpod/localized.svg" alt="Crowdin Status"></a>
   <img src="https://img.shields.io/github/languages/top/arunnechully/SoundPod?logo=kotlin" alt="Top Language">
   <a href="https://github.com/arunnechully/SoundPod/releases/latest"><img src="https://img.shields.io/github/downloads/arunnechully/SoundPod/total.svg?color=brightgreen" alt="GitHub Downloads"></a>
+  <img src="https://img.shields.io/github/last-commit/arunnechully/SoundPod.svg?color=brightgreen" alt="Last Commit">
 </p>
 
 ---
@@ -47,12 +48,8 @@
 Download the latest stable APK directly from GitHub, or get it on F-Droid to receive automatic updates.
 
 <p align="center">
-  <a href="https://github.com/arunnechully/SoundPod/releases/latest">
-    <img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" alt="Get it on GitHub" height="60">
-  </a>
-  <a href="https://f-droid.org/packages/com.github.soundpod/">
-    <img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="60">
-  </a>
+  <a href="https://github.com/arunnechully/SoundPod/releases/latest" style="text-decoration:none;"><img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" alt="Get it on GitHub" height="60"></a>
+  <a href="https://f-droid.org/packages/com.github.soundpod/" style="text-decoration:none;"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="60"></a>
 </p>
 
 ---
