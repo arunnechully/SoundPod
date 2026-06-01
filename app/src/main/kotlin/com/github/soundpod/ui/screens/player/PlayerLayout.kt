@@ -15,6 +15,7 @@ fun PlayerLayout(
     showPlaylist: Boolean,
     onLyricsClick: () -> Unit = {},
     onSettingsClick: () -> Unit,
+    onSleepTimerClick: () -> Unit = {},
     showLyrics: Boolean,
     onTogglePlaylist: (Boolean) -> Unit
 ) {
@@ -31,6 +32,7 @@ fun PlayerLayout(
         showPlaylist = showPlaylist,
         onLyricsClick = onLyricsClick,
         onSettingsClick = onSettingsClick,
+        onSleepTimerClick = onSleepTimerClick,
         showLyrics = showLyrics,
         onTogglePlaylist = onTogglePlaylist
 

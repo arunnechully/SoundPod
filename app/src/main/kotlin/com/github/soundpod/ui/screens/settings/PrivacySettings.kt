@@ -27,7 +27,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import com.github.core.ui.LocalAppearance
 import com.github.soundpod.BuildConfig
 import com.github.soundpod.R
 import com.github.soundpod.ui.common.IconSource
@@ -84,21 +83,21 @@ fun PrivacySettings(
                 title = stringResource(id = R.string.permissions)
             ) {
                 if (BuildConfig.ENABLE_UPDATER) {
-                    SettingColumn(
+                    SettingsColumn(
                         icon = IconSource.Vector(Icons.Outlined.Notifications),
                         title = stringResource(id = R.string.notifications),
                         description = if (isNotificationGranted) stringResource(id = R.string.allowed) else stringResource(id = R.string.denied),
                         onClick = { openAppSettings(context) }
                     )
                 }
-                SettingColumn(
+                SettingsColumn(
                     icon = IconSource.Vector(Icons.Outlined.MusicNote),
                     title = stringResource(id = R.string.audio_permission),
                     description = if (isStorageGranted) stringResource(id = R.string.allowed) else stringResource(id = R.string.denied),
                     onClick = { openAppSettings(context) }
                 )
                 if (BuildConfig.ENABLE_UPDATER) {
-                    SettingColumn(
+                    SettingsColumn(
                         icon = IconSource.Vector(Icons.Outlined.Security),
                         title = stringResource(id = R.string.install_unknown_apps),
                         description = if (isInstallUnknownGranted) stringResource(id = R.string.allowed) else stringResource(id = R.string.denied),
@@ -117,7 +116,7 @@ fun PrivacySettings(
             SettingsGroup(
                 title = stringResource(id = R.string.storage)
             ) {
-                SettingColumn(
+                SettingsColumn(
                     icon = IconSource.Vector(Icons.Outlined.Folder),
                     title = stringResource(id = R.string.local_data),
                     description = stringResource(id = R.string.local_data_discription),

@@ -70,7 +70,7 @@ fun AppearanceSettings(
                     icon = IconSource.Icon( painterResource(id = R.drawable.wave)),
                     valueText = { stringResource(it.resourceId) }
                 )
-                SettingColumn(
+                SettingsColumn(
                     icon = IconSource.Vector(Icons.Default.BlurOn),
                     title = stringResource(id = R.string.background_style),
                     description = stringResource(id = R.string.background_style_discription),

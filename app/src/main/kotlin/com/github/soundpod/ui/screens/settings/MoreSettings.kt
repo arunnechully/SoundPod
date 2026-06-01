@@ -12,7 +12,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddLink
 import androidx.compose.material.icons.outlined.Battery0Bar
-import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Stars
 import androidx.compose.material3.AlertDialog
@@ -30,7 +29,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
-import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
 import com.github.soundpod.service.PlayerMediaBrowserService
 import com.github.soundpod.ui.common.IconSource
@@ -132,7 +130,7 @@ fun MoreSettings(
 
                     val languageSelectorNotFound = stringResource(id = R.string.language_selector_not_found)
 
-                    SettingColumn(
+                    SettingsColumn(
                         icon = IconSource.Vector(Icons.Outlined.Language),
                         title = stringResource(id = R.string.app_language),
                         description = stringResource(id = R.string.configure_app_language),
@@ -152,7 +150,7 @@ fun MoreSettings(
                         Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS,
                         "package:${context.packageName}".toUri()
                     )
-                    SettingColumn(
+                    SettingsColumn(
                         icon = IconSource.Vector(Icons.Outlined.AddLink),
                         title = stringResource(id = R.string.open_supported_links_by_default),
                         description = stringResource(id = R.string.configure_supported_links),
@@ -170,7 +168,7 @@ fun MoreSettings(
             SettingsGroup(
                 title = stringResource(id = R.string.service_lifetime)
             ) {
-                SettingColumn(
+                SettingsColumn(
                     icon = IconSource.Vector(Icons.Outlined.Battery0Bar),
                     title = stringResource(id = R.string.ignore_battery_optimizations),
                     description = if (isIgnoringBatteryOptimizations) {

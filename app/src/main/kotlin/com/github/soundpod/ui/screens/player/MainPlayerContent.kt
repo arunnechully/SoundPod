@@ -62,6 +62,7 @@ fun MainPlayerContent(
     onBack: () -> Unit,
     showPlaylist: Boolean,
     onSettingsClick: () -> Unit = {},
+    onSleepTimerClick: () -> Unit = {},
     onLyricsClick: () -> Unit = {},
     onTogglePlaylist: (Boolean) -> Unit,
     showLyrics: Boolean
@@ -135,6 +136,7 @@ fun MainPlayerContent(
                         onGoToArtist = handleGoToArtist,
                         onLyricsClick = onLyricsClick,
                         onSettingsClick = onSettingsClick,
+                        onSleepTimerClick = onSleepTimerClick,
                         onBack = {
                             if (showPlaylist) onTogglePlaylist(false) else onBack()
                         },
@@ -192,6 +194,7 @@ fun MainPlayerContent(
                     onGoToArtist = handleGoToArtist,
                     onLyricsClick = onLyricsClick,
                     onSettingsClick = onSettingsClick,
+                    onSleepTimerClick = onSleepTimerClick,
                     onBack = {
                         if (showPlaylist) onTogglePlaylist(false) else onBack()
                     },

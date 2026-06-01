@@ -177,6 +177,12 @@ class MainActivity : ComponentActivity() {
                             onNavigateToSettings = {
                                 val intent = Intent(context, SettingsActivity::class.java)
                                 context.startActivity(intent)
+                            },
+                            onNavigateToSleepTimer = {
+                                val intent = Intent(context, SettingsActivity::class.java).apply {
+                                    putExtra("SCREEN_ID", SettingsDestinations.SLEEP_TIMER)
+                                }
+                                context.startActivity(intent)
                             }
                         ) {
                             MainNavigation(

@@ -104,6 +104,7 @@ import com.github.soundpod.utils.playerlayout
 import com.github.soundpod.utils.queueLoopEnabledKey
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.shuffleQueue
+import com.github.soundpod.utils.stopAfterCurrentKey
 import com.github.soundpod.utils.toast
 import com.github.soundpod.utils.trackLoopEnabledKey
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -596,7 +597,8 @@ fun PlayerTopControl(
     onBack: () -> Unit,
     onLyricsClick: () -> Unit = {},
     isPlaylistShowing: Boolean,
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    onSleepTimerClick: () -> Unit
 ) {
     val (colorPalette) = LocalAppearance.current
     val binder = LocalPlayerServiceBinder.current
@@ -615,7 +617,6 @@ fun PlayerTopControl(
 
     val mediaItem = nullableMediaItem ?: return
 
-    var isShowingSleepTimerDialog by rememberSaveable { mutableStateOf(false) }
     val sleepTimerMillisLeft by (binder.sleepTimerMillisLeft ?: flowOf(null)).collectAsState(initial = null)
 
     Row(
@@ -655,13 +656,13 @@ fun PlayerTopControl(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .clickable {
-                        isShowingSleepTimerDialog = true
+                        onSleepTimerClick()
                     }
                     .padding(horizontal = 10.dp, vertical = 4.dp)
             )
         } else {
             IconButton(
-                onClick = { isShowingSleepTimerDialog = true },
+                onClick = onSleepTimerClick,
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Timer,
@@ -769,12 +770,6 @@ fun PlayerTopControl(
 
             }
         }
-    }
-    if (isShowingSleepTimerDialog) {
-        SleepTimer(
-            sleepTimerMillisLeft = sleepTimerMillisLeft,
-            onDismiss = { isShowingSleepTimerDialog = false }
-        )
     }
 }
 

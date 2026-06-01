@@ -6,21 +6,22 @@ import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.automirrored.outlined.QueueMusic
 import androidx.compose.material.icons.filled.MusicOff
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
-import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.components.SliderSettingsItem
 import com.github.soundpod.ui.components.SwitchSetting
-import com.github.soundpod.utils.isShowingThumbnailInLockscreenKey
+import com.github.soundpod.utils.formatAsDuration
 import com.github.soundpod.utils.pauseOnAppCloseKey
 import com.github.soundpod.utils.persistentQueueKey
 import com.github.soundpod.utils.playbackPitchKey
@@ -35,8 +36,13 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerSettings(
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onSleepTimerClick: () -> Unit
 ) {
+    val binder = LocalPlayerServiceBinder.current
+    val sleepTimerMillisLeft by (binder?.sleepTimerMillisLeft ?: kotlinx.coroutines.flow.flowOf(null)).collectAsState(initial = null)
+    val stopAfterCurrent by rememberPreference(stopAfterCurrentKey, false)
+
     var skipSilence by rememberPreference(skipSilenceKey, false)
     var volumeNormalization by rememberPreference(volumeNormalizationKey, false)
     var resumePlaybackWhenDeviceConnected by rememberPreference(
@@ -44,14 +50,9 @@ fun PlayerSettings(
         false
     )
     var persistentQueue by rememberPreference(persistentQueueKey, false)
-    var stopAfterCurrent by rememberPreference(stopAfterCurrentKey, false)
     var playSpeed by rememberPreference(playbackSpeedKey, 1f)
     var playPitch by rememberPreference(playbackPitchKey, 1f)
     var pauseOnAppClose by rememberPreference(pauseOnAppCloseKey, false)
-    var isShowingThumbnailInLockscreen by rememberPreference(
-        isShowingThumbnailInLockscreenKey,
-        false
-    )
 
     BackHandler(onBack = onBackClick)
 
@@ -74,14 +75,17 @@ fun PlayerSettings(
                     }
                 )
 
-                SwitchSetting(
+                SettingsColumn(
                     icon = IconSource.Vector(Icons.Outlined.Timer),
-                    title = stringResource(R.string.stop_after_current),
-                    description = stringResource(R.string.stop_after_current_description),
-                    switchState = stopAfterCurrent,
-                    onSwitchChange = {
-                        stopAfterCurrent = it
-                    }
+                    title = stringResource(R.string.sleep_timer),
+                    description = when {
+                        stopAfterCurrent && sleepTimerMillisLeft != null -> 
+                            "${stringResource(R.string.stop_after_current)} • ${formatAsDuration(sleepTimerMillisLeft!!)}"
+                        stopAfterCurrent -> stringResource(R.string.stop_after_current)
+                        sleepTimerMillisLeft != null -> formatAsDuration(sleepTimerMillisLeft!!)
+                        else -> stringResource(R.string.off)
+                    },
+                    onClick = onSleepTimerClick
                 )
 
                 SwitchSetting(
@@ -125,18 +129,6 @@ fun PlayerSettings(
                     onSwitchChange = {
                         volumeNormalization = it
                     }
-                )
-            }
-
-            SettingsGroup(
-                title = stringResource(R.string.lockscreen)
-            ) {
-                SwitchSetting(
-                    icon = IconSource.Vector(Icons.Outlined.Image),
-                    title = stringResource(id = R.string.show_song_cover),
-                    description = stringResource(id = R.string.show_song_cover_description),
-                    switchState = isShowingThumbnailInLockscreen,
-                    onSwitchChange = { isShowingThumbnailInLockscreen = it }
                 )
             }
 

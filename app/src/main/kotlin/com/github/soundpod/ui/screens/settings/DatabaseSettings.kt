@@ -115,7 +115,7 @@ fun CacheSettings(
                 )
             }
             SettingsGroup{
-                SettingColumn(
+                SettingsColumn(
                     icon = IconSource.Vector(Icons.Outlined.RestartAlt),
                     title = stringResource(id = R.string.reset_quick_picks),
                     description = if (eventsCount > 0) {

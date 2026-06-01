@@ -77,6 +77,11 @@
     <string name="set">Set</string>
     <string name="sleep_timer">Sleep timer</string>
     <string name="set_sleep_timer">Set sleep timer</string>
+    <string name="minutes_30">30 minutes</string>
+    <string name="hour_1">1 hour</string>
+    <string name="hour_1_30">1 hour 30 minutes</string>
+    <string name="hours_2">2 hours</string>
+    <string name="custom">Custom</string>
     <string name="hide">Hide</string>
     <string name="remove_from_queue">Remove from queue</string>
     <string name="remove_from_playlist">Remove from playlist</string>

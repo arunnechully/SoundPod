@@ -29,6 +29,7 @@ import com.github.soundpod.ui.screens.settings.MoreSettings
 import com.github.soundpod.ui.screens.settings.PlayerSettings
 import com.github.soundpod.ui.screens.settings.PrivacySettings
 import com.github.soundpod.ui.screens.settings.SettingsScreen
+import com.github.soundpod.ui.screens.settings.SleepTimerSettings
 import com.github.soundpod.ui.styling.AppTheme
 import com.github.soundpod.utils.appTheme
 import com.github.soundpod.utils.rememberPreference
@@ -107,7 +108,11 @@ class SettingsActivity : ComponentActivity() {
                         )
 
                         SettingsDestinations.BACKGROUND -> BackgroundSettings(onBackClick = { finish() })
-                        SettingsDestinations.PLAYER -> PlayerSettings(onBackClick = { finish() })
+                        SettingsDestinations.PLAYER -> PlayerSettings(
+                            onBackClick = { finish() },
+                            onSleepTimerClick = { launchSubScreen(SettingsDestinations.SLEEP_TIMER) }
+                        )
+                        SettingsDestinations.SLEEP_TIMER -> SleepTimerSettings(onBackClick = { finish() })
                         SettingsDestinations.PRIVACY -> PrivacySettings(onBackClick = { finish() })
                         SettingsDestinations.BACKUP -> BackupSettings(onBackClick = { finish() })
                         SettingsDestinations.DATABASE -> CacheSettings(onBackClick = { finish() })

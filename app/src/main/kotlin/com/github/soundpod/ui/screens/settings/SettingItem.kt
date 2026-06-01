@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -82,7 +83,7 @@ inline fun <T> ValueSelectorSettingsEntry(
 
     }
 
-    SettingColumn(
+    SettingsColumn(
         icon = icon,
         title = title,
         description = valueText(selectedValue),
@@ -189,13 +190,15 @@ fun SettingRow(
 
 
 @Composable
-fun SettingColumn(
+fun SettingsColumn(
     icon: IconSource? = null,
+    leadingContent: @Composable (() -> Unit)? = null,
     title: String,
     description: String? = null,
     onClick: (() -> Unit)? = null,
     isEnabled: Boolean = true,
-    trailingContent: @Composable (() -> Unit)? = null
+    trailingContent: @Composable (() -> Unit)? = null,
+    showDivider: Boolean = false
 ) {
     val (colorPalette) = LocalAppearance.current
 
@@ -212,45 +215,62 @@ fun SettingColumn(
         modifier = Modifier
             .fillMaxWidth()
             .then(clickModifier)
-            .padding(horizontal = 12.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(start = 12.dp, end = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
-        when (icon) {
-            is IconSource.Vector -> Icon(
-                imageVector = icon.imageVector,
-                contentDescription = title,
-                tint = colorPalette.text,
-                modifier = Modifier.size(28.dp)
-            )
-
-            is IconSource.Icon -> Icon(
-                painter = icon.painter,
-                contentDescription = title,
-                tint = colorPalette.text,
-                modifier = Modifier.size(28.dp),
-            )
-
-            null -> {}
+        if (leadingContent != null) {
+            leadingContent()
+            Spacer(modifier = Modifier.width(12.dp))
+        } else if (icon != null) {
+            when (icon) {
+                is IconSource.Vector -> Icon(
+                    imageVector = icon.imageVector,
+                    contentDescription = title,
+                    tint = colorPalette.text,
+                    modifier = Modifier.size(28.dp)
+                )
+                is IconSource.Icon -> Icon(
+                    painter = icon.painter,
+                    contentDescription = title,
+                    tint = colorPalette.text,
+                    modifier = Modifier.size(28.dp),
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
         }
 
-        Column(Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                color = colorPalette.text
-            )
-            if (description != null) {
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colorPalette.text.copy(alpha = 0.7f)
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = colorPalette.text
+                    )
+                    if (description != null) {
+                        Text(
+                            text = description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colorPalette.text.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+                trailingContent?.invoke()
+            }
+            if (showDivider) {
+                HorizontalDivider(
+                    color = colorPalette.text.copy(alpha = 0.1f)
                 )
             }
         }
-
-        trailingContent?.invoke()
     }
 }
 
