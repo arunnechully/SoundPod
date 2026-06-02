@@ -17,7 +17,7 @@ object UpdatePrefs {
     val SHOW_UPDATE_ALERT = booleanPreferencesKey("show_update_alert")
     val NEW_SEARCH_LAYOUT = booleanPreferencesKey("new_search_layout")
     val THEME_KEY = stringPreferencesKey("theme_preference")
-
+    val INCLUDE_PRERELEASE = booleanPreferencesKey("include_prerelease")
 }
 
 fun autoCheckEnabled(context: Context) =
@@ -62,6 +62,17 @@ fun newSearchLayoutEnabled(context: Context) =
 suspend fun setNewSearchLayoutEnabled(context: Context, value: Boolean) {
     context.updateDataStore.edit {
         it[UpdatePrefs.NEW_SEARCH_LAYOUT] = value
+    }
+}
+
+fun includePrerelease(context: Context) =
+    context.updateDataStore.data.map {
+        it[UpdatePrefs.INCLUDE_PRERELEASE] ?: false
+    }
+
+suspend fun setIncludePrerelease(context: Context, value: Boolean) {
+    context.updateDataStore.edit {
+        it[UpdatePrefs.INCLUDE_PRERELEASE] = value
     }
 }
 

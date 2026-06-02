@@ -15,6 +15,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,6 +44,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
@@ -268,13 +271,25 @@ fun NewBuiltInPlaylistSongs(
                 }
             }
         }
-        if (songs.isEmpty()) {
-            Text(
-                text = "No songs available",
-                style = MaterialTheme.typography.bodyLarge,
-                color = colorPalette.text.copy(alpha = 0.5f),
-                modifier = Modifier.align(Alignment.Center)
-            )
+        if (songs.isEmpty() && builtInPlaylist == BuiltInPlaylist.Favorites) {
+            Column(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                AsyncImage(
+                    model = "file:///android_asset/img/A3.webp",
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.size(280.dp)
+                )
+
+                Text(
+                    text = "No favorite songs yet",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = colorPalette.text.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(top = 16.dp)
+                )
+            }
         }
     }
 }

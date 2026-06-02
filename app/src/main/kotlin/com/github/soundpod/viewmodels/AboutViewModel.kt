@@ -13,7 +13,9 @@ import com.github.soundpod.github.checkForUpdates
 import com.github.soundpod.github.downloadAndInstall
 import com.github.soundpod.github.installApkInternal
 import com.github.soundpod.ui.common.UpdateStatus
+import com.github.soundpod.ui.common.includePrerelease
 import com.github.soundpod.ui.common.seamlessUpdateEnabled
+import com.github.soundpod.ui.common.setIncludePrerelease
 import com.github.soundpod.ui.common.setSeamlessUpdateEnabled
 import com.github.soundpod.ui.common.setShowUpdateAlert
 import com.github.soundpod.ui.common.showUpdateAlert
@@ -23,6 +25,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.File
@@ -56,11 +59,19 @@ class AboutViewModel(application: Application) : AndroidViewModel(application) {
     val showAlertEnabled: StateFlow<Boolean> = showUpdateAlert(getApplication())
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
+    val includePrerelease: StateFlow<Boolean> = includePrerelease(getApplication())
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     init {
         if (BuildConfig.ENABLE_UPDATER) {
             viewModelScope.launch(Dispatchers.IO) {
-                seamlessUpdateEnabled(getApplication()).collect { isSeamless ->
-                    checkForUpdates(getApplication(), currentVersion, isSeamless) {
+                combine(
+                    this@AboutViewModel.seamlessUpdateEnabled,
+                    this@AboutViewModel.includePrerelease
+                ) { isSeamless, includePre ->
+                    isSeamless to includePre
+                }.collect { (isSeamless, includePre) ->
+                    checkForUpdates(getApplication(), currentVersion, isSeamless, includePre) {
                         _updateStatus.value = it
                     }
                 }
@@ -100,13 +111,20 @@ class AboutViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun toggleIncludePrerelease(enabled: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            setIncludePrerelease(context, enabled)
+        }
+    }
+
     fun dismissPermissionDialog() {
         _showPermissionDialog.value = false
     }
 
     fun downloadUpdate() {
         viewModelScope.launch(Dispatchers.IO) {
-            val exactApkUrl = GitHub.getLatestReleaseApkUrl(BuildConfig.FLAVOR)
+            val includePre = includePrerelease.value
+            val exactApkUrl = GitHub.getLatestReleaseApkUrl(BuildConfig.FLAVOR, includePre)
             val isSeamless = seamlessUpdateEnabled.value
 
             if (exactApkUrl != null) {
@@ -143,7 +161,7 @@ class AboutViewModel(application: Application) : AndroidViewModel(application) {
     }
     private fun checkUpdates() {
         viewModelScope.launch(Dispatchers.IO) {
-            checkForUpdates(context, currentVersion, seamlessUpdateEnabled.value) {
+            checkForUpdates(context, currentVersion, seamlessUpdateEnabled.value, includePrerelease.value) {
                 _updateStatus.value = it
             }
         }

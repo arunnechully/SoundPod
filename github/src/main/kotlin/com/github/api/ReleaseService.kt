@@ -20,10 +20,10 @@ class ReleaseService(
         }
     }
 
-    suspend fun getLatestReleaseApkUrl(flavorName: String): String? {
+    suspend fun getLatestReleaseApkUrl(flavorName: String, includePrerelease: Boolean = false): String? {
         val releases = getReleases()
 
-        val latestRelease = releases.firstOrNull { !it.draft && !it.prerelease } ?: return null
+        val latestRelease = releases.firstOrNull { !it.draft && (includePrerelease || !it.prerelease) } ?: return null
 
         val matchedAsset = latestRelease.assets.find { asset ->
             asset.name.contains(flavorName, ignoreCase = true) && asset.name.endsWith(".apk")

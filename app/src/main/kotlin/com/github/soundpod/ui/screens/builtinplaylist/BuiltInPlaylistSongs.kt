@@ -2,15 +2,21 @@ package com.github.soundpod.ui.screens.builtinplaylist
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.PlaylistPlay
 import androidx.compose.material.icons.outlined.Shuffle
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -19,7 +25,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
@@ -74,83 +82,106 @@ fun BuiltInPlaylistSongs(
         }.collect { songs = it }
     }
 
-    LazyColumn(
-        contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp + playerPadding),
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        item(key = "thumbnail") {
-            CoverScaffold(
-                primaryButton = ActionInfo(
-                    enabled = songs.isNotEmpty(),
-                    onClick = {
-                        binder?.stopRadio()
-                        binder?.player?.forcePlayFromBeginning(
-                            songs.shuffled().map(Song::asMediaItem)
-                        )
-                    },
-                    icon = Icons.Outlined.Shuffle,
-                    description = R.string.shuffle
-                ),
-                secondaryButton = ActionInfo(
-                    enabled = songs.isNotEmpty(),
-                    onClick = {
-                        binder?.player?.enqueue(songs.map(Song::asMediaItem))
-                    },
-                    icon = Icons.AutoMirrored.Outlined.PlaylistPlay,
-                    description = R.string.enqueue
-                ),
-                content = {
-                    BuiltInPlaylistThumbnail(builtInPlaylist = builtInPlaylist)
-                }
-            )
-        }
-
-        item(key = "spacer") {
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-
-        itemsIndexed(
-            items = songs,
-            key = { _, song -> song.id },
-            contentType = { _, song -> song },
-        ) { index, song ->
-            SwipeToActionBox(
-                modifier = Modifier.animateItem(),
-                primaryAction = ActionInfo(
-                    onClick = { binder?.player?.enqueue(song.asMediaItem) },
-                    icon = Icons.AutoMirrored.Outlined.PlaylistPlay,
-                    description = R.string.enqueue
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp + playerPadding),
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            item(key = "thumbnail") {
+                CoverScaffold(
+                    primaryButton = ActionInfo(
+                        enabled = songs.isNotEmpty(),
+                        onClick = {
+                            binder?.stopRadio()
+                            binder?.player?.forcePlayFromBeginning(
+                                songs.shuffled().map(Song::asMediaItem)
+                            )
+                        },
+                        icon = Icons.Outlined.Shuffle,
+                        description = R.string.shuffle
+                    ),
+                    secondaryButton = ActionInfo(
+                        enabled = songs.isNotEmpty(),
+                        onClick = {
+                            binder?.player?.enqueue(songs.map(Song::asMediaItem))
+                        },
+                        icon = Icons.AutoMirrored.Outlined.PlaylistPlay,
+                        description = R.string.enqueue
+                    ),
+                    content = {
+                        BuiltInPlaylistThumbnail(builtInPlaylist = builtInPlaylist)
+                    }
                 )
-            ) {
-                LocalSongItem(
-                    song = song,
-                    onClick = {
-                        binder?.stopRadio()
-                        binder?.player?.forcePlayAtIndex(
-                            songs.map(Song::asMediaItem),
-                            index
-                        )
-                    },
-                    onLongClick = {
-                        menuState.display {
-                            when (builtInPlaylist) {
-                                BuiltInPlaylist.Favorites -> NonQueuedMediaItemMenu(
-                                    mediaItem = song.asMediaItem,
-                                    onDismiss = menuState::hide,
-                                    onGoToAlbum = onGoToAlbum,
-                                    onGoToArtist = onGoToArtist
-                                )
+            }
 
-                                BuiltInPlaylist.Offline -> InHistoryMediaItemMenu(
-                                    song = song,
-                                    onDismiss = menuState::hide,
-                                    onGoToAlbum = onGoToAlbum,
-                                    onGoToArtist = onGoToArtist
-                                )
+            item(key = "spacer") {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            itemsIndexed(
+                items = songs,
+                key = { _, song -> song.id },
+                contentType = { _, song -> song },
+            ) { index, song ->
+                SwipeToActionBox(
+                    modifier = Modifier.animateItem(),
+                    primaryAction = ActionInfo(
+                        onClick = { binder?.player?.enqueue(song.asMediaItem) },
+                        icon = Icons.AutoMirrored.Outlined.PlaylistPlay,
+                        description = R.string.enqueue
+                    )
+                ) {
+                    LocalSongItem(
+                        song = song,
+                        onClick = {
+                            binder?.stopRadio()
+                            binder?.player?.forcePlayAtIndex(
+                                songs.map(Song::asMediaItem),
+                                index
+                            )
+                        },
+                        onLongClick = {
+                            menuState.display {
+                                when (builtInPlaylist) {
+                                    BuiltInPlaylist.Favorites -> NonQueuedMediaItemMenu(
+                                        mediaItem = song.asMediaItem,
+                                        onDismiss = menuState::hide,
+                                        onGoToAlbum = onGoToAlbum,
+                                        onGoToArtist = onGoToArtist
+                                    )
+
+                                    BuiltInPlaylist.Offline -> InHistoryMediaItemMenu(
+                                        song = song,
+                                        onDismiss = menuState::hide,
+                                        onGoToAlbum = onGoToAlbum,
+                                        onGoToArtist = onGoToArtist
+                                    )
+                                }
                             }
                         }
-                    }
+                    )
+                }
+            }
+        }
+
+        if (songs.isEmpty() && builtInPlaylist == BuiltInPlaylist.Favorites) {
+            Column(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                AsyncImage(
+                    model = "file:///android_asset/img/A3.webp",
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.size(280.dp)
+                )
+
+                Text(
+                    text = "No favorite songs yet",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.padding(top = 16.dp)
                 )
             }
         }

@@ -1,7 +1,6 @@
 package com.github.soundpod.worker
 
 import android.content.Context
-import androidx.preference.PreferenceManager
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.work.CoroutineWorker
@@ -9,6 +8,7 @@ import androidx.work.WorkerParameters
 import com.github.soundpod.db
 import com.github.soundpod.query
 import com.github.soundpod.utils.autoBackupUriPrefKey
+import com.github.soundpod.utils.preferences
 import java.io.FileInputStream
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -20,7 +20,7 @@ class AutoBackupWorker(
 ) : CoroutineWorker(context, workerParams) {
 
     override suspend fun doWork(): Result {
-        val sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context)
+        val sharedPrefs = context.preferences
         val savedUriString = sharedPrefs.getString(autoBackupUriPrefKey, null) ?: return Result.failure()
 
         val treeUri = savedUriString.toUri()

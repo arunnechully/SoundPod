@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
+import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
 import com.github.soundpod.db
 import com.github.soundpod.enums.AutoBackUp
@@ -171,6 +172,7 @@ fun BackupSettingsContent() {
                         description = autoBackupUri?.lastPathSegment
                             ?: stringResource(R.string.backup_location_description),
                         onClick = { directoryPickerLauncher.launch(null) },
+                        descriptionColor = LocalAppearance.current.colorPalette.accent
                     )
                     EnumValueSelectorSettingsEntry(
                         title = stringResource(id = R.string.auto_backup),

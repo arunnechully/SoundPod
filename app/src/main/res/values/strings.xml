@@ -124,6 +124,9 @@
     <string name="hide_song_dialog_description">Its playback time and cache will be wiped. This action is irreversible.</string>
     <string name="delete_playlist_dialog">Delete this playlist?</string>
     <string name="no_items_found">No items found</string>
+    <string name="no_songs_found">No songs available on device</string>
+    <string name="audio_permission_denied">Music permission is required to play local songs</string>
+    <string name="grant_permission">Grant Permission</string>
     <string name="no_results_found">No results found. Please try a different query or category</string>
     <string name="open_queue">Open queue</string>
     <string name="rename_playlist">Rename playlist</string>

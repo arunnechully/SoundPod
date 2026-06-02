@@ -29,10 +29,16 @@ fun downloadApk(context: Context, url: String): Long {
     val manager = context.getSystemService(DownloadManager::class.java)
     return manager.enqueue(request)
 }
-suspend fun checkForUpdates(context: Context, currentVersion: String, isSeamless: Boolean, onResult: (UpdateStatus) -> Unit) {
+suspend fun checkForUpdates(
+    context: Context,
+    currentVersion: String,
+    isSeamless: Boolean,
+    includePrerelease: Boolean = false,
+    onResult: (UpdateStatus) -> Unit
+) {
     try {
-        val release = GitHub.getLastestRelease()
-        val latestVersion = release?.name?.let { VersionUtils.extractVersion(it) }
+        val release = GitHub.getLastestRelease(includePrerelease)
+        val latestVersion = release?.tagName?.let { VersionUtils.extractVersion(it) } ?: release?.name?.let { VersionUtils.extractVersion(it) }
         val apkAsset = release?.assets?.firstOrNull { it.name.endsWith(".apk") }
 
         if (latestVersion != null && apkAsset != null) {

@@ -46,6 +46,7 @@ fun AboutSettingsContent(
     // Collect States from ViewModel
     val updateStatus by viewModel.updateStatus.collectAsState()
     val seamlessUpdateEnabled by viewModel.seamlessUpdateEnabled.collectAsState()
+    val includePrerelease by viewModel.includePrerelease.collectAsState()
     val showAlertEnabled by viewModel.showAlertEnabled.collectAsState()
     val showPermissionDialog by viewModel.showPermissionDialog.collectAsState()
 
@@ -75,7 +76,7 @@ fun AboutSettingsContent(
                 .align(Alignment.CenterHorizontally)
                 .width(125.dp)
                 .aspectRatio(1f),
-            tint = MaterialTheme.colorScheme.primary
+            tint = LocalAppearance.current.colorPalette.text
         )
 
         Text(
@@ -190,6 +191,16 @@ fun AboutSettingsContent(
         if (BuildConfig.ENABLE_UPDATER) {
             Spacer(modifier = Modifier.height(8.dp))
             SettingsCard {
+                SwitchSetting(
+                    icon = IconSource.Vector(Icons.Default.Update),
+                    title = stringResource(id = R.string.beta_updates),
+                    description = stringResource(id = R.string.beta_updates_description),
+                    switchState = includePrerelease,
+                    onSwitchChange = { enabled ->
+                        viewModel.toggleIncludePrerelease(enabled)
+                    }
+                )
+
                 SwitchSetting(
                     icon = IconSource.Vector(Icons.Default.Update),
                     title = stringResource(id = R.string.seamless_update),

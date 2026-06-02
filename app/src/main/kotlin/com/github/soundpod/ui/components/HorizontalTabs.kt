@@ -17,7 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,9 +29,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.github.core.ui.LocalAppearance
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
@@ -43,9 +43,12 @@ import kotlin.math.roundToInt
 fun HorizontalTabs(
     pagerState: PagerState,
     tabs: List<Int>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    itemWidth: Dp = 80.dp,
+    itemHeight: Dp = 60.dp,
+    accentColor: Color = MaterialTheme.colorScheme.primary,
+    secondaryColor: Color = MaterialTheme.colorScheme.onSurfaceVariant
 ) {
-    val (colorPalette) = LocalAppearance.current
     val scope = rememberCoroutineScope()
 
     val tabPagerState = rememberPagerState(
@@ -85,9 +88,6 @@ fun HorizontalTabs(
         }
     }
 
-    val itemWidth = 80.dp
-    val itemHeight = 60.dp
-
     BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
@@ -95,6 +95,7 @@ fun HorizontalTabs(
         contentAlignment = Alignment.Center
     ) {
         val centerPadding = (maxWidth - itemWidth) / 2
+
         HorizontalPager(
             state = tabPagerState,
             pageSize = PageSize.Fixed(itemWidth),
@@ -103,24 +104,20 @@ fun HorizontalTabs(
             verticalAlignment = Alignment.CenterVertically,
             beyondViewportPageCount = 4
         ) { index ->
-            val titleRes = tabs[index]
-            val transformation by remember(index) {
-                derivedStateOf {
-                    calculateTabTransformation(
-                        index = index,
-                        pagerState = tabPagerState,
-                        accentColor = colorPalette.text,
-                        secondaryColor = colorPalette.textSecondary
-                    )
-                }
-            }
+            val transformation = calculateTabTransformation(
+                index = index,
+                pagerState = tabPagerState,
+                accentColor = accentColor,
+                secondaryColor = secondaryColor
+            )
 
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
-                        indication = null
+                        indication = null,
+                        role = Role.Tab
                     ) {
                         scope.launch {
                             isContentCatchingUp = true
@@ -138,7 +135,7 @@ fun HorizontalTabs(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = stringResource(id = titleRes),
+                    text = stringResource(id = tabs[index]),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = transformation.color

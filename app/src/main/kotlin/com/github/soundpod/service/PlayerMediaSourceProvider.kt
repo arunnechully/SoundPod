@@ -47,11 +47,14 @@ class PlayerMediaSourceProvider(
     }
 
     private fun createCacheDataSource(): DataSource.Factory {
-        val upstreamFactory = DefaultHttpDataSource.Factory()
-            .setConnectTimeoutMs(16000)
-            .setReadTimeoutMs(8000)
-            .setAllowCrossProtocolRedirects(true)
-            .setUserAgent(DEFAULT_USER_AGENT)
+        val upstreamFactory = androidx.media3.datasource.DefaultDataSource.Factory(
+            context,
+            DefaultHttpDataSource.Factory()
+                .setConnectTimeoutMs(16000)
+                .setReadTimeoutMs(8000)
+                .setAllowCrossProtocolRedirects(true)
+                .setUserAgent(DEFAULT_USER_AGENT)
+        )
 
         return DataSource.Factory {
             val pauseSongCache = context.preferences.getBoolean(pauseSongCacheKey, false)
@@ -72,7 +75,9 @@ class PlayerMediaSourceProvider(
     private fun createDataSourceFactory(): DataSource.Factory {
         return ResolvingDataSource.Factory(createCacheDataSource()) { dataSpec ->
             val videoId = dataSpec.key ?: throw java.io.IOException("A key must be set")
-            if (cacheManager.cache.isCached(videoId, dataSpec.position, 100 * 1024L)) {
+            if (videoId.startsWith("content://") || videoId.startsWith("file://")) {
+                dataSpec
+            } else if (cacheManager.cache.isCached(videoId, dataSpec.position, 100 * 1024L)) {
                 dataSpec
             } else {
                 val uri = resolveUrl(videoId)

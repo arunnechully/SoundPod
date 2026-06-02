@@ -1,30 +1,46 @@
 package com.github.soundpod.ui.screens.home
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import com.github.soundpod.LocalPlayerPadding
@@ -57,89 +73,147 @@ fun HomeSongs(
     val binder = LocalPlayerServiceBinder.current
     val menuState = LocalMenuState.current
     val playerPadding = LocalPlayerPadding.current
+    val context = LocalContext.current
+
+    val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        Manifest.permission.READ_MEDIA_AUDIO
+    } else {
+        Manifest.permission.READ_EXTERNAL_STORAGE
+    }
+
+    var isPermissionGranted by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                permission
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        isPermissionGranted = isGranted
+    }
 
     var sortBy by rememberPreference(songSortByKey, SongSortBy.Title)
     var sortOrder by rememberPreference(songSortOrderKey, SortOrder.Ascending)
 
     val viewModel: HomeSongsViewModel = viewModel()
 
-    LaunchedEffect(sortBy, sortOrder) {
-        viewModel.loadSongs(
-            sortBy = sortBy,
-            sortOrder = sortOrder
-        )
-    }
-
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 400.dp),
-        contentPadding = PaddingValues(bottom = if (viewModel.items.isNotEmpty()) 16.dp + 72.dp + playerPadding else 16.dp + playerPadding),
-        modifier = Modifier.fillMaxSize()
-    ) {
-        item(
-            key = "header",
-            span = { GridItemSpan(maxLineSpan) }
-        ) {
-            SortingHeader(
+    LaunchedEffect(sortBy, sortOrder, isPermissionGranted) {
+        if (isPermissionGranted) {
+            viewModel.loadSongs(
                 sortBy = sortBy,
-                changeSortBy = { sortBy = it },
-                sortByEntries = SongSortBy.entries.toList(),
-                sortOrder = sortOrder,
-                toggleSortOrder = { sortOrder = !sortOrder },
-                size = viewModel.items.size,
-                itemCountText = R.plurals.number_of_songs
+                sortOrder = sortOrder
             )
         }
+    }
 
-        itemsIndexed(
-            items = viewModel.items,
-            key = { _, song -> song.id }
-        ) { index, song ->
-            // REMOVED: SwipeToActionBox wrapper
-            LocalSongItem(
-                // Moved animateItem modifier here
-                modifier = Modifier.animateItem(),
-                song = song,
-                onClick = {
-                    binder?.stopRadio()
-                    binder?.player?.forcePlayAtIndex(
-                        viewModel.items.map(Song::asMediaItem),
-                        index
-                    )
-                },
-                onLongClick = {
-                    menuState.display {
-                        InHistoryMediaItemMenu(
-                            song = song,
-                            onDismiss = menuState::hide,
-                            onGoToAlbum = onGoToAlbum,
-                            onGoToArtist = onGoToArtist
-                        )
-                    }
-                },
-                onThumbnailContent = if (sortBy == SongSortBy.PlayTime) ({
-                    Text(
-                        text = song.formattedTotalPlayTime,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onOverlay,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color.Transparent,
-                                        MaterialTheme.colorScheme.overlay
-                                    )
-                                ),
-                                shape = MaterialTheme.shapes.medium
-                            )
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                            .align(Alignment.BottomCenter)
-                    )
-                }) else null
+    if (!isPermissionGranted) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = playerPadding),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = stringResource(R.string.audio_permission_denied),
+                style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.padding(horizontal = 32.dp)
             )
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = { launcher.launch(permission) }) {
+                Text(text = stringResource(R.string.grant_permission))
+            }
+        }
+    } else if (viewModel.items.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = playerPadding),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stringResource(R.string.no_songs_found),
+                style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.secondary
+            )
+        }
+    } else {
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(minSize = 400.dp),
+            contentPadding = PaddingValues(bottom = 16.dp + 72.dp + playerPadding),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            item(
+                key = "header",
+                span = { GridItemSpan(maxLineSpan) }
+            ) {
+                SortingHeader(
+                    sortBy = sortBy,
+                    changeSortBy = { sortBy = it },
+                    sortByEntries = SongSortBy.entries.toList(),
+                    sortOrder = sortOrder,
+                    toggleSortOrder = { sortOrder = !sortOrder },
+                    size = viewModel.items.size,
+                    itemCountText = R.plurals.number_of_songs
+                )
+            }
+
+            itemsIndexed(
+                items = viewModel.items,
+                key = { _, song -> song.id }
+            ) { index, song ->
+                LocalSongItem(
+                    modifier = Modifier.animateItem(),
+                    song = song,
+                    onClick = {
+                        binder?.stopRadio()
+                        binder?.player?.forcePlayAtIndex(
+                            viewModel.items.map(Song::asMediaItem),
+                            index
+                        )
+                    },
+                    onLongClick = {
+                        menuState.display {
+                            InHistoryMediaItemMenu(
+                                song = song,
+                                onDismiss = menuState::hide,
+                                onGoToAlbum = onGoToAlbum,
+                                onGoToArtist = onGoToArtist
+                            )
+                        }
+                    },
+                    onThumbnailContent = if (sortBy == SongSortBy.PlayTime) ({
+                        Text(
+                            text = song.formattedTotalPlayTime,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onOverlay,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    brush = Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color.Transparent,
+                                            MaterialTheme.colorScheme.overlay
+                                        )
+                                    ),
+                                    shape = MaterialTheme.shapes.medium
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                .align(Alignment.BottomCenter)
+                        )
+                    }) else null
+                )
+            }
         }
     }
 }

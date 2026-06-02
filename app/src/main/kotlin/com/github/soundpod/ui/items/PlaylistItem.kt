@@ -1,7 +1,9 @@
 package com.github.soundpod.ui.items
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -15,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -42,7 +45,16 @@ fun PlaylistItem(
         subtitle = playlist.channel?.name,
         onClick = onClick
     ) {
-        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.app_icon),
+                contentDescription = null,
+                modifier = Modifier.size(this@BoxWithConstraints.maxWidth / 2),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+            )
             AsyncImage(
                 model = playlist.thumbnail?.url.thumbnail(maxWidth.px),
                 contentDescription = null,
@@ -96,7 +108,8 @@ fun LocalPlaylistItem(
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(ratio = 1F)
+                .aspectRatio(ratio = 1F),
+            contentAlignment = Alignment.Center
         ) {
             val thumbnailWidthDp = maxWidth
             val thumbnailWidthPx = maxWidth.px
@@ -109,28 +122,39 @@ fun LocalPlaylistItem(
                 }
             }.collectAsState(initial = emptyList(), context = Dispatchers.IO)
 
+            Icon(
+                painter = painterResource(R.drawable.app_icon),
+                contentDescription = null,
+                modifier = Modifier.size(thumbnailWidthDp / 2),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+            )
+
             if (thumbnails.toSet().size == 1) {
                 AsyncImage(
-                    model = thumbnails.first().thumbnail(thumbnailWidthPx),
+                    model = thumbnails.firstOrNull()?.thumbnail(thumbnailWidthPx),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.clip(MaterialTheme.shapes.large)
+                    modifier = Modifier
+                        .size(thumbnailWidthDp)
+                        .clip(MaterialTheme.shapes.large)
                 )
             } else {
-                listOf(
-                    Alignment.TopStart,
-                    Alignment.TopEnd,
-                    Alignment.BottomStart,
-                    Alignment.BottomEnd
-                ).forEachIndexed { index, alignment ->
-                    AsyncImage(
-                        model = thumbnails.getOrNull(index),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .align(alignment)
-                            .size(thumbnailWidthDp / 2)
-                    )
+                Box(modifier = Modifier.fillMaxSize()) {
+                    listOf(
+                        Alignment.TopStart,
+                        Alignment.TopEnd,
+                        Alignment.BottomStart,
+                        Alignment.BottomEnd
+                    ).forEachIndexed { index, alignment ->
+                        AsyncImage(
+                            model = thumbnails.getOrNull(index),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .align(alignment)
+                                .size(thumbnailWidthDp / 2)
+                        )
+                    }
                 }
             }
         }

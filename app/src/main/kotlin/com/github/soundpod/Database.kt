@@ -60,44 +60,105 @@ import kotlinx.coroutines.flow.Flow
 interface Database {
     // Note: Companion object removed to prevent circular dependency crash
     @Transaction
-    @Query("SELECT * FROM Song WHERE totalPlayTimeMs > 0 ORDER BY ROWID ASC")
+    @Query("SELECT * FROM Song WHERE id NOT LIKE 'content://%' AND totalPlayTimeMs > 0 ORDER BY ROWID ASC")
     @RewriteQueriesToDropUnusedColumns
     fun songsByRowIdAsc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM Song WHERE totalPlayTimeMs > 0 ORDER BY ROWID DESC")
+    @Query("SELECT * FROM Song WHERE id NOT LIKE 'content://%' AND totalPlayTimeMs > 0 ORDER BY ROWID DESC")
     @RewriteQueriesToDropUnusedColumns
     fun songsByRowIdDesc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM Song WHERE totalPlayTimeMs > 0 ORDER BY title ASC")
+    @Query("SELECT * FROM Song WHERE id NOT LIKE 'content://%' AND totalPlayTimeMs > 0 ORDER BY title ASC")
     @RewriteQueriesToDropUnusedColumns
     fun songsByTitleAsc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM Song WHERE totalPlayTimeMs > 0 ORDER BY title DESC")
+    @Query("SELECT * FROM Song WHERE id NOT LIKE 'content://%' AND totalPlayTimeMs > 0 ORDER BY title DESC")
     @RewriteQueriesToDropUnusedColumns
     fun songsByTitleDesc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM Song WHERE totalPlayTimeMs > 0 ORDER BY totalPlayTimeMs ASC")
+    @Query("SELECT * FROM Song WHERE id NOT LIKE 'content://%' AND totalPlayTimeMs > 0 ORDER BY totalPlayTimeMs ASC")
     @RewriteQueriesToDropUnusedColumns
     fun songsByPlayTimeAsc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM Song WHERE totalPlayTimeMs > 0 ORDER BY totalPlayTimeMs DESC")
+    @Query("SELECT * FROM Song WHERE id NOT LIKE 'content://%' AND totalPlayTimeMs > 0 ORDER BY totalPlayTimeMs DESC")
     @RewriteQueriesToDropUnusedColumns
     fun songsByPlayTimeDesc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM Song WHERE totalPlayTimeMs > 0 ORDER BY artistsText ASC")
+    @Query("SELECT * FROM Song WHERE id NOT LIKE 'content://%' AND totalPlayTimeMs > 0 ORDER BY artistsText ASC")
     @RewriteQueriesToDropUnusedColumns
     fun songsByArtistsAsc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM Song WHERE totalPlayTimeMs > 0 ORDER BY artistsText DESC")
+    @Query("SELECT * FROM Song WHERE id NOT LIKE 'content://%' AND totalPlayTimeMs > 0 ORDER BY artistsText DESC")
     @RewriteQueriesToDropUnusedColumns
     fun songsByArtistsDesc(): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' ORDER BY ROWID ASC")
+    @RewriteQueriesToDropUnusedColumns
+    fun localSongsByRowIdAsc(): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' ORDER BY ROWID DESC")
+    @RewriteQueriesToDropUnusedColumns
+    fun localSongsByRowIdDesc(): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' ORDER BY title ASC")
+    @RewriteQueriesToDropUnusedColumns
+    fun localSongsByTitleAsc(): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' ORDER BY title DESC")
+    @RewriteQueriesToDropUnusedColumns
+    fun localSongsByTitleDesc(): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' ORDER BY totalPlayTimeMs ASC")
+    @RewriteQueriesToDropUnusedColumns
+    fun localSongsByPlayTimeAsc(): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' ORDER BY totalPlayTimeMs DESC")
+    @RewriteQueriesToDropUnusedColumns
+    fun localSongsByPlayTimeDesc(): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' ORDER BY artistsText ASC")
+    @RewriteQueriesToDropUnusedColumns
+    fun localSongsByArtistsAsc(): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' ORDER BY artistsText DESC")
+    @RewriteQueriesToDropUnusedColumns
+    fun localSongsByArtistsDesc(): Flow<List<Song>>
+
+    fun localSongs(sortBy: SongSortBy, sortOrder: SortOrder): Flow<List<Song>> {
+        return when (sortBy) {
+            SongSortBy.PlayTime -> when (sortOrder) {
+                SortOrder.Ascending -> localSongsByPlayTimeAsc()
+                SortOrder.Descending -> localSongsByPlayTimeDesc()
+            }
+            SongSortBy.Title -> when (sortOrder) {
+                SortOrder.Ascending -> localSongsByTitleAsc()
+                SortOrder.Descending -> localSongsByTitleDesc()
+            }
+            SongSortBy.DateAdded -> when (sortOrder) {
+                SortOrder.Ascending -> localSongsByRowIdAsc()
+                SortOrder.Descending -> localSongsByRowIdDesc()
+            }
+            SongSortBy.Artist -> when (sortOrder) {
+                SortOrder.Ascending -> localSongsByArtistsAsc()
+                SortOrder.Descending -> localSongsByArtistsDesc()
+            }
+        }
+    }
 
     fun songs(sortBy: SongSortBy, sortOrder: SortOrder): Flow<List<Song>> {
         return when (sortBy) {
@@ -534,7 +595,6 @@ interface Database {
         AutoMigration(from = 19, to = 20),
         AutoMigration(from = 20, to = 21, spec = DatabaseInitializer.From20To21Migration::class),
         AutoMigration(from = 21, to = 22, spec = DatabaseInitializer.From21To22Migration::class),
-        AutoMigration(from = 23, to = 24),
         AutoMigration(from = 24, to = 25),
     ],
 )
@@ -558,7 +618,8 @@ abstract class DatabaseInitializer : RoomDatabase() {
                         From8To9Migration(),
                         From10To11Migration(),
                         From14To15Migration(),
-                        From22To23Migration()
+                        From22To23Migration(),
+                        From23To24Migration()
                     )
                     .build()
                     .also { INSTANCE = it }
@@ -684,6 +745,23 @@ abstract class DatabaseInitializer : RoomDatabase() {
             db.execSQL("INSERT INTO Song_new(id, title, artistsText, durationText, thumbnailUrl, likedAt, totalPlayTimeMs) SELECT id, title, artistsText, durationText, thumbnailUrl, likedAt, totalPlayTimeMs FROM Song;")
             db.execSQL("DROP TABLE Song;")
             db.execSQL("ALTER TABLE Song_new RENAME TO Song;")
+        }
+    }
+
+    class From23To24Migration : Migration(23, 24) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.query(SimpleSQLiteQuery("PRAGMA table_info(Album)")).use { cursor ->
+                var hasArtistId = false
+                while (cursor.moveToNext()) {
+                    if (cursor.getString(1) == "artistId") {
+                        hasArtistId = true
+                        break
+                    }
+                }
+                if (!hasArtistId) {
+                    db.execSQL("ALTER TABLE Album ADD COLUMN artistId TEXT DEFAULT NULL")
+                }
+            }
         }
     }
 }

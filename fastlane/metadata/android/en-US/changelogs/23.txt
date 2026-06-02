@@ -1,0 +1,11 @@
+* Added support for local music playback & new sources
+* Introduced landscape mode in the player
+* Remodeled Sleep Timer UI with a fresh look
+* Added Material You color support for text
+* Expanded player settings for better customization
+* Added option to receive Early Access (Beta) updates
+* Optimized NewPipe extractor for smoother integration
+* Improved search functionality and result accuracy
+* Enhanced UI animations and transitions
+* Fixed background playback issues on some devices
+* Overall performance and stability improvements
