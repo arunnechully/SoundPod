@@ -49,7 +49,7 @@
     <string name="advanced">Avanzado</string>
     <string name="settings">Ajustes</string>
     <string name="image_cache">Caché de imágenes</string>
-    <string name="song_cache">Caché de canciones</string>
+    <string name="audio_cache">Caché de canciones</string>
     <string name="max_size">Tamaño máximo</string>
     <string name="cache_information">Cuando la caché se queda sin espacio, los recursos a los que no se ha accedido durante más tiempo se borran.</string>
     <string name="backup">Copia de seguridad</string>
@@ -75,6 +75,11 @@
     <string name="set">Establecer</string>
     <string name="sleep_timer">Temporizador de apagado</string>
     <string name="set_sleep_timer">Establecer un temporizador de apagado</string>
+    <string name="minutes_30">30 minutes</string>
+    <string name="hour_1">1 hour</string>
+    <string name="hour_1_30">1 hour 30 minutes</string>
+    <string name="hours_2">2 hours</string>
+    <string name="custom">Custom</string>
     <string name="hide">Ocultar</string>
     <string name="remove_from_queue">Eliminar de la cola</string>
     <string name="remove_from_playlist">Eliminar de la lista</string>
@@ -116,6 +121,9 @@
     <string name="hide_song_dialog_description">El tiempo de reproducción y la caché se borrarán. Esta acción es irreversible.</string>
     <string name="delete_playlist_dialog">¿Borrar esta lista?</string>
     <string name="no_items_found">No se han encontrado elementos</string>
+    <string name="no_songs_found">No songs available on device</string>
+    <string name="audio_permission_denied">Music permission is required to play local songs</string>
+    <string name="grant_permission">Grant Permission</string>
     <string name="no_results_found">No se han encontrado resultados. Intenta una búsqueda o categoría distinta</string>
     <string name="open_queue">Abrir la cola</string>
     <string name="rename_playlist">Renombrar la lista</string>
@@ -148,6 +156,7 @@
     <string name="app_language">Idioma de la aplicación</string>
     <string name="configure_app_language">Configura el idioma de la aplicación</string>
     <string name="most_played">Más reproducido</string>
+    <string name="trending">Trending</string>
     <string name="last_played">Más reciente</string>
     <string name="general">General</string>
     <string name="history">Historial</string>
@@ -316,4 +325,6 @@
     <string name="player_style">Estilo del reproductor</string>
     <string name="track_details">Detalles de la pista</string>
     <string name="album">Álbum</string>
+    <string name="clear_image_cache">Are you sure you want to clear the image cache? This action cannot be undone.</string>
+    <string name="clear_audio_cache">Are you sure you want to clear the audio cache? This action cannot be undone.</string>
 </resources>
