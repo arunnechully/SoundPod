@@ -43,49 +43,50 @@ suspend fun Innertube.player(videoId: String) = coroutineScope {
 
         // Prioritize clients that often bypass throttling or are very fast
         val clients = listOf(
-            YouTubeClient.ANDROID_VR, // Often has unthrottled streams
             YouTubeClient.ANDROID_MUSIC,
+            YouTubeClient.ANDROID_VR,
             YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER,
             YouTubeClient.WEB_REMIX
         )
 
-        val deferredResponses = clients.map { ytClient ->
-            async {
-                runCatching {
-                    client.post(PLAYER) {
-                        header("User-Agent", ytClient.userAgent)
-                        setBody(
-                            PlayerBody(
-                                context = ytClient.toContext(visitorData = token).let { ctx ->
-                                    if (ytClient == YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER) {
-                                        ctx.copy(
-                                            thirdParty = com.github.innertube.models.Context.ThirdParty(
-                                                embedUrl = "https://www.youtube.com/watch?v=$videoId"
-                                            )
+        var bestResponse: PlayerResponse? = null
+        
+        for (ytClient in clients) {
+            val response = runCatching {
+                client.post(PLAYER) {
+                    header("User-Agent", ytClient.userAgent)
+                    setBody(
+                        PlayerBody(
+                            context = ytClient.toContext(visitorData = token).let { ctx ->
+                                if (ytClient == YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER) {
+                                    ctx.copy(
+                                        thirdParty = com.github.innertube.models.Context.ThirdParty(
+                                            embedUrl = "https://www.youtube.com/watch?v=$videoId"
                                         )
-                                    } else ctx
-                                },
-                                videoId = videoId,
-                                serviceIntegrityDimensions = poToken
-                            )
+                                    )
+                                } else ctx
+                            },
+                            videoId = videoId,
+                            serviceIntegrityDimensions = poToken
                         )
-                        mask("playabilityStatus,playerConfig.audioConfig,streamingData.adaptiveFormats,streamingData.formats,videoDetails")
-                    }.body<PlayerResponse>()
-                }.getOrNull()
+                    )
+                    mask("playabilityStatus,playerConfig.audioConfig,streamingData.adaptiveFormats,streamingData.formats,videoDetails")
+                }.body<PlayerResponse>()
+            }.getOrNull()
+
+            if (response?.playabilityStatus?.status == "OK" && response.streamingData?.highestQualityFormat != null) {
+                bestResponse = response
+                break
+            }
+            
+            if (response?.playabilityStatus?.status == "OK") {
+                bestResponse = response
             }
         }
 
-        // Wait for all but we could potentially optimize this to return early if a 'perfect' one is found
-        val responses = deferredResponses.awaitAll().filterNotNull()
-        
-        // Find the best response: 
-        // 1. Must be OK status
-        // 2. Prefer one with highest quality streams already present
-        val bestResponse = responses.find { 
-            it.playabilityStatus?.status == "OK" && it.streamingData?.highestQualityFormat != null 
-        } ?: responses.find { 
-            it.playabilityStatus?.status == "OK" 
-        } ?: responses.firstOrNull() ?: throw Exception("Failed to get player response from all clients")
+        if (bestResponse == null) {
+            throw Exception("Failed to get player response from all clients")
+        }
 
         // Piped fallback (only if YouTube failed completely)
         val audioStreams = if (bestResponse.streamingData?.highestQualityFormat == null) {

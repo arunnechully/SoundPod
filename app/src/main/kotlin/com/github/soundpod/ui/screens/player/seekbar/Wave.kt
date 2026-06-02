@@ -128,7 +128,7 @@ fun SimpleWave(
         }
         val backgroundPath = Path()
         for (x in 0..width.toInt()) {
-            val xRatio = x / width
+            val xRatio = if (width > 0) x / width else 0f
             val y = if (shouldAnimate) {
                 height / 2 + amplitude * sin(xRatio * frequency * 2 * PI.toFloat() + currentPhase)
             } else {
@@ -148,16 +148,19 @@ fun SimpleWave(
         )
 
         // Draw progress
-        val progress = if (isDragging) {
-            (dragValue - valueRange.start) / (valueRange.endInclusive - valueRange.start)
-        } else {
-            (value - valueRange.start) / (valueRange.endInclusive - valueRange.start)
-        }
+        val range = valueRange.endInclusive - valueRange.start
+        val progress = if (range > 0) {
+            if (isDragging) {
+                (dragValue - valueRange.start) / range
+            } else {
+                (value - valueRange.start) / range
+            }
+        } else 0f
 
         val progressPath = Path()
         val progressWidth = width * progress
-        for (x in 0..progressWidth.toInt()) {
-            val xRatio = x / width
+        for (x in 0..(if (progressWidth.isNaN()) 0 else progressWidth.toInt())) {
+            val xRatio = if (width > 0) x / width else 0f
             val y = if (shouldAnimate) {
                 height / 2 + amplitude * sin(xRatio * frequency * 2 * PI.toFloat() + currentPhase)
             } else {
@@ -178,15 +181,17 @@ fun SimpleWave(
 
         // Draw thumb
         val thumbX = width * progress
-        val thumbY = if (shouldAnimate) {
+        val thumbY = if (shouldAnimate && !progress.isNaN()) {
             height / 2 + amplitude * sin(progress * frequency * 2 * PI.toFloat() + currentPhase)
         } else {
             height / 2
         }
-        drawCircle(
-            color = color,
-            radius = 8.dp.toPx(),
-            center = Offset(thumbX, thumbY)
-        )
+        if (!thumbX.isNaN() && !thumbY.isNaN()) {
+            drawCircle(
+                color = color,
+                radius = 8.dp.toPx(),
+                center = Offset(thumbX, thumbY)
+            )
+        }
     }
 }

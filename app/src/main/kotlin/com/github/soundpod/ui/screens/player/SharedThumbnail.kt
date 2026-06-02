@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.util.lerp
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -52,6 +53,7 @@ fun SharedThumbnail(
     var mediaItem by remember(player) { mutableStateOf(player.currentMediaItem) }
     var playWhenReady by remember(player) { mutableStateOf(player.playWhenReady) }
     var playbackState by remember(player) { mutableIntStateOf(player.playbackState) }
+    var playerError by remember(player) { mutableStateOf<PlaybackException?>(player.playerError) }
 
     DisposableEffect(player) {
         val listener = object : Player.Listener {
@@ -63,6 +65,12 @@ fun SharedThumbnail(
             }
             override fun onPlaybackStateChanged(state: Int) {
                 playbackState = state
+                if (state != Player.STATE_IDLE) {
+                    playerError = null
+                }
+            }
+            override fun onPlayerError(error: PlaybackException) {
+                playerError = error
             }
         }
         player.addListener(listener)
@@ -165,6 +173,13 @@ fun SharedThumbnail(
                 contentDescription = "Album Art",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
+            )
+        }
+
+        if (expandProgress > 0.8f) {
+            PlaybackError(
+                error = playerError,
+                onDismiss = { player.prepare() }
             )
         }
     }

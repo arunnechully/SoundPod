@@ -8,10 +8,10 @@ import android.content.SharedPreferences
 import android.content.pm.ServiceInfo
 import android.content.res.Configuration
 import android.graphics.Color
-import android.net.Uri
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.support.v4.media.session.MediaSessionCompat
@@ -38,10 +38,7 @@ import androidx.media3.exoplayer.audio.MediaCodecAudioRenderer
 import androidx.media3.exoplayer.audio.SilenceSkippingAudioProcessor
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import com.github.innertube.models.NavigationEndpoint
-import com.github.innertube.Innertube
-import com.github.innertube.requests.player
 import com.github.soundpod.db
-import com.github.soundpod.models.Format
 import com.github.soundpod.query
 import com.github.soundpod.utils.InvincibleService
 import com.github.soundpod.utils.broadCastPendingIntent
@@ -77,7 +74,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
@@ -315,52 +311,31 @@ class PlayerService : InvincibleService(), Player.Listener,
         }
     }
 
+    private val prefetchingIds = java.util.Collections.synchronizedSet(mutableSetOf<String>())
+
     private fun prefetchNextTrack() {
         val currentIndex = player.currentMediaItemIndex
         val totalItems = player.mediaItemCount
 
-        // Prefetch the next 3 tracks
-        for (i in 1..3) {
+        for (i in 1..1) {
             val nextIndex = currentIndex + i
-            if (nextIndex >= totalItems || nextIndex < 0) break
+            if (nextIndex !in 0..<totalItems) break
 
             val nextMediaItem = player.getMediaItemAt(nextIndex)
             val videoId = nextMediaItem.mediaId
 
+            if (!prefetchingIds.add(videoId)) continue
+
             coroutineScope.launch {
-                runCatching {
-                    // 1. Resolve URL (NewPipe)
+                try {
                     val uri = mediaSourceProvider.resolveUrl(videoId)
-
-                    // 2. Cache track (1MB)
                     cacheTrack(videoId, uri)
-
-                    // 3. Prefetch lyrics
                     LyricsFetcher.fetchLyrics(videoId)
-
-                    // 4. Prefetch extra metadata from InnerTube
-                    Innertube.player(videoId)?.onSuccess { response ->
-                        val highestQualityFormat = response.streamingData?.highestQualityFormat
-                        val loudnessDb = response.playerConfig?.audioConfig?.normalizedLoudnessDb
-                        query {
-                            db.insert(
-                                Format(
-                                    songId = videoId,
-                                    itag = highestQualityFormat?.itag,
-                                    mimeType = highestQualityFormat?.mimeType,
-                                    bitrate = highestQualityFormat?.bitrate,
-                                    contentLength = highestQualityFormat?.contentLength,
-                                    lastModified = highestQualityFormat?.lastModified,
-                                    loudnessDb = loudnessDb
-                                )
-                            )
-                        }
-                    }
-
-                    // 5. Prefetch artwork
                     nextMediaItem.mediaMetadata.artworkUri?.let { artworkUri ->
                         bitmapProvider.load(artworkUri) { }
                     }
+                } finally {
+                    prefetchingIds.remove(videoId)
                 }
             }
         }
@@ -373,7 +348,7 @@ class PlayerService : InvincibleService(), Player.Listener,
             .setUri(uri)
             .setKey(videoId)
             .setPosition(0)
-            .setLength(1024 * 1024L) // Cache the first 1MB
+            .setLength(512 * 1024L)
             .build()
 
         val upstreamDataSource = DefaultHttpDataSource.Factory()
