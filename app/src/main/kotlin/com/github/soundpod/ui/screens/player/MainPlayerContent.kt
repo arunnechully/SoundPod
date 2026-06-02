@@ -156,6 +156,7 @@ fun MainPlayerContent(
                         position = currentPositionMs,
                         duration = durationMs,
                         progressBarStyle = currentProgressStyle,
+                        isPlaying = shouldBePlaying,
                         onDraggingStateChange = { isDraggingSeekBar = it }
                     )
 
@@ -285,6 +286,7 @@ fun MainPlayerContent(
                     position = currentPositionMs,
                     duration = durationMs,
                     progressBarStyle = currentProgressStyle,
+                    isPlaying = shouldBePlaying,
                     onDraggingStateChange = { isDraggingSeekBar = it }
                 )
 

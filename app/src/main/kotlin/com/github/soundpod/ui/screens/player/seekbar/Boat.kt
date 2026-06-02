@@ -60,7 +60,7 @@ fun PaperBoatAnimation(
 
     val currentAmp by animateFloatAsState(
         targetValue = if (shouldAnimate) 10.dp.value else 0f,
-        animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = 250, easing = FastOutSlowInEasing),
         label = "amplitude"
     )
 

@@ -779,6 +779,7 @@ fun PlayerSeekBar(
     position: Long,
     duration: Long,
     progressBarStyle: ProgressBar,
+    isPlaying: Boolean,
     onDraggingStateChange: (Boolean) -> Unit = {}
 ) {
     val binder = LocalPlayerServiceBinder.current
@@ -799,7 +800,8 @@ fun PlayerSeekBar(
             WaveAnimation(
                 mediaId = mediaId,
                 position = position,
-                duration = duration
+                duration = duration,
+                isPlaying = isPlaying
             )
         }
 
@@ -807,7 +809,8 @@ fun PlayerSeekBar(
             BoatAnimation(
                 mediaId = mediaId,
                 position = position,
-                duration = duration
+                duration = duration,
+                isPlaying = isPlaying
             )
         }
     }
@@ -944,7 +947,8 @@ private fun PlayerSeekBarDefault(
 private fun WaveAnimation(
     mediaId: String,
     position: Long,
-    duration: Long
+    duration: Long,
+    isPlaying: Boolean
 ) {
     val binder = LocalPlayerServiceBinder.current
     binder?.player ?: return
@@ -965,7 +969,7 @@ private fun WaveAnimation(
                 scrubbingPosition = null
             },
             valueRange = 0f..duration.toFloat(),
-            isPlaying = binder.player.isPlaying
+            isPlaying = isPlaying
         )
 
         Spacer(Modifier.height(8.dp))
@@ -996,7 +1000,8 @@ private fun WaveAnimation(
 private fun BoatAnimation(
     mediaId: String,
     position: Long,
-    duration: Long
+    duration: Long,
+    isPlaying: Boolean
 ) {
     val binder = LocalPlayerServiceBinder.current
     binder?.player ?: return
@@ -1017,7 +1022,7 @@ private fun BoatAnimation(
                 scrubbingPosition = null
             },
             valueRange = 0f..duration.toFloat(),
-            isPlaying = binder.player.isPlaying
+            isPlaying = isPlaying
         )
 
         Spacer(Modifier.height(8.dp))
