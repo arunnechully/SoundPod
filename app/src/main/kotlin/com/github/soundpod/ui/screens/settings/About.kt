@@ -7,6 +7,7 @@ import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.outlined.Security
@@ -130,10 +131,11 @@ fun AboutSettingsContent(
                 title = stringResource(id = R.string.suggest_an_idea),
                 onClick = { uriHandler.openUri("https://github.com/arunnechully/SoundPod/issues/new") },
             )
+            val isRecording by viewModel.isRecordingLogs.collectAsState()
             SettingRow(
                 icon = IconSource.Icon(painterResource(id = R.drawable.bug)),
-                title = stringResource(id = R.string.report_a_bug),
-                onClick = { uriHandler.openUri("https://github.com/arunnechully/SoundPod/issues/new") },
+                title = if (isRecording) stringResource(id = R.string.stop_and_share_report) else stringResource(id = R.string.report_a_bug),
+                onClick = { viewModel.toggleLogRecording() },
             )
         }
 
@@ -192,7 +194,7 @@ fun AboutSettingsContent(
             Spacer(modifier = Modifier.height(8.dp))
             SettingsCard {
                 SwitchSetting(
-                    icon = IconSource.Vector(Icons.Default.Update),
+                    icon = IconSource.Vector(Icons.Default.NewReleases),
                     title = stringResource(id = R.string.beta_updates),
                     description = stringResource(id = R.string.beta_updates_description),
                     switchState = includePrerelease,

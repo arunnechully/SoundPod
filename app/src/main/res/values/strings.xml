@@ -238,7 +238,10 @@
     <string name="pause_song_cache">Pause song cache</string>
     <string name="pause_song_cache_description">Pause the song caching process</string>
     <string name="suggest_an_idea">Suggest an Idea</string>
-    <string name="report_a_bug">Report a bug</string>
+    <string name="report_a_bug">Generate bug report</string>
+    <string name="stop_and_share_report">Stop and share report</string>
+    <string name="bug_report_started">Bug report recording started. Perform the actions, then return here to share.</string>
+    <string name="bug_report_failed">Failed to generate bug report</string>
     <string name="seamless_update">Seamless Update</string>
     <string name="seamless_update_description">Install updates directly from app</string>
     <string name="enable_seamless_update">Enable Seamless Updates?</string>
