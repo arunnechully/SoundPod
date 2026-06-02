@@ -102,6 +102,7 @@ fun SettingsScreenLayout(
     var showDropDown by remember { mutableStateOf(false) }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { title?.invoke() },

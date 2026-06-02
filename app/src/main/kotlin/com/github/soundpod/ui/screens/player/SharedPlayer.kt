@@ -140,10 +140,12 @@ fun SharedPlayer(
         CompositionLocalProvider(value = LocalPlayerPadding provides (60.dp + systemBottomPadding)) {
             Surface(
                 color = MaterialTheme.colorScheme.background,
-                modifier = Modifier.padding(
-                    start = scaffoldPadding.calculateLeftPadding(layoutDirection),
-                    end = scaffoldPadding.calculateRightPadding(layoutDirection)
-                ),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        start = scaffoldPadding.calculateLeftPadding(layoutDirection),
+                        end = scaffoldPadding.calculateRightPadding(layoutDirection)
+                    ),
                 content = content
             )
         }
