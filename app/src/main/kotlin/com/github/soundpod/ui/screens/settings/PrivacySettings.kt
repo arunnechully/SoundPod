@@ -7,14 +7,12 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.MusicNote
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Security
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -27,18 +25,13 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import com.github.core.ui.LocalAppearance
 import com.github.soundpod.BuildConfig
 import com.github.soundpod.R
 import com.github.soundpod.ui.common.IconSource
-import com.github.soundpod.ui.components.SettingsScreenLayout
 
 @Suppress("KotlinConstantConditions")
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PrivacySettings(
-    onBackClick: () -> Unit
-) {
+fun PrivacySettingsContent() {
     val context = LocalContext.current
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
@@ -57,13 +50,22 @@ fun PrivacySettings(
     }
 
     val isNotificationGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
     } else true
 
     val isStorageGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_AUDIO) == PackageManager.PERMISSION_GRANTED
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.READ_MEDIA_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
     } else {
-        ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     val isInstallUnknownGranted = if (BuildConfig.ENABLE_UPDATER) {
@@ -72,61 +74,59 @@ fun PrivacySettings(
         } else true
     } else false
 
-    BackHandler(onBack = onBackClick)
-
-    SettingsScreenLayout(
-        title = stringResource(id = R.string.privacy),
-        shape = MaterialTheme.shapes.extraSmall,
-        onBackClick = onBackClick,
-        content = {
-
-            SettingsGroup(
-                title = stringResource(id = R.string.permissions)
-            ) {
-                if (BuildConfig.ENABLE_UPDATER) {
-                    SettingColumn(
-                        icon = IconSource.Vector(Icons.Outlined.Notifications),
-                        title = stringResource(id = R.string.notifications),
-                        description = if (isNotificationGranted) stringResource(id = R.string.allowed) else stringResource(id = R.string.denied),
-                        onClick = { openAppSettings(context) }
-                    )
-                }
-                SettingColumn(
-                    icon = IconSource.Vector(Icons.Outlined.MusicNote),
-                    title = stringResource(id = R.string.audio_permission),
-                    description = if (isStorageGranted) stringResource(id = R.string.allowed) else stringResource(id = R.string.denied),
-                    onClick = { openAppSettings(context) }
+    Column {
+        SettingsGroup(
+            title = stringResource(id = R.string.permissions)
+        ) {
+            if (BuildConfig.ENABLE_UPDATER) {
+                SettingsColumn(
+                    icon = IconSource.Vector(Icons.Outlined.Notifications),
+                    title = stringResource(id = R.string.notifications),
+                    description = if (isNotificationGranted) stringResource(id = R.string.allowed) else stringResource(
+                        id = R.string.denied
+                    ),
+                    onClick = { openAppSettings(context) },
                 )
-                if (BuildConfig.ENABLE_UPDATER) {
-                    SettingColumn(
-                        icon = IconSource.Vector(Icons.Outlined.Security),
-                        title = stringResource(id = R.string.install_unknown_apps),
-                        description = if (isInstallUnknownGranted) stringResource(id = R.string.allowed) else stringResource(id = R.string.denied),
-                        onClick = {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                val intent =
-                                    Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-                                        data = "package:${context.packageName}".toUri()
-                                    }
-                                context.startActivity(intent)
-                            }
-                        }
-                    )
-                }
             }
-            SettingsGroup(
-                title = stringResource(id = R.string.storage)
-            ) {
-                SettingColumn(
-                    icon = IconSource.Vector(Icons.Outlined.Folder),
-                    title = stringResource(id = R.string.local_data),
-                    description = stringResource(id = R.string.local_data_discription),
-                    onClick = null
+            SettingsColumn(
+                icon = IconSource.Vector(Icons.Outlined.MusicNote),
+                title = stringResource(id = R.string.audio_permission),
+                description = if (isStorageGranted) stringResource(id = R.string.allowed) else stringResource(
+                    id = R.string.denied
+                ),
+                onClick = { openAppSettings(context) },
+            )
+            if (BuildConfig.ENABLE_UPDATER) {
+                SettingsColumn(
+                    icon = IconSource.Vector(Icons.Outlined.Security),
+                    title = stringResource(id = R.string.install_unknown_apps),
+                    description = if (isInstallUnknownGranted) stringResource(id = R.string.allowed) else stringResource(
+                        id = R.string.denied
+                    ),
+                    onClick = {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            val intent =
+                                Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                                    data = "package:${context.packageName}".toUri()
+                                }
+                            context.startActivity(intent)
+                        }
+                    },
                 )
             }
         }
-    )
+        SettingsGroup(
+            title = stringResource(id = R.string.storage)
+        ) {
+            SettingsColumn(
+                icon = IconSource.Vector(Icons.Outlined.Folder),
+                title = stringResource(id = R.string.local_data),
+                description = stringResource(id = R.string.local_data_discription),
+            )
+        }
+    }
 }
+
 private fun openAppSettings(context: Context) {
     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
         data = Uri.fromParts("package", context.packageName, null)

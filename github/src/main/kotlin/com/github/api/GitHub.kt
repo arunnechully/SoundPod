@@ -14,12 +14,13 @@ object GitHub {
         }
     }
 
-    suspend fun getLastestRelease(): Release? {
+    suspend fun getLastestRelease(includePrerelease: Boolean = false): Release? {
         val response = ReleaseService(client = client).getReleases()
-        val filteredReleases = response.filter { !it.draft && !it.prerelease }
+        val filteredReleases = response.filter { !it.draft && (includePrerelease || !it.prerelease) }
         return filteredReleases.firstOrNull()
     }
-    suspend fun getLatestReleaseApkUrl(flavorName: String): String? {
-        return ReleaseService(client = client).getLatestReleaseApkUrl(flavorName)
+
+    suspend fun getLatestReleaseApkUrl(flavorName: String, includePrerelease: Boolean = false): String? {
+        return ReleaseService(client = client).getLatestReleaseApkUrl(flavorName, includePrerelease)
     }
 }

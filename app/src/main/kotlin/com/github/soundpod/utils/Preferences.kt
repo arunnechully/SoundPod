@@ -38,6 +38,7 @@ const val isShowingThumbnailInLockscreenKey = "isShowingThumbnailInLockscreen"
 const val searchResultScreenTabIndexKey = "searchResultScreenTabIndex"
 const val artistScreenTabIndexKey = "artistScreenTabIndex"
 const val pauseSearchHistoryKey = "pauseSearchHistory"
+const val selectedSleepTimerPresetKey = "selectedSleepTimerPreset"
 
 const val pauseSongCacheKey = "pauseSongCache"
 const val quickPicksSourceKey = "quickPicksSource"

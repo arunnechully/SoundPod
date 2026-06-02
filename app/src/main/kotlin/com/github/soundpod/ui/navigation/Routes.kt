@@ -45,4 +45,5 @@ object SettingsDestinations {
     const val MORE = "settings_more"
     const val EXPERIMENT = "settings_experiment"
     const val ABOUT = "settings_about"
+    const val SLEEP_TIMER = "settings_sleep_timer"
 }

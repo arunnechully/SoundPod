@@ -4,33 +4,39 @@ package com.github.soundpod.ui.screens.settings
 
 import android.annotation.SuppressLint
 import android.text.format.Formatter
-import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import androidx.annotation.OptIn
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.ManageHistory
 import androidx.compose.material.icons.outlined.MusicNote
 import androidx.compose.material.icons.outlined.RestartAlt
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import coil3.imageLoader
+import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.db
@@ -39,9 +45,7 @@ import com.github.soundpod.enums.ExoPlayerDiskCacheMaxSize
 import com.github.soundpod.enums.QuickPicksSource
 import com.github.soundpod.query
 import com.github.soundpod.ui.common.IconSource
-import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.components.SwitchSetting
-import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.utils.coilDiskCacheMaxSizeKey
 import com.github.soundpod.utils.exoPlayerDiskCacheMaxSizeKey
 import com.github.soundpod.utils.pauseSearchHistoryKey
@@ -51,15 +55,13 @@ import com.github.soundpod.utils.rememberPreference
 import kotlinx.coroutines.flow.distinctUntilChanged
 
 @SuppressLint("LocalContextGetResourceValueCall")
-@androidx.annotation.OptIn(UnstableApi::class)
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(UnstableApi::class)
 @Composable
-fun CacheSettings(
-    onBackClick: () -> Unit
-) {
+fun CacheSettingsContent() {
 
     val context = LocalContext.current
     val binder = LocalPlayerServiceBinder.current
+    LocalAppearance.current.colorPalette
 
     var coilDiskCacheMaxSize by rememberPreference(
         coilDiskCacheMaxSizeKey,
@@ -80,93 +82,80 @@ fun CacheSettings(
     var quickPicksSource by rememberPreference(quickPicksSourceKey, QuickPicksSource.Trending)
 
     var showClearQuickPicksDialog by remember { mutableStateOf(false) }
+    var showClearImageCacheDialog by remember { mutableStateOf(false) }
+    var showClearSongCacheDialog by remember { mutableStateOf(false) }
 
-    BackHandler(onBack = onBackClick)
+    var refreshTrigger by remember { mutableIntStateOf(0) }
 
-    SettingsScreenLayout(
-        title = stringResource(id = R.string.database),
-        shape = MaterialTheme.shapes.extraSmall,
-        onBackClick = onBackClick,
-        content = {
+    Column {
 
-            SettingsGroup{
-                EnumValueSelectorSettingsEntry(
-                    title = stringResource(id = R.string.quick_picks_source),
-                    selectedValue = quickPicksSource,
-                    onValueSelected = { quickPicksSource = it },
-                    icon = IconSource.Vector(Icons.Default.AutoAwesome),
-                    valueText = { context.getString(it.resourceId) }
-                )
+        SettingsGroup {
+            EnumValueSelectorSettingsEntry(
+                title = stringResource(id = R.string.quick_picks_source),
+                selectedValue = quickPicksSource,
+                onValueSelected = { quickPicksSource = it },
+                icon = IconSource.Vector(Icons.Default.AutoAwesome),
+                valueText = { context.getString(it.resourceId) }
+            )
 
-                SwitchSetting(
-                    icon = IconSource.Vector(Icons.Outlined.ManageHistory),
-                    title = stringResource(id = R.string.pause_search_history),
-                    description = stringResource(id = R.string.pause_search_history_description),
-                    switchState = pauseSearchHistory,
-                    onSwitchChange = { pauseSearchHistory = it }
-                )
+            SwitchSetting(
+                icon = IconSource.Vector(Icons.Outlined.ManageHistory),
+                title = stringResource(id = R.string.pause_search_history),
+                description = stringResource(id = R.string.pause_search_history_description),
+                switchState = pauseSearchHistory,
+                onSwitchChange = { pauseSearchHistory = it }
+            )
 
-                SwitchSetting(
-                    icon = IconSource.Icon( painterResource(id = R.drawable.database)),
-                    title = stringResource(id = R.string.pause_song_cache),
-                    description = stringResource(id = R.string.pause_song_cache_description),
-                    switchState = pauseSongCache,
-                    onSwitchChange = { pauseSongCache = it }
-                )
-            }
-            SettingsGroup{
-                SettingColumn(
-                    icon = IconSource.Vector(Icons.Outlined.RestartAlt),
-                    title = stringResource(id = R.string.reset_quick_picks),
-                    description = if (eventsCount > 0) {
-                        stringResource(id = R.string.delete_playback_events, eventsCount)
-                    } else {
-                        stringResource(id = R.string.quick_picks_cleared)
-                    },
-                    onClick = { showClearQuickPicksDialog = true },
-                    isEnabled = eventsCount > 0
-                )
-            }
+            SwitchSetting(
+                icon = IconSource.Icon(painterResource(id = R.drawable.database)),
+                title = stringResource(id = R.string.pause_song_cache),
+                description = stringResource(id = R.string.pause_song_cache_description),
+                switchState = pauseSongCache,
+                onSwitchChange = { pauseSongCache = it }
+            )
+        }
+        SettingsGroup {
+            SettingsColumn(
+                icon = IconSource.Vector(Icons.Outlined.RestartAlt),
+                title = stringResource(id = R.string.reset_quick_picks),
+                description = if (eventsCount > 0) {
+                    stringResource(id = R.string.delete_playback_events, eventsCount)
+                } else {
+                    stringResource(id = R.string.quick_picks_cleared)
+                },
+                onClick = { showClearQuickPicksDialog = true },
+                isEnabled = eventsCount > 0,
+            )
+        }
 
-            if (showClearQuickPicksDialog) {
-                AlertDialog(
-                    onDismissRequest = { showClearQuickPicksDialog = false },
-                    title = {
-                        Text(text = stringResource(id = R.string.reset_quick_picks))
-                    },
-                    text = {
-                        Text(text = stringResource(id = R.string.reset_quick_picks_alert))
-                    },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                query(db::clearEvents)
-                                showClearQuickPicksDialog = false
-                            }
-                        ) {
-                            Text(text = stringResource(android.R.string.ok))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(
-                            onClick = { showClearQuickPicksDialog = false }
-                        ) {
-                            Text(text = stringResource(android.R.string.cancel))
-                        }
-                    }
-                )
-            }
+        if (showClearQuickPicksDialog) {
+            SettingsAlertDialog(
+                title = stringResource(id = R.string.reset_quick_picks),
+                onDismissRequest = { showClearQuickPicksDialog = false },
+                onConfirmClick = {
+                    query(db::clearEvents)
+                    showClearQuickPicksDialog = false
+                },
+                alertMessage = stringResource(id = R.string.reset_quick_picks_alert)
+            )
+        }
 
-            SettingsGroup(
-                title = stringResource(id = R.string.image_cache)
-            ) {
-                context.imageLoader.diskCache?.let { diskCache ->
-                    val diskCacheSize = remember(diskCache) {
-                        diskCache.size
-                    }
-                    Spacer(modifier = Modifier.height(Dimensions.spacer))
-
+        SettingsGroup(
+            title = stringResource(id = R.string.image_cache)
+        ) {
+            val (colorPalette) = LocalAppearance.current
+            context.imageLoader.diskCache?.let { diskCache ->
+                val diskCacheSize = remember(diskCache, refreshTrigger) {
+                    diskCache.size
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     SettingsProgress(
+                        modifier = Modifier.weight(1f),
                         text = Formatter.formatShortFileSize(
                             context,
                             diskCacheSize
@@ -176,28 +165,61 @@ fun CacheSettings(
                         ).toFloat()
                     )
 
-                    EnumValueSelectorSettingsEntry(
-                        title = stringResource(id = R.string.max_size),
-                        selectedValue = coilDiskCacheMaxSize,
-                        onValueSelected = { coilDiskCacheMaxSize = it },
-                        icon = IconSource.Vector(Icons.Outlined.Image)
-                    )
+                    TextButton(
+                        onClick = { showClearImageCacheDialog = true },
+                        modifier = Modifier.padding(start = 8.dp),
+                        shape = CircleShape,
+                        colors = ButtonDefaults.textButtonColors(
+                            containerColor = colorPalette.accent.copy(alpha = 0.1f),
+                            contentColor = colorPalette.accent
+                        ),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.clear_cache),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
+            EnumValueSelectorSettingsEntry(
+                title = stringResource(id = R.string.max_size),
+                selectedValue = coilDiskCacheMaxSize,
+                onValueSelected = { coilDiskCacheMaxSize = it },
+                icon = IconSource.Vector(Icons.Outlined.Image)
+            )
+        }
 
-            SettingsGroup(
-                title = stringResource(id = R.string.song_cache)
-            ) {
-                binder?.cache?.let { cache ->
-                    val diskCacheSize by remember {
-                        derivedStateOf {
-                            cache.cacheSpace
-                        }
-                    }
+        if (showClearImageCacheDialog) {
 
-                    Spacer(modifier = Modifier.height(Dimensions.spacer))
+            SettingsAlertDialog(
+                title = stringResource(id = R.string.clear_cache),
+                onDismissRequest = { showClearImageCacheDialog = false },
+                onConfirmClick = {
+                    context.imageLoader.diskCache?.clear()
+                    refreshTrigger++
+                    showClearImageCacheDialog = false
+                },
+                alertMessage = stringResource(id = R.string.clear_image_cache)
+            )
+        }
+        val (colorPalette) = LocalAppearance.current
 
+        SettingsGroup(
+            title = stringResource(id = R.string.audio_cache)
+        ) {
+            binder?.cache?.let { cache ->
+                val diskCacheSize = remember(cache, refreshTrigger) {
+                    cache.cacheSpace
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     SettingsProgress(
+                        modifier = Modifier.weight(1f),
                         text = Formatter.formatShortFileSize(
                             context,
                             diskCacheSize
@@ -208,15 +230,46 @@ fun CacheSettings(
                         }
                     )
 
-                    EnumValueSelectorSettingsEntry(
-                        title = stringResource(id = R.string.max_size),
-                        selectedValue = exoPlayerDiskCacheMaxSize,
-                        onValueSelected = { exoPlayerDiskCacheMaxSize = it },
-                        icon = IconSource.Vector(Icons.Outlined.MusicNote)
-                    )
+                    TextButton(
+                        onClick = { showClearSongCacheDialog = true },
+                        modifier = Modifier.padding(start = 8.dp),
+                        shape = CircleShape,
+                        colors = ButtonDefaults.textButtonColors(
+                            containerColor = colorPalette.accent.copy(alpha = 0.1f),
+                            contentColor = colorPalette.accent
+                        ),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.clear_cache),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
-            SettingsInformation(text = stringResource(id = R.string.cache_information))
+            EnumValueSelectorSettingsEntry(
+                title = stringResource(id = R.string.max_size),
+                selectedValue = exoPlayerDiskCacheMaxSize,
+                onValueSelected = { exoPlayerDiskCacheMaxSize = it },
+                icon = IconSource.Vector(Icons.Outlined.MusicNote)
+            )
         }
-    )
+
+        if (showClearSongCacheDialog) {
+
+            SettingsAlertDialog(
+                title = stringResource(id = R.string.clear_cache),
+                onDismissRequest = { showClearSongCacheDialog = false },
+                onConfirmClick = {
+                    binder?.cache?.let { cache ->
+                        cache.keys.forEach { cache.removeResource(it) }
+                    }
+                    refreshTrigger++
+                    showClearSongCacheDialog = false
+                },
+                alertMessage = stringResource(id = R.string.clear_audio_cache)
+            )
+        }
+        SettingsInformation(text = stringResource(id = R.string.cache_information))
+    }
 }

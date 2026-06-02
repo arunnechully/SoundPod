@@ -36,8 +36,9 @@ class PlayerMediaSourceProvider(
     private val resolutionLocks = ConcurrentHashMap<String, ReentrantLock>()
     
     companion object {
-        private const val CACHE_EXPIRATION_MS = 3600000L
-        private const val DEFAULT_USER_AGENT = "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.193 Mobile Safari/537.36"
+        // Increase cache time to 4 hours since YouTube URLs usually last that long
+        private const val CACHE_EXPIRATION_MS = 4 * 3600000L 
+        private const val DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
 
     fun createMediaSourceFactory(): MediaSource.Factory {
@@ -46,11 +47,14 @@ class PlayerMediaSourceProvider(
     }
 
     private fun createCacheDataSource(): DataSource.Factory {
-        val upstreamFactory = DefaultHttpDataSource.Factory()
-            .setConnectTimeoutMs(16000)
-            .setReadTimeoutMs(8000)
-            .setAllowCrossProtocolRedirects(true)
-            .setUserAgent(DEFAULT_USER_AGENT)
+        val upstreamFactory = androidx.media3.datasource.DefaultDataSource.Factory(
+            context,
+            DefaultHttpDataSource.Factory()
+                .setConnectTimeoutMs(16000)
+                .setReadTimeoutMs(8000)
+                .setAllowCrossProtocolRedirects(true)
+                .setUserAgent(DEFAULT_USER_AGENT)
+        )
 
         return DataSource.Factory {
             val pauseSongCache = context.preferences.getBoolean(pauseSongCacheKey, false)
@@ -71,7 +75,9 @@ class PlayerMediaSourceProvider(
     private fun createDataSourceFactory(): DataSource.Factory {
         return ResolvingDataSource.Factory(createCacheDataSource()) { dataSpec ->
             val videoId = dataSpec.key ?: throw java.io.IOException("A key must be set")
-            if (cacheManager.cache.isCached(videoId, dataSpec.position, 100 * 1024L)) {
+            if (videoId.startsWith("content://") || videoId.startsWith("file://")) {
+                dataSpec
+            } else if (cacheManager.cache.isCached(videoId, dataSpec.position, 100 * 1024L)) {
                 dataSpec
             } else {
                 val uri = resolveUrl(videoId)
@@ -92,7 +98,7 @@ class PlayerMediaSourceProvider(
             }
 
             val urlResult = runCatching {
-                val streamExtractor = ServiceList.YouTube.getStreamExtractor("https://www.youtube.com/watch?v=$videoId")
+                val streamExtractor = ServiceList.YouTube.getStreamExtractor("https://music.youtube.com/watch?v=$videoId")
                 streamExtractor.fetchPage()
 
                 val audioStreams = streamExtractor.audioStreams

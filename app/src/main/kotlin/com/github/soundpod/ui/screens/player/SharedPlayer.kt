@@ -58,6 +58,7 @@ import androidx.media3.common.Timeline
 fun SharedPlayer(
     navController: NavController,
     onNavigateToSettings: () -> Unit,
+    onNavigateToSleepTimer: () -> Unit,
     sheetState: SheetState,
     scaffoldPadding: PaddingValues,
     showPlayer: Boolean,
@@ -239,6 +240,7 @@ fun SharedPlayer(
                                     },
                                     showLyrics = showLyrics,
                                     onSettingsClick = onNavigateToSettings,
+                                    onSleepTimerClick = onNavigateToSleepTimer,
                                     onTogglePlaylist = {
                                         showPlaylist = it
                                         if (it) showLyrics = false

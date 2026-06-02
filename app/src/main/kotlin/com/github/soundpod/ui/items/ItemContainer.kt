@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
@@ -30,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -38,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.media3.common.MediaItem
 import coil3.compose.AsyncImage
 import com.github.innertube.Innertube
+import com.github.soundpod.R
 import com.github.soundpod.models.Song
 import com.github.soundpod.ui.components.TextPlaceholder
 import com.github.soundpod.ui.styling.px
@@ -252,8 +255,14 @@ fun SongItem(
         leadingContent = leadingContent,
         thumbnail = if (showThumbnail) {
             { size: Dp ->
-                Box {
+                Box(contentAlignment = Alignment.Center) {
                     if (thumbnailContent == null) {
+                        Icon(
+                            painter = painterResource(R.drawable.app_icon),
+                            contentDescription = null,
+                            modifier = Modifier.size(size / 2),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        )
                         AsyncImage(
                             model = song.thumbnail?.size(size.px),
                             contentDescription = null,
@@ -297,8 +306,14 @@ fun LocalSongItem(
         leadingContent = leadingContent,
         thumbnail = if (showThumbnail) {
             { size: Dp ->
-                Box {
+                Box(contentAlignment = Alignment.Center) {
                     if (thumbnailContent == null) {
+                        Icon(
+                            painter = painterResource(R.drawable.app_icon),
+                            contentDescription = null,
+                            modifier = Modifier.size(size / 2),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        )
                         AsyncImage(
                             model = song.thumbnailUrl?.thumbnail(size.px),
                             contentDescription = null,
@@ -348,8 +363,14 @@ fun MediaSongItem(
         leadingContent = leadingContent,
         thumbnail = if (showThumbnail) {
             { size: Dp ->
-                Box {
+                Box(contentAlignment = Alignment.Center) {
                     if (thumbnailContent == null) {
+                        Icon(
+                            painter = painterResource(R.drawable.app_icon),
+                            contentDescription = null,
+                            modifier = Modifier.size(size / 2),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        )
                         AsyncImage(
                             model = song.mediaMetadata.artworkUri.thumbnail(size.px),
                             contentDescription = null,

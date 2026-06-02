@@ -51,7 +51,6 @@ import com.github.innertube.models.NavigationEndpoint
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
-import com.github.soundpod.db
 import com.github.soundpod.enums.QuickPicksSource
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.query
@@ -124,7 +123,7 @@ fun QuickPicks(
             Text(
                 text = stringResource(id = R.string.quick_picks),
                 style = MaterialTheme.typography.titleMedium,
-                modifier = sectionTextModifier
+                modifier = sectionTextModifier.padding(top = 8.dp)
             )
 
             LazyHorizontalGrid(
@@ -134,44 +133,9 @@ fun QuickPicks(
                     .fillMaxWidth()
                     .height((songThumbnailSizeDp + Dimensions.itemsVerticalPadding * 2) * 4)
             ) {
-                viewModel.trending?.let { song ->
-                    item {
-                        LocalSongItem(
-                            modifier = Modifier
-                                .animateItem()
-                                .width(itemInHorizontalGridWidth),
-                            song = song,
-                            onClick = {
-                                val mediaItem = song.asMediaItem
-                                binder?.stopRadio()
-                                binder?.player?.forcePlay(mediaItem)
-                                binder?.setupRadio(
-                                    NavigationEndpoint.Endpoint.Watch(videoId = mediaItem.mediaId)
-                                )
-                            },
-                            onLongClick = {
-                                menuState.display {
-                                    NonQueuedMediaItemMenu(
-                                        onDismiss = menuState::hide,
-                                        mediaItem = song.asMediaItem,
-                                        onRemoveFromQuickPicks = {
-                                            query {
-                                                db.clearEventsFor(song.id)
-                                            }
-                                        },
-                                        onGoToAlbum = onAlbumClick,
-                                        onGoToArtist = onArtistClick
-                                    )
-                                }
-                            }
-                        )
-                    }
-                }
-
                 items(
-                    items = related.songs?.dropLast(if (viewModel.trending == null) 0 else 1)
-                        ?: emptyList(),
-                    key = Innertube.SongItem::key
+                    items = related.songs ?: emptyList(),
+                    key = { it.key + it.info?.endpoint?.playlistId.orEmpty() }
                 ) { song ->
                     SongItem(
                         modifier = Modifier

@@ -66,7 +66,7 @@ import com.github.soundpod.utils.rememberPreference
 private data class BackgroundPreset(val title: String, val asset: String, val styleId: Int)
 
 @Composable
-fun BackgroundSettings(onBackClick: () -> Unit) {
+fun BackgroundSettingsContent() {
     val (colorPalette) = LocalAppearance.current
     val context = LocalContext.current
     val prefs = context.preferences
@@ -96,11 +96,7 @@ fun BackgroundSettings(onBackClick: () -> Unit) {
         BackgroundPreset("$presetBaseName 4", "lottie/bg4.lottie", BackgroundStyles.ABSTRACT_4)
     )
 
-    SettingsScreenLayout(
-        title = stringResource(id = R.string.player_background),
-        shape = MaterialTheme.shapes.extraSmall,
-        onBackClick = onBackClick
-    ) {
+    Column {
 
         SettingsGroup(
             title = stringResource(id = R.string.style)

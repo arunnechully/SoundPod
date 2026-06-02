@@ -158,6 +158,13 @@ class MainActivity : ComponentActivity() {
                 AppThemeColor.Light -> false
             }
 
+            LaunchedEffect(darkTheme) {
+                enableEdgeToEdge(
+                    statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { darkTheme },
+                    navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { darkTheme }
+                )
+            }
+
             AppTheme(
                 darkTheme = darkTheme,
                 usePureBlack = false,
@@ -176,6 +183,12 @@ class MainActivity : ComponentActivity() {
                             showPlayer = isPlayerVisible,
                             onNavigateToSettings = {
                                 val intent = Intent(context, SettingsActivity::class.java)
+                                context.startActivity(intent)
+                            },
+                            onNavigateToSleepTimer = {
+                                val intent = Intent(context, SettingsActivity::class.java).apply {
+                                    putExtra("SCREEN_ID", SettingsDestinations.SLEEP_TIMER)
+                                }
                                 context.startActivity(intent)
                             }
                         ) {
