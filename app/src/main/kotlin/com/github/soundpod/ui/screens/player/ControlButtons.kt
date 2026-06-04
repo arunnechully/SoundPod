@@ -76,6 +76,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.C
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.github.core.ui.LocalAppearance
@@ -101,6 +102,7 @@ import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.shuffleQueue
 import com.github.soundpod.utils.toast
 import com.github.soundpod.utils.trackLoopEnabledKey
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlin.math.PI
 import kotlin.math.cos
@@ -131,6 +133,42 @@ fun AnimatedIconButton(
             scaleX = scale
             scaleY = scale
         },
+        enabled = enabled,
+        interactionSource = interactionSource,
+        content = content
+    )
+}
+
+@Composable
+private fun HoldableAnimatedIconButton(
+    onClick: () -> Unit,
+    onHold: (suspend () -> Unit)? = null,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    content: @Composable () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    var isLongPress by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isPressed) {
+        if (isPressed) {
+            delay(400)
+            if (isPressed && onHold != null) {
+                isLongPress = true
+                onHold()
+            }
+        } else {
+            if (isLongPress) {
+                delay(200)
+                isLongPress = false
+            }
+        }
+    }
+
+    AnimatedIconButton(
+        onClick = { if (!isLongPress) onClick() },
+        modifier = modifier,
         enabled = enabled,
         interactionSource = interactionSource,
         content = content
@@ -315,12 +353,25 @@ fun MiniPlayerControl(
         modifier = Modifier
     ) {
         //skip back button
-        AnimatedIconButton(
-            onClick = { player.forceSeekToPrevious() }, modifier = modifier.size(42.dp)
+        HoldableAnimatedIconButton(
+            onClick = { player.forceSeekToPrevious() },
+            onHold = {
+                val duration = player.duration
+                val skipAmount = if (duration != C.TIME_UNSET && duration > 0) {
+                    (duration / 100).coerceIn(1000L, 10000L)
+                } else {
+                    1000L
+                }
+                while (true) {
+                    player.seekTo((player.currentPosition - skipAmount).coerceAtLeast(0))
+                    delay(100)
+                }
+            },
+            modifier = modifier.size(42.dp)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.fast_backward),
-                contentDescription = if (playing) "Pause" else "Play",
+                contentDescription = null,
                 tint = colorPalette.iconColor,
                 modifier = Modifier.size(16.dp)
             )
@@ -353,8 +404,18 @@ fun MiniPlayerControl(
         }
 
         //skip forward button
-        AnimatedIconButton(
-            onClick = { player.forceSeekToNext() }, modifier = modifier.size(42.dp)
+        HoldableAnimatedIconButton(
+            onClick = { player.forceSeekToNext() },
+            onHold = {
+                val originalParameters = player.playbackParameters
+                try {
+                    player.playbackParameters = PlaybackParameters(4f, originalParameters.pitch)
+                    delay(Long.MAX_VALUE)
+                } finally {
+                    player.playbackParameters = originalParameters
+                }
+            },
+            modifier = modifier.size(42.dp)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.fast_forward),
@@ -500,8 +561,20 @@ fun PlayerControlBottom(
         }
 
         // Previous
-        AnimatedIconButton(
-            onClick = { binder.player.forceSeekToPrevious() }
+        HoldableAnimatedIconButton(
+            onClick = { player.forceSeekToPrevious() },
+            onHold = {
+                val duration = player.duration
+                val skipAmount = if (duration != C.TIME_UNSET && duration > 0) {
+                    (duration / 100).coerceIn(1000L, 10000L)
+                } else {
+                    1000L
+                }
+                while (true) {
+                    player.seekTo((player.currentPosition - skipAmount).coerceAtLeast(0))
+                    delay(100)
+                }
+            }
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.fast_backward),
@@ -532,8 +605,17 @@ fun PlayerControlBottom(
         }
 
         // Next
-        AnimatedIconButton(
-            onClick = { binder.player.forceSeekToNext() },
+        HoldableAnimatedIconButton(
+            onClick = { player.forceSeekToNext() },
+            onHold = {
+                val originalParameters = player.playbackParameters
+                try {
+                    player.playbackParameters = PlaybackParameters(4f, originalParameters.pitch)
+                    delay(Long.MAX_VALUE)
+                } finally {
+                    player.playbackParameters = originalParameters
+                }
+            }
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.fast_forward),

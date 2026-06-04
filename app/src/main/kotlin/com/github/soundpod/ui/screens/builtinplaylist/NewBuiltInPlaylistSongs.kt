@@ -57,6 +57,7 @@ import com.github.soundpod.enums.SongSortBy
 import com.github.soundpod.enums.SortOrder
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.models.Song
+import com.github.soundpod.models.SongWithContentLength
 import com.github.soundpod.ui.components.CircleDragHandle
 import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
 import com.github.soundpod.ui.components.SortingHeader
@@ -108,7 +109,7 @@ fun NewBuiltInPlaylistSongs(
         songs = mutableSongs
     }
 
-    LaunchedEffect(builtInPlaylist, sortBy, sortOrder, showCachedSongsInOffline) {
+    LaunchedEffect(builtInPlaylist, sortBy, sortOrder, showCachedSongsInOffline, binder) {
         when (builtInPlaylist) {
             BuiltInPlaylist.Favorites -> {
                 db.favorites()
@@ -125,11 +126,21 @@ fun NewBuiltInPlaylistSongs(
 
             BuiltInPlaylist.Offline -> {
                 if (showCachedSongsInOffline) {
-                    db.songs(sortBy, sortOrder)
-                        .map { sortedSongs ->
-                            sortedSongs.filter { item ->
-                                binder?.cache?.isCached(item.id, 0, Long.MAX_VALUE) ?: false
-                            }
+                    db.songsWithContentLength()
+                        .map { songsWithLength ->
+                            songsWithLength.filter { item ->
+                                item.contentLength?.let {
+                                    binder?.cache?.isCached(item.song.id, 0, it)
+                                } ?: false
+                            }.map { it.song }
+                                .let { songs ->
+                                    when (sortBy) {
+                                        SongSortBy.Title -> if (sortOrder == SortOrder.Ascending) songs.sortedBy { it.title } else songs.sortedByDescending { it.title }
+                                        SongSortBy.PlayTime -> if (sortOrder == SortOrder.Ascending) songs.sortedBy { it.totalPlayTimeMs } else songs.sortedByDescending { it.totalPlayTimeMs }
+                                        SongSortBy.DateAdded -> if (sortOrder == SortOrder.Ascending) songs.reversed() else songs
+                                        SongSortBy.Artist -> if (sortOrder == SortOrder.Ascending) songs.sortedBy { it.artistsText.toString() } else songs.sortedByDescending { it.artistsText.toString() }
+                                    }
+                                }
                         }
                         .flowOn(Dispatchers.IO)
                 } else {

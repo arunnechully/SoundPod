@@ -71,7 +71,7 @@ fun BuiltInPlaylistSongs(
 
     var songs: List<Song> by remember { mutableStateOf(emptyList()) }
 
-    LaunchedEffect(builtInPlaylist, showCachedSongsInOffline) {
+    LaunchedEffect(builtInPlaylist, showCachedSongsInOffline, binder) {
         when (builtInPlaylist) {
             BuiltInPlaylist.Favorites -> db.favorites()
 
