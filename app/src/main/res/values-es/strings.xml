@@ -229,11 +229,15 @@
     <string name="material_you">MaterialYou</string>
     <string name="progress_bar_style">Estilo de barra de progreso</string>
     <string name="background_style">Estilo de fondo</string>
+    <string name="morphing_glow">Morphing Glow</string>
     <string name="wave">Onda</string>
     <string name="pause_song_cache">Pausar caché de canciones</string>
     <string name="pause_song_cache_description">Pausar el almacenamiento en caché de canciones</string>
     <string name="suggest_an_idea">Sugiere una idea</string>
-    <string name="report_a_bug">Informar de un error</string>
+    <string name="report_a_bug">Generate bug report</string>
+    <string name="stop_and_share_report">Stop and share report</string>
+    <string name="bug_report_started">Bug report recording started. Perform the actions, then return here to share.</string>
+    <string name="bug_report_failed">Failed to generate bug report</string>
     <string name="seamless_update">Actualización sin interrupciones</string>
     <string name="seamless_update_description">Instalar actualizaciones directamente desde la app</string>
     <string name="enable_seamless_update">​¿Activar actualizaciones sin interrupciones?</string>
@@ -294,6 +298,7 @@
     <string name="add_custom">Agregar personalizado</string>
     <string name="custom_image">Imagen personalizada</string>
     <string name="preset">Programar</string>
+    <string name="presets">Presets</string>
     <string name="allowed">Permitido</string>
     <string name="denied">Denegado</string>
     <string name="audio_permission">Permiso de audio</string>
@@ -327,4 +332,6 @@
     <string name="album">Álbum</string>
     <string name="clear_image_cache">¿Está seguro de que desea borrar la caché de imágenes? Esta acción no se puede deshacer.</string>
     <string name="clear_audio_cache">¿Está seguro de que desea borrar la caché de audio? Esta acción no se puede deshacer.</string>
+    <string name="show_cached_songs">Show cached songs</string>
+    <string name="show_cached_songs_description">Show cached songs in the offline playlist</string>
 </resources>
