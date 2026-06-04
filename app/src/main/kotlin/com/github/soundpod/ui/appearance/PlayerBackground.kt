@@ -4,12 +4,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import coil3.compose.AsyncImage
+import com.github.core.ui.LocalAppearance
 import com.github.soundpod.utils.rememberPreference
 
 const val PLAYER_BACKGROUND_STYLE_KEY = "player_background_style"
@@ -26,6 +32,7 @@ object BackgroundStyles {
     const val ABSTRACT_2 = 2
     const val ABSTRACT_3 = 3
     const val ABSTRACT_4 = 4
+    const val MORPHING = 5
     const val CUSTOM_IMAGE = 99
 }
 
@@ -33,10 +40,12 @@ object BackgroundStyles {
 fun PlayerBackground(
     thumbnailUrl: String?,
     modifier: Modifier = Modifier,
+    isPlaying: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val currentStyle by rememberPreference(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.DYNAMIC)
     val customImagePath by rememberPreference(PLAYER_BACKGROUND_CUSTOM_IMAGE_KEY, "")
+    val (colorPalette) = LocalAppearance.current
 
     // Read new customization prefs
     val isAnimated by rememberPreference(PLAYER_BACKGROUND_IS_ANIMATED, true)
@@ -47,8 +56,23 @@ fun PlayerBackground(
                 // Now passing the animation preference
                 DynamicBackground(
                     thumbnailUrl = thumbnailUrl,
-                    animate = isAnimated,
+                    animate = isAnimated && isPlaying,
                     content = {}
+                )
+            }
+            BackgroundStyles.MORPHING -> {
+                // Use sampled color clusters from the thumbnail
+                val context = LocalContext.current
+                var clusters by remember { 
+                    mutableStateOf(ColorClusters(colorPalette.background1, colorPalette.background2, colorPalette.accent)) 
+                }
+                LaunchedEffect(thumbnailUrl, colorPalette) {
+                    clusters = extractColorClusters(context, thumbnailUrl, colorPalette.background1)
+                }
+                MorphingBackground(
+                    colors = clusters,
+                    isDark = colorPalette.isDark,
+                    isPlaying = isPlaying
                 )
             }
             BackgroundStyles.CUSTOM_IMAGE -> {

@@ -107,6 +107,12 @@ fun BackgroundSettingsContent() {
                 selected = currentStyle == BackgroundStyles.DYNAMIC,
                 onClick = { prefs.edit { putInt(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.DYNAMIC) } }
             )
+            BackgroundOptionItem(
+                title = stringResource(id = R.string.morphing_glow),
+                description = stringResource(id = R.string.dynamic_colors_discription), // Reuse or add new
+                selected = currentStyle == BackgroundStyles.MORPHING,
+                onClick = { prefs.edit { putInt(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.MORPHING) } }
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))

@@ -43,12 +43,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
+import com.github.soundpod.R
 import com.github.soundpod.db
 import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.enums.SongSortBy
@@ -271,23 +273,18 @@ fun NewBuiltInPlaylistSongs(
                 }
             }
         }
-        if (songs.isEmpty() && builtInPlaylist == BuiltInPlaylist.Favorites) {
-            Column(
-                modifier = Modifier.align(Alignment.Center),
-                horizontalAlignment = Alignment.CenterHorizontally
+        if (songs.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                AsyncImage(
-                    model = "file:///android_asset/img/A3.webp",
-                    contentDescription = null,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.size(280.dp)
-                )
-
                 Text(
-                    text = "No favorite songs yet",
+                    text = when (builtInPlaylist) {
+                        BuiltInPlaylist.Favorites -> "No favorite songs yet"
+                        BuiltInPlaylist.Offline -> stringResource(R.string.no_songs_found)
+                    },
                     style = MaterialTheme.typography.titleMedium,
-                    color = colorPalette.text.copy(alpha = 0.6f),
-                    modifier = Modifier.padding(top = 16.dp)
+                    color = colorPalette.text.copy(alpha = 0.6f)
                 )
             }
         }

@@ -41,43 +41,41 @@ class PlayerMediaSourceProvider(
             .setLoadErrorHandlingPolicy(YouTube403ErrorPolicy(urlCache))
     }
 
-    private fun createCacheDataSource(): DataSource.Factory {
-        val upstreamFactory = androidx.media3.datasource.DefaultDataSource.Factory(
-            context,
-            DefaultHttpDataSource.Factory()
-                .setConnectTimeoutMs(16000)
-                .setReadTimeoutMs(8000)
-                .setAllowCrossProtocolRedirects(true)
-                .setUserAgent(DEFAULT_USER_AGENT)
-        )
-
-        return DataSource.Factory {
-            val pauseSongCache = context.preferences.getBoolean(pauseSongCacheKey, false)
-
-            val cacheFactory = CacheDataSource.Factory()
-                .setCache(cacheManager.cache)
-                .setUpstreamDataSourceFactory(upstreamFactory)
-
-            if (pauseSongCache) {
-                cacheFactory.setCacheWriteDataSinkFactory(null)
-            } else {
-                cacheFactory.setCacheWriteDataSinkFactory(CacheDataSink.Factory().setCache(cacheManager.cache))
-            }
-            cacheFactory.createDataSource()
-        }
-    }
-
     private fun createDataSourceFactory(): DataSource.Factory {
-        return ResolvingDataSource.Factory(createCacheDataSource()) { dataSpec ->
+        val httpDataSourceFactory = DefaultHttpDataSource.Factory()
+            .setConnectTimeoutMs(16000)
+            .setReadTimeoutMs(8000)
+            .setAllowCrossProtocolRedirects(true)
+            .setUserAgent(DEFAULT_USER_AGENT)
+
+        val upstreamFactory = androidx.media3.datasource.DefaultDataSource.Factory(context, httpDataSourceFactory)
+
+        val resolvingUpstreamFactory = ResolvingDataSource.Factory(upstreamFactory) { dataSpec ->
             val videoId = dataSpec.key ?: throw java.io.IOException("A key must be set")
-            if (videoId.startsWith("content://") || videoId.startsWith("file://")) {
-                dataSpec
-            } else if (cacheManager.cache.isCached(videoId, dataSpec.position, 100 * 1024L)) {
+            if (videoId.startsWith("http") || videoId.startsWith("content://") || videoId.startsWith("file://")) {
                 dataSpec
             } else {
                 val uri = resolveUrl(videoId)
                 dataSpec.withUri(uri)
             }
+        }
+
+        return DataSource.Factory {
+            val pauseSongCache = context.preferences.getBoolean(pauseSongCacheKey, false)
+
+            val cacheDataSource = CacheDataSource.Factory()
+                .setCache(cacheManager.cache)
+                .setUpstreamDataSourceFactory(resolvingUpstreamFactory)
+                .apply {
+                    if (pauseSongCache) {
+                        setCacheWriteDataSinkFactory(null)
+                    } else {
+                        setCacheWriteDataSinkFactory(CacheDataSink.Factory().setCache(cacheManager.cache))
+                    }
+                }
+                .createDataSource()
+
+            cacheDataSource
         }
     }
 

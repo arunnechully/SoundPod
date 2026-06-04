@@ -90,6 +90,8 @@ fun SharedPlayer(
         mutableStateOf((player?.mediaItemCount ?: 0) > 0)
     }
 
+    var isPlaying by remember { mutableStateOf(player?.isPlaying ?: false) }
+
     DisposableEffect(player) {
         if (player == null) return@DisposableEffect onDispose {}
 
@@ -105,10 +107,15 @@ fun SharedPlayer(
             override fun onTimelineChanged(timeline: Timeline, reason: Int) {
                 hasMediaItems = player.mediaItemCount > 0
             }
+
+            override fun onIsPlayingChanged(isPlayingChanged: Boolean) {
+                isPlaying = isPlayingChanged
+            }
         }
         player.addListener(listener)
 
         hasMediaItems = player.mediaItemCount > 0
+        isPlaying = player.isPlaying
         currentArtworkUrl = player.currentMediaItem?.mediaMetadata?.artworkUri?.toString()
             ?: player.currentMediaItem?.mediaMetadata?.extras?.getString("artwork_url")
             ?: ""
@@ -185,7 +192,10 @@ fun SharedPlayer(
                     }
                     .then(dragGestureModifier)
             ) {
-                PlayerBackground(thumbnailUrl = currentArtworkUrl) {
+                PlayerBackground(
+                    thumbnailUrl = currentArtworkUrl,
+                    isPlaying = isPlaying
+                ) {
                     Box(modifier = Modifier.fillMaxSize()) {
 
                         if (expandProgress > 0f) {

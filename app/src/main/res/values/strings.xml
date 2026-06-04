@@ -234,6 +234,7 @@
     <string name="material_you">MaterialYou</string>
     <string name="progress_bar_style">Progress Bar Style</string>
     <string name="background_style">Background Style</string>
+    <string name="morphing_glow">Morphing Glow</string>
     <string name="wave">Wave</string>
     <string name="pause_song_cache">Pause song cache</string>
     <string name="pause_song_cache_description">Pause the song caching process</string>

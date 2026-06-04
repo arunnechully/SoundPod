@@ -39,7 +39,8 @@ suspend fun Innertube.player(videoId: String) = coroutineScope {
         }
 
         val token = visitorData
-        val poToken = Innertube.poToken?.takeIf { it.isNotEmpty() }?.let { ServiceIntegrityDimensions(poToken = it) }
+        val poToken = (Innertube.poToken ?: Innertube.poTokenResolver?.getPoToken(videoId))
+            ?.takeIf { it.isNotEmpty() }?.let { ServiceIntegrityDimensions(poToken = it) }
 
         // Prioritize clients that often bypass throttling or are very fast
         val clients = listOf(
