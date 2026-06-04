@@ -45,8 +45,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.layout.ContentScale
-import coil3.compose.AsyncImage
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
@@ -57,7 +55,6 @@ import com.github.soundpod.enums.SongSortBy
 import com.github.soundpod.enums.SortOrder
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.models.Song
-import com.github.soundpod.models.SongWithContentLength
 import com.github.soundpod.ui.components.CircleDragHandle
 import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
 import com.github.soundpod.ui.components.SortingHeader
@@ -128,11 +125,17 @@ fun NewBuiltInPlaylistSongs(
                 if (showCachedSongsInOffline) {
                     db.songsWithContentLength()
                         .map { songsWithLength ->
-                            songsWithLength.filter { item ->
-                                item.contentLength?.let {
-                                    binder?.cache?.isCached(item.song.id, 0, it)
-                                } ?: false
-                            }.map { it.song }
+                            val binderCache = binder?.cache
+                            songsWithLength
+                                .filterNot { it.song.id.startsWith("content://") || it.song.id.startsWith("file://") }
+                                .filter { item ->
+                                    val length = item.contentLength
+                                    if (length != null) {
+                                        binderCache?.isCached(item.song.id, 0, length) == true
+                                    } else {
+                                        (binderCache?.getCachedBytes(item.song.id, 0, -1) ?: 0L) > 0L
+                                    }
+                                }.map { it.song }
                                 .let { songs ->
                                     when (sortBy) {
                                         SongSortBy.Title -> if (sortOrder == SortOrder.Ascending) songs.sortedBy { it.title } else songs.sortedByDescending { it.title }

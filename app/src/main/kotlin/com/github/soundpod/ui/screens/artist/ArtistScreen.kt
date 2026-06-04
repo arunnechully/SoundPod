@@ -44,7 +44,7 @@ import com.github.soundpod.ui.items.SongItem
 import com.github.soundpod.ui.screens.search.ItemsPage
 import com.github.soundpod.utils.artistScreenTabIndexKey
 import com.github.soundpod.utils.asMediaItem
-import com.github.soundpod.utils.forcePlay
+import com.github.soundpod.utils.forcePlayAtIndex
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.viewmodels.ArtistViewModel
 import kotlinx.coroutines.launch
@@ -196,13 +196,16 @@ fun ArtistScreen(
                             )
                         }
                     },
-                    itemContent = { song ->
+                    itemContent = { song, index, allItems ->
                         SongItem(
                             song = song,
                             onClick = {
                                 binder?.stopRadio()
-                                binder?.player?.forcePlay(song.asMediaItem)
-                                binder?.setupRadio(song.info?.endpoint)
+                                binder?.player?.forcePlayAtIndex(
+                                    allItems.filterIsInstance<Innertube.SongItem>()
+                                        .map { it.asMediaItem },
+                                    index
+                                )
                             },
                             onLongClick = {
                                 menuState.display {
@@ -249,7 +252,7 @@ fun ArtistScreen(
                         )
                     }
                 },
-                itemContent = { album ->
+                itemContent = { album, _, _ ->
                     AlbumItem(
                         album = album,
                         onClick = { onAlbumClick(album.key) }
@@ -288,7 +291,7 @@ fun ArtistScreen(
                         )
                     }
                 },
-                itemContent = { album ->
+                itemContent = { album, _, _ ->
                     AlbumItem(
                         album = album,
                         onClick = { onAlbumClick(album.key) }

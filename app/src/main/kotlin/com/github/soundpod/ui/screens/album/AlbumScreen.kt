@@ -188,7 +188,7 @@ fun AlbumScreen(
                             )
                         }
                     },
-                    itemContent = { album ->
+                    itemContent = { album, _, _ ->
                         AlbumItem(
                             album = album,
                             onClick = { onAlbumClick(album.key) }
@@ -216,7 +216,7 @@ fun AlbumScreen(
                             )
                         }
                     },
-                    itemContent = { album ->
+                    itemContent = { album, _, _ ->
                         AlbumItem(
                             album = album,
                             onClick = { onAlbumClick(album.key) }
