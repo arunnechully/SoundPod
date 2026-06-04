@@ -52,7 +52,7 @@ class NewPipeDownloader private constructor() : Downloader() {
             if (videoId.length == 11) {
                 val currentTime = System.currentTimeMillis()
                 val cached = playerResponseCache[videoId]
-                
+
                 if (cached != null && (currentTime - cached.second) < TimeUnit.MINUTES.toMillis(5)) {
                     val playerResponseJson = json.encodeToString(cached.first)
                     val html = "<html><head><script>var ytInitialPlayerResponse = $playerResponseJson;</script></head><body></body></html>"

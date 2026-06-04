@@ -1,5 +1,6 @@
 package com.github.innertube.models
 
+import com.github.innertube.BotGuardData
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -12,7 +13,8 @@ data class PlayerResponse(
     @Serializable
     data class PlayabilityStatus(
         val status: String?,
-        val reason: String? = null
+        val reason: String? = null,
+        val botguardData: BotGuardData? = null
     )
 
     @Serializable

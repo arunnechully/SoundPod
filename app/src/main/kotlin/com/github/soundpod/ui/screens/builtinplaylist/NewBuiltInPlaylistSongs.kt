@@ -43,12 +43,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.layout.ContentScale
-import coil3.compose.AsyncImage
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
+import com.github.soundpod.R
 import com.github.soundpod.db
 import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.enums.SongSortBy
@@ -61,7 +61,10 @@ import com.github.soundpod.ui.components.SortingHeader
 import com.github.soundpod.ui.items.LocalSongItem
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlayAtIndex
+import com.github.soundpod.utils.rememberPreference
+import com.github.soundpod.utils.showCachedSongsInOfflineKey
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import sh.calvin.reorderable.ReorderableItem
@@ -90,6 +93,8 @@ fun NewBuiltInPlaylistSongs(
     val (colorPalette) = LocalAppearance.current
     val playerPadding = LocalPlayerPadding.current
 
+    val showCachedSongsInOffline by rememberPreference(showCachedSongsInOfflineKey, true)
+
     var songs: List<Song> by remember { mutableStateOf(emptyList()) }
 
     val lazyListState = rememberLazyListState()
@@ -101,7 +106,7 @@ fun NewBuiltInPlaylistSongs(
         songs = mutableSongs
     }
 
-    LaunchedEffect(builtInPlaylist, sortBy, sortOrder) {
+    LaunchedEffect(builtInPlaylist, sortBy, sortOrder, showCachedSongsInOffline, binder) {
         when (builtInPlaylist) {
             BuiltInPlaylist.Favorites -> {
                 db.favorites()
@@ -115,14 +120,35 @@ fun NewBuiltInPlaylistSongs(
                     }
                     .flowOn(Dispatchers.IO)
             }
+
             BuiltInPlaylist.Offline -> {
-                db.songs(sortBy, sortOrder)
-                    .map { sortedSongs ->
-                        sortedSongs.filter { item ->
-                            binder?.cache?.isCached(item.id, 0, Long.MAX_VALUE) ?: false
+                if (showCachedSongsInOffline) {
+                    db.songsWithContentLength()
+                        .map { songsWithLength ->
+                            val binderCache = binder?.cache
+                            songsWithLength
+                                .filterNot { it.song.id.startsWith("content://") || it.song.id.startsWith("file://") }
+                                .filter { item ->
+                                    val length = item.contentLength
+                                    if (length != null) {
+                                        binderCache?.isCached(item.song.id, 0, length) == true
+                                    } else {
+                                        (binderCache?.getCachedBytes(item.song.id, 0, -1) ?: 0L) > 0L
+                                    }
+                                }.map { it.song }
+                                .let { songs ->
+                                    when (sortBy) {
+                                        SongSortBy.Title -> if (sortOrder == SortOrder.Ascending) songs.sortedBy { it.title } else songs.sortedByDescending { it.title }
+                                        SongSortBy.PlayTime -> if (sortOrder == SortOrder.Ascending) songs.sortedBy { it.totalPlayTimeMs } else songs.sortedByDescending { it.totalPlayTimeMs }
+                                        SongSortBy.DateAdded -> if (sortOrder == SortOrder.Ascending) songs.reversed() else songs
+                                        SongSortBy.Artist -> if (sortOrder == SortOrder.Ascending) songs.sortedBy { it.artistsText.toString() } else songs.sortedByDescending { it.artistsText.toString() }
+                                    }
+                                }
                         }
-                    }
-                    .flowOn(Dispatchers.IO)
+                        .flowOn(Dispatchers.IO)
+                } else {
+                    flowOf(emptyList())
+                }
             }
         }.collect {
             songs = it
@@ -271,23 +297,18 @@ fun NewBuiltInPlaylistSongs(
                 }
             }
         }
-        if (songs.isEmpty() && builtInPlaylist == BuiltInPlaylist.Favorites) {
-            Column(
-                modifier = Modifier.align(Alignment.Center),
-                horizontalAlignment = Alignment.CenterHorizontally
+        if (songs.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                AsyncImage(
-                    model = "file:///android_asset/img/A3.webp",
-                    contentDescription = null,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.size(280.dp)
-                )
-
                 Text(
-                    text = "No favorite songs yet",
+                    text = when (builtInPlaylist) {
+                        BuiltInPlaylist.Favorites -> "No favorite songs yet"
+                        BuiltInPlaylist.Offline -> stringResource(R.string.no_songs_found)
+                    },
                     style = MaterialTheme.typography.titleMedium,
-                    color = colorPalette.text.copy(alpha = 0.6f),
-                    modifier = Modifier.padding(top = 16.dp)
+                    color = colorPalette.text.copy(alpha = 0.6f)
                 )
             }
         }

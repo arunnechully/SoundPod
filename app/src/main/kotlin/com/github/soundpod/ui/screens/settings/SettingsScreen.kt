@@ -19,6 +19,7 @@ import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.navigation.SettingsDestinations
+import com.github.soundpod.ui.screens.player.TrackDetails
 import com.github.soundpod.viewmodels.SettingsViewModel
 
 @Composable
@@ -39,6 +40,7 @@ fun SettingsScreen(
         SettingsDestinations.EXPERIMENT -> stringResource(R.string.experimental)
         SettingsDestinations.ABOUT -> stringResource(R.string.about)
         SettingsDestinations.SLEEP_TIMER -> stringResource(R.string.sleep_timer)
+        SettingsDestinations.TRACK_DETAILS -> stringResource(R.string.track_details)
         else -> stringResource(R.string.settings)
     }
 
@@ -63,6 +65,7 @@ fun SettingsScreen(
                 SettingsDestinations.MORE -> MoreSettingsContent()
                 SettingsDestinations.EXPERIMENT -> ExperimentSettingsContent()
                 SettingsDestinations.ABOUT -> AboutSettingsContent()
+                SettingsDestinations.TRACK_DETAILS -> TrackDetails()
             }
         }
     )

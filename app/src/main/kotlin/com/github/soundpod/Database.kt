@@ -360,7 +360,7 @@ interface Database {
     fun format(songId: String): Flow<Format?>
 
     @Transaction
-    @Query("SELECT Song.*, contentLength FROM Song JOIN Format ON id = songId WHERE contentLength IS NOT NULL AND totalPlayTimeMs > 0 ORDER BY Song.ROWID DESC")
+    @Query("SELECT Song.*, contentLength FROM Song LEFT JOIN Format ON id = songId ORDER BY Song.ROWID DESC")
     fun songsWithContentLength(): Flow<List<SongWithContentLength>>
 
     @Query("""
@@ -386,7 +386,7 @@ interface Database {
     @Query("SELECT * FROM Song WHERE title LIKE :query OR artistsText LIKE :query")
     fun search(query: String): Flow<List<Song>>
 
-    @Query("SELECT albumId AS id, NULL AS name FROM SongAlbumMap WHERE songId = :songId")
+    @Query("SELECT albumId AS id, title AS name FROM Album JOIN SongAlbumMap ON id = albumId WHERE songId = :songId")
     fun songAlbumInfo(songId: String): Info?
 
     @Query("SELECT id, name FROM Artist LEFT JOIN SongArtistMap ON id = artistId WHERE songId = :songId")

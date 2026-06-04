@@ -30,7 +30,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.github.innertube.Innertube
-import com.github.innertube.models.NavigationEndpoint
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
@@ -48,7 +47,7 @@ import com.github.soundpod.ui.items.PlaylistItem
 import com.github.soundpod.ui.items.SongItem
 import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.utils.asMediaItem
-import com.github.soundpod.utils.forcePlay
+import com.github.soundpod.utils.forcePlayAtIndex
 
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
@@ -125,16 +124,12 @@ fun ArtistOverview(
                     }
                 }
 
-                songs.forEach { song ->
+                songs.forEachIndexed { index, song ->
                     SongItem(
                         song = song,
                         onClick = {
-                            val mediaItem = song.asMediaItem
                             binder?.stopRadio()
-                            binder?.player?.forcePlay(mediaItem)
-                            binder?.setupRadio(
-                                NavigationEndpoint.Endpoint.Watch(videoId = mediaItem.mediaId)
-                            )
+                            binder?.player?.forcePlayAtIndex(songs.map { it.asMediaItem }, index)
                         },
                         onLongClick = {
                             menuState.display {

@@ -30,6 +30,12 @@ object Innertube {
     var visitorData: String? = null
     var poToken: String? = null
 
+    interface PoTokenResolver {
+        suspend fun getPoToken(videoId: String?): String?
+    }
+
+    var poTokenResolver: PoTokenResolver? = null
+
     val client = HttpClient(OkHttp) {
         expectSuccess = true
 

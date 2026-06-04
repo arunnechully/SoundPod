@@ -234,11 +234,15 @@
     <string name="material_you">MaterialYou</string>
     <string name="progress_bar_style">Progress Bar Style</string>
     <string name="background_style">Background Style</string>
+    <string name="morphing_glow">Morphing Glow</string>
     <string name="wave">Wave</string>
     <string name="pause_song_cache">Pause song cache</string>
     <string name="pause_song_cache_description">Pause the song caching process</string>
     <string name="suggest_an_idea">Suggest an Idea</string>
-    <string name="report_a_bug">Report a bug</string>
+    <string name="report_a_bug">Generate bug report</string>
+    <string name="stop_and_share_report">Stop and share report</string>
+    <string name="bug_report_started">Bug report recording started. Perform the actions, then return here to share.</string>
+    <string name="bug_report_failed">Failed to generate bug report</string>
     <string name="seamless_update">Seamless Update</string>
     <string name="seamless_update_description">Install updates directly from app</string>
     <string name="enable_seamless_update">Enable Seamless Updates?</string>
@@ -299,6 +303,7 @@
     <string name="add_custom">Add Custom</string>
     <string name="custom_image">Custom Image</string>
     <string name="preset">Preset</string>
+    <string name="presets">Presets</string>
     <string name="allowed">Allowed</string>
     <string name="denied">Denied</string>
     <string name="audio_permission">Audio Permission</string>
@@ -332,4 +337,6 @@
     <string name="album">Album</string>
     <string name="clear_image_cache">Are you sure you want to clear the image cache? This action cannot be undone.</string>
     <string name="clear_audio_cache">Are you sure you want to clear the audio cache? This action cannot be undone.</string>
+    <string name="show_cached_songs">Show cached songs</string>
+    <string name="show_cached_songs_description">Show cached songs in the offline playlist</string>
 </resources>

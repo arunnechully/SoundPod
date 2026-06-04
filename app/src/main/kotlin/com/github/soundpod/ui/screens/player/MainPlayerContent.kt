@@ -7,6 +7,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -59,6 +60,7 @@ fun MainPlayerContent(
     layoutMode: PlayerLayout,
     onGoToAlbum: (String) -> Unit,
     onGoToArtist: (String) -> Unit,
+    onTrackDetailsClick: () -> Unit = {},
     onBack: () -> Unit,
     showPlaylist: Boolean,
     onSettingsClick: () -> Unit = {},
@@ -120,8 +122,33 @@ fun MainPlayerContent(
                         bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
                     )
             ) {
-                // Left side: Thumbnail spacer
-                Spacer(modifier = Modifier.weight(1f))
+                // Left side: Overlay or Thumbnail spacer
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                ) {
+                    if (showPlaylist) {
+                        PlaylistOverlay(
+                            viewModel = playlistViewModel,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(vertical = 48.dp, horizontal = 12.dp),
+                            onGoToAlbum = handleGoToAlbum,
+                            onGoToArtist = handleGoToArtist
+                        )
+                    } else if (showLyrics) {
+                        LyricsOverlay(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(vertical = 48.dp, horizontal = 12.dp),
+                            mediaId = mediaItem.mediaId,
+                            mediaMetadata = mediaItem.mediaMetadata,
+                            currentPositionMs = currentPositionMs,
+                            onSeekTo = { timeMs -> playerViewModel.seekTo(timeMs) }
+                        )
+                    }
+                }
 
                 // Right side: Controls
                 Column(
@@ -134,6 +161,7 @@ fun MainPlayerContent(
                     PlayerTopControl(
                         onGoToAlbum = handleGoToAlbum,
                         onGoToArtist = handleGoToArtist,
+                        onTrackDetailsClick = onTrackDetailsClick,
                         onLyricsClick = onLyricsClick,
                         onSettingsClick = onSettingsClick,
                         onSleepTimerClick = onSleepTimerClick,
@@ -143,13 +171,35 @@ fun MainPlayerContent(
                         isPlaylistShowing = if (layoutMode == PlayerLayout.Default) showPlaylist || showLyrics else showPlaylist
                     )
 
-                    Spacer(modifier = Modifier.weight(1f))
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            PlayerMediaItem(
+                                onGoToArtist = artistId?.let { artist -> { handleGoToArtist(artist) } }
+                            )
 
-                    PlayerMediaItem(
-                        onGoToArtist = artistId?.let { artist -> { handleGoToArtist(artist) } }
-                    )
+                            Spacer(modifier = Modifier.height(Dimensions.spacer))
 
-                    Spacer(modifier = Modifier.height(Dimensions.spacer))
+                            if (layoutMode == PlayerLayout.Default) {
+                                PlayerMiddleControl(
+                                    showPlaylist = false,
+                                    onTogglePlaylist = onTogglePlaylist,
+                                    mediaId = mediaItem.mediaId
+                                )
+                            } else {
+                                PlayerControlBottom(
+                                    shouldBePlaying = shouldBePlaying,
+                                    onPlayPauseClick = { playerViewModel.togglePlayPause() }
+                                )
+                            }
+                        }
+                    }
 
                     PlayerSeekBar(
                         mediaId = mediaItem.mediaId,
@@ -175,7 +225,7 @@ fun MainPlayerContent(
                         )
                     }
 
-                    Spacer(modifier = Modifier.weight(1f))
+                    Spacer(modifier = Modifier.height(Dimensions.spacer))
                 }
             }
         } else {
@@ -193,6 +243,7 @@ fun MainPlayerContent(
                 PlayerTopControl(
                     onGoToAlbum = handleGoToAlbum,
                     onGoToArtist = handleGoToArtist,
+                    onTrackDetailsClick = onTrackDetailsClick,
                     onLyricsClick = onLyricsClick,
                     onSettingsClick = onSettingsClick,
                     onSleepTimerClick = onSleepTimerClick,

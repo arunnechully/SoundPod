@@ -114,7 +114,7 @@ fun SearchResults(
                         }
                     },
                     emptyItemsText = emptyItemsText,
-                    itemContent = { song ->
+                    itemContent = { song, _, _ ->
                         SwipeToActionBox(
                             modifier = Modifier.animateItem(),
                             primaryAction = ActionInfo(
@@ -167,7 +167,7 @@ fun SearchResults(
                         }
                     },
                     emptyItemsText = emptyItemsText,
-                    itemContent = { album ->
+                    itemContent = { album, _, _ ->
                         AlbumItem(
                             album = album,
                             onClick = { onAlbumClick(album.key) }
@@ -198,7 +198,7 @@ fun SearchResults(
                         }
                     },
                     emptyItemsText = emptyItemsText,
-                    itemContent = { artist ->
+                    itemContent = { artist, _, _ ->
                         ArtistItem(
                             artist = artist,
                             onClick = { onArtistClick(artist.key) }
@@ -231,7 +231,7 @@ fun SearchResults(
                         }
                     },
                     emptyItemsText = emptyItemsText,
-                    itemContent = { video ->
+                    itemContent = { video, _, _ ->
                         SwipeToActionBox(
                             modifier = Modifier.animateItem(),
                             primaryAction = ActionInfo(
@@ -290,7 +290,7 @@ fun SearchResults(
                         }
                     },
                     emptyItemsText = emptyItemsText,
-                    itemContent = { playlist ->
+                    itemContent = { playlist, _, _ ->
                         PlaylistItem(
                             playlist = playlist,
                             onClick = { onPlaylistClick(playlist.key) }

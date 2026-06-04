@@ -33,7 +33,6 @@ import com.github.soundpod.ui.screens.artist.ArtistScreen
 import com.github.soundpod.ui.screens.builtinplaylist.NewBuiltInPlaylistScreen
 import com.github.soundpod.ui.screens.home.HomeScreen
 import com.github.soundpod.ui.screens.localplaylist.NewLocalPlaylistScreen
-import com.github.soundpod.ui.screens.player.TrackDetails
 import com.github.soundpod.ui.screens.playlist.PlaylistScreen
 import com.github.soundpod.ui.screens.search.NewSearchLayout
 import com.github.soundpod.ui.screens.search.NewSearchResult
@@ -193,12 +192,6 @@ fun MainNavigation(
                 onGoToArtist = navigateToArtist,
                 onSearchClick = { navController.navigate(route = Routes.Search) },
                 onSettingsClick = onNavigateToSettings
-            )
-        }
-
-        playerComposable(route = Routes.TrackDetails::class) {
-            TrackDetails(
-                pop = popDestination,
             )
         }
     }

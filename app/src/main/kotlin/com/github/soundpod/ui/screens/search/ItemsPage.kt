@@ -12,7 +12,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridItemScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,7 +42,7 @@ import kotlinx.coroutines.withContext
 @Composable
 fun <T : Innertube.Item> ItemsPage(
     tag: String,
-    itemContent: @Composable LazyGridItemScope.(T) -> Unit,
+    itemContent: @Composable LazyGridItemScope.(item: T, index: Int, allItems: List<T>) -> Unit,
     itemPlaceholderContent: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     initialPlaceholderCount: Int = 8,
@@ -57,6 +57,7 @@ fun <T : Innertube.Item> ItemsPage(
     val viewModel: ItemsPageViewModel<T> = viewModel()
     val itemsPage: Innertube.ItemsPage<T>? =
         viewModel.itemsMap.getOrDefault(key = tag, defaultValue = null)
+    val allItems = itemsPage?.items ?: emptyList()
 
     val listLayout = tag.contains("songs") || tag.contains("videos")
     val artistsLayout = tag.contains("artists")
@@ -111,10 +112,12 @@ fun <T : Innertube.Item> ItemsPage(
             Spacer(modifier = Modifier.height(Dp.Hairline))
         }
 
-        items(
-            items = itemsPage?.items ?: emptyList(),
-            key = Innertube.Item::key,
-            itemContent = itemContent
+        itemsIndexed(
+            items = allItems,
+            key = { _, item -> item.key },
+            itemContent = { index, item ->
+                this.itemContent(item, index, allItems)
+            }
         )
 
         if (itemsPage != null && itemsPage.items.isNullOrEmpty()) {

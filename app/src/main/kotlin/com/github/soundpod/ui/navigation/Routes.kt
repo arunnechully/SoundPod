@@ -22,8 +22,6 @@ sealed class Routes {
     data object Search
 
     @Serializable
-    data object TrackDetails
-    @Serializable
     data object SearchResult
     @Serializable
     data class BuiltInPlaylist(val index: Int)
@@ -46,4 +44,5 @@ object SettingsDestinations {
     const val EXPERIMENT = "settings_experiment"
     const val ABOUT = "settings_about"
     const val SLEEP_TIMER = "settings_sleep_timer"
+    const val TRACK_DETAILS = "settings_track_details"
 }

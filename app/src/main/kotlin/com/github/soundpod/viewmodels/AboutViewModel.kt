@@ -2,13 +2,19 @@
 package com.github.soundpod.viewmodels
 
 import android.app.Application
+import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.provider.MediaStore
+import android.widget.Toast
+import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.api.GitHub
 import com.github.soundpod.BuildConfig
+import com.github.soundpod.R
 import com.github.soundpod.github.checkForUpdates
 import com.github.soundpod.github.downloadAndInstall
 import com.github.soundpod.github.installApkInternal
@@ -28,7 +34,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class AboutViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -53,6 +64,8 @@ class AboutViewModel(application: Application) : AndroidViewModel(application) {
     val updateStatus = _updateStatus.asStateFlow()
     private val _showPermissionDialog = MutableStateFlow(false)
     val showPermissionDialog = _showPermissionDialog.asStateFlow()
+
+    val isRecordingLogs = _isRecordingLogs.asStateFlow()
     val seamlessUpdateEnabled: StateFlow<Boolean> = seamlessUpdateEnabled(getApplication())
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
@@ -154,6 +167,114 @@ class AboutViewModel(application: Application) : AndroidViewModel(application) {
             installApkInternal(context, file)
         }
     }
+
+    fun toggleLogRecording() {
+        if (_isRecordingLogs.value) {
+            shareBugReport()
+            _isRecordingLogs.value = false
+        } else {
+            recordingStartTime = System.currentTimeMillis()
+            _isRecordingLogs.value = true
+            Toast.makeText(context, context.getString(R.string.bug_report_started), Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun shareBugReport() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val reportFile = File(context.externalCacheDir, "bug_report.txt")
+            try {
+                FileOutputStream(reportFile).use { output ->
+                    val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
+                    output.write("SoundPod Bug Report\n".toByteArray())
+                    output.write("===================\n".toByteArray())
+                    output.write("Report Generated: ${sdf.format(Date())}\n".toByteArray())
+                    output.write("Session Started: ${sdf.format(Date(recordingStartTime))}\n".toByteArray())
+                    output.write("App Version: $currentVersion (${BuildConfig.VERSION_CODE})\n".toByteArray())
+                    output.write("Flavor: ${BuildConfig.FLAVOR}\n".toByteArray())
+                    output.write("Device: ${Build.MANUFACTURER} ${Build.MODEL}\n".toByteArray())
+                    output.write("Android Version: ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT})\n".toByteArray())
+                    
+                    val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+                    val memoryInfo = android.app.ActivityManager.MemoryInfo()
+                    activityManager.getMemoryInfo(memoryInfo)
+                    output.write("Available Memory: ${memoryInfo.availMem / 1024 / 1024} MB\n".toByteArray())
+                    
+                    output.write("--------------------------------\n".toByteArray())
+                    output.write("LOGS (Filtered by PID):\n".toByteArray())
+                    output.write("--------------------------------\n\n".toByteArray())
+
+                    val pid = android.os.Process.myPid()
+                    // Filter by PID to remove system bloat. Only supported on N+ for logcat --pid
+                    val command = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        "logcat -d --pid=$pid"
+                    } else {
+                        "logcat -d"
+                    }
+                    
+                    val process = Runtime.getRuntime().exec(command)
+                    process.inputStream.bufferedReader().useLines { lines ->
+                        lines.forEach { line ->
+                            // Simple timestamp check to reduce old logs if logcat wasn't cleared
+                            // We don't do complex parsing, just dump the PID-filtered logs
+                            output.write("$line\n".toByteArray())
+                        }
+                    }
+                }
+
+                val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", reportFile)
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_SUBJECT, "SoundPod Bug Report ${SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(Date())}")
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+
+                val chooser = Intent.createChooser(intent, "Share Bug Report")
+                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(chooser)
+
+                saveBugReportToDownloads(reportFile)
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, context.getString(R.string.bug_report_failed), Toast.LENGTH_SHORT).show()
+                }
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun saveBugReportToDownloads(reportFile: File) {
+        try {
+            val resolver = context.contentResolver
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, "SoundPod_BugReport_${System.currentTimeMillis()}.txt")
+                put(MediaStore.MediaColumns.MIME_TYPE, "text/plain")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, "Download/SoundPod")
+                }
+            }
+
+            val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                MediaStore.Downloads.EXTERNAL_CONTENT_URI
+            } else {
+                MediaStore.Files.getContentUri("external")
+            }
+
+            val uri = resolver.insert(collection, contentValues)
+            uri?.let {
+                resolver.openOutputStream(it)?.use { outputStream ->
+                    reportFile.inputStream().use { inputStream ->
+                        inputStream.copyTo(outputStream)
+                    }
+                }
+                viewModelScope.launch(Dispatchers.Main) {
+                    Toast.makeText(context, "Bug report saved to Downloads/SoundPod", Toast.LENGTH_LONG).show()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
     private fun setSeamlessEnabled(enabled: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
             setSeamlessUpdateEnabled(context, enabled)
@@ -165,5 +286,10 @@ class AboutViewModel(application: Application) : AndroidViewModel(application) {
                 _updateStatus.value = it
             }
         }
+    }
+
+    companion object {
+        private val _isRecordingLogs = MutableStateFlow(false)
+        private var recordingStartTime: Long = 0
     }
 }

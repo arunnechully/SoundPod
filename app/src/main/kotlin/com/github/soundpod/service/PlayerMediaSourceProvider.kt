@@ -16,13 +16,9 @@ import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.extractor.DefaultExtractorsFactory
-import com.github.soundpod.db
-import com.github.soundpod.query
 import com.github.soundpod.utils.pauseSongCacheKey
 import com.github.soundpod.utils.preferences
 import org.schabi.newpipe.extractor.ServiceList
-import org.schabi.newpipe.extractor.stream.AudioStream
-import org.schabi.newpipe.extractor.stream.VideoStream
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -36,8 +32,7 @@ class PlayerMediaSourceProvider(
     private val resolutionLocks = ConcurrentHashMap<String, ReentrantLock>()
     
     companion object {
-        // Increase cache time to 4 hours since YouTube URLs usually last that long
-        private const val CACHE_EXPIRATION_MS = 4 * 3600000L 
+        private const val CACHE_EXPIRATION_MS = 4 * 3600000L
         private const val DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
 
@@ -46,115 +41,91 @@ class PlayerMediaSourceProvider(
             .setLoadErrorHandlingPolicy(YouTube403ErrorPolicy(urlCache))
     }
 
-    private fun createCacheDataSource(): DataSource.Factory {
-        val upstreamFactory = androidx.media3.datasource.DefaultDataSource.Factory(
-            context,
-            DefaultHttpDataSource.Factory()
-                .setConnectTimeoutMs(16000)
-                .setReadTimeoutMs(8000)
-                .setAllowCrossProtocolRedirects(true)
-                .setUserAgent(DEFAULT_USER_AGENT)
-        )
-
-        return DataSource.Factory {
-            val pauseSongCache = context.preferences.getBoolean(pauseSongCacheKey, false)
-
-            val cacheFactory = CacheDataSource.Factory()
-                .setCache(cacheManager.cache)
-                .setUpstreamDataSourceFactory(upstreamFactory)
-
-            if (pauseSongCache) {
-                cacheFactory.setCacheWriteDataSinkFactory(null)
-            } else {
-                cacheFactory.setCacheWriteDataSinkFactory(CacheDataSink.Factory().setCache(cacheManager.cache))
-            }
-            cacheFactory.createDataSource()
-        }
-    }
-
     private fun createDataSourceFactory(): DataSource.Factory {
-        return ResolvingDataSource.Factory(createCacheDataSource()) { dataSpec ->
+        val httpDataSourceFactory = DefaultHttpDataSource.Factory()
+            .setConnectTimeoutMs(16000)
+            .setReadTimeoutMs(8000)
+            .setAllowCrossProtocolRedirects(true)
+            .setUserAgent(DEFAULT_USER_AGENT)
+
+        val upstreamFactory = androidx.media3.datasource.DefaultDataSource.Factory(context, httpDataSourceFactory)
+
+        val resolvingUpstreamFactory = ResolvingDataSource.Factory(upstreamFactory) { dataSpec ->
             val videoId = dataSpec.key ?: throw java.io.IOException("A key must be set")
-            if (videoId.startsWith("content://") || videoId.startsWith("file://")) {
-                dataSpec
-            } else if (cacheManager.cache.isCached(videoId, dataSpec.position, 100 * 1024L)) {
+            if (videoId.startsWith("http") || videoId.startsWith("content://") || videoId.startsWith("file://")) {
                 dataSpec
             } else {
                 val uri = resolveUrl(videoId)
                 dataSpec.withUri(uri)
             }
         }
+
+        return DataSource.Factory {
+            val pauseSongCache = context.preferences.getBoolean(pauseSongCacheKey, false)
+
+            val cacheDataSource = CacheDataSource.Factory()
+                .setCache(cacheManager.cache)
+                .setUpstreamDataSourceFactory(resolvingUpstreamFactory)
+                .apply {
+                    if (pauseSongCache) {
+                        setCacheWriteDataSinkFactory(null)
+                    } else {
+                        setCacheWriteDataSinkFactory(CacheDataSink.Factory().setCache(cacheManager.cache))
+                    }
+                }
+                .createDataSource()
+
+            cacheDataSource
+        }
     }
 
     fun resolveUrl(videoId: String): Uri {
+        if (videoId.startsWith("http") || videoId.startsWith("content://") || videoId.startsWith("file://")) {
+            return videoId.toUri()
+        }
+
+        urlCache[videoId]?.let { (uri, timestamp) ->
+            if (System.currentTimeMillis() - timestamp < CACHE_EXPIRATION_MS) {
+                return uri
+            }
+        }
+
         val lock = resolutionLocks.getOrPut(videoId) { ReentrantLock() }
         
         lock.withLock {
-            val cachedEntry = urlCache[videoId]
-            val currentTime = System.currentTimeMillis()
-
-            if (cachedEntry != null && (currentTime - cachedEntry.second) < CACHE_EXPIRATION_MS) {
-                return cachedEntry.first
+            urlCache[videoId]?.let { (uri, timestamp) ->
+                if (System.currentTimeMillis() - timestamp < CACHE_EXPIRATION_MS) {
+                    return uri
+                }
             }
 
-            val urlResult = runCatching {
+            val rawUrl = runCatching {
                 val streamExtractor = ServiceList.YouTube.getStreamExtractor("https://music.youtube.com/watch?v=$videoId")
                 streamExtractor.fetchPage()
 
                 val audioStreams = streamExtractor.audioStreams
-                val videoStreams = streamExtractor.videoStreams
 
-                val bestAudio = audioStreams.maxByOrNull { it.averageBitrate }
-                    ?: videoStreams.maxByOrNull { it.bitrate }
-                    ?: audioStreams.firstOrNull()
-                    ?: videoStreams.firstOrNull()
-                    ?: throw Exception("No playable streams found by NewPipe for videoId: $videoId")
-
-                val song = com.github.soundpod.models.Song(
-                    id = videoId,
-                    title = streamExtractor.name,
-                    artistsText = com.github.innertube.Innertube.Info.cleanName(streamExtractor.uploaderName),
-                    durationText = null,
-                    thumbnailUrl = streamExtractor.thumbnails.firstOrNull()?.url
-                )
-
-                query {
-                    db.insert(song)
-                    db.insert(
-                        com.github.soundpod.models.Format(
-                            songId = videoId,
-                            itag = when (bestAudio) {
-                                is AudioStream -> bestAudio.formatId
-                                is VideoStream -> bestAudio.formatId
-                                else -> -1
-                            },
-                            mimeType = bestAudio.format?.mimeType,
-                            bitrate = when (bestAudio) {
-                                is AudioStream -> bestAudio.averageBitrate.toLong()
-                                is VideoStream -> bestAudio.bitrate.toLong()
-                                else -> -1L
-                            },
-                            loudnessDb = null,
-                            contentLength = null,
-                            lastModified = null
-                        )
-                    )
-                }
+                val bestAudio = audioStreams
+                    .filter { it.codec?.lowercase() == "opus" }
+                    .maxByOrNull { it.averageBitrate }
+                    ?: audioStreams.maxByOrNull { it.averageBitrate }
+                    ?: streamExtractor.videoStreams.maxByOrNull { it.bitrate }
+                    ?: throw Exception("No playable streams found by NewPipe for $videoId")
 
                 bestAudio.content
+            }.getOrElse { e ->
+                Log.e("SoundPod-Debug", "NewPipe resolution failed for $videoId", e)
+                throw e
             }
 
-            val rawUrl = urlResult.getOrThrow()
             val newUri = rawUrl.toUri()
             urlCache[videoId] = Pair(newUri, System.currentTimeMillis())
-            
-            // Clean up the lock map to prevent leaks
-            resolutionLocks.remove(videoId)
             
             return newUri
         }
     }
 }
+
 @UnstableApi
 private class YouTube403ErrorPolicy(
     private val urlCache: ConcurrentHashMap<String, Pair<Uri, Long>>

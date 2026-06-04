@@ -22,6 +22,10 @@ class HomeSongsViewModel : ViewModel() {
     private var dbJob: Job? = null
 
     init {
+        refreshMediaStore()
+    }
+
+    fun refreshMediaStore() {
         viewModelScope.launch(Dispatchers.IO) {
             val localSongs = appContext.queryMediaStoreSongs()
             if (localSongs.isNotEmpty()) {

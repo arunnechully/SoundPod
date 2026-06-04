@@ -99,14 +99,15 @@ fun PaperBoatAnimation(
         val centerY = height * 0.5f
 
         val ampPx = currentAmp * density.density
-        val mainFreq = 1.25f * (2 * PI).toFloat() / width
+        val mainFreq = if (width > 0) 1.25f * (2 * PI).toFloat() / width else 0f
         val pMain = mainPhase
 
-        val progress = (dragValue - valueRange.start) / (valueRange.endInclusive - valueRange.start)
+        val range = valueRange.endInclusive - valueRange.start
+        val progress = if (range > 0) (dragValue - valueRange.start) / range else 0f
         val thumbX = width * progress
 
         progressPath.reset()
-        val stopProgressX = (thumbX - gapPx).coerceAtLeast(0f)
+        val stopProgressX = if (thumbX.isNaN()) 0f else (thumbX - gapPx).coerceAtLeast(0f)
         for (x in 0..stopProgressX.toInt() step 4) {
             val currX = x.toFloat()
             val y = centerY + ampPx * sin(currX * mainFreq + pMain)
@@ -115,7 +116,7 @@ fun PaperBoatAnimation(
         drawPath(progressPath, color, style = Stroke(strokeWidthPx, cap = StrokeCap.Round))
 
         trackPath.reset()
-        val startTrackX = (thumbX + gapPx).coerceAtMost(width)
+        val startTrackX = if (thumbX.isNaN()) 0f else (thumbX + gapPx).coerceAtMost(width)
         for (x in startTrackX.toInt()..width.toInt() step 4) {
             val currX = x.toFloat()
             val y = centerY + ampPx * sin(currX * mainFreq + pMain)
@@ -123,13 +124,17 @@ fun PaperBoatAnimation(
         }
         drawPath(trackPath, trackColor, style = Stroke(strokeWidthPx, cap = StrokeCap.Round))
 
-        val thumbY = centerY + ampPx * sin(thumbX * mainFreq + pMain)
-        val slope = ampPx * mainFreq * cos(thumbX * mainFreq + pMain)
-        val angleDegrees = Math.toDegrees(atan(slope.toDouble())).toFloat()
+        val thumbY = if (thumbX.isNaN()) centerY else centerY + ampPx * sin(thumbX * mainFreq + pMain)
+        val slope = if (thumbX.isNaN()) 0f else ampPx * mainFreq * cos(thumbX * mainFreq + pMain)
+        val angleDegrees = if (slope.isNaN()) 0f else Math.toDegrees(atan(slope.toDouble())).toFloat()
 
         withTransform({
-            translate(thumbX, thumbY)
-            rotate(angleDegrees, pivot = Offset.Zero)
+            if (!thumbX.isNaN() && !thumbY.isNaN()) {
+                translate(thumbX, thumbY)
+            }
+            if (!angleDegrees.isNaN()) {
+                rotate(angleDegrees, pivot = Offset.Zero)
+            }
             translate(left = -boatSizePx / 2f, top = -boatSizePx * 0.77f)
         }) {
             with(boatPainter) {

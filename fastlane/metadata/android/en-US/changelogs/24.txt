@@ -1,0 +1,6 @@
+• Cached songs now show in playlist by enabling in database settings
+• Fixed landscape mode which did not show lyrics and playlist
+• When playing songs from artist, now only get artist recommendations in the queue
+• Now can generate bug report from about screen
+• Removed custom background option (if required will be added back)
+• Other minor UI improvements and bug fixes
