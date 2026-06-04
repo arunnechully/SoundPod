@@ -303,6 +303,7 @@
     <string name="add_custom">Add Custom</string>
     <string name="custom_image">Custom Image</string>
     <string name="preset">Preset</string>
+    <string name="presets">Presets</string>
     <string name="allowed">Allowed</string>
     <string name="denied">Denied</string>
     <string name="audio_permission">Audio Permission</string>
@@ -336,4 +337,6 @@
     <string name="album">Album</string>
     <string name="clear_image_cache">Are you sure you want to clear the image cache? This action cannot be undone.</string>
     <string name="clear_audio_cache">Are you sure you want to clear the audio cache? This action cannot be undone.</string>
+    <string name="show_cached_songs">Show cached songs</string>
+    <string name="show_cached_songs_description">Show cached songs in the offline playlist</string>
 </resources>

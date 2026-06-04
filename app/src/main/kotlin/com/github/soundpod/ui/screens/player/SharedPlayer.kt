@@ -1,5 +1,6 @@
 package com.github.soundpod.ui.screens.player
 
+import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -11,9 +12,7 @@ import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -39,14 +38,17 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.navigation.NavController
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
+import com.github.soundpod.SettingsActivity
 import com.github.soundpod.ui.appearance.PlayerBackground
 import com.github.soundpod.ui.navigation.Routes
+import com.github.soundpod.ui.navigation.SettingsDestinations
 import com.github.soundpod.utils.isLandscape
 import kotlinx.coroutines.launch
 import androidx.media3.common.Player
@@ -66,6 +68,7 @@ fun SharedPlayer(
 ) {
     val scope = rememberCoroutineScope()
     val layoutDirection = LocalLayoutDirection.current
+    val context = LocalContext.current
 
     var showPlaylist by remember { mutableStateOf(false) }
     var showLyrics by remember { mutableStateOf(false) }
@@ -165,12 +168,10 @@ fun SharedPlayer(
                     detectVerticalDragGestures(
                         onVerticalDrag = { change, dragAmount ->
                             change.consume()
-                            // Higher multiplier for even lighter feel (3x)
                             val delta = (dragAmount / screenHeightPx) * 3f
                             targetExpandProgress = (targetExpandProgress - delta).coerceIn(0f, 1f)
                         },
                         onDragEnd = {
-                            // Even more generous snapping (20% threshold)
                             targetExpandProgress = if (targetExpandProgress > 0.2f) 1f else 0f
                             scope.launch {
                                 if (targetExpandProgress == 1f) sheetState.expand() else sheetState.partialExpand()
@@ -194,7 +195,8 @@ fun SharedPlayer(
             ) {
                 PlayerBackground(
                     thumbnailUrl = currentArtworkUrl,
-                    isPlaying = isPlaying
+                    isPlaying = isPlaying,
+                    expandProgress = expandProgress
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
 
@@ -204,20 +206,14 @@ fun SharedPlayer(
                                     .layout { measurable, constraints ->
                                         val screenW = exactScreenWidth.roundToPx()
                                         val screenH = exactScreenHeight.roundToPx()
-
-                                        //The actual size the parent box currently is
                                         val currentH = constraints.maxHeight
                                         val pad = activeBottomPadding.roundToPx()
 
-                                        //Measure the inner player at FULL screen size so it stays static
                                         val placeable = measurable.measure(
                                             androidx.compose.ui.unit.Constraints.fixed(screenW, screenH)
                                         )
 
-                                        // This ensures SharedThumbnail isn't pushed off the screen!
                                         layout(constraints.maxWidth, currentH) {
-
-                                            //Shift the inner player UP to cancel out the parent's movement
                                             val yOffset = currentH + pad - screenH
                                             placeable.placeRelative(0, yOffset)
                                         }
@@ -234,7 +230,12 @@ fun SharedPlayer(
                                         scope.launch { sheetState.partialExpand() }
                                         navController.navigate(route = Routes.Artist(id = browseId))
                                     },
-                                    onGoToTrackDetails = { navController.navigate(route = Routes.TrackDetails)},
+                                    onGoToTrackDetails = {
+                                        val intent = Intent(context, SettingsActivity::class.java).apply {
+                                            putExtra("SCREEN_ID", SettingsDestinations.TRACK_DETAILS)
+                                        }
+                                        context.startActivity(intent)
+                                    },
                                     onBack = {
                                         if (showLyrics) {
                                             showLyrics = false
@@ -260,6 +261,42 @@ fun SharedPlayer(
                                 )
                             }
                         }
+
+                        if (expandProgress < 1f) {
+                            Box(
+                                modifier = Modifier
+                                    .layout { measurable, constraints ->
+                                        val screenW = exactScreenWidth.roundToPx()
+                                        val currentH = constraints.maxHeight
+                                        val pad = activeBottomPadding.roundToPx()
+                                        val sysPad = systemBottomPadding.roundToPx()
+                                        val miniH = 60.dp.roundToPx()
+
+                                        val placeable = measurable.measure(
+                                            androidx.compose.ui.unit.Constraints.fixed(screenW, miniH)
+                                        )
+
+                                        layout(constraints.maxWidth, currentH) {
+                                            // Pin it relative to screen bottom:
+                                            // The parent Box bottom is at screenH - pad.
+                                            // We want mini player bottom at screenH - sysPad.
+                                            // Offset from parent bottom = sysPad - pad.
+                                            // Offset from parent top = currentH - miniH - (sysPad - pad)
+                                            val yOffset = currentH - miniH - (sysPad - pad)
+                                            placeable.placeRelative(0, yOffset)
+                                        }
+                                    }
+                                    .alpha(1f - expandProgress)
+                            ) {
+                                MiniPlayerContent(
+                                    openPlayer = {
+                                        targetExpandProgress = 1f
+                                        scope.launch { sheetState.expand() }
+                                    }
+                                )
+                            }
+                        }
+
                         AnimatedVisibility(
                             visible = !showPlaylist && !showLyrics,
                             enter = fadeIn(tween(400)),
@@ -271,28 +308,6 @@ fun SharedPlayer(
                             )
                         }
                     }
-                }
-            }
-
-            if (expandProgress < 1f) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .graphicsLayer {
-                            shape = RoundedCornerShape(cornerRadius)
-                            clip = true
-                        }
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = systemBottomPadding)
-                        .alpha(1f - expandProgress)
-                        .then(dragGestureModifier)
-                ){
-                    MiniPlayerContent(
-                        openPlayer = {
-                            targetExpandProgress = 1f
-                            scope.launch { sheetState.expand() }
-                        }
-                    )
                 }
             }
         }

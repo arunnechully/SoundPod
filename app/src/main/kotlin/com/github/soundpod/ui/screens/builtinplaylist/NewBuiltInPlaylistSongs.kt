@@ -63,7 +63,10 @@ import com.github.soundpod.ui.components.SortingHeader
 import com.github.soundpod.ui.items.LocalSongItem
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlayAtIndex
+import com.github.soundpod.utils.rememberPreference
+import com.github.soundpod.utils.showCachedSongsInOfflineKey
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import sh.calvin.reorderable.ReorderableItem
@@ -92,6 +95,8 @@ fun NewBuiltInPlaylistSongs(
     val (colorPalette) = LocalAppearance.current
     val playerPadding = LocalPlayerPadding.current
 
+    val showCachedSongsInOffline by rememberPreference(showCachedSongsInOfflineKey, true)
+
     var songs: List<Song> by remember { mutableStateOf(emptyList()) }
 
     val lazyListState = rememberLazyListState()
@@ -103,7 +108,7 @@ fun NewBuiltInPlaylistSongs(
         songs = mutableSongs
     }
 
-    LaunchedEffect(builtInPlaylist, sortBy, sortOrder) {
+    LaunchedEffect(builtInPlaylist, sortBy, sortOrder, showCachedSongsInOffline) {
         when (builtInPlaylist) {
             BuiltInPlaylist.Favorites -> {
                 db.favorites()
@@ -117,14 +122,19 @@ fun NewBuiltInPlaylistSongs(
                     }
                     .flowOn(Dispatchers.IO)
             }
+
             BuiltInPlaylist.Offline -> {
-                db.songs(sortBy, sortOrder)
-                    .map { sortedSongs ->
-                        sortedSongs.filter { item ->
-                            binder?.cache?.isCached(item.id, 0, Long.MAX_VALUE) ?: false
+                if (showCachedSongsInOffline) {
+                    db.songs(sortBy, sortOrder)
+                        .map { sortedSongs ->
+                            sortedSongs.filter { item ->
+                                binder?.cache?.isCached(item.id, 0, Long.MAX_VALUE) ?: false
+                            }
                         }
-                    }
-                    .flowOn(Dispatchers.IO)
+                        .flowOn(Dispatchers.IO)
+                } else {
+                    flowOf(emptyList())
+                }
             }
         }.collect {
             songs = it

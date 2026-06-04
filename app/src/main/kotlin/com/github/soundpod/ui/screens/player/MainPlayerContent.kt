@@ -59,6 +59,7 @@ fun MainPlayerContent(
     layoutMode: PlayerLayout,
     onGoToAlbum: (String) -> Unit,
     onGoToArtist: (String) -> Unit,
+    onTrackDetailsClick: () -> Unit = {},
     onBack: () -> Unit,
     showPlaylist: Boolean,
     onSettingsClick: () -> Unit = {},
@@ -134,6 +135,7 @@ fun MainPlayerContent(
                     PlayerTopControl(
                         onGoToAlbum = handleGoToAlbum,
                         onGoToArtist = handleGoToArtist,
+                        onTrackDetailsClick = onTrackDetailsClick,
                         onLyricsClick = onLyricsClick,
                         onSettingsClick = onSettingsClick,
                         onSleepTimerClick = onSleepTimerClick,
@@ -193,6 +195,7 @@ fun MainPlayerContent(
                 PlayerTopControl(
                     onGoToAlbum = handleGoToAlbum,
                     onGoToArtist = handleGoToArtist,
+                    onTrackDetailsClick = onTrackDetailsClick,
                     onLyricsClick = onLyricsClick,
                     onSettingsClick = onSettingsClick,
                     onSleepTimerClick = onSleepTimerClick,

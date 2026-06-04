@@ -586,6 +586,7 @@ fun PlayerControlBottom(
 fun PlayerTopControl(
     onGoToAlbum: (String) -> Unit,
     onGoToArtist: (String) -> Unit,
+    onTrackDetailsClick: () -> Unit = {},
     onBack: () -> Unit,
     onLyricsClick: () -> Unit = {},
     isPlaylistShowing: Boolean,
@@ -744,6 +745,19 @@ fun PlayerTopControl(
                     onClick = {
                         showDropDown = false
                         onGoToArtist(mediaItem.mediaId)
+                    }
+                )
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = stringResource(id = R.string.track_details),
+                            color = colorPalette.text,
+                            style = typography.bodyLarge
+                        )
+                    },
+                    onClick = {
+                        showDropDown = false
+                        onTrackDetailsClick()
                     }
                 )
                 DropdownMenuItem(

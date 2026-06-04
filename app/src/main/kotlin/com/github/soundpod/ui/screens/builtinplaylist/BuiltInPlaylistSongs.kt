@@ -47,7 +47,10 @@ import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.enqueue
 import com.github.soundpod.utils.forcePlayAtIndex
 import com.github.soundpod.utils.forcePlayFromBeginning
+import com.github.soundpod.utils.rememberPreference
+import com.github.soundpod.utils.showCachedSongsInOfflineKey
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 
@@ -64,22 +67,27 @@ fun BuiltInPlaylistSongs(
     val menuState = LocalMenuState.current
     val playerPadding = LocalPlayerPadding.current
 
+    val showCachedSongsInOffline by rememberPreference(showCachedSongsInOfflineKey, true)
+
     var songs: List<Song> by remember { mutableStateOf(emptyList()) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(builtInPlaylist, showCachedSongsInOffline) {
         when (builtInPlaylist) {
             BuiltInPlaylist.Favorites -> db.favorites()
 
-            BuiltInPlaylist.Offline -> db
-                .songsWithContentLength()
-                .flowOn(Dispatchers.IO)
-                .map { songs ->
-                    songs.filter { song ->
-                        song.contentLength?.let {
-                            binder?.cache?.isCached(song.song.id, 0, song.contentLength)
-                        } ?: false
-                    }.map(SongWithContentLength::song)
-                }
+            BuiltInPlaylist.Offline -> if (showCachedSongsInOffline) {
+                db.songsWithContentLength()
+                    .flowOn(Dispatchers.IO)
+                    .map { songs ->
+                        songs.filter { song ->
+                            song.contentLength?.let {
+                                binder?.cache?.isCached(song.song.id, 0, song.contentLength)
+                            } ?: false
+                        }.map(SongWithContentLength::song)
+                    }
+            } else {
+                flowOf(emptyList())
+            }
         }.collect { songs = it }
     }
 

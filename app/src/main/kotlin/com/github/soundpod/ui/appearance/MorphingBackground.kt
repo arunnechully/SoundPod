@@ -13,7 +13,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import com.airbnb.lottie.LottieProperty
@@ -49,13 +48,10 @@ fun MorphingBackground(
     val c2 = colors?.c2 ?: MaterialTheme.colorScheme.secondary
     val c3 = colors?.c3 ?: MaterialTheme.colorScheme.tertiary
 
-    // Theme adaptation: Ensure target colors aren't too bright for dark theme or too dark for light theme
-    // We adapt the colors BEFORE animating to ensure smooth transitions between adapted states
     val targetC1 = remember(c1, isDark) { c1.adaptToTheme(isDark) }
     val targetC2 = remember(c2, isDark) { c2.adaptToTheme(isDark) }
     val targetC3 = remember(c3, isDark) { c3.adaptToTheme(isDark) }
 
-    // Smoothly animate between color changes (when song or theme changes)
     val finalC1 by animateColorAsState(targetC1, tween(2500), label = "c1")
     val finalC2 by animateColorAsState(targetC2, tween(2500), label = "c2")
     val finalC3 by animateColorAsState(targetC3, tween(2500), label = "c3")
@@ -82,9 +78,8 @@ fun MorphingBackground(
     Box(
         modifier = modifier
             .fillMaxSize()
-            // Use the 3rd color cluster as a subtle background tint
             .background(
-                finalC3.copy(alpha = 0.1f)
+                finalC3.copy(alpha = 0.12f)
                     .compositeOver(if (isDark) Color(0xFF05050A) else Color(0xFFFAFAFF))
             )
     ) {
@@ -95,20 +90,5 @@ fun MorphingBackground(
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
-    }
-}
-
-private fun Color.adaptToTheme(isDark: Boolean): Color {
-    val lum = luminance()
-    return if (isDark) {
-        // For dark theme, if color is too bright, dim it
-        if (lum > 0.4f) {
-            this.copy(alpha = 1f).compositeOver(Color.Black).copy(alpha = 0.5f).compositeOver(Color.Black)
-        } else this
-    } else {
-        // For light theme, if color is too dark, brighten it
-        if (lum < 0.5f) {
-            this.copy(alpha = 1f).compositeOver(Color.White).copy(alpha = 0.5f).compositeOver(Color.White)
-        } else this
     }
 }

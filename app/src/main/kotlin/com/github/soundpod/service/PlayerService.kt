@@ -329,8 +329,10 @@ class PlayerService : InvincibleService(), Player.Listener,
             coroutineScope.launch {
                 try {
                     val uri = mediaSourceProvider.resolveUrl(videoId)
-                    cacheTrack(videoId, uri)
-                    LyricsFetcher.fetchLyrics(videoId)
+                    if (!videoId.startsWith("http") && !videoId.startsWith("content://") && !videoId.startsWith("file://")) {
+                        cacheTrack(videoId, uri)
+                        LyricsFetcher.fetchLyrics(videoId)
+                    }
                     nextMediaItem.mediaMetadata.artworkUri?.let { artworkUri ->
                         bitmapProvider.load(artworkUri) { }
                     }

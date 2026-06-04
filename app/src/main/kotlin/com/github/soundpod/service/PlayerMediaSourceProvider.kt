@@ -80,6 +80,10 @@ class PlayerMediaSourceProvider(
     }
 
     fun resolveUrl(videoId: String): Uri {
+        if (videoId.startsWith("http") || videoId.startsWith("content://") || videoId.startsWith("file://")) {
+            return videoId.toUri()
+        }
+
         urlCache[videoId]?.let { (uri, timestamp) ->
             if (System.currentTimeMillis() - timestamp < CACHE_EXPIRATION_MS) {
                 return uri

@@ -16,7 +16,9 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.ManageHistory
 import androidx.compose.material.icons.outlined.MusicNote
+import androidx.compose.material.icons.outlined.RemoveRedEye
 import androidx.compose.material.icons.outlined.RestartAlt
+import androidx.compose.material.icons.outlined.Store
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -52,6 +54,7 @@ import com.github.soundpod.utils.pauseSearchHistoryKey
 import com.github.soundpod.utils.pauseSongCacheKey
 import com.github.soundpod.utils.quickPicksSourceKey
 import com.github.soundpod.utils.rememberPreference
+import com.github.soundpod.utils.showCachedSongsInOfflineKey
 import kotlinx.coroutines.flow.distinctUntilChanged
 
 @SuppressLint("LocalContextGetResourceValueCall")
@@ -74,6 +77,7 @@ fun CacheSettingsContent() {
     var pauseSearchHistory by rememberPreference(pauseSearchHistoryKey, false)
 
     var pauseSongCache by rememberPreference(pauseSongCacheKey, false)
+    var showCachedSongsInOffline by rememberPreference(showCachedSongsInOfflineKey, true)
 
     val eventsCount by remember {
         db.eventsCount().distinctUntilChanged()
@@ -208,6 +212,15 @@ fun CacheSettingsContent() {
         SettingsGroup(
             title = stringResource(id = R.string.audio_cache)
         ) {
+            SwitchSetting(
+                icon = IconSource.Vector(Icons.Outlined.RemoveRedEye),
+                title = stringResource(id = R.string.show_cached_songs),
+                description = stringResource(id = R.string.show_cached_songs_description),
+                switchState = showCachedSongsInOffline,
+                onSwitchChange = { showCachedSongsInOffline = it }
+            )
+        }
+        SettingsGroup {
             binder?.cache?.let { cache ->
                 val diskCacheSize = remember(cache, refreshTrigger) {
                     cache.cacheSpace
@@ -253,6 +266,7 @@ fun CacheSettingsContent() {
                 onValueSelected = { exoPlayerDiskCacheMaxSize = it },
                 icon = IconSource.Vector(Icons.Outlined.MusicNote)
             )
+
         }
 
         if (showClearSongCacheDialog) {

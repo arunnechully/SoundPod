@@ -12,28 +12,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.platform.LocalContext
-import coil3.compose.AsyncImage
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.utils.rememberPreference
 
 const val PLAYER_BACKGROUND_STYLE_KEY = "player_background_style"
 
-// --- NEW CUSTOMIZATION KEYS ---
-const val PLAYER_BACKGROUND_CUSTOM_COLOR_1 = "player_bg_color_1" // Primary / Start
-const val PLAYER_BACKGROUND_CUSTOM_COLOR_2 = "player_bg_color_2" // Secondary / End (-1 = None)
-const val PLAYER_BACKGROUND_IS_ANIMATED = "player_bg_animated"   // True = Breathing, False = Static
-const val PLAYER_BACKGROUND_CUSTOM_IMAGE_KEY = "player_background_custom_image"
-
 object BackgroundStyles {
-    const val DYNAMIC = 0
     const val ABSTRACT_1 = 1
     const val ABSTRACT_2 = 2
     const val ABSTRACT_3 = 3
     const val ABSTRACT_4 = 4
     const val MORPHING = 5
-    const val CUSTOM_IMAGE = 99
 }
 
 @Composable
@@ -41,57 +32,52 @@ fun PlayerBackground(
     thumbnailUrl: String?,
     modifier: Modifier = Modifier,
     isPlaying: Boolean = false,
+    expandProgress: Float = 0f,
     content: @Composable () -> Unit
 ) {
-    val currentStyle by rememberPreference(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.DYNAMIC)
-    val customImagePath by rememberPreference(PLAYER_BACKGROUND_CUSTOM_IMAGE_KEY, "")
+    val currentStyle by rememberPreference(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.MORPHING)
     val (colorPalette) = LocalAppearance.current
+    val context = LocalContext.current
 
-    // Read new customization prefs
-    val isAnimated by rememberPreference(PLAYER_BACKGROUND_IS_ANIMATED, true)
+    val fallbackColor = colorPalette.accent
 
-    Box(modifier = modifier.fillMaxSize()) {
-        when (currentStyle) {
-            BackgroundStyles.DYNAMIC -> {
-                // Now passing the animation preference
-                DynamicBackground(
-                    thumbnailUrl = thumbnailUrl,
-                    animate = isAnimated && isPlaying,
-                    content = {}
-                )
-            }
-            BackgroundStyles.MORPHING -> {
-                // Use sampled color clusters from the thumbnail
-                val context = LocalContext.current
-                var clusters by remember { 
-                    mutableStateOf(ColorClusters(colorPalette.background1, colorPalette.background2, colorPalette.accent)) 
+    var clusters by remember { 
+        mutableStateOf(ColorClusters(fallbackColor, fallbackColor, fallbackColor, fallbackColor)) 
+    }
+    
+    LaunchedEffect(thumbnailUrl, colorPalette) {
+        clusters = extractColorClusters(context, thumbnailUrl, fallbackColor)
+    }
+
+    val isDark = colorPalette.isDark
+    val baseBackground = if (isDark) Color(0xFF05050A) else Color(0xFFFAFAFF)
+
+    // Improved solid fill color logic
+    val miniPlayerBackgroundColor = remember(clusters, isDark) {
+        // Adapt the surface color to ensure it's not too dark in dark mode or too light in light mode
+        val adapted = clusters.surface.adaptToTheme(isDark)
+        
+        // Use a consistent alpha that works well with the base background
+        adapted.copy(alpha = if (isDark) 0.35f else 0.25f).compositeOver(baseBackground)
+    }
+
+    Box(modifier = modifier.fillMaxSize().background(miniPlayerBackgroundColor)) {
+        // Overlay the animated background layer as the player expands
+        Box(modifier = Modifier.fillMaxSize().alpha(expandProgress)) {
+            when (currentStyle) {
+                BackgroundStyles.MORPHING, 0 -> {
+                    MorphingBackground(
+                        colors = clusters,
+                        isDark = isDark,
+                        isPlaying = isPlaying
+                    )
                 }
-                LaunchedEffect(thumbnailUrl, colorPalette) {
-                    clusters = extractColorClusters(context, thumbnailUrl, colorPalette.background1)
+                else -> {
+                    ThemedLottieBackground(
+                        animationNumber = currentStyle,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
-                MorphingBackground(
-                    colors = clusters,
-                    isDark = colorPalette.isDark,
-                    isPlaying = isPlaying
-                )
-            }
-            BackgroundStyles.CUSTOM_IMAGE -> {
-                Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-                    if (customImagePath.isNotEmpty()) {
-                        AsyncImage(
-                            model = customImagePath,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.matchParentSize().alpha(0.6f)
-                        )
-                    }
-                }
-            }
-            else -> {
-                ThemedLottieBackground(
-                    animationNumber = currentStyle,
-                    modifier = Modifier.matchParentSize()
-                )
             }
         }
         content()
