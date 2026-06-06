@@ -229,11 +229,15 @@
     <string name="material_you">Material You</string>
     <string name="progress_bar_style">Style de la barre de progression</string>
     <string name="background_style">Style d\'arrière-plan</string>
+    <string name="morphing_glow">Morphing Glow</string>
     <string name="wave">Vague</string>
     <string name="pause_song_cache">Mettre en pause le cache des titres</string>
     <string name="pause_song_cache_description">Mettre en pause la mise en cache des titres</string>
     <string name="suggest_an_idea">Proposer une idée</string>
-    <string name="report_a_bug">Signaler un bug</string>
+    <string name="report_a_bug">Créer un rapport de bogue</string>
+    <string name="stop_and_share_report">Arrêter et partager le rapport</string>
+    <string name="bug_report_started">L\'enregistrement du rapport de bogue a commencé. Effectuez les actions demandées, puis revenez ici pour nous faire part de vos commentaires.</string>
+    <string name="bug_report_failed">Échec de la génération du rapport de bogue</string>
     <string name="seamless_update">Mise à jour transparente</string>
     <string name="seamless_update_description">Installez les mises à jour directement depuis l\'application</string>
     <string name="enable_seamless_update">Activer les mises à jour transparentes ?</string>
@@ -294,6 +298,7 @@
     <string name="add_custom">Ajouter une personnalisation</string>
     <string name="custom_image">Image Personnalisée</string>
     <string name="preset">Préréglage</string>
+    <string name="presets">Préréglages</string>
     <string name="allowed">Autorisé</string>
     <string name="denied">Refusé</string>
     <string name="audio_permission">Autorisation Audio</string>
@@ -327,4 +332,6 @@
     <string name="album">Album</string>
     <string name="clear_image_cache">Êtes-vous sûr de vouloir vider le cache des images ? Cette action ne peut pas être annulée.</string>
     <string name="clear_audio_cache">Êtes-vous sûr de vouloir vider le cache audio ? Cette action est irréversible.</string>
+    <string name="show_cached_songs">Afficher les morceaux mis en cache</string>
+    <string name="show_cached_songs_description">Afficher les morceaux mis en cache dans la playlist hors ligne</string>
 </resources>
