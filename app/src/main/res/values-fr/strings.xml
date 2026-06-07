@@ -270,9 +270,9 @@
     <string name="customise">Personnaliser</string>
     <string name="ok">OK</string>
     <string name="off">Off</string>
-    <string name="off_description">Pure theme color</string>
-    <string name="static_colors">Static Colors</string>
-    <string name="static_colors_description">Minimalist background</string>
+    <string name="off_description">Couleur du thème pur</string>
+    <string name="static_colors">Couleurs fixes</string>
+    <string name="static_colors_description">Fond minimaliste</string>
     <string name="add_to_favorites">Ajouter aux Favoris</string>
     <string name="add_to_blocklist">Ajouter à la liste noire</string>
     <string name="reset_quick_picks_alert">Êtes-vous sûr de vouloir effacer tout l\'historique de la sélection rapide ? Cette action ne peut pas être annulée.</string>
@@ -337,7 +337,7 @@
     <string name="clear_audio_cache">Êtes-vous sûr de vouloir vider le cache audio ? Cette action est irréversible.</string>
     <string name="show_cached_songs">Afficher les morceaux mis en cache</string>
     <string name="show_cached_songs_description">Afficher les morceaux mis en cache dans la playlist hors ligne</string>
-    <string name="screen_cache">Screen cache</string>
-    <string name="screen_cache_description">Save online screens to load them faster next time</string>
-    <string name="clear_screen_cache">Are you sure you want to clear the screen cache? This action cannot be undone.</string>
+    <string name="screen_cache">Cache d\'écran</string>
+    <string name="screen_cache_description">Enregistrez les pages web pour les charger plus rapidement la prochaine fois</string>
+    <string name="clear_screen_cache">Êtes-vous sûr de vouloir vider le cache de l\'écran ? Cette action ne peut pas être annulée.</string>
 </resources>
