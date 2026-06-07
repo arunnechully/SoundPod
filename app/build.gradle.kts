@@ -131,6 +131,7 @@ dependencies {
     implementation(libs.reorderable)
     implementation(libs.room)
     implementation(libs.swipe)
+    implementation(libs.core.splashscreen)
     implementation(libs.palette.ktx)
     implementation(libs.work.runtime.ktx)
     implementation(libs.preference.ktx)

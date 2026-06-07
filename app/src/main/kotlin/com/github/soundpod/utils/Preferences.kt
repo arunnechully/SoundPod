@@ -43,6 +43,7 @@ const val selectedSleepTimerPresetKey = "selectedSleepTimerPreset"
 const val pauseSongCacheKey = "pauseSongCache"
 const val showCachedSongsInOfflineKey = "showCachedSongsInOffline"
 const val quickPicksSourceKey = "quickPicksSource"
+const val isScreenCacheEnabledKey = "isScreenCacheEnabled"
 
 const val appTheme = "appTheme"
 const val progressBarStyle = "progressBarStyle"

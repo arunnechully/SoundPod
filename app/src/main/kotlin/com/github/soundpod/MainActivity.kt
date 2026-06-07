@@ -16,6 +16,7 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -102,6 +103,7 @@ class MainActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             enableEdgeToEdge(
                 statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
@@ -118,17 +120,6 @@ class MainActivity : ComponentActivity() {
         }
         super.onCreate(savedInstanceState)
 
-        lifecycleScope.launch(Dispatchers.IO) {
-            val updateFile = File(externalCacheDir, "update.apk")
-            if (updateFile.exists()) {
-                updateFile.delete()
-            }
-            externalCacheDir?.listFiles()?.forEach {
-                if (it.name.startsWith("update_") && it.name.endsWith(".apk")) it.delete()
-            }
-            setupUpdateWorker()
-        }
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
@@ -138,6 +129,21 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val context = LocalContext.current
+            
+            LaunchedEffect(Unit) {
+                withContext(Dispatchers.IO) {
+                    val updateFile = File(externalCacheDir, "update.apk")
+                    if (updateFile.exists()) {
+                        updateFile.delete()
+                    }
+                    externalCacheDir?.listFiles()?.forEach {
+                        if (it.name.startsWith("update_") && it.name.endsWith(".apk")) it.delete()
+                    }
+                    setupUpdateWorker()
+                }
+                reportFullyDrawn()
+            }
+
             val navController = rememberNavController()
             val scope = rememberCoroutineScope()
             var isPlayerVisible by remember { mutableStateOf(true) }

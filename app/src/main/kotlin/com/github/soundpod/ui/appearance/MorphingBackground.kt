@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.toArgb
@@ -79,7 +80,7 @@ fun MorphingBackground(
         modifier = modifier
             .fillMaxSize()
             .background(
-                finalC3.copy(alpha = 0.12f)
+                finalC3.copy(alpha = 0.2f)
                     .compositeOver(if (isDark) Color(0xFF05050A) else Color(0xFFFAFAFF))
             )
     ) {
@@ -88,7 +89,9 @@ fun MorphingBackground(
             progress = { progress },
             dynamicProperties = dynamicProperties,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(0.75f)
         )
     }
 }

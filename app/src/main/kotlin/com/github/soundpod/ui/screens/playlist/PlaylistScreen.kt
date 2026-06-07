@@ -44,8 +44,11 @@ import com.github.soundpod.transaction
 import com.github.soundpod.ui.appearance.LoadingAnimation
 import com.github.soundpod.ui.components.TextFieldDialog
 import com.github.soundpod.ui.components.TooltipIconButton
+import com.github.soundpod.utils.ScreenCache
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.completed
+import com.github.soundpod.utils.isScreenCacheEnabledKey
+import com.github.soundpod.utils.preferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -60,6 +63,7 @@ fun PlaylistScreen(
     onGoToAlbum: (String) -> Unit,
     onGoToArtist: (String) -> Unit
 ) {
+    val context = LocalContext.current
     var playlistPage: Innertube.PlaylistOrAlbumPage? by remember(browseId) { mutableStateOf(null) }
     var isImportingPlaylist by rememberSaveable { mutableStateOf(false) }
 
@@ -67,6 +71,13 @@ fun PlaylistScreen(
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(browseId) {
+        val isScreenCacheEnabled = context.preferences.getBoolean(isScreenCacheEnabledKey, true)
+        val cacheKey = "playlist_$browseId"
+
+        if (playlistPage == null && isScreenCacheEnabled) {
+            playlistPage = ScreenCache.load(cacheKey)
+        }
+
         withContext(Dispatchers.IO) {
             Innertube.playlistPage(browseId = browseId)
                 ?.completed()
@@ -74,6 +85,9 @@ fun PlaylistScreen(
                 ?.let { page ->
                     withContext(Dispatchers.Main) {
                         playlistPage = page
+                        if (isScreenCacheEnabled) {
+                            ScreenCache.save(cacheKey, page)
+                        }
                     }
                 }
         }
@@ -101,8 +115,6 @@ fun PlaylistScreen(
                     }
                 },
                 actions = {
-                    val context = LocalContext.current
-
                     if (playlistPage != null) {
                         TooltipIconButton(
                             description = R.string.import_playlist,

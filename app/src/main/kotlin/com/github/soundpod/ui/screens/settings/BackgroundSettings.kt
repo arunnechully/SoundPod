@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.QueueMusic
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -43,10 +44,11 @@ import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
 import com.github.soundpod.ui.appearance.BackgroundStyles
 import com.github.soundpod.ui.appearance.PLAYER_BACKGROUND_STYLE_KEY
+import com.github.soundpod.ui.common.IconSource
+import com.github.soundpod.ui.components.SwitchSetting
 import com.github.soundpod.utils.preferences
 import com.github.soundpod.utils.rememberPreference
 
-// Helper data class to clean up preset listing
 private data class BackgroundPreset(val title: String, val asset: String, val styleId: Int)
 
 @Composable
@@ -72,9 +74,21 @@ fun BackgroundSettingsContent() {
             title = stringResource(id = R.string.style)
         ) {
             BackgroundOptionItem(
+                title = stringResource(id = R.string.off),
+                description = stringResource(id = R.string.off_description),
+                selected = currentStyle == BackgroundStyles.OFF,
+                onClick = { prefs.edit { putInt(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.OFF) } }
+            )
+            BackgroundOptionItem(
+                title = stringResource(id = R.string.static_colors),
+                description = stringResource(id = R.string.static_colors_description),
+                selected = currentStyle == BackgroundStyles.STATIC,
+                onClick = { prefs.edit { putInt(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.STATIC) } }
+            )
+            BackgroundOptionItem(
                 title = stringResource(id = R.string.dynamic_colors),
                 description = stringResource(id = R.string.dynamic_colors_discription),
-                selected = (currentStyle == BackgroundStyles.MORPHING || currentStyle == 0),
+                selected = currentStyle == BackgroundStyles.MORPHING,
                 onClick = { prefs.edit { putInt(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.MORPHING) } }
             )
         }

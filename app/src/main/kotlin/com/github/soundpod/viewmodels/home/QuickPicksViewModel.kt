@@ -13,6 +13,8 @@ import com.github.soundpod.appContext
 import com.github.soundpod.db
 import com.github.soundpod.enums.QuickPicksSource
 import com.github.soundpod.models.Song
+import com.github.soundpod.utils.ScreenCache
+import com.github.soundpod.utils.isScreenCacheEnabledKey
 import com.github.soundpod.utils.preferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -21,7 +23,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class QuickPicksViewModel : ViewModel() {
@@ -31,11 +32,6 @@ class QuickPicksViewModel : ViewModel() {
     companion object {
         private const val CACHE_EXPIRATION = 30 * 60 * 1000L // 30 minutes
         private const val PERSISTENT_CACHE_PREFIX = "quick_picks_cache_v2_"
-        private val json = Json {
-            ignoreUnknownKeys = true
-            explicitNulls = false
-            encodeDefaults = true
-        }
     }
 
     private fun getSeedSongsFlow(source: QuickPicksSource, limit: Int): Flow<List<Song>> = when (source) {
@@ -45,27 +41,11 @@ class QuickPicksViewModel : ViewModel() {
     }
 
     private fun getCached(source: QuickPicksSource): Innertube.RelatedPage? {
-        val cachedJson = appContext.preferences.getString(PERSISTENT_CACHE_PREFIX + source.name, null) ?: return null
-        val timestamp = appContext.preferences.getLong(PERSISTENT_CACHE_PREFIX + source.name + "_time", 0)
-        
-        if (System.currentTimeMillis() - timestamp > CACHE_EXPIRATION) return null
-        
-        return try {
-            json.decodeFromString<Innertube.RelatedPage>(cachedJson)
-        } catch (_: Exception) {
-            null
-        }
+        return ScreenCache.load(PERSISTENT_CACHE_PREFIX + source.name)
     }
 
     private fun saveToCache(source: QuickPicksSource, page: Innertube.RelatedPage) {
-        try {
-            val cachedJson = json.encodeToString(page)
-            appContext.preferences.edit {
-                putString(PERSISTENT_CACHE_PREFIX + source.name, cachedJson)
-                putLong(PERSISTENT_CACHE_PREFIX + source.name + "_time", System.currentTimeMillis())
-            }
-        } catch (_: Exception) {
-        }
+        ScreenCache.save(PERSISTENT_CACHE_PREFIX + source.name, page)
     }
 
     private fun <T : Innertube.Item> interleave(lists: List<List<T>>): List<T> {
@@ -90,12 +70,14 @@ class QuickPicksViewModel : ViewModel() {
     }
 
     fun loadQuickPicks(quickPicksSource: QuickPicksSource, forceRefresh: Boolean = false) {
-        if (!forceRefresh) {
-            val cached = getCached(quickPicksSource)
-            if (cached != null) {
-                relatedPageResult = Result.success(cached)
-                return
-            }
+        val isScreenCacheEnabled = appContext.preferences.getBoolean(isScreenCacheEnabledKey, true)
+        val cached = if (isScreenCacheEnabled) getCached(quickPicksSource) else null
+        if (cached != null) {
+            relatedPageResult = Result.success(cached)
+        }
+
+        if (!forceRefresh && cached != null && !ScreenCache.isExpired(PERSISTENT_CACHE_PREFIX + quickPicksSource.name, CACHE_EXPIRATION)) {
+            return
         }
 
         job?.cancel()
@@ -141,7 +123,9 @@ class QuickPicksViewModel : ViewModel() {
                     ?: Result.failure(Exception("Failed to load Quick Picks"))
 
                 finalResult.getOrNull()?.let {
-                    saveToCache(quickPicksSource, it)
+                    if (isScreenCacheEnabled) {
+                        saveToCache(quickPicksSource, it)
+                    }
                 }
 
                 relatedPageResult = finalResult

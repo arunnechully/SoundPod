@@ -5,9 +5,11 @@ package com.github.soundpod.ui.screens.settings
 import android.annotation.SuppressLint
 import android.text.format.Formatter
 import androidx.annotation.OptIn
+import androidx.core.content.edit
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
@@ -48,8 +50,10 @@ import com.github.soundpod.enums.QuickPicksSource
 import com.github.soundpod.query
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SwitchSetting
+import com.github.soundpod.utils.ScreenCache
 import com.github.soundpod.utils.coilDiskCacheMaxSizeKey
 import com.github.soundpod.utils.exoPlayerDiskCacheMaxSizeKey
+import com.github.soundpod.utils.isScreenCacheEnabledKey
 import com.github.soundpod.utils.pauseSearchHistoryKey
 import com.github.soundpod.utils.pauseSongCacheKey
 import com.github.soundpod.utils.quickPicksSourceKey
@@ -64,7 +68,7 @@ fun CacheSettingsContent() {
 
     val context = LocalContext.current
     val binder = LocalPlayerServiceBinder.current
-    LocalAppearance.current.colorPalette
+    val (colorPalette) = LocalAppearance.current
 
     var coilDiskCacheMaxSize by rememberPreference(
         coilDiskCacheMaxSizeKey,
@@ -78,6 +82,7 @@ fun CacheSettingsContent() {
 
     var pauseSongCache by rememberPreference(pauseSongCacheKey, false)
     var showCachedSongsInOffline by rememberPreference(showCachedSongsInOfflineKey, true)
+    var isScreenCacheEnabled by rememberPreference(isScreenCacheEnabledKey, true)
 
     val eventsCount by remember {
         db.eventsCount().distinctUntilChanged()
@@ -86,6 +91,7 @@ fun CacheSettingsContent() {
     var quickPicksSource by rememberPreference(quickPicksSourceKey, QuickPicksSource.Trending)
 
     var showClearQuickPicksDialog by remember { mutableStateOf(false) }
+    var showClearScreenCacheDialog by remember { mutableStateOf(false) }
     var showClearImageCacheDialog by remember { mutableStateOf(false) }
     var showClearSongCacheDialog by remember { mutableStateOf(false) }
 
@@ -141,6 +147,54 @@ fun CacheSettingsContent() {
                     showClearQuickPicksDialog = false
                 },
                 alertMessage = stringResource(id = R.string.reset_quick_picks_alert)
+            )
+        }
+
+        SettingsGroup(
+            title = stringResource(id = R.string.screen_cache)
+        ) {
+            SwitchSetting(
+                icon = IconSource.Vector(Icons.Outlined.Store),
+                title = stringResource(id = R.string.screen_cache),
+                description = stringResource(id = R.string.screen_cache_description),
+                switchState = isScreenCacheEnabled,
+                onSwitchChange = { isScreenCacheEnabled = it }
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Spacer(modifier = Modifier.weight(1f))
+
+                TextButton(
+                    onClick = { showClearScreenCacheDialog = true },
+                    shape = CircleShape,
+                    colors = ButtonDefaults.textButtonColors(
+                        containerColor = colorPalette.accent.copy(alpha = 0.1f),
+                        contentColor = colorPalette.accent
+                    ),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.clear_cache),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
+        if (showClearScreenCacheDialog) {
+            SettingsAlertDialog(
+                title = stringResource(id = R.string.screen_cache),
+                onDismissRequest = { showClearScreenCacheDialog = false },
+                onConfirmClick = {
+                    ScreenCache.preferences.edit { clear() }
+                    showClearScreenCacheDialog = false
+                },
+                alertMessage = stringResource(id = R.string.clear_screen_cache)
             )
         }
 

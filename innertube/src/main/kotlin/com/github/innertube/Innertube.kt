@@ -28,6 +28,12 @@ import kotlinx.serialization.json.Json
 object Innertube {
 
     var visitorData: String? = null
+        set(value) {
+            field = value
+            onVisitorDataChanged?.invoke(value)
+        }
+
+    var onVisitorDataChanged: ((String?) -> Unit)? = null
     var poToken: String? = null
 
     interface PoTokenResolver {

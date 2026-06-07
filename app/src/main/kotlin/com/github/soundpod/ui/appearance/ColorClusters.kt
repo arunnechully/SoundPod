@@ -2,8 +2,6 @@ package com.github.soundpod.ui.appearance
 
 import android.content.Context
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.compositeOver
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.palette.graphics.Palette
 import coil3.imageLoader
@@ -46,8 +44,6 @@ suspend fun extractColorClusters(
         val vibrant = Color(palette.getVibrantColor(fallbackColor.toArgb()))
         val muted = Color(palette.getMutedColor(fallbackColor.toArgb()))
         val dominant = Color(palette.getDominantColor(fallbackColor.toArgb()))
-        
-        // Pick the best "surface" color based on swatches
         val surfaceColor = palette.vibrantSwatch?.rgb
             ?: palette.mutedSwatch?.rgb
             ?: palette.dominantSwatch?.rgb
@@ -60,22 +56,15 @@ suspend fun extractColorClusters(
 }
 
 fun Color.adaptToTheme(isDark: Boolean): Color {
-    val lum = luminance()
+    val hsv = FloatArray(3)
+    android.graphics.Color.colorToHSV(this.toArgb(), hsv)
+    hsv[1] = hsv[1].coerceAtMost(0.55f)
+
     return if (isDark) {
-        // If it's too dark in Dark Mode, lighten it
-        if (lum < 0.15f) {
-            this.copy(alpha = 1f).compositeOver(Color.White.copy(alpha = 0.2f))
-        } else if (lum > 0.6f) {
-            // If it's too bright in Dark Mode, tone it down
-            this.copy(alpha = 1f).compositeOver(Color.Black).copy(alpha = 0.6f).compositeOver(Color.Black)
-        } else this
+        hsv[2] = hsv[2].coerceIn(0.35f, 0.6f)
+        Color(android.graphics.Color.HSVToColor((alpha * 255).toInt(), hsv))
     } else {
-        // If it's too bright in Light Mode, darken it
-        if (lum > 0.85f) {
-            this.copy(alpha = 1f).compositeOver(Color.Black.copy(alpha = 0.15f))
-        } else if (lum < 0.3f) {
-            // If it's too dark in Light Mode, brighten it
-            this.copy(alpha = 1f).compositeOver(Color.White).copy(alpha = 0.7f).compositeOver(Color.White)
-        } else this
+        hsv[2] = hsv[2].coerceIn(0.8f, 0.95f)
+        Color(android.graphics.Color.HSVToColor((alpha * 255).toInt(), hsv))
     }
 }

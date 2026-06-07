@@ -2,12 +2,14 @@ package com.github.soundpod
 
 import android.app.Application
 import android.content.Context
+import androidx.core.content.edit
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.disk.DiskCache
 import coil3.disk.directory
 import coil3.request.crossfade
+import com.github.innertube.Innertube
 import com.github.soundpod.enums.CoilDiskCacheMaxSize
 import com.github.soundpod.utils.coilDiskCacheMaxSizeKey
 import com.github.soundpod.utils.getEnum
@@ -20,8 +22,16 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
     override fun onCreate() {
         super.onCreate()
         instance = this
-        DatabaseInitializer.get(this)
-        NewPipe.init(NewPipeDownloader.getInstance())
+        
+        Thread {
+            DatabaseInitializer.get(this)
+            NewPipe.init(NewPipeDownloader.getInstance())
+
+            Innertube.visitorData = preferences.getString("visitor_data", null)
+            Innertube.onVisitorDataChanged = { visitorData: String? ->
+                preferences.edit { putString("visitor_data", visitorData) }
+            }
+        }.start()
     }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader {
