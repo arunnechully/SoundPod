@@ -21,6 +21,10 @@ extensions.configure<ApplicationExtension>("android") {
     namespace = "com.github.soundpod"
     compileSdk = 37
 
+    androidResources {
+        localeFilters += setOf("en", "de", "es", "fr", "it")
+    }
+
     defaultConfig {
         applicationId = "com.github.soundpod"
         minSdk = 23
@@ -59,7 +63,7 @@ extensions.configure<ApplicationExtension>("android") {
     splits {
         abi {
             reset()
-            isUniversalApk = true
+            isUniversalApk = false
         }
     }
 

@@ -13,6 +13,8 @@ data class ColorClusters(
     val c1: Color,
     val c2: Color,
     val c3: Color,
+    val c4: Color,
+    val c5: Color,
     val surface: Color
 )
 
@@ -22,7 +24,7 @@ suspend fun extractColorClusters(
     fallbackColor: Color
 ): ColorClusters {
     if (thumbnailUrl.isNullOrEmpty()) {
-        return ColorClusters(fallbackColor, fallbackColor, fallbackColor, fallbackColor)
+        return ColorClusters(fallbackColor, fallbackColor, fallbackColor, fallbackColor, fallbackColor, fallbackColor)
     }
 
     val request = ImageRequest.Builder(context)
@@ -42,17 +44,20 @@ suspend fun extractColorClusters(
         val palette = Palette.from(bitmap).generate()
         
         val vibrant = Color(palette.getVibrantColor(fallbackColor.toArgb()))
+        val lightVibrant = Color(palette.getLightVibrantColor(fallbackColor.toArgb()))
+        val darkVibrant = Color(palette.getDarkVibrantColor(fallbackColor.toArgb()))
         val muted = Color(palette.getMutedColor(fallbackColor.toArgb()))
         val dominant = Color(palette.getDominantColor(fallbackColor.toArgb()))
+        
         val surfaceColor = palette.vibrantSwatch?.rgb
             ?: palette.mutedSwatch?.rgb
             ?: palette.dominantSwatch?.rgb
             ?: fallbackColor.toArgb()
         
-        return ColorClusters(vibrant, muted, dominant, Color(surfaceColor))
+        return ColorClusters(vibrant, lightVibrant, darkVibrant, muted, dominant, Color(surfaceColor))
     }
 
-    return ColorClusters(fallbackColor, fallbackColor, fallbackColor, fallbackColor)
+    return ColorClusters(fallbackColor, fallbackColor, fallbackColor, fallbackColor, fallbackColor, fallbackColor)
 }
 
 fun Color.adaptToTheme(isDark: Boolean): Color {

@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.github.innertube.Innertube
 import com.github.innertube.requests.artistPage
 import com.github.soundpod.db
@@ -16,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class ArtistViewModel : ViewModel() {
@@ -24,6 +26,15 @@ class ArtistViewModel : ViewModel() {
 
     companion object {
         private const val CACHE_EXPIRATION = 60 * 60 * 1000L // 1 hour
+    }
+
+    fun toggleBookmark() {
+        val currentArtist = artist ?: return
+        val bookmarkedAt = if (currentArtist.bookmarkedAt == null) System.currentTimeMillis() else null
+        val updatedArtist = currentArtist.copy(bookmarkedAt = bookmarkedAt)
+        viewModelScope.launch(Dispatchers.IO) {
+            db.update(updatedArtist)
+        }
     }
 
     suspend fun loadArtist(browseId: String, tabIndex: Int) {

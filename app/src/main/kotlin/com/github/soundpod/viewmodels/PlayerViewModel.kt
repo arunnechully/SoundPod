@@ -22,7 +22,9 @@ data class PlayerUiState(
     val currentPositionMs: Long = 0L,
     val durationMs: Long = 0L,
     val playbackSpeed: Float = 1f,
-    val artistId: String? = null
+    val artistId: String? = null,
+    val isSingleArtist: Boolean = false,
+    val albumId: String? = null
 )
 
 @UnstableApi
@@ -38,7 +40,7 @@ class PlayerViewModel(
     private val playerListener = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             _uiState.update { it.copy(mediaItem = mediaItem) }
-            fetchArtistInfo(mediaItem)
+            fetchMetadataInfo(mediaItem)
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -82,21 +84,31 @@ class PlayerViewModel(
             )
         }
 
-        fetchArtistInfo(player.currentMediaItem)
+        fetchMetadataInfo(player.currentMediaItem)
         manageProgressTracker(player.isPlaying)
     }
     private var dbJob: Job? = null
-    private fun fetchArtistInfo(mediaItem: MediaItem?) {
+    private fun fetchMetadataInfo(mediaItem: MediaItem?) {
         dbJob?.cancel()
         if (mediaItem == null) {
-            _uiState.update { it.copy(artistId = null) }
+            _uiState.update { it.copy(artistId = null, isSingleArtist = false, albumId = null) }
             return
         }
         dbJob = viewModelScope.launch(Dispatchers.IO) {
             val artistsInfo = db.songArtistInfo(mediaItem.mediaId)
-            val id = if (artistsInfo.size == 1) artistsInfo.first().id else null
+            val albumInfo = db.songAlbumInfo(mediaItem.mediaId)
 
-            _uiState.update { it.copy(artistId = id) }
+            val artistIds = if (artistsInfo.isNotEmpty()) {
+                artistsInfo.map { it.id }
+            } else {
+                mediaItem.mediaMetadata.extras?.getStringArrayList("artistIds") ?: emptyList()
+            }
+
+            val artistId = if (artistIds.size == 1) artistIds.first() else null
+            val isSingleArtist = artistIds.size == 1
+            val albumId = albumInfo?.id ?: mediaItem.mediaMetadata.extras?.getString("albumId")
+
+            _uiState.update { it.copy(artistId = artistId, isSingleArtist = isSingleArtist, albumId = albumId) }
         }
     }
 

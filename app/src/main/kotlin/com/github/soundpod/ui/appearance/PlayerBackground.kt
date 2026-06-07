@@ -47,7 +47,7 @@ fun PlayerBackground(
     val fallbackColor = colorPalette.accent
 
     var clusters by remember { 
-        mutableStateOf(ColorClusters(fallbackColor, fallbackColor, fallbackColor, fallbackColor)) 
+        mutableStateOf(ColorClusters(fallbackColor, fallbackColor, fallbackColor, fallbackColor, fallbackColor, fallbackColor))
     }
     
     LaunchedEffect(thumbnailUrl, colorPalette) {

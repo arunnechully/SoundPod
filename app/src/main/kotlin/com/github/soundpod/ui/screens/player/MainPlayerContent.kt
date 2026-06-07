@@ -80,6 +80,8 @@ fun MainPlayerContent(
 
     val mediaItem = uiState.mediaItem ?: return
     val artistId = uiState.artistId
+    val isSingleArtist = uiState.isSingleArtist
+    val albumId = uiState.albumId
     val shouldBePlaying = uiState.isPlaying
     val currentPositionMs = uiState.currentPositionMs
     val durationMs = uiState.durationMs
@@ -159,8 +161,10 @@ fun MainPlayerContent(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     PlayerTopControl(
-                        onGoToAlbum = handleGoToAlbum,
-                        onGoToArtist = handleGoToArtist,
+                        onGoToAlbum = albumId?.let { id -> { handleGoToAlbum(id) } },
+                        onGoToArtist = if (isSingleArtist && artistId != null) {
+                            { handleGoToArtist(artistId) }
+                        } else null,
                         onTrackDetailsClick = onTrackDetailsClick,
                         onLyricsClick = onLyricsClick,
                         onSettingsClick = onSettingsClick,
@@ -181,7 +185,9 @@ fun MainPlayerContent(
                             verticalArrangement = Arrangement.Center
                         ) {
                             PlayerMediaItem(
-                                onGoToArtist = artistId?.let { artist -> { handleGoToArtist(artist) } }
+                                onGoToArtist = if (isSingleArtist && artistId != null) {
+                                    { handleGoToArtist(artistId) }
+                                } else null
                             )
 
                             Spacer(modifier = Modifier.height(Dimensions.spacer))
@@ -241,8 +247,10 @@ fun MainPlayerContent(
 
                 //Top Control
                 PlayerTopControl(
-                    onGoToAlbum = handleGoToAlbum,
-                    onGoToArtist = handleGoToArtist,
+                    onGoToAlbum = albumId?.let { id -> { handleGoToAlbum(id) } },
+                    onGoToArtist = if (isSingleArtist && artistId != null) {
+                        { handleGoToArtist(artistId) }
+                    } else null,
                     onTrackDetailsClick = onTrackDetailsClick,
                     onLyricsClick = onLyricsClick,
                     onSettingsClick = onSettingsClick,
@@ -300,7 +308,9 @@ fun MainPlayerContent(
                                     }
                             ) {
                                 PlayerMediaItem(
-                                    onGoToArtist = artistId?.let { artist -> { handleGoToArtist(artist) } }
+                                    onGoToArtist = if (isSingleArtist && artistId != null) {
+                                        { handleGoToArtist(artistId) }
+                                    } else null
                                 )
                             }
 

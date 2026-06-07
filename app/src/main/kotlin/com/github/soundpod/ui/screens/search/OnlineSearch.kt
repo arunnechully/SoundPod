@@ -12,6 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +35,9 @@ import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.ui.appearance.LoadingAnimation
 import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
 import com.github.soundpod.ui.components.SettingsCard
+import com.github.soundpod.ui.items.AlbumItem
+import com.github.soundpod.ui.items.ArtistItem
+import com.github.soundpod.ui.items.PlaylistItem
 import com.github.soundpod.ui.items.SongItem
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlay
@@ -38,10 +45,14 @@ import com.github.soundpod.utils.forcePlay
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @Composable
 fun OnlineSearch(
-    searchResults: List<Innertube.SongItem>?,
+    songResults: List<Innertube.SongItem>?,
+    albumResults: List<Innertube.AlbumItem>?,
+    artistResults: List<Innertube.ArtistItem>?,
+    playlistResults: List<Innertube.PlaylistItem>?,
     isLoading: Boolean,
     onAlbumClick: (String) -> Unit,
     onArtistClick: (String) -> Unit,
+    onPlaylistClick: (String) -> Unit,
     onViewAllClick: (String) -> Unit
 ) {
     val (colorPalette) = LocalAppearance.current
@@ -64,30 +75,21 @@ fun OnlineSearch(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-    } else if (searchResults?.isNotEmpty() == true) {
-        Column(
-            modifier = Modifier.fillMaxWidth()
+    } else {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 16.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp, horizontal = 22.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.songs),
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
-                    color = colorPalette.text.copy(alpha = 0.5f)
-                )
-            }
-
-            SettingsCard(
-                content = {
-                    Column {
-                        searchResults.forEach { song ->
+            // Songs Section
+            if (songResults?.isNotEmpty() == true) {
+                item {
+                    SearchSection(
+                        title = stringResource(R.string.songs),
+                        onViewAllClick = onViewAllClick,
+                        colorPalette = colorPalette
+                    ) {
+                        songResults.forEach { song ->
                             SongItem(
                                 song = song,
                                 onClick = {
@@ -107,37 +109,122 @@ fun OnlineSearch(
                                 }
                             )
                         }
-                        HorizontalDivider(
-                            modifier = Modifier
-                                .padding(horizontal = 18.dp)
-                                .fillMaxWidth(),
-                            color = colorPalette.text.copy(alpha = 0.1f)
-                        )
+                    }
+                }
+            }
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
+            // Albums Section
+            if (albumResults?.isNotEmpty() == true) {
+                item {
+                    SearchSection(
+                        title = stringResource(R.string.albums),
+                        onViewAllClick = onViewAllClick,
+                        colorPalette = colorPalette
+                    ) {
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            val songsTitle = stringResource(R.string.songs)
-
-                            TextButton(
-                                onClick = { onViewAllClick(songsTitle) },
-                                colors = ButtonDefaults.textButtonColors(
-                                    contentColor = colorPalette.text
-                                ),
-                                contentPadding = PaddingValues(horizontal = 4.dp)
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.view_all),
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        fontWeight = FontWeight.Medium
-                                    )
+                            items(albumResults) { album ->
+                                AlbumItem(
+                                    modifier = Modifier.width(110.dp),
+                                    album = album,
+                                    onClick = { onAlbumClick(album.key) }
                                 )
                             }
                         }
                     }
                 }
-            )
+            }
+
+            // Artists Section
+            if (artistResults?.isNotEmpty() == true) {
+                item {
+                    SearchSection(
+                        title = stringResource(R.string.artists),
+                        onViewAllClick = onViewAllClick,
+                        colorPalette = colorPalette
+                    ) {
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            items(artistResults) { artist ->
+                                ArtistItem(
+                                    modifier = Modifier.width(110.dp),
+                                    artist = artist,
+                                    onClick = { onArtistClick(artist.key) }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Playlists Section
+            if (playlistResults?.isNotEmpty() == true) {
+                item {
+                    SearchSection(
+                        title = stringResource(R.string.playlists),
+                        onViewAllClick = onViewAllClick,
+                        colorPalette = colorPalette
+                    ) {
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            items(playlistResults) { playlist ->
+                                PlaylistItem(
+                                    modifier = Modifier.width(110.dp),
+                                    playlist = playlist,
+                                    onClick = { onPlaylistClick(playlist.key) }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchSection(
+    title: String,
+    onViewAllClick: (String) -> Unit,
+    colorPalette: com.github.core.ui.ColorPalette,
+    content: @Composable () -> Unit
+) {
+    Column(modifier = Modifier.padding(top = 8.dp)) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+            color = colorPalette.text.copy(alpha = 0.5f),
+            modifier = Modifier.padding(horizontal = 22.dp, vertical = 4.dp)
+        )
+
+        SettingsCard {
+            Column {
+                content()
+                
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 18.dp),
+                    color = colorPalette.text.copy(alpha = 0.1f)
+                )
+
+                TextButton(
+                    onClick = { onViewAllClick(title) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = colorPalette.text
+                    )
+                ) {
+                    Text(
+                        text = stringResource(R.string.view_all),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            }
         }
     }
 }

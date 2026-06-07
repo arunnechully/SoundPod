@@ -76,6 +76,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.withContext
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @Composable
@@ -83,7 +84,8 @@ fun NewSearchLayout(
     initialTextInput: String = "",
     navController: NavController,
     onAlbumClick: (String) -> Unit,
-    onArtistClick: (String) -> Unit
+    onArtistClick: (String) -> Unit,
+    onPlaylistClick: (String) -> Unit
 ) {
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -149,7 +151,7 @@ fun NewSearchLayout(
 
         if (textFieldValue.text.isNotEmpty() && confirmedSearchQuery == null) {
             isLoadingSuggestions = true
-            delay(300)
+            delay(300.milliseconds)
             suggestionsResult = withContext(Dispatchers.IO) {
                 Innertube.searchSuggestions(input = textFieldValue.text)
             }
@@ -241,10 +243,14 @@ fun NewSearchLayout(
             when {
                 confirmedSearchQuery != null -> {
                     OnlineSearch(
-                        searchResults = searchViewModel.searchResults,
+                        songResults = searchViewModel.songResults,
+                        albumResults = searchViewModel.albumResults,
+                        artistResults = searchViewModel.artistResults,
+                        playlistResults = searchViewModel.playlistResults,
                         isLoading = searchViewModel.isLoading,
                         onAlbumClick = onAlbumClick,
                         onArtistClick = onArtistClick,
+                        onPlaylistClick = onPlaylistClick,
                         onViewAllClick = { category ->
                             navController.navigate("${Routes.SearchResult}/${confirmedSearchQuery}/$category")
                         }

@@ -48,14 +48,20 @@ fun MorphingBackground(
     val c1 = colors?.c1 ?: MaterialTheme.colorScheme.primary
     val c2 = colors?.c2 ?: MaterialTheme.colorScheme.secondary
     val c3 = colors?.c3 ?: MaterialTheme.colorScheme.tertiary
+    val c4 = colors?.c4 ?: MaterialTheme.colorScheme.primaryContainer
+    val c5 = colors?.c5 ?: MaterialTheme.colorScheme.secondaryContainer
 
     val targetC1 = remember(c1, isDark) { c1.adaptToTheme(isDark) }
     val targetC2 = remember(c2, isDark) { c2.adaptToTheme(isDark) }
     val targetC3 = remember(c3, isDark) { c3.adaptToTheme(isDark) }
+    val targetC4 = remember(c4, isDark) { c4.adaptToTheme(isDark) }
+    val targetC5 = remember(c5, isDark) { c5.adaptToTheme(isDark) }
 
     val finalC1 by animateColorAsState(targetC1, tween(2500), label = "c1")
     val finalC2 by animateColorAsState(targetC2, tween(2500), label = "c2")
     val finalC3 by animateColorAsState(targetC3, tween(2500), label = "c3")
+    val finalC4 by animateColorAsState(targetC4, tween(2500), label = "c4")
+    val finalC5 by animateColorAsState(targetC5, tween(2500), label = "c5")
 
     // Map extracted colors to Lottie layers
     val dynamicProperties = rememberLottieDynamicProperties(
@@ -73,6 +79,16 @@ fun MorphingBackground(
             property = LottieProperty.COLOR,
             value = finalC3.toArgb(),
             keyPath = arrayOf("Cyan Gradient", "Ellipse 1", "Fill 1"),
+        ),
+        rememberLottieDynamicProperty(
+            property = LottieProperty.COLOR,
+            value = finalC4.toArgb(),
+            keyPath = arrayOf("Purple Gradient", "Ellipse 1", "Fill 1"),
+        ),
+        rememberLottieDynamicProperty(
+            property = LottieProperty.COLOR,
+            value = finalC5.toArgb(),
+            keyPath = arrayOf("Orange Gradient", "Ellipse 1", "Fill 1"),
         ),
     )
 

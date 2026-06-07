@@ -29,7 +29,7 @@ import androidx.navigation.toRoute
 import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.ui.common.newSearchLayoutEnabled
 import com.github.soundpod.ui.screens.album.NewAlbumScreen
-import com.github.soundpod.ui.screens.artist.ArtistScreen
+import com.github.soundpod.ui.screens.artist.NewArtistScreen
 import com.github.soundpod.ui.screens.builtinplaylist.NewBuiltInPlaylistScreen
 import com.github.soundpod.ui.screens.home.HomeScreen
 import com.github.soundpod.ui.screens.localplaylist.NewLocalPlaylistScreen
@@ -112,9 +112,11 @@ fun MainNavigation(
         playerComposable(route = Routes.Artist::class) { navBackStackEntry ->
             val route: Routes.Artist = navBackStackEntry.toRoute()
 
-            ArtistScreen(
+            NewArtistScreen(
                 browseId = route.id,
-                pop = popDestination,
+                onBack = { navController.popBackStack() },
+                onSearchClick = { navController.navigate(route = Routes.Search) },
+                onSettingsClick = onNavigateToSettings,
                 onAlbumClick = navigateToAlbum,
                 onArtistClick = navigateToArtist,
                 onPlaylistClick = { browseId ->
@@ -155,7 +157,10 @@ fun MainNavigation(
                     initialTextInput = "",
                     navController = navController,
                     onAlbumClick = navigateToAlbum,
-                    onArtistClick = navigateToArtist
+                    onArtistClick = navigateToArtist,
+                    onPlaylistClick = { browseId ->
+                        navController.navigate(route = Routes.Playlist(id = browseId))
+                    }
                 )
             } else {
                 SearchScreen(

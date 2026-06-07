@@ -666,8 +666,8 @@ fun PlayerControlBottom(
 @UnstableApi
 @Composable
 fun PlayerTopControl(
-    onGoToAlbum: (String) -> Unit,
-    onGoToArtist: (String) -> Unit,
+    onGoToAlbum: (() -> Unit)? = null,
+    onGoToArtist: (() -> Unit)? = null,
     onTrackDetailsClick: () -> Unit = {},
     onBack: () -> Unit,
     onLyricsClick: () -> Unit = {},
@@ -679,18 +679,10 @@ fun PlayerTopControl(
     val binder = LocalPlayerServiceBinder.current
     binder?.player ?: return
 
-    var nullableMediaItem by remember {
-        mutableStateOf(
-            binder.player.currentMediaItem,
-            neverEqualPolicy()
-        )
-    }
     val context = LocalContext.current
 
     val activityResultLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { }
-
-    val mediaItem = nullableMediaItem ?: return
 
     val sleepTimerMillisLeft by binder.sleepTimerMillisLeft.collectAsState(initial = null)
 
@@ -803,32 +795,36 @@ fun PlayerTopControl(
                 expanded = showDropDown,
                 onDismissRequest = { showDropDown = false }
             ) {
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = stringResource(id = R.string.album),
-                            color = colorPalette.text,
-                            style = typography.bodyLarge
-                        )
-                    },
-                    onClick = {
-                        showDropDown = false
-                        onGoToAlbum(mediaItem.mediaId)
-                    }
-                )
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = stringResource(id = R.string.artist),
-                            color = colorPalette.text,
-                            style = typography.bodyLarge
-                        )
-                    },
-                    onClick = {
-                        showDropDown = false
-                        onGoToArtist(mediaItem.mediaId)
-                    }
-                )
+                if (onGoToAlbum != null) {
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = stringResource(id = R.string.album),
+                                color = colorPalette.text,
+                                style = typography.bodyLarge
+                            )
+                        },
+                        onClick = {
+                            showDropDown = false
+                            onGoToAlbum()
+                        }
+                    )
+                }
+                if (onGoToArtist != null) {
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = stringResource(id = R.string.artist),
+                                color = colorPalette.text,
+                                style = typography.bodyLarge
+                            )
+                        },
+                        onClick = {
+                            showDropDown = false
+                            onGoToArtist()
+                        }
+                    )
+                }
                 DropdownMenuItem(
                     text = {
                         Text(
