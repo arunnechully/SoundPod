@@ -5,11 +5,9 @@ package com.github.soundpod.ui.screens.settings
 import android.annotation.SuppressLint
 import android.text.format.Formatter
 import androidx.annotation.OptIn
-import androidx.core.content.edit
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
@@ -38,6 +36,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.edit
 import androidx.media3.common.util.UnstableApi
 import coil3.imageLoader
 import com.github.core.ui.LocalAppearance
@@ -161,16 +160,28 @@ fun CacheSettingsContent() {
                 onSwitchChange = { isScreenCacheEnabled = it }
             )
 
+            val screenCacheSize = remember(refreshTrigger) {
+                ScreenCache.size
+            }
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Spacer(modifier = Modifier.weight(1f))
+                SettingsProgress(
+                    modifier = Modifier.weight(1f),
+                    text = Formatter.formatShortFileSize(
+                        context,
+                        screenCacheSize
+                    ),
+                    progress = (screenCacheSize.toFloat() / (10 * 1024 * 1024).toFloat()).coerceAtMost(1f)
+                )
 
                 TextButton(
                     onClick = { showClearScreenCacheDialog = true },
+                    modifier = Modifier.padding(start = 8.dp),
                     shape = CircleShape,
                     colors = ButtonDefaults.textButtonColors(
                         containerColor = colorPalette.accent.copy(alpha = 0.1f),
@@ -192,6 +203,7 @@ fun CacheSettingsContent() {
                 onDismissRequest = { showClearScreenCacheDialog = false },
                 onConfirmClick = {
                     ScreenCache.preferences.edit { clear() }
+                    refreshTrigger++
                     showClearScreenCacheDialog = false
                 },
                 alertMessage = stringResource(id = R.string.clear_screen_cache)

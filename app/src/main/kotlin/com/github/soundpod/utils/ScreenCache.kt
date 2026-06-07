@@ -14,6 +14,13 @@ object ScreenCache {
         encodeDefaults = true
     }
 
+    val size: Long
+        get() = try {
+            java.io.File(appContext.applicationInfo.dataDir, "shared_prefs/screen_cache.xml").length()
+        } catch (_: Exception) {
+            0L
+        }
+
     inline fun <reified T> save(key: String, data: T) {
         try {
             val serialized = json.encodeToString(data)
