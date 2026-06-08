@@ -270,6 +270,9 @@
     <string name="customise">Personalizar</string>
     <string name="ok">OK</string>
     <string name="off">Apagado</string>
+    <string name="off_description">Pure theme color</string>
+    <string name="static_colors">Static Colors</string>
+    <string name="static_colors_description">Minimalist background</string>
     <string name="add_to_favorites">Agregar a favoritos</string>
     <string name="add_to_blocklist">Agregar a la lista de bloqueo</string>
     <string name="reset_quick_picks_alert">¿Estás seguro de que quieres borrar todo el historial de selecciones rápidas? Esta acción no se puede deshacer.</string>
@@ -334,4 +337,7 @@
     <string name="clear_audio_cache">¿Está seguro de que desea borrar la caché de audio? Esta acción no se puede deshacer.</string>
     <string name="show_cached_songs">Mostrar canciones almacenadas en caché</string>
     <string name="show_cached_songs_description">Mostrar canciones almacenadas en caché en la lista de reproducción sin conexión</string>
+    <string name="screen_cache">Screen cache</string>
+    <string name="screen_cache_description">Save online screens to load them faster next time</string>
+    <string name="clear_screen_cache">Are you sure you want to clear the screen cache? This action cannot be undone.</string>
 </resources>

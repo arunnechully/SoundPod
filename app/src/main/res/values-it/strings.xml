@@ -270,6 +270,9 @@
     <string name="customise">Customise</string>
     <string name="ok">OK</string>
     <string name="off">Off</string>
+    <string name="off_description">Pure theme color</string>
+    <string name="static_colors">Static Colors</string>
+    <string name="static_colors_description">Minimalist background</string>
     <string name="add_to_favorites">Add to Favorites</string>
     <string name="add_to_blocklist">Add to Blocklist</string>
     <string name="reset_quick_picks_alert">Are you sure you want to clear all quick picks history? This action cannot be undone.</string>
@@ -334,4 +337,7 @@
     <string name="clear_audio_cache">Are you sure you want to clear the audio cache? This action cannot be undone.</string>
     <string name="show_cached_songs">Show cached songs</string>
     <string name="show_cached_songs_description">Show cached songs in the offline playlist</string>
+    <string name="screen_cache">Screen cache</string>
+    <string name="screen_cache_description">Save online screens to load them faster next time</string>
+    <string name="clear_screen_cache">Are you sure you want to clear the screen cache? This action cannot be undone.</string>
 </resources>
