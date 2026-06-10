@@ -340,4 +340,10 @@
     <string name="screen_cache">Cache d\'écran</string>
     <string name="screen_cache_description">Enregistrez les pages web pour les charger plus rapidement la prochaine fois</string>
     <string name="clear_screen_cache">Êtes-vous sûr de vouloir vider le cache de l\'écran ? Cette action ne peut pas être annulée.</string>
+    <string name="copy_to_clipboard">Copié dans le presse-papiers</string>
+    <string name="track_length">Durée du titre</string>
+    <string name="format">Format</string>
+    <string name="path_id">Chemin / ID</string>
+    <string name="kbps">%d kbps</string>
+    <string name="decibel">%s dB</string>
 </resources>
