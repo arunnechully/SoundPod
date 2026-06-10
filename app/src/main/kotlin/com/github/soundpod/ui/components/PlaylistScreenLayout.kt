@@ -75,7 +75,7 @@ fun PlaylistScreenLayout(
 
     Scaffold(
         containerColor = colorPalette.background4,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         val statusBarHeight = WindowInsets.statusBars.asPaddingValues(density).calculateTopPadding()
         val topBarHeight = 64.dp + statusBarHeight
@@ -87,19 +87,34 @@ fun PlaylistScreenLayout(
                 .padding(bottom = innerPadding.calculateBottomPadding())
         ) {
             val fullHeightPx = constraints.maxHeight.toFloat()
-            val peekHeightPx = fullHeightPx * 0.45f
+            // Dynamic peek height: approximately 45% of screen height, but with sensible bounds
+            val peekHeightPx = remember(fullHeightPx) {
+                (fullHeightPx * 0.45f).coerceIn(
+                    with(density) { 320.dp.toPx() },
+                    with(density) { 480.dp.toPx() }
+                )
+            }
 
             var sheetOffset by remember(peekHeightPx) { mutableFloatStateOf(peekHeightPx) }
+            val offsetAnimatable = remember { Animatable(sheetOffset) }
             val scope = rememberCoroutineScope()
 
             val isAtTop by remember {
-                derivedStateOf { sheetOffset <= topBarHeightPx + 1f }
+                derivedStateOf { sheetOffset <= (topBarHeightPx + 2f) }
             }
 
             val nestedScrollConnection = remember {
                 object : NestedScrollConnection {
-                    override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                    override fun onPreScroll(
+                        available: Offset,
+                        source: NestedScrollSource
+                    ): Offset {
                         val delta = available.y
+                        
+                        if (source == NestedScrollSource.UserInput) {
+                            scope.launch { offsetAnimatable.stop() }
+                        }
+
                         return if (delta < 0 && sheetOffset > topBarHeightPx) {
                             val newOffset = (sheetOffset + delta).coerceAtLeast(topBarHeightPx)
                             val consumed = newOffset - sheetOffset
@@ -126,7 +141,10 @@ fun PlaylistScreenLayout(
                         }
                     }
 
-                    override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                    override suspend fun onPostFling(
+                        consumed: Velocity,
+                        available: Velocity
+                    ): Velocity {
                         val velocityY = available.y
                         val target = if (abs(velocityY) > 1000f) {
                             if (velocityY < 0) topBarHeightPx else peekHeightPx
@@ -137,18 +155,18 @@ fun PlaylistScreenLayout(
                                 peekHeightPx
                             }
                         }
+                        
                         if (sheetOffset != target) {
-                            scope.launch {
-                                Animatable(sheetOffset).animateTo(
-                                    targetValue = target,
-                                    initialVelocity = velocityY,
-                                    animationSpec = spring(
-                                        dampingRatio = Spring.DampingRatioNoBouncy,
-                                        stiffness = Spring.StiffnessLow
-                                    )
-                                ) {
-                                    sheetOffset = this.value
-                                }
+                            offsetAnimatable.snapTo(sheetOffset)
+                            offsetAnimatable.animateTo(
+                                targetValue = target,
+                                initialVelocity = velocityY,
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioNoBouncy,
+                                    stiffness = Spring.StiffnessLow
+                                )
+                            ) {
+                                sheetOffset = this.value
                             }
                             return Velocity(0f, velocityY)
                         }
@@ -161,44 +179,48 @@ fun PlaylistScreenLayout(
 
             val progress by remember {
                 derivedStateOf {
-                    ((sheetOffset - topBarHeightPx) / (peekHeightPx - topBarHeightPx)).coerceIn(0f, 1f)
+                    ((sheetOffset - topBarHeightPx) / (peekHeightPx - topBarHeightPx)).coerceIn(
+                        0f,
+                        1f
+                    )
                 }
             }
 
+            // Header Content
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(with(density) { sheetOffset.toDp() })
+                    .height(with(density) { peekHeightPx.toDp() })
                     .graphicsLayer {
                         alpha = progress
                         val scale = 0.85f + (progress * 0.15f)
                         scaleX = scale
                         scaleY = scale
-                        translationY = (sheetOffset - peekHeightPx) * 0.15f + (topBarHeightPx / 2f) * progress
+                        translationY = (sheetOffset - peekHeightPx) * 0.5f
                     },
                 contentAlignment = Alignment.Center
             ) {
-                headerContent()
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .padding(top = statusBarHeight)
+                        .padding(horizontal = 24.dp)
+                ) {
+                    headerContent()
+                }
             }
 
             Surface(
                 modifier = Modifier
                     .offset { IntOffset(0, sheetOffset.roundToInt()) }
                     .fillMaxSize()
-                    .padding(
-                        bottom = innerPadding.calculateBottomPadding()
-                    )
                     .nestedScroll(nestedScrollConnection),
-//            shape = shape,
+                shape = shape,
                 color = colorPalette.boxColor,
                 shadowElevation = ((1f - progress) * 8).dp
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-//                    .background(color = colorPalette.red)
-
-//                    .clip(shape)
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     content()
                 }
@@ -246,7 +268,11 @@ fun PlaylistScreenLayout(
 
                             CustomDropdownMenu(
                                 expanded = showDropDown,
-                                onDismissRequest = { showDropDown = false }
+                                onDismissRequest = { showDropDown = false },
+                                offset = IntOffset(
+                                    x = with(density) { 12.dp.roundToPx() },
+                                    y = with(density) { -20.dp.roundToPx() }
+                                )
                             ) {
                                 dropDownMenuContent { showDropDown = false }
                             }

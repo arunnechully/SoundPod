@@ -58,7 +58,7 @@ suspend fun Innertube.player(videoId: String) = coroutineScope {
                     header("User-Agent", ytClient.userAgent)
                     setBody(
                         PlayerBody(
-                            context = ytClient.toContext(visitorData = token).let { ctx ->
+                            context = ytClient.toContext(visitorData = token, localized = false).let { ctx ->
                                 if (ytClient == YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER) {
                                     ctx.copy(
                                         thirdParty = com.github.innertube.models.Context.ThirdParty(

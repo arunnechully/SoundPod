@@ -292,7 +292,7 @@
     <string name="style">Estilo</string>
     <string name="dynamic_colors">Colores dinámicos</string>
     <string name="dynamic_colors_discription">Se adapta a la reproducción de música</string>
-    <string name="animate_background">Fondo animado</string>
+    <string name="animated_background">Fondo animado</string>
     <string name="on">En</string>
     <string name="primary_color">Color primario</string>
     <string name="secondary_color">Color secundario</string>

@@ -276,7 +276,7 @@
     <string name="ok">OK</string>
     <string name="off">Off</string>
     <string name="off_description">Pure theme color</string>
-    <string name="static_colors">Static Colors</string>
+    <string name="static_colors">Static Cross-Fade</string>
     <string name="static_colors_description">Minimalist background</string>
     <string name="add_to_favorites">Add to Favorites</string>
     <string name="add_to_blocklist">Add to Blocklist</string>
@@ -297,7 +297,7 @@
     <string name="style">Style</string>
     <string name="dynamic_colors">Dynamic Colors</string>
     <string name="dynamic_colors_discription">Adapts to playing music</string>
-    <string name="animate_background">Animate Background</string>
+    <string name="animated_background">Animated Background</string>
     <string name="on">On</string>
     <string name="primary_color">Primary Color</string>
     <string name="secondary_color">Secondary color</string>
@@ -345,4 +345,10 @@
     <string name="screen_cache">Screen cache</string>
     <string name="screen_cache_description">Save online screens to load them faster next time</string>
     <string name="clear_screen_cache">Are you sure you want to clear the screen cache? This action cannot be undone.</string>
+    <string name="copy_to_clipboard">Copied to clipboard</string>
+    <string name="track_length">Track length</string>
+    <string name="format">Format</string>
+    <string name="path_id">Path / ID</string>
+    <string name="kbps">%d kbps</string>
+    <string name="decibel">%s dB</string>
 </resources>

@@ -113,7 +113,7 @@ fun <T : Innertube.Item> ItemsPage(
         }
 
         itemsIndexed(
-            items = allItems,
+            items = allItems.filter { it.key.isNotEmpty() }.distinctBy { it.key },
             key = { _, item -> item.key },
             itemContent = { index, item ->
                 this.itemContent(item, index, allItems)

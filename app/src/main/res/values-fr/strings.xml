@@ -292,7 +292,7 @@
     <string name="style">Style</string>
     <string name="dynamic_colors">Couleurs Dynamiques</string>
     <string name="dynamic_colors_discription">S\'adapte à la lecture de musique</string>
-    <string name="animate_background">Arrière-plan Animé</string>
+    <string name="animated_background">Arrière-plan Animé</string>
     <string name="on">Activé</string>
     <string name="primary_color">Couleur Primaire</string>
     <string name="secondary_color">Couleur Secondaire</string>

@@ -55,7 +55,7 @@ class ArtistViewModel : ViewModel() {
 
                 val isExpired = ScreenCache.isExpired(cacheKey, CACHE_EXPIRATION)
 
-                if (artistPage == null || (isExpired && mustFetch)) {
+                if (artistPage == null || (isExpired && mustFetch && isScreenCacheEnabled)) {
                     withContext(Dispatchers.IO) {
                         Innertube.artistPage(browseId = browseId)
                             ?.onSuccess { currentArtistPage ->

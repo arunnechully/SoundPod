@@ -1,12 +1,26 @@
 package com.github.soundpod.utils
 
+import android.Manifest
 import android.content.ContentUris
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.provider.MediaStore
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.github.soundpod.models.Song
 
 fun Context.queryMediaStoreSongs(): List<Song> {
+    val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        Manifest.permission.READ_MEDIA_AUDIO
+    } else {
+        Manifest.permission.READ_EXTERNAL_STORAGE
+    }
+
+    if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+        return emptyList()
+    }
+
     val songs = mutableListOf<Song>()
     val collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
 

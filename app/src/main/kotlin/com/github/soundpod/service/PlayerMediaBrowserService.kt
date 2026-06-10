@@ -279,7 +279,7 @@ class PlayerMediaBrowserService : MediaBrowserService(), ServiceConnection {
                 withContext(Dispatchers.Main) {
                     player.forcePlayAtIndex(
                         mediaItems = mediaItems,
-                        mediaItemIndex = index.coerceIn(0, mediaItems.size)
+                        mediaItemIndex = index.coerceIn(0, (mediaItems.size - 1).coerceAtLeast(0))
                     )
                 }
             }

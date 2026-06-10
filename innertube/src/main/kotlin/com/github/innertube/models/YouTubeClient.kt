@@ -97,8 +97,8 @@ enum class YouTubeClient(
                 else -> "DESKTOP"
             },
             userAgent = userAgent,
-            gl = gl ?: if (localized) Locale.getDefault().country.ifBlank { "US" } else "US",
-            hl = hl ?: if (localized) Locale.getDefault().toLanguageTag().ifBlank { "en" } else "en",
+            gl = gl ?: if (localized) Locale.getDefault().country.takeIf { it.length == 2 } ?: "US" else "US",
+            hl = hl ?: if (localized) Locale.getDefault().language.ifBlank { "en" } else "en",
             visitorData = visitorData ?: ""
         )
     )

@@ -1,6 +1,7 @@
 package com.github.soundpod.service
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.media.MediaDescription
 import android.media.MediaMetadata
 import android.media.session.MediaSession
@@ -80,22 +81,31 @@ class PlayerMediaSessionManager(
     }
 
     fun updateMetadata(bitmapProvider: BitmapProvider, isAtLeastAndroid13: Boolean, isShowingThumbnailInLockscreen: Boolean) {
-        if (player.duration != androidx.media3.common.C.TIME_UNSET) {
-            metadataBuilder
-                .putText(MediaMetadata.METADATA_KEY_TITLE, player.mediaMetadata.title)
-                .putText(MediaMetadata.METADATA_KEY_ARTIST, player.mediaMetadata.artist)
-                .putText(MediaMetadata.METADATA_KEY_ALBUM, player.mediaMetadata.albumTitle)
-                .putLong(MediaMetadata.METADATA_KEY_DURATION, player.duration)
+        try {
+            if (player.duration != androidx.media3.common.C.TIME_UNSET) {
+                metadataBuilder
+                    .putText(MediaMetadata.METADATA_KEY_TITLE, player.mediaMetadata.title)
+                    .putText(MediaMetadata.METADATA_KEY_ARTIST, player.mediaMetadata.artist)
+                    .putText(MediaMetadata.METADATA_KEY_ALBUM, player.mediaMetadata.albumTitle)
+                    .putLong(MediaMetadata.METADATA_KEY_DURATION, player.duration)
+            }
+
+            val bitmap = if (isAtLeastAndroid13 || isShowingThumbnailInLockscreen) {
+                bitmapProvider.bitmap.let {
+                    if (it.width > 512 || it.height > 512) {
+                        Bitmap.createScaledBitmap(it, 512, 512, true)
+                    } else it
+                }
+            } else null
+            metadataBuilder.putBitmap(MediaMetadata.METADATA_KEY_ART, bitmap)
+
+            if (isAtLeastAndroid13 && player.currentMediaItemIndex == 0) {
+                metadataBuilder.putText(MediaMetadata.METADATA_KEY_TITLE, "${player.mediaMetadata.title} ")
+            }
+
+            mediaSession.setMetadata(metadataBuilder.build())
+        } catch (_: Exception) {
         }
-
-        val bitmap = if (isAtLeastAndroid13 || isShowingThumbnailInLockscreen) bitmapProvider.bitmap else null
-        metadataBuilder.putBitmap(MediaMetadata.METADATA_KEY_ART, bitmap)
-
-        if (isAtLeastAndroid13 && player.currentMediaItemIndex == 0) {
-            metadataBuilder.putText(MediaMetadata.METADATA_KEY_TITLE, "${player.mediaMetadata.title} ")
-        }
-
-        mediaSession.setMetadata(metadataBuilder.build())
     }
 
     fun updateQueue(timeline: Timeline) {

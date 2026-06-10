@@ -134,7 +134,7 @@ fun QuickPicks(
                     .height((songThumbnailSizeDp + Dimensions.itemsVerticalPadding * 2) * 4)
             ) {
                 items(
-                    items = related.songs ?: emptyList(),
+                    items = (related.songs ?: emptyList()).filter { it.key.isNotEmpty() }.distinctBy { it.key + it.info?.endpoint?.playlistId.orEmpty() },
                     key = { it.key + it.info?.endpoint?.playlistId.orEmpty() }
                 ) { song ->
                     SongItem(
@@ -168,7 +168,7 @@ fun QuickPicks(
                 Spacer(modifier = Modifier.height(Dimensions.spacer))
                 Text(text = stringResource(id = R.string.related_albums), style = MaterialTheme.typography.titleMedium, modifier = sectionTextModifier)
                 LazyRow(contentPadding = PaddingValues(horizontal = 8.dp)) {
-                    items(items = albums, key = Innertube.AlbumItem::key) { album ->
+                    items(items = albums.filter { it.key.isNotEmpty() }.distinctBy { it.key }, key = Innertube.AlbumItem::key) { album ->
                         AlbumItem(modifier = Modifier.widthIn(max = itemSize), album = album, onClick = { onAlbumClick(album.key) })
                     }
                 }
@@ -178,7 +178,7 @@ fun QuickPicks(
                 Spacer(modifier = Modifier.height(Dimensions.spacer))
                 Text(text = stringResource(id = R.string.similar_artists), style = MaterialTheme.typography.titleMedium, modifier = sectionTextModifier)
                 LazyRow(contentPadding = PaddingValues(horizontal = 8.dp)) {
-                    items(items = artists, key = Innertube.ArtistItem::key) { artist ->
+                    items(items = artists.filter { it.key.isNotEmpty() }.distinctBy { it.key }, key = Innertube.ArtistItem::key) { artist ->
                         ArtistItem(modifier = Modifier.widthIn(max = itemSize), artist = artist, onClick = { onArtistClick(artist.key) })
                     }
                 }
@@ -188,7 +188,7 @@ fun QuickPicks(
                 Spacer(modifier = Modifier.height(Dimensions.spacer))
                 Text(text = stringResource(id = R.string.recommended_playlists), style = MaterialTheme.typography.titleMedium, modifier = sectionTextModifier)
                 LazyRow(contentPadding = PaddingValues(horizontal = 8.dp)) {
-                    items(items = playlists, key = Innertube.PlaylistItem::key) { playlist ->
+                    items(items = playlists.filter { it.key.isNotEmpty() }.distinctBy { it.key }, key = Innertube.PlaylistItem::key) { playlist ->
                         PlaylistItem(modifier = Modifier.widthIn(max = itemSize), playlist = playlist, onClick = { onPlaylistClick(playlist.key) })
                     }
                 }

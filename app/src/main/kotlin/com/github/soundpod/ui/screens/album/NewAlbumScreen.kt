@@ -25,7 +25,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -37,8 +36,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
 import com.github.soundpod.ui.components.AdaptiveThumbnail
-import com.github.soundpod.ui.components.SettingsCard
-import com.github.soundpod.ui.components.SettingsScreenLayout
+import com.github.soundpod.ui.components.PlaylistScreenLayout
 import com.github.soundpod.viewmodels.AlbumViewModel
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalFoundationApi::class)
@@ -49,7 +47,7 @@ fun NewAlbumScreen(
     onBack: () -> Unit,
     onSearchClick: () -> Unit,
     onSettingsClick: () -> Unit,
-    viewModel: AlbumViewModel = viewModel()
+    viewModel: AlbumViewModel = viewModel(),
 ) {
     BackHandler { onBack() }
 
@@ -61,11 +59,17 @@ fun NewAlbumScreen(
     val album = uiState.album
     val (colorPalette) = LocalAppearance.current
 
-    SettingsScreenLayout(
-        title = {},
-        scrollable = false,
-        horizontalPadding = 0.dp,
+    PlaylistScreenLayout(
         onBackClick = onBack,
+        title = {
+            Text(
+                text = album?.title.orEmpty(),
+                color = colorPalette.text,
+                style = typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
         actions = {
             IconButton(
                 onClick = { viewModel.toggleLove() }
@@ -105,69 +109,61 @@ fun NewAlbumScreen(
                     dismissMenu()
                 }
             )
-        }
-    ) {
-
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(14.dp))
-
-            AdaptiveThumbnail(
-                isLoading = uiState.isLoading,
-                url = album?.thumbnailUrl,
-                modifier = Modifier.fillMaxWidth(0.55f)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = album?.title.orEmpty(),
-                style = typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
-                color = colorPalette.accent,
-                textAlign = TextAlign.Center,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.fillMaxWidth(0.5f)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = album?.authorsText.orEmpty(),
-                style = typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = colorPalette.text,
-                textAlign = TextAlign.Center,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .fillMaxWidth(0.8f)
-                    .basicMarquee()
-                    .clickable(
-                        enabled = album?.artistId != null,
-                        onClick = {
-                            album?.artistId?.let { onGoToArtist(it) }
-                        }
-                    )
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            album?.year?.let {
+        },
+        headerContent = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                AdaptiveThumbnail(
+                    isLoading = uiState.isLoading,
+                    url = album?.thumbnailUrl,
+                    modifier = Modifier.fillMaxWidth(0.55f)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = it,
+                    text = album?.title.orEmpty(),
+                    style = typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
+                    color = colorPalette.accent,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth(0.5f)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = album?.authorsText.orEmpty(),
                     style = typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                     color = colorPalette.text,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .fillMaxWidth(0.8f)
+                        .basicMarquee()
+                        .clickable(
+                            enabled = album?.artistId != null,
+                            onClick = {
+                                album?.artistId?.let { onGoToArtist(it) }
+                            }
+                        )
                 )
+                Spacer(modifier = Modifier.height(8.dp))
+                album?.year?.let {
+                    Text(
+                        text = it,
+                        style = typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = colorPalette.text,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        SettingsCard(
-            shape = RoundedCornerShape(
-                topStart = 25.dp,
-                topEnd = 25.dp
-            )
-        ) {
+        },
+        content = {
             NewAlbumSongs(
                 browseId = browseId,
                 onGoToArtist = onGoToArtist
             )
         }
-    }
+    )
 }

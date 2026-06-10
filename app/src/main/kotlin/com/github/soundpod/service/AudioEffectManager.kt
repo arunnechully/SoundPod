@@ -33,8 +33,12 @@ class AudioEffectManager(
             return
         }
 
-        if (loudnessEnhancer == null) {
-            loudnessEnhancer = LoudnessEnhancer(player.audioSessionId)
+        if (loudnessEnhancer == null && player.audioSessionId != 0) {
+            try {
+                loudnessEnhancer = LoudnessEnhancer(player.audioSessionId)
+            } catch (e: Exception) {
+                return
+            }
         }
 
         player.currentMediaItem?.mediaId?.let { songId ->

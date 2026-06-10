@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.QueueMusic
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -44,8 +43,6 @@ import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
 import com.github.soundpod.ui.appearance.BackgroundStyles
 import com.github.soundpod.ui.appearance.PLAYER_BACKGROUND_STYLE_KEY
-import com.github.soundpod.ui.common.IconSource
-import com.github.soundpod.ui.components.SwitchSetting
 import com.github.soundpod.utils.preferences
 import com.github.soundpod.utils.rememberPreference
 
@@ -86,7 +83,7 @@ fun BackgroundSettingsContent() {
                 onClick = { prefs.edit { putInt(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.STATIC) } }
             )
             BackgroundOptionItem(
-                title = stringResource(id = R.string.dynamic_colors),
+                title = stringResource(id = R.string.animated_background),
                 description = stringResource(id = R.string.dynamic_colors_discription),
                 selected = currentStyle == BackgroundStyles.MORPHING,
                 onClick = { prefs.edit { putInt(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.MORPHING) } }

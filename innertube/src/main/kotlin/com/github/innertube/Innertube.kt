@@ -84,7 +84,7 @@ object Innertube {
     suspend fun fetchVisitorData(): String? {
         return runCatching {
             client.post("https://music.youtube.com/youtubei/v1/music/get_search_suggestions") {
-                setBody(mapOf("context" to YouTubeClient.WEB_REMIX.toContext(), "input" to ""))
+                setBody(mapOf("context" to YouTubeClient.WEB_REMIX.toContext(localized = false), "input" to ""))
             }.body<VisitorDataResponse>().responseContext.visitorData
         }.getOrNull()?.also {
             visitorData = it
@@ -175,7 +175,7 @@ object Innertube {
         val durationText: String?,
         override val thumbnail: Thumbnail?
     ) : Item() {
-        override val key get() = info!!.endpoint!!.videoId!!
+        override val key get() = info?.endpoint?.videoId ?: ""
 
         companion object
     }
@@ -188,7 +188,7 @@ object Innertube {
         val durationText: String?,
         override val thumbnail: Thumbnail?
     ) : Item() {
-        override val key get() = info!!.endpoint!!.videoId!!
+        override val key get() = info?.endpoint?.videoId ?: ""
 
         val isOfficialMusicVideo: Boolean
             get() = info
@@ -207,7 +207,7 @@ object Innertube {
         val year: String?,
         override val thumbnail: Thumbnail?
     ) : Item() {
-        override val key get() = info!!.endpoint!!.browseId!!
+        override val key get() = info?.endpoint?.browseId ?: ""
 
         companion object
     }
@@ -218,7 +218,7 @@ object Innertube {
         val subscribersCountText: String?,
         override val thumbnail: Thumbnail?
     ) : Item() {
-        override val key get() = info!!.endpoint!!.browseId!!
+        override val key get() = info?.endpoint?.browseId ?: ""
 
         companion object
     }
@@ -230,7 +230,7 @@ object Innertube {
         val songCount: Int?,
         override val thumbnail: Thumbnail?
     ) : Item() {
-        override val key get() = info!!.endpoint!!.browseId!!
+        override val key get() = info?.endpoint?.browseId ?: ""
 
         companion object
     }

@@ -172,7 +172,7 @@ fun ArtistOverview(
                     contentPadding = PaddingValues(horizontal = 8.dp)
                 ) {
                     items(
-                        items = albums,
+                        items = albums.filter { it.key.isNotEmpty() }.distinctBy { it.key },
                         key = Innertube.AlbumItem::key
                     ) { album ->
                         AlbumItem(
@@ -212,7 +212,7 @@ fun ArtistOverview(
                     contentPadding = PaddingValues(horizontal = 8.dp)
                 ) {
                     items(
-                        items = singles,
+                        items = singles.filter { it.key.isNotEmpty() }.distinctBy { it.key },
                         key = Innertube.AlbumItem::key
                     ) { album ->
                         AlbumItem(
@@ -246,7 +246,7 @@ fun ArtistOverview(
                     contentPadding = PaddingValues(horizontal = 8.dp)
                 ) {
                     items(
-                        items = playlists,
+                        items = playlists.filter { it.key.isNotEmpty() }.distinctBy { it.key },
                         key = Innertube.PlaylistItem::key
                     ) { playlist ->
                         PlaylistItem(
@@ -280,7 +280,7 @@ fun ArtistOverview(
                     contentPadding = PaddingValues(horizontal = 8.dp)
                 ) {
                     items(
-                        items = playlists,
+                        items = playlists.filter { it.key.isNotEmpty() }.distinctBy { it.key },
                         key = Innertube.PlaylistItem::key
                     ) { playlist ->
                         PlaylistItem(
@@ -314,7 +314,7 @@ fun ArtistOverview(
                     contentPadding = PaddingValues(horizontal = 8.dp)
                 ) {
                     items(
-                        items = artists,
+                        items = artists.filter { it.key.isNotEmpty() }.distinctBy { it.key },
                         key = Innertube.ArtistItem::key
                     ) { artist ->
                         ArtistItem(

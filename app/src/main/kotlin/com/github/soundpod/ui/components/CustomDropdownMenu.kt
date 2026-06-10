@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
@@ -38,6 +39,7 @@ fun CustomDropdownMenu(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     offset: IntOffset = IntOffset(x = -12, y = -90),
+    endPadding: Dp = 15.dp,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val (colorPalette) = LocalAppearance.current
@@ -71,7 +73,7 @@ fun CustomDropdownMenu(
         ) {
             Box(
                 modifier = Modifier
-                    .padding(top = 12.dp)
+                    .padding(top = 12.dp, end = endPadding)
             ) {
                 Surface(
                     modifier = modifier

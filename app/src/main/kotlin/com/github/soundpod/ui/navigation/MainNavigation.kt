@@ -33,7 +33,7 @@ import com.github.soundpod.ui.screens.artist.NewArtistScreen
 import com.github.soundpod.ui.screens.builtinplaylist.NewBuiltInPlaylistScreen
 import com.github.soundpod.ui.screens.home.HomeScreen
 import com.github.soundpod.ui.screens.localplaylist.NewLocalPlaylistScreen
-import com.github.soundpod.ui.screens.playlist.PlaylistScreen
+import com.github.soundpod.ui.screens.playlist.NewPlaylistScreen
 import com.github.soundpod.ui.screens.search.NewSearchLayout
 import com.github.soundpod.ui.screens.search.NewSearchResult
 import com.github.soundpod.ui.screens.search.SearchScreen
@@ -140,9 +140,9 @@ fun MainNavigation(
         playerComposable(route = Routes.Playlist::class) { navBackStackEntry ->
             val route: Routes.Playlist = navBackStackEntry.toRoute()
 
-            PlaylistScreen(
+            NewPlaylistScreen(
                 browseId = route.id,
-                pop = popDestination,
+                onBack = popDestination,
                 onGoToAlbum = navigateToAlbum,
                 onGoToArtist = navigateToArtist
             )

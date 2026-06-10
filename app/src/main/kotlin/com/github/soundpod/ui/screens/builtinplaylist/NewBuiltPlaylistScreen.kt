@@ -57,7 +57,6 @@ import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.songSortByKey
 import com.github.soundpod.utils.songSortOrderKey
 
-@Suppress("AssignedValueIsNeverRead")
 @OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi

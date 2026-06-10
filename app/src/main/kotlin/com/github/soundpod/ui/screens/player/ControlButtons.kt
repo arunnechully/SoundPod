@@ -56,7 +56,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -80,7 +79,6 @@ import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.github.core.ui.LocalAppearance
-import com.github.core.ui.favoritesIcon
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.db
@@ -107,6 +105,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun AnimatedIconButton(
@@ -139,11 +138,12 @@ fun AnimatedIconButton(
     )
 }
 
+@Suppress("KotlinConstantConditions")
 @Composable
 private fun HoldableAnimatedIconButton(
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
     onHold: (suspend () -> Unit)? = null,
-    modifier: Modifier = Modifier,
     enabled: Boolean = true,
     content: @Composable () -> Unit
 ) {
@@ -153,22 +153,22 @@ private fun HoldableAnimatedIconButton(
 
     LaunchedEffect(isPressed) {
         if (isPressed) {
-            delay(400)
+            delay(400.milliseconds)
             if (isPressed && onHold != null) {
                 isLongPress = true
                 onHold()
             }
         } else {
             if (isLongPress) {
-                delay(200)
+                delay(200.milliseconds)
                 isLongPress = false
             }
         }
     }
 
     AnimatedIconButton(
-        onClick = { if (!isLongPress) onClick() },
         modifier = modifier,
+        onClick = { if (!isLongPress) onClick() },
         enabled = enabled,
         interactionSource = interactionSource,
         content = content
@@ -364,7 +364,7 @@ fun MiniPlayerControl(
                 }
                 while (true) {
                     player.seekTo((player.currentPosition - skipAmount).coerceAtLeast(0))
-                    delay(100)
+                    delay(100.milliseconds)
                 }
             },
             modifier = modifier.size(42.dp)
@@ -410,7 +410,7 @@ fun MiniPlayerControl(
                 val originalParameters = player.playbackParameters
                 try {
                     player.playbackParameters = PlaybackParameters(4f, originalParameters.pitch)
-                    delay(Long.MAX_VALUE)
+                    delay(Long.MAX_VALUE.milliseconds)
                 } finally {
                     player.playbackParameters = originalParameters
                 }
@@ -480,7 +480,7 @@ fun PlayerMiddleControl(
             Icon(
                 painter = painterResource(id = if (likedAt == null) R.drawable.heart_outline else R.drawable.heart),
                 contentDescription = "Like",
-                tint = (if (likedAt == null) colorPalette.iconColor else colorPalette.favoritesIcon),
+                tint = (colorPalette.iconColor),
                 modifier = Modifier.size(24.dp)
             )
         }
@@ -572,7 +572,7 @@ fun PlayerControlBottom(
                 }
                 while (true) {
                     player.seekTo((player.currentPosition - skipAmount).coerceAtLeast(0))
-                    delay(100)
+                    delay(100.milliseconds)
                 }
             }
         ) {
@@ -611,7 +611,7 @@ fun PlayerControlBottom(
                 val originalParameters = player.playbackParameters
                 try {
                     player.playbackParameters = PlaybackParameters(4f, originalParameters.pitch)
-                    delay(Long.MAX_VALUE)
+                    delay(Long.MAX_VALUE.milliseconds)
                 } finally {
                     player.playbackParameters = originalParameters
                 }
@@ -793,7 +793,8 @@ fun PlayerTopControl(
             }
             CustomDropdownMenu(
                 expanded = showDropDown,
-                onDismissRequest = { showDropDown = false }
+                onDismissRequest = { showDropDown = false },
+                endPadding = 0.dp
             ) {
                 if (onGoToAlbum != null) {
                     DropdownMenuItem(
