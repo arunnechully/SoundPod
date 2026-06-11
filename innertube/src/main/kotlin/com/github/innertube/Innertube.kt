@@ -24,6 +24,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlin.time.Duration.Companion.milliseconds
 
 object Innertube {
 
@@ -96,7 +97,7 @@ object Innertube {
         
         // Attempt to fetch visitor data in parallel to avoid blocking the first request too much
         return coroutineScope {
-            val result = withTimeoutOrNull(timeoutMs) {
+            val result = withTimeoutOrNull(timeoutMs.milliseconds) {
                 if (visitorData == null) fetchVisitorData() else visitorData
             }
             result != null
