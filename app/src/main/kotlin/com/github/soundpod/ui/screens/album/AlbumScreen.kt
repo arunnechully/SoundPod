@@ -1,232 +1,169 @@
 package com.github.soundpod.ui.screens.album
 
-import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.outlined.Album
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.BookmarkAdd
-import androidx.compose.material.icons.outlined.MusicNote
-import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme.typography
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import com.github.innertube.Innertube
-import com.github.innertube.requests.albumPage
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
-import com.github.soundpod.db
-import com.github.soundpod.models.Album
-import com.github.soundpod.models.Section
-import com.github.soundpod.models.SongAlbumMap
-import com.github.soundpod.query
-import com.github.soundpod.ui.components.TabScaffold
-import com.github.soundpod.ui.components.TooltipIconButton
-import com.github.soundpod.ui.components.AdaptiveThumbnail // <-- Updated Import
-import com.github.soundpod.ui.items.AlbumItem
-import com.github.soundpod.ui.items.ItemPlaceholder
-import com.github.soundpod.ui.screens.search.ItemsPage
-import com.github.soundpod.utils.asMediaItem
-import com.github.soundpod.utils.completed
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.withContext
+import com.github.soundpod.ui.components.AdaptiveThumbnail
+import com.github.soundpod.ui.components.PlaylistScreenLayout
+import com.github.soundpod.viewmodels.AlbumViewModel
 
-@ExperimentalFoundationApi
-@ExperimentalAnimationApi
+@OptIn(ExperimentalAnimationApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun AlbumScreen(
     browseId: String,
-    pop: () -> Unit,
-    onAlbumClick: (String) -> Unit,
-    onGoToArtist: (String) -> Unit
+    onGoToArtist: (String) -> Unit,
+    onBack: () -> Unit,
+    onSearchClick: () -> Unit,
+    onSettingsClick: () -> Unit,
+    viewModel: AlbumViewModel = viewModel(),
 ) {
-    var album: Album? by remember { mutableStateOf(null) }
-    var albumPage: Innertube.PlaylistOrAlbumPage? by remember { mutableStateOf(null) }
+    BackHandler { onBack() }
 
-    val tabs = listOf(
-        Section(stringResource(id = R.string.songs), Icons.Outlined.MusicNote),
-        Section(stringResource(id = R.string.other_versions), Icons.Outlined.Album),
-        Section(stringResource(id = R.string.related_albums), Icons.Outlined.AutoAwesome)
-    )
-    val pagerState = rememberPagerState(pageCount = { tabs.size })
-
-    LaunchedEffect(Unit) {
-        db
-            .album(browseId)
-            .combine(snapshotFlow { pagerState.currentPage }) { album, tabIndex -> album to tabIndex }
-            .collect { (currentAlbum, tabIndex) ->
-                album = currentAlbum
-
-                if (albumPage == null && (currentAlbum?.timestamp == null || tabIndex >= 1)) {
-                    withContext(Dispatchers.IO) {
-                        Innertube.albumPage(browseId = browseId)
-                            ?.completed()
-                            ?.onSuccess { currentAlbumPage ->
-                                albumPage = currentAlbumPage
-
-                                db.clearAlbum(browseId)
-
-                                db.upsert(
-                                    Album(
-                                        id = browseId,
-                                        title = currentAlbumPage.title,
-                                        thumbnailUrl = currentAlbumPage.thumbnail?.url,
-                                        year = currentAlbumPage.year,
-                                        authorsText = currentAlbumPage.authors
-                                            ?.joinToString("") { it.name ?: "" },
-                                        shareUrl = currentAlbumPage.url,
-                                        timestamp = System.currentTimeMillis(),
-                                        bookmarkedAt = album?.bookmarkedAt
-                                    ),
-                                    currentAlbumPage
-                                        .songsPage
-                                        ?.items
-                                        ?.map(Innertube.SongItem::asMediaItem)
-                                        ?.onEach(db::insert)
-                                        ?.mapIndexed { position, mediaItem ->
-                                            SongAlbumMap(
-                                                songId = mediaItem.mediaId,
-                                                albumId = browseId,
-                                                position = position
-                                            )
-                                        } ?: emptyList()
-                                )
-                            }
-                    }
-                }
-            }
+    LaunchedEffect(browseId) {
+        viewModel.initAlbum(browseId)
     }
 
-    BackHandler(enabled = true) {
-        pop()
-    }
+    val uiState by viewModel.uiState.collectAsState()
+    val album = uiState.album
+    val (colorPalette) = LocalAppearance.current
 
-    TabScaffold(
-        pagerState = pagerState,
-        topIconButtonId = Icons.Default.ChevronLeft,
-        onTopIconButtonClick = pop,
-        sectionTitle = album?.title ?: "",
-        appBarActions = {
-            val context = LocalContext.current
-
-            TooltipIconButton(
-                description = if (album?.bookmarkedAt == null) R.string.add_bookmark else R.string.remove_bookmark,
-                onClick = {
-                    val bookmarkedAt =
-                        if (album?.bookmarkedAt == null) System.currentTimeMillis() else null
-
-                    query {
-                        album
-                            ?.copy(bookmarkedAt = bookmarkedAt)
-                            ?.let(db::update)
-                    }
-                },
-                icon = if (album?.bookmarkedAt == null) Icons.Outlined.BookmarkAdd else Icons.Filled.Bookmark,
-                inTopBar = true
-            )
-
-            TooltipIconButton(
-                description = R.string.share,
-                onClick = {
-                    album?.shareUrl?.let { url ->
-                        val sendIntent = Intent().apply {
-                            action = Intent.ACTION_SEND
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, url)
-                        }
-
-                        context.startActivity(
-                            Intent.createChooser(
-                                sendIntent,
-                                null
-                            )
-                        )
-                    }
-                },
-                icon = Icons.Outlined.Share,
-                inTopBar = true
+    PlaylistScreenLayout(
+        onBackClick = onBack,
+        title = {
+            Text(
+                text = album?.title.orEmpty(),
+                color = colorPalette.text,
+                style = typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         },
-        tabColumnContent = tabs
-    ) { index ->
-        when (index) {
-            0 -> AlbumSongs(
-                browseId = browseId,
-                thumbnailContent = {
-                    AdaptiveThumbnail(
-                        isLoading = album?.timestamp == null,
-                        url = album?.thumbnailUrl
+        actions = {
+            IconButton(
+                onClick = { viewModel.toggleLove() }
+            ) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(
+                        if (uiState.isLoved) R.drawable.heart else R.drawable.heart_outline
+                    ),
+                    contentDescription = if (uiState.isLoved) "Unlike" else "Like",
+                    tint = (if (uiState.isLoved) colorPalette.accent else colorPalette.text),
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            IconButton(
+                onClick = onSearchClick
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search",
+                    tint = colorPalette.text
+                )
+            }
+
+        },
+        dropDownMenuContent = { dismissMenu ->
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text = stringResource(id = R.string.settings),
+                        color = colorPalette.text,
+                        style = typography.bodyLarge
                     )
                 },
+                onClick = {
+                    onSettingsClick()
+                    dismissMenu()
+                }
+            )
+        },
+        headerContent = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                AdaptiveThumbnail(
+                    isLoading = uiState.isLoading,
+                    url = album?.thumbnailUrl,
+                    modifier = Modifier.fillMaxWidth(0.55f)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = album?.title.orEmpty(),
+                    style = typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
+                    color = colorPalette.accent,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth(0.5f)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = album?.authorsText.orEmpty(),
+                    style = typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = colorPalette.text,
+                    textAlign = TextAlign.Center,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .fillMaxWidth(0.8f)
+                        .basicMarquee()
+                        .clickable(
+                            enabled = album?.artistId != null,
+                            onClick = {
+                                album?.artistId?.let { onGoToArtist(it) }
+                            }
+                        )
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                album?.year?.let {
+                    Text(
+                        text = it,
+                        style = typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = colorPalette.text,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        },
+        content = {
+            AlbumSongs(
+                browseId = browseId,
                 onGoToArtist = onGoToArtist
             )
-
-            1 -> {
-                ItemsPage(
-                    tag = "album/$browseId/alternatives",
-                    initialPlaceholderCount = 1,
-                    continuationPlaceholderCount = 1,
-                    emptyItemsText = stringResource(id = R.string.no_alternative_versions),
-                    itemsPageProvider = albumPage?.let { page ->
-                        {
-                            Result.success(
-                                Innertube.ItemsPage(
-                                    items = page.otherVersions,
-                                    continuation = null
-                                )
-                            )
-                        }
-                    },
-                    itemContent = { album, _, _ ->
-                        AlbumItem(
-                            album = album,
-                            onClick = { onAlbumClick(album.key) }
-                        )
-                    },
-                    itemPlaceholderContent = {
-                        ItemPlaceholder()
-                    }
-                )
-            }
-
-            2 -> {
-                ItemsPage(
-                    tag = "album/$browseId/related",
-                    initialPlaceholderCount = 1,
-                    continuationPlaceholderCount = 1,
-                    emptyItemsText = stringResource(id = R.string.no_related_albums),
-                    itemsPageProvider = albumPage?.let { page ->
-                        {
-                            Result.success(
-                                Innertube.ItemsPage(
-                                    items = page.relatedAlbums,
-                                    continuation = null
-                                )
-                            )
-                        }
-                    },
-                    itemContent = { album, _, _ ->
-                        AlbumItem(
-                            album = album,
-                            onClick = { onAlbumClick(album.key) }
-                        )
-                    },
-                    itemPlaceholderContent = {
-                        ItemPlaceholder()
-                    }
-                )
-            }
         }
-    }
+    )
 }

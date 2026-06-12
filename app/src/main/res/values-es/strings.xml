@@ -93,9 +93,7 @@
     <string name="year">Año</string>
     <string name="song_count">Número de canciones</string>
     <string name="artist">Artista</string>
-    <string name="show_unsynchronized_lyrics">Mostrar la letra no sincronizada</string>
-    <string name="show_synchronized_lyrics">Mostrar la letra sincronizada</string>
-    <string name="provided_by_kugou">Proporcionada por kugou.com</string>
+
     <string name="edit_lyrics">Modificar la letra</string>
     <string name="search_lyrics_online">Buscar la letra en línea</string>
     <plurals name="number_of_songs">
@@ -138,9 +136,7 @@
     <string name="no_alternative_versions">Este álbum no tiene ninguna versión alternativa</string>
     <string name="fetch_lyrics_again">Cargar la letra de nuevo</string>
     <string name="lyrics_not_available">La letra no está disponible para esta canción</string>
-    <string name="synchronized_lyrics_not_available">La letra sincronizada no está disponible para esta canción</string>
     <string name="error_fetching_lyrics">Ha ocurrido un error al cargar la letra</string>
-    <string name="error_fetching_synchronized_lyrics">Ha ocurrido un error al cargar la letra no sincronizada</string>
     <string name="delete_playback_events">Eliminar %d eventos de reproducción</string>
     <string name="quick_picks_cleared">Las selecciones rápidas están eliminadas</string>
     <string name="delete_search_queries">Eliminar %d entradas de búsqueda</string>

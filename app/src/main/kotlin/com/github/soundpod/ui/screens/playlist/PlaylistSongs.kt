@@ -30,7 +30,7 @@ import com.github.soundpod.utils.forcePlayAtIndex
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
 @Composable
-fun NewPlaylistSongs(
+fun PlaylistSongs(
     playlistPage: Innertube.PlaylistOrAlbumPage?,
     onGoToAlbum: (String) -> Unit,
     onGoToArtist: (String) -> Unit,

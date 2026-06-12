@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,10 +34,8 @@ const val pauseOnAppCloseKey = "pauseOnAppClose"
 const val stopAfterCurrentKey = "stopAfterCurrent"
 const val resumePlaybackWhenDeviceConnectedKey = "resumePlaybackWhenDeviceConnected"
 const val persistentQueueKey = "persistentQueue"
-const val isShowingSynchronizedLyricsKey = "isShowingSynchronizedLyrics"
 const val isShowingThumbnailInLockscreenKey = "isShowingThumbnailInLockscreen"
 const val searchResultScreenTabIndexKey = "searchResultScreenTabIndex"
-const val artistScreenTabIndexKey = "artistScreenTabIndex"
 const val pauseSearchHistoryKey = "pauseSearchHistory"
 const val selectedSleepTimerPresetKey = "selectedSleepTimerPreset"
 
@@ -161,12 +160,12 @@ fun rememberPreference(key: String, defaultValue: String): MutableState<String> 
 fun rememberPreference(key: String, defaultValue: Float): MutableState<Float> {
     val context = LocalContext.current
     val preferences = context.preferences
-    val state = remember { mutableStateOf(preferences.getFloat(key, defaultValue)) }
+    val state = remember { mutableFloatStateOf(preferences.getFloat(key, defaultValue)) }
 
     DisposableEffect(key) {
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPrefs, changedKey ->
             if (changedKey == key) {
-                state.value = sharedPrefs.getFloat(key, defaultValue)
+                state.floatValue = sharedPrefs.getFloat(key, defaultValue)
             }
         }
         preferences.registerOnSharedPreferenceChangeListener(listener)
@@ -175,9 +174,9 @@ fun rememberPreference(key: String, defaultValue: Float): MutableState<Float> {
         }
     }
 
-    LaunchedEffect(state.value) {
-        if (state.value != preferences.getFloat(key, defaultValue)) {
-            preferences.edit { putFloat(key, state.value) }
+    LaunchedEffect(state.floatValue) {
+        if (state.floatValue != preferences.getFloat(key, defaultValue)) {
+            preferences.edit { putFloat(key, state.floatValue) }
         }
     }
 

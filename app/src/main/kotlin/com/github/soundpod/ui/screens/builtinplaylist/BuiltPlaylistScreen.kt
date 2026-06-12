@@ -8,14 +8,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -33,17 +26,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
-import com.github.core.ui.favoritesIcon
 import com.github.soundpod.R
 import com.github.soundpod.db
 import com.github.soundpod.enums.BuiltInPlaylist
@@ -61,7 +47,7 @@ import com.github.soundpod.utils.songSortOrderKey
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
 @Composable
-fun NewBuiltInPlaylistScreen(
+fun BuiltInPlaylistScreen(
     builtInPlaylist: BuiltInPlaylist,
     pop: () -> Unit,
     onGoToAlbum: (String) -> Unit,
@@ -221,7 +207,7 @@ fun NewBuiltInPlaylistScreen(
                     topEnd = 25.dp
                 )
             ) {
-                NewBuiltInPlaylistSongs(
+                BuiltInPlaylistSongs(
                     builtInPlaylist = builtInPlaylist,
                     isEditMode = isEditMode,
                     onEditModeChange = { isEditMode = it },

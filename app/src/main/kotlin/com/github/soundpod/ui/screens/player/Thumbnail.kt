@@ -274,7 +274,6 @@ fun Thumbnail(
                     ensureSongInserted = { db.insert(currentWindow.mediaItem) },
                     size = thumbnailSizeDp,
                     mediaMetadataProvider = currentWindow.mediaItem::mediaMetadata,
-                    durationProvider = player::getDuration,
                     fullScreenLyrics = fullScreenLyrics,
                     toggleFullScreenLyrics = toggleFullScreenLyrics
                 )

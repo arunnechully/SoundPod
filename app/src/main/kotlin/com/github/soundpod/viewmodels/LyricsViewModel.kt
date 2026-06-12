@@ -3,7 +3,6 @@ package com.github.soundpod.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.soundpod.db
-import com.github.soundpod.utils.LyricLine
 import com.github.soundpod.utils.LyricsData
 import com.github.soundpod.utils.LyricsParser
 import kotlinx.coroutines.Dispatchers
@@ -41,15 +40,5 @@ class LyricsViewModel : ViewModel() {
                 _isLoading.value = false
             }
         }
-    }
-
-    fun getActiveIndex(position: Long, lines: List<LyricLine>): Int {
-        if (lines.isEmpty()) return -1
-
-        val lookaheadPosition = position + 600
-
-        val index = lines.binarySearch { it.startMs.compareTo(lookaheadPosition) }
-
-        return if (index >= 0) index else (-(index + 2)).coerceAtLeast(0)
     }
 }

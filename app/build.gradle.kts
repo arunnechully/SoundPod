@@ -147,7 +147,6 @@ dependencies {
     implementation(project(":core:ui"))
     implementation(project(":github"))
     implementation(project(":innertube"))
-    implementation(project(":kugou"))
 
     coreLibraryDesugaring(libs.desugaring)
 }

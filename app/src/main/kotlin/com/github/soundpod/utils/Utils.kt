@@ -1,6 +1,5 @@
 package com.github.soundpod.utils
 
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -12,13 +11,6 @@ import com.github.innertube.Innertube
 import com.github.innertube.requests.playlistPageContinuation
 import com.github.innertube.utils.plus
 import com.github.soundpod.models.Song
-import java.io.ByteArrayOutputStream
-
-fun Bitmap.toByteArray(): ByteArray {
-    val stream = ByteArrayOutputStream()
-    compress(Bitmap.CompressFormat.JPEG, 90, stream)
-    return stream.toByteArray()
-}
 
 val Innertube.SongItem.asMediaItem: MediaItem
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)

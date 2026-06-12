@@ -28,12 +28,12 @@ import androidx.navigation.navArgument
 import androidx.navigation.toRoute
 import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.ui.common.newSearchLayoutEnabled
-import com.github.soundpod.ui.screens.album.NewAlbumScreen
-import com.github.soundpod.ui.screens.artist.NewArtistScreen
-import com.github.soundpod.ui.screens.builtinplaylist.NewBuiltInPlaylistScreen
+import com.github.soundpod.ui.screens.album.AlbumScreen
+import com.github.soundpod.ui.screens.artist.ArtistScreen
+import com.github.soundpod.ui.screens.builtinplaylist.BuiltInPlaylistScreen
 import com.github.soundpod.ui.screens.home.HomeScreen
-import com.github.soundpod.ui.screens.localplaylist.NewLocalPlaylistScreen
-import com.github.soundpod.ui.screens.playlist.NewPlaylistScreen
+import com.github.soundpod.ui.screens.localplaylist.LocalPlaylistScreen
+import com.github.soundpod.ui.screens.playlist.PlaylistScreen
 import com.github.soundpod.ui.screens.search.NewSearchLayout
 import com.github.soundpod.ui.screens.search.NewSearchResult
 import com.github.soundpod.ui.screens.search.SearchScreen
@@ -112,7 +112,7 @@ fun MainNavigation(
         playerComposable(route = Routes.Artist::class) { navBackStackEntry ->
             val route: Routes.Artist = navBackStackEntry.toRoute()
 
-            NewArtistScreen(
+            ArtistScreen(
                 browseId = route.id,
                 onBack = { navController.popBackStack() },
                 onSearchClick = { navController.navigate(route = Routes.Search) },
@@ -128,7 +128,7 @@ fun MainNavigation(
         playerComposable(route = Routes.Album::class) { navBackStackEntry ->
             val route: Routes.Album = navBackStackEntry.toRoute()
 
-            NewAlbumScreen(
+            AlbumScreen(
                 browseId = route.id,
                 onGoToArtist = navigateToArtist,
                 onSearchClick = {navController.navigate(route = Routes.Search)},
@@ -140,7 +140,7 @@ fun MainNavigation(
         playerComposable(route = Routes.Playlist::class) { navBackStackEntry ->
             val route: Routes.Playlist = navBackStackEntry.toRoute()
 
-            NewPlaylistScreen(
+            PlaylistScreen(
                 browseId = route.id,
                 onBack = popDestination,
                 onGoToAlbum = navigateToAlbum,
@@ -177,7 +177,7 @@ fun MainNavigation(
         composable(route = Routes.BuiltInPlaylist::class) { navBackStackEntry ->
             val route: Routes.BuiltInPlaylist = navBackStackEntry.toRoute()
 
-            NewBuiltInPlaylistScreen(
+            BuiltInPlaylistScreen(
                 builtInPlaylist = BuiltInPlaylist.entries[route.index],
                 pop = popDestination,
                 onGoToAlbum = navigateToAlbum,
@@ -190,7 +190,7 @@ fun MainNavigation(
         composable(route = Routes.LocalPlaylist::class) { navBackStackEntry ->
             val route: Routes.LocalPlaylist = navBackStackEntry.toRoute()
 
-            NewLocalPlaylistScreen(
+            LocalPlaylistScreen(
                 playlistId = route.id,
                 pop = popDestination,
                 onGoToAlbum = navigateToAlbum,

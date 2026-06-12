@@ -145,9 +145,7 @@ fun MainPlayerContent(
                                 .fillMaxSize()
                                 .padding(vertical = 48.dp, horizontal = 12.dp),
                             mediaId = mediaItem.mediaId,
-                            mediaMetadata = mediaItem.mediaMetadata,
-                            currentPositionMs = currentPositionMs,
-                            onSeekTo = { timeMs -> playerViewModel.seekTo(timeMs) }
+                            mediaMetadata = mediaItem.mediaMetadata
                         )
                     }
                 }
@@ -277,9 +275,7 @@ fun MainPlayerContent(
                             LyricsOverlay(
                                 modifier = Modifier.weight(1f),
                                 mediaId = mediaItem.mediaId,
-                                mediaMetadata = mediaItem.mediaMetadata,
-                                currentPositionMs = currentPositionMs,
-                                onSeekTo = { timeMs -> playerViewModel.seekTo(timeMs) }
+                                mediaMetadata = mediaItem.mediaMetadata
                             )
                             Spacer(modifier = Modifier.height(26.dp))
                         }

@@ -228,9 +228,6 @@ fun colorPaletteOf(
 
 inline val ColorPalette.isPureBlack get() = background0 == Color.Black
 
-inline val ColorPalette.collapsedPlayerProgressBar: ParcelableColor
-    get() = if (isPureBlack) defaultDarkPalette.background0 else background2
-
 inline val ColorPalette.favoritesIcon: ParcelableColor
     get() = if (isDefault) red else accent
 

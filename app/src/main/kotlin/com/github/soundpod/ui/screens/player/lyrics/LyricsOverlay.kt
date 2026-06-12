@@ -1,41 +1,20 @@
 package com.github.soundpod.ui.screens.player.lyrics
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -48,20 +27,15 @@ import com.github.soundpod.ui.appearance.LoadingAnimation
 import com.github.soundpod.ui.components.Overlay
 import com.github.soundpod.utils.LyricsData
 import com.github.soundpod.viewmodels.LyricsViewModel
-import kotlinx.coroutines.launch
-import kotlin.math.abs
 
 @Composable
 fun LyricsOverlay(
     modifier: Modifier = Modifier,
     mediaId: String?,
     mediaMetadata: MediaMetadata?,
-    currentPositionMs: Long,
-    onSeekTo: (Long) -> Unit,
     viewModel: LyricsViewModel = viewModel()
 ) {
     val lazyListState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
 
     val (colorPalette) = LocalAppearance.current
     val lyricsData by viewModel.lyricsData.collectAsStateWithLifecycle()
@@ -95,132 +69,6 @@ fun LyricsOverlay(
             }
         } else {
             when (val currentLyrics = lyricsData) {
-                is LyricsData.Synced -> {
-                    // NEW: State to track if we are in immersive auto-scroll mode or "free read" mode
-                    var isSyncedMode by remember { mutableStateOf(true) }
-
-                    val activeIndex by remember(currentPositionMs, currentLyrics.lines) {
-                        derivedStateOf {
-                            viewModel.getActiveIndex(currentPositionMs, currentLyrics.lines)
-                        }
-                    }
-
-                    // PRO UX: If the user manually scrolls the list, instantly disable synced mode
-                    val isScrolling by remember { derivedStateOf { lazyListState.isScrollInProgress } }
-                    LaunchedEffect(isScrolling) {
-                        if (isScrolling) {
-                            isSyncedMode = false
-                        }
-                    }
-
-                    // NEW: Update LaunchedEffect to only auto-scroll when isSyncedMode is true
-                    LaunchedEffect(activeIndex, isSyncedMode) {
-                        if (isSyncedMode && activeIndex >= 0) {
-                            if (!lazyListState.isScrollInProgress) {
-                                coroutineScope.launch {
-                                    lazyListState.animateScrollToItem(
-                                        index = activeIndex,
-                                        scrollOffset = 0
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    BoxWithConstraints(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            // NEW: Tap anywhere in the empty space to toggle modes
-                            .pointerInput(Unit) {
-                                detectTapGestures(
-                                    onTap = { isSyncedMode = !isSyncedMode }
-                                )
-                            }
-                    ) {
-                        val halfHeightDp = maxHeight / 2
-
-                        LazyColumn(
-                            state = lazyListState,
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(horizontal = 24.dp, vertical = halfHeightDp),
-                            verticalArrangement = Arrangement.spacedBy(32.dp)
-                        ) {
-                            itemsIndexed(
-                                items = currentLyrics.lines,
-                                key = { _, line -> "${mediaId}_${line.startMs}" }
-                            ) { index, line ->
-                                val distance = abs(index - activeIndex)
-                                val isActive = index == activeIndex
-
-                                val textColor by animateColorAsState(
-                                    targetValue = if (isActive) colorPalette.text else colorPalette.textDisabled,
-                                    animationSpec = tween(400),
-                                    label = "color"
-                                )
-
-                                val scale by animateFloatAsState(
-                                    targetValue = if (isActive) 1.15f else 1.0f,
-                                    animationSpec = spring(
-                                        dampingRatio = Spring.DampingRatioLowBouncy,
-                                        stiffness = Spring.StiffnessLow
-                                    ),
-                                    label = "scale"
-                                )
-
-                                // NEW: Dynamically drop the blur to 0f if they tap out of sync mode
-                                val blurRadius by animateFloatAsState(
-                                    targetValue = when {
-                                        !isSyncedMode -> 0f
-                                        isActive -> 0f
-                                        distance == 1 -> 1.5f
-                                        distance == 2 -> 3f
-                                        else -> 5f
-                                    },
-                                    animationSpec = tween(400),
-                                    label = "blur"
-                                )
-
-                                // NEW: Dynamically raise the alpha of all lines so they can actually read them
-                                val alpha by animateFloatAsState(
-                                    targetValue = when {
-                                        !isSyncedMode -> if (isActive) 1f else 0.5f
-                                        isActive -> 1f
-                                        distance == 1 -> 0.7f
-                                        distance == 2 -> 0.4f
-                                        else -> 0.1f
-                                    },
-                                    animationSpec = tween(400),
-                                    label = "alpha"
-                                )
-
-                                Text(
-                                    text = line.text,
-                                    color = textColor,
-                                    fontSize = 26.sp,
-                                    fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.Bold,
-                                    lineHeight = 36.sp,
-                                    modifier = Modifier
-                                        .fillMaxWidth(0.85f)
-                                        .graphicsLayer {
-                                            scaleX = scale
-                                            scaleY = scale
-                                            transformOrigin = TransformOrigin(0f, 0.5f)
-                                        }
-                                        .alpha(alpha)
-                                        .blur(blurRadius.dp)
-                                        .clickable(
-                                            interactionSource = remember { MutableInteractionSource() },
-                                            indication = null
-                                        ) {
-                                            onSeekTo(line.startMs)
-                                            isSyncedMode = true
-                                        }
-                                )
-                            }
-                        }
-                    }
-                }
-
                 is LyricsData.Unsynced -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),

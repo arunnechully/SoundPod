@@ -22,23 +22,23 @@ import com.github.core.ui.appearance
 private val PureBlackColorScheme = darkColorScheme(
     primary = Color.White,
     onPrimary = Color.Black,
-    background = Color.Black,       // pure black
+    background = Color.Black,
     onBackground = Color.White,
-    surface = Color.Black,          // pure black
+    surface = Color.Black,
     onSurface = Color.White
 )
 
 private val OffsetWhiteColorScheme = lightColorScheme(
     primary = Color.Black,
     onPrimary = Color.White,
-    background = Color(0xFFF6F6F8), // Off-white
+    background = Color(0xFFF6F6F8),
     onBackground = Color.Black,
-    surface = Color(0xFFF6F6F8),    // Off-white
+    surface = Color(0xFFF6F6F8),
     onSurface = Color.Black
 )
 
 private val MaterialDarkScheme = darkColorScheme(
-    background = Color(0xFF121212), // Material dark background
+    background = Color(0xFF121212),
     surface = Color(0xFF121212)
 )
 
