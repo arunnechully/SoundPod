@@ -12,7 +12,6 @@ plugins {
 kotlin {
     compilerOptions {
         jvmTarget = JvmTarget.JVM_17
-        freeCompilerArgs.add("-Xcontext-parameters")
         freeCompilerArgs.add("-Xannotation-default-target=param-property")
     }
 }
@@ -21,16 +20,12 @@ extensions.configure<ApplicationExtension>("android") {
     namespace = "com.github.soundpod"
     compileSdk = 37
 
-    androidResources {
-        localeFilters += setOf("en", "de", "es", "fr", "it")
-    }
-
     defaultConfig {
         applicationId = "com.github.soundpod"
         minSdk = 23
         targetSdk = 37
-        versionCode = 25
-        versionName = "1.3.0"
+        versionCode = 26
+        versionName = "1.3.1"
     }
 
     flavorDimensions += "store"
@@ -55,7 +50,7 @@ extensions.configure<ApplicationExtension>("android") {
                 "META-INF/com/android/build/gradle/app-metadata.properties",
                 "META-INF/*.RSA",
                 "META-INF/*.SF",
-                "META-INF/*.DSA"
+                "META-INF/*.DSA",
             )
         }
     }
@@ -117,7 +112,7 @@ dependencies {
     implementation(libs.compose.activity)
     implementation(libs.coil.compose)
     implementation(libs.coil.network)
-    implementation(libs.foundation)
+    implementation(libs.compose.foundation)
     implementation(libs.material)
     implementation(libs.compose.material.icons)
     implementation(libs.compose.material3)
@@ -149,10 +144,10 @@ dependencies {
 
     ksp(libs.room.compiler)
 
-    implementation(projects.core.ui)
-    implementation(projects.github)
-    implementation(projects.innertube)
-    implementation(projects.kugou)
+    implementation(project(":core:ui"))
+    implementation(project(":github"))
+    implementation(project(":innertube"))
+    implementation(project(":kugou"))
 
     coreLibraryDesugaring(libs.desugaring)
 }

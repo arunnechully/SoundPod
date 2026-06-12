@@ -30,7 +30,6 @@ extensions.configure<LibraryExtension>("android") {
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
-        freeCompilerArgs.add("-Xcontext-parameters")
     }
 }
 

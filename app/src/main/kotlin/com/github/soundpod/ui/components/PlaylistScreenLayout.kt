@@ -89,7 +89,7 @@ fun PlaylistScreenLayout(
             val fullHeightPx = constraints.maxHeight.toFloat()
             // Dynamic peek height: approximately 45% of screen height, but with sensible bounds
             val peekHeightPx = remember(fullHeightPx) {
-                (fullHeightPx * 0.45f).coerceIn(
+                (fullHeightPx * 0.42f).coerceIn(
                     with(density) { 320.dp.toPx() },
                     with(density) { 480.dp.toPx() }
                 )
@@ -204,7 +204,7 @@ fun PlaylistScreenLayout(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .padding(top = statusBarHeight)
-                        .padding(horizontal = 24.dp)
+//                        .padding(horizontal = 24.dp)
                 ) {
                     headerContent()
                 }

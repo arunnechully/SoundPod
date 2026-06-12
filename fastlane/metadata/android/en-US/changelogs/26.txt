@@ -1,0 +1,5 @@
+• Fixed playback crash ("URL not accepted") when resolving certain YouTube streams
+• Improved stream extractor reliability and error handling
+• Added Adaptive Thumbnail for Album and Artist screens
+• Optimized APK size and improved build configuration
+• Standardized dependency management in Version Catalog

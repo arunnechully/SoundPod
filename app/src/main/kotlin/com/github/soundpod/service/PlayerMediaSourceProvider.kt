@@ -100,7 +100,7 @@ class PlayerMediaSourceProvider(
             }
 
             val rawUrl = runCatching {
-                val streamExtractor = ServiceList.YouTube.getStreamExtractor("https://music.youtube.com/watch?v=$videoId")
+                val streamExtractor = ServiceList.YouTube.getStreamExtractor("https://www.youtube.com/watch?v=$videoId")
                 streamExtractor.fetchPage()
 
                 val audioStreams = streamExtractor.audioStreams

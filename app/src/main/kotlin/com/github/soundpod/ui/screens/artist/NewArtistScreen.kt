@@ -129,27 +129,20 @@ fun NewArtistScreen(
             )
         },
         headerContent = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                AdaptiveThumbnail(
-                    isLoading = artist?.timestamp == null,
-                    url = artist?.thumbnailUrl,
-                    modifier = Modifier.fillMaxWidth(0.55f)
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = artist?.name.orEmpty(),
-                    style = typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
-                    color = colorPalette.accent,
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth(0.8f)
-                )
-            }
+            AdaptiveThumbnail(
+                isLoading = artist?.timestamp == null,
+                url = artist?.thumbnailUrl,
+                modifier = Modifier.fillMaxWidth(0.65f)
+            )
+            Text(
+                text = artist?.name.orEmpty(),
+                style = typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
+                color = colorPalette.accent,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth(0.8f)
+            )
         },
         content = {
             Column(
