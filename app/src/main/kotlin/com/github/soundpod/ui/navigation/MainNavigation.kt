@@ -58,11 +58,17 @@ fun MainNavigation(
         popExitTransition = { Transitions.popExit() }
     ) {
         val navigateToAlbum = { browseId: String ->
-            navController.navigate(route = Routes.Album(id = browseId))
+            navController.navigate(route = Routes.Album(id = browseId)) {
+                launchSingleTop = true
+                restoreState = true
+            }
         }
 
         val navigateToArtist = { browseId: String ->
-            navController.navigate(route = Routes.Artist(id = browseId))
+            navController.navigate(route = Routes.Artist(id = browseId)) {
+                launchSingleTop = true
+                restoreState = true
+            }
         }
 
         val popDestination = {

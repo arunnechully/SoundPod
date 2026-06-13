@@ -241,11 +241,17 @@ fun SharedPlayer(
                                     expandProgress = expandProgress,
                                     onGoToAlbum = { browseId ->
                                         scope.launch { sheetState.partialExpand() }
-                                        navController.navigate(route = Routes.Album(id = browseId))
+                                        navController.navigate(route = Routes.Album(id = browseId)) {
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
                                     },
                                     onGoToArtist = { browseId ->
                                         scope.launch { sheetState.partialExpand() }
-                                        navController.navigate(route = Routes.Artist(id = browseId))
+                                        navController.navigate(route = Routes.Artist(id = browseId)) {
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
                                     },
                                     onGoToTrackDetails = {
                                         val intent = Intent(context, SettingsActivity::class.java).apply {
