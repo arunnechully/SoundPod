@@ -1,6 +1,5 @@
 package com.github.innertube.models
 
-import com.github.innertube.BotGuardData
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -12,9 +11,7 @@ data class PlayerResponse(
 ) {
     @Serializable
     data class PlayabilityStatus(
-        val status: String?,
-        val reason: String? = null,
-        val botguardData: BotGuardData? = null
+        val status: String?
     )
 
     @Serializable
@@ -26,6 +23,7 @@ data class PlayerResponse(
             private val loudnessDb: Double?,
             private val perceptualLoudnessDb: Double?
         ) {
+            // For music clients only
             val normalizedLoudnessDb: Float?
                 get() = (loudnessDb ?: perceptualLoudnessDb)?.plus(7)?.toFloat()
         }
@@ -34,18 +32,22 @@ data class PlayerResponse(
     @Serializable
     data class StreamingData(
         val adaptiveFormats: List<AdaptiveFormat>?,
-        val formats: List<AdaptiveFormat>?,
+        val formats: List<AdaptiveFormat>? = null
     ) {
         val highestQualityFormat: AdaptiveFormat?
-            get() = (adaptiveFormats.orEmpty() + formats.orEmpty())
-                .filter { it.mimeType.contains("audio") && it.url != null }
-                .maxByOrNull {
-                    when (it.itag) {
-                        251 -> 1000000L
-                        140 -> 900000L
-                        else -> it.bitrate ?: 0L
-                    }
+            get() {
+                val combined = adaptiveFormats.orEmpty() + formats.orEmpty()
+                val audioFormats = combined.filter { it.url != null && it.mimeType.startsWith("audio/") }
+                if (audioFormats.isNotEmpty()) {
+                    return audioFormats.find { it.itag == 251 }
+                        ?: audioFormats.find { it.itag == 140 }
+                        ?: audioFormats.find { it.itag == 250 }
+                        ?: audioFormats.find { it.itag == 249 }
+                        ?: audioFormats.find { it.itag == 139 }
+                        ?: audioFormats.maxByOrNull { it.bitrate ?: 0L }
                 }
+                return combined.find { it.url != null && it.mimeType.startsWith("video/") }
+            }
 
         @Serializable
         data class AdaptiveFormat(
@@ -65,8 +67,6 @@ data class PlayerResponse(
 
     @Serializable
     data class VideoDetails(
-        val videoId: String?,
-        val author: String? = null,
-        val thumbnail: ThumbnailRenderer.MusicThumbnailRenderer.Thumbnail? = null
+        val videoId: String?
     )
 }

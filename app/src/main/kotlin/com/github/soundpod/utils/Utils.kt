@@ -99,7 +99,7 @@ fun String?.thumbnail(size: Int): String? {
 
     if (this.contains("googleusercontent.com") || this.contains("ggpht.com")) {
         val cleanUrl = this.substringBefore("=")
-        return "$cleanUrl=w$size-h$size-p-l100-rj"
+        return "$cleanUrl=w1024-h1024-p-l100-rj"
     }
 
     return this

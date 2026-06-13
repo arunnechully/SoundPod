@@ -9,6 +9,7 @@ import com.github.innertube.models.YouTubeClient
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.plugins.compression.brotli
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -24,7 +25,9 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 object Innertube {
 
@@ -46,6 +49,12 @@ object Innertube {
     val client = HttpClient(OkHttp) {
         expectSuccess = true
 
+        install(HttpTimeout) {
+            requestTimeoutMillis = 30.seconds.inWholeMilliseconds
+            connectTimeoutMillis = 30.seconds.inWholeMilliseconds
+            socketTimeoutMillis = 30.seconds.inWholeMilliseconds
+        }
+
         install(ContentNegotiation) {
             json(Json {
                 ignoreUnknownKeys = true
@@ -62,11 +71,6 @@ object Innertube {
             url(scheme = "https", host ="music.youtube.com") {
                 contentType(ContentType.Application.Json)
                 headers.append("X-Goog-Api-Key", "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8")
-                visitorData?.let {
-                    headers.append("X-Goog-Visitor-Id", it)
-                }
-                headers.append("Origin", "https://music.youtube.com")
-                headers.append("Referer", "https://music.youtube.com/")
                 parameters.append("prettyPrint", "false")
             }
         }
@@ -95,7 +99,6 @@ object Innertube {
     suspend fun waitForSession(timeoutMs: Long = 10000): Boolean {
         if (visitorData != null) return true
         
-        // Attempt to fetch visitor data in parallel to avoid blocking the first request too much
         return coroutineScope {
             val result = withTimeoutOrNull(timeoutMs.milliseconds) {
                 if (visitorData == null) fetchVisitorData() else visitorData
@@ -137,7 +140,7 @@ object Innertube {
 
         companion object {
             fun cleanName(name: String?): String? {
-                if (name == null || name.lowercase() == "null" || name.isBlank()) return null
+                if (name == null || name.lowercase(Locale.ROOT) == "null" || name.isBlank()) return null
                 
                 // Remove "- Topic", " - Topic", "(Topic)", " Topic", etc. with various hyphens
                 val cleaned = name
@@ -145,7 +148,7 @@ object Innertube {
                     .replace(Regex("[\\s\\-–—]*\\(?Topic\\)?\\s*$", RegexOption.IGNORE_CASE), "")
                     .trim()
                 
-                return if (cleaned.lowercase() == "topic" || cleaned.isEmpty()) null else cleaned
+                return if (cleaned.lowercase(Locale.ROOT) == "topic" || cleaned.isEmpty()) null else cleaned
             }
         }
     }

@@ -47,4 +47,12 @@ class PlayerCacheManager(private val context: Context) {
     fun release() {
         cache.release()
     }
+
+    fun isCached(videoId: String, position: Long, length: Long): Boolean {
+        return cache.isCached(videoId, position, length)
+    }
+
+    fun removeCache(videoId: String) {
+        cache.removeResource(videoId)
+    }
 }

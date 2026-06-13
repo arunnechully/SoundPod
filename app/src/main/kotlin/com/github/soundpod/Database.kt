@@ -46,6 +46,7 @@ import com.github.soundpod.models.Lyrics
 import com.github.soundpod.models.Playlist
 import com.github.soundpod.models.PlaylistPreview
 import com.github.soundpod.models.PlaylistWithSongs
+import com.github.soundpod.models.PrecachedSong
 import com.github.soundpod.models.QueuedMediaItem
 import com.github.soundpod.models.SearchQuery
 import com.github.soundpod.models.Song
@@ -427,7 +428,14 @@ interface Database {
     @Query("DELETE FROM Event WHERE songId = :songId")
     fun clearEventsFor(songId: String)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insert(precachedSong: PrecachedSong)
 
+    @Query("DELETE FROM PrecachedSong WHERE id = :id")
+    fun deletePrecachedSong(id: String)
+
+    @Query("SELECT * FROM PrecachedSong WHERE timestamp < :threshold")
+    fun oldPrecachedSongs(threshold: Long): List<PrecachedSong>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     @Throws(SQLException::class)
@@ -571,10 +579,11 @@ interface Database {
     entities = [
         Song::class, SongPlaylistMap::class, Playlist::class, Artist::class,
         SongArtistMap::class, Album::class, SongAlbumMap::class, SearchQuery::class,
-        QueuedMediaItem::class, Format::class, Event::class, Lyrics::class
+        QueuedMediaItem::class, Format::class, Event::class, Lyrics::class,
+        PrecachedSong::class
     ],
     views = [SortedSongPlaylistMap::class],
-    version = 25,
+    version = 26,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -596,6 +605,7 @@ interface Database {
         AutoMigration(from = 20, to = 21, spec = DatabaseInitializer.From20To21Migration::class),
         AutoMigration(from = 21, to = 22, spec = DatabaseInitializer.From21To22Migration::class),
         AutoMigration(from = 24, to = 25),
+        AutoMigration(from = 25, to = 26),
     ],
 )
 @TypeConverters(Converters::class)

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -57,6 +56,7 @@ import java.nio.channels.UnresolvedAddressException
 fun PlaybackError(
     error: PlaybackException?,
     onDismiss: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
@@ -77,8 +77,7 @@ fun PlaybackError(
         exit = fadeOut()
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = modifier
                 .background(Color.Black.copy(0.8F))
                 .padding(all = 16.dp),
             verticalArrangement = Arrangement.spacedBy(

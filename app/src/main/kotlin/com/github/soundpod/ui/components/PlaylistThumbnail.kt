@@ -17,7 +17,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.github.soundpod.db
-import com.github.soundpod.ui.styling.px
 import com.github.soundpod.utils.thumbnail
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -29,12 +28,11 @@ fun PlaylistThumbnail(
 ) {
     BoxWithConstraints(contentAlignment = Alignment.Center) {
         val thumbnailSizeDp = maxWidth - 64.dp
-        val thumbnailSizePx = thumbnailSizeDp.px
 
         val thumbnails by remember {
             db.playlistThumbnailUrls(playlistId).distinctUntilChanged().map {
                 it.map { url ->
-                    url.thumbnail(thumbnailSizePx / 2)
+                    url.thumbnail(1024)
                 }
             }
         }.collectAsState(initial = emptyList(), context = Dispatchers.IO)
@@ -46,7 +44,7 @@ fun PlaylistThumbnail(
 
         if (thumbnails.toSet().size == 1) {
             AsyncImage(
-                model = thumbnails.first().thumbnail(thumbnailSizePx),
+                model = thumbnails.first().thumbnail(1024),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = modifier

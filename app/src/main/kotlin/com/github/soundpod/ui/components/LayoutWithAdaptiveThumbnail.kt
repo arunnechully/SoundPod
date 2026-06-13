@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.github.soundpod.ui.styling.px
 import com.github.soundpod.ui.styling.shimmer
 import com.github.soundpod.utils.thumbnail
 import com.valentinilk.shimmer.shimmer
@@ -23,7 +22,6 @@ fun adaptiveThumbnailContent(
 ): @Composable () -> Unit = {
     BoxWithConstraints(contentAlignment = Alignment.Center) {
         val thumbnailSizeDp = maxWidth - 64.dp
-        val thumbnailSizePx = thumbnailSizeDp.px
 
         val modifier = Modifier
             .padding(16.dp)
@@ -39,7 +37,7 @@ fun adaptiveThumbnailContent(
             )
         } else {
             AsyncImage(
-                model = url?.thumbnail(thumbnailSizePx),
+                model = url?.thumbnail(1024),
                 contentDescription = null,
                 modifier = modifier
             )

@@ -76,6 +76,7 @@ import java.io.IOException
 @SuppressLint("ConfigurationScreenWidthHeight")
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
 fun QuickPicks(
     onAlbumClick: (String) -> Unit,
@@ -99,6 +100,12 @@ fun QuickPicks(
 
     LaunchedEffect(quickPicksSource) {
         viewModel.loadQuickPicks(quickPicksSource = quickPicksSource)
+    }
+
+    LaunchedEffect(viewModel.relatedPageResult) {
+        viewModel.relatedPageResult?.getOrNull()?.songs?.let { songs ->
+            binder?.preCacheManager?.preCache(songs.mapNotNull { it.info?.endpoint?.videoId })
+        }
     }
 
     val configuration = LocalConfiguration.current

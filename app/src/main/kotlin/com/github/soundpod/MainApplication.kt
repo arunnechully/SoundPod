@@ -14,6 +14,7 @@ import com.github.soundpod.enums.CoilDiskCacheMaxSize
 import com.github.soundpod.utils.coilDiskCacheMaxSizeKey
 import com.github.soundpod.utils.getEnum
 import com.github.soundpod.utils.preferences
+import java.util.Locale
 import org.schabi.newpipe.extractor.NewPipe
 
 
@@ -23,6 +24,8 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
         super.onCreate()
         instance = this
         
+        Locale.setDefault(Locale.US)
+
         Thread {
             DatabaseInitializer.get(this)
             NewPipe.init(NewPipeDownloader.getInstance())

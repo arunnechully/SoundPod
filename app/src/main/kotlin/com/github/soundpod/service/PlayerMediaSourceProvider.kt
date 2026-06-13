@@ -16,9 +16,13 @@ import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.extractor.DefaultExtractorsFactory
+import com.github.innertube.Innertube
+import com.github.innertube.requests.player
 import com.github.soundpod.utils.pauseSongCacheKey
 import com.github.soundpod.utils.preferences
+import kotlinx.coroutines.runBlocking
 import org.schabi.newpipe.extractor.ServiceList
+import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -30,6 +34,10 @@ class PlayerMediaSourceProvider(
 ) {
     private val urlCache = ConcurrentHashMap<String, Pair<Uri, Long>>()
     private val resolutionLocks = ConcurrentHashMap<String, ReentrantLock>()
+
+    fun injectUrl(videoId: String, uri: Uri) {
+        urlCache[videoId] = Pair(uri, System.currentTimeMillis())
+    }
     
     companion object {
         private const val CACHE_EXPIRATION_MS = 4 * 3600000L
@@ -43,8 +51,8 @@ class PlayerMediaSourceProvider(
 
     private fun createDataSourceFactory(): DataSource.Factory {
         val httpDataSourceFactory = DefaultHttpDataSource.Factory()
-            .setConnectTimeoutMs(16000)
-            .setReadTimeoutMs(8000)
+            .setConnectTimeoutMs(30000)
+            .setReadTimeoutMs(30000)
             .setAllowCrossProtocolRedirects(true)
             .setUserAgent(DEFAULT_USER_AGENT)
 
@@ -52,6 +60,7 @@ class PlayerMediaSourceProvider(
 
         val resolvingUpstreamFactory = ResolvingDataSource.Factory(upstreamFactory) { dataSpec ->
             val videoId = dataSpec.key ?: throw java.io.IOException("A key must be set")
+            Log.d("SoundPod-DataSource", "Resolving URI for key: $videoId")
             if (videoId.startsWith("http") || videoId.startsWith("content://") || videoId.startsWith("file://")) {
                 dataSpec
             } else {
@@ -86,6 +95,7 @@ class PlayerMediaSourceProvider(
 
         urlCache[videoId]?.let { (uri, timestamp) ->
             if (System.currentTimeMillis() - timestamp < CACHE_EXPIRATION_MS) {
+                Log.d("SoundPod-DataSource", "URL cache hit for $videoId")
                 return uri
             }
         }
@@ -99,6 +109,18 @@ class PlayerMediaSourceProvider(
                 }
             }
 
+            // TRY INNERTUBE FIRST (MUCH FASTER)
+            val fastUri: Uri? = runCatching {
+                val response = runBlocking { Innertube.player(videoId)?.getOrNull() }
+                response?.streamingData?.highestQualityFormat?.url?.toUri()
+            }.getOrNull()
+
+            if (fastUri != null) {
+                urlCache[videoId] = Pair(fastUri, System.currentTimeMillis())
+                return fastUri
+            }
+
+            // FALLBACK TO NEWPIPE (SLOWER)
             val rawUrl = runCatching {
                 val streamExtractor = ServiceList.YouTube.getStreamExtractor("https://www.youtube.com/watch?v=$videoId")
                 streamExtractor.fetchPage()
@@ -106,7 +128,7 @@ class PlayerMediaSourceProvider(
                 val audioStreams = streamExtractor.audioStreams
 
                 val bestAudio = audioStreams
-                    .filter { it.codec?.lowercase() == "opus" }
+                    .filter { it.codec?.lowercase(Locale.ROOT) == "opus" }
                     .maxByOrNull { it.averageBitrate }
                     ?: audioStreams.maxByOrNull { it.averageBitrate }
                     ?: streamExtractor.videoStreams.maxByOrNull { it.bitrate }

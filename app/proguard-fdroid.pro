@@ -1,0 +1,3 @@
+-dontusemixedcaseclassnames
+-keepattributes SourceFile,LineNumberTable,Signature,EnclosingMethod,InnerClasses
+-dontoptimize

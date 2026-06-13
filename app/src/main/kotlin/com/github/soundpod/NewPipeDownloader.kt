@@ -19,8 +19,9 @@ import java.util.concurrent.TimeUnit
 class NewPipeDownloader private constructor() : Downloader() {
     private val client = OkHttpClient.Builder()
         .cache(Cache(File(MainApplication.appContext.cacheDir, "newpipe_cache"), 10 * 1024 * 1024))
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(15, TimeUnit.SECONDS)
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
         .followRedirects(true)
         .build()
 
@@ -33,6 +34,10 @@ class NewPipeDownloader private constructor() : Downloader() {
     private val jsCacheFile = File(MainApplication.appContext.cacheDir, "base_js_content")
     private val jsUrlFile = File(MainApplication.appContext.cacheDir, "base_js_url")
     private val playerResponseCache = ConcurrentHashMap<String, Pair<PlayerResponse, Long>>()
+
+    fun preCache(videoId: String, playerResponse: PlayerResponse) {
+        playerResponseCache[videoId] = playerResponse to System.currentTimeMillis()
+    }
 
     override fun execute(request: Request): Response {
         val url = request.url()

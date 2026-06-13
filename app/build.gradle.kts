@@ -34,6 +34,7 @@ extensions.configure<ApplicationExtension>("android") {
         create("fdroid") {
             dimension = "store"
             buildConfigField("boolean", "ENABLE_UPDATER", "false")
+            proguardFiles("proguard-fdroid.pro")
         }
         create("github") {
             dimension = "store"
@@ -51,6 +52,9 @@ extensions.configure<ApplicationExtension>("android") {
                 "META-INF/*.RSA",
                 "META-INF/*.SF",
                 "META-INF/*.DSA",
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE*",
+                "META-INF/NOTICE*"
             )
         }
     }
@@ -153,6 +157,10 @@ dependencies {
 
 tasks.configureEach {
     if (name.contains("fdroid", ignoreCase = true) && name.contains("ArtProfile", ignoreCase = true)) {
+        enabled = false
+    }
+    // Disable resource shrinking for fdroid release to ensure reproducibility
+    if (name == "shrinkFdroidReleaseRes") {
         enabled = false
     }
 }

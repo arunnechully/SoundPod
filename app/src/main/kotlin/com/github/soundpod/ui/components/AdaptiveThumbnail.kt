@@ -16,8 +16,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.github.soundpod.R // <-- Added Import (Make sure this matches your package)
-import com.github.soundpod.ui.styling.px
+import com.github.soundpod.R
 import com.github.soundpod.ui.styling.shimmer
 import com.github.soundpod.utils.thumbnail
 import com.valentinilk.shimmer.shimmer
@@ -35,8 +34,6 @@ fun AdaptiveThumbnail(
         val baseWidth = if (maxWidth != Dp.Infinity) maxWidth else 200.dp
         val thumbnailSizeDp = (baseWidth - 64.dp).coerceAtLeast(0.dp)
 
-        val thumbnailSizePx = (thumbnailSizeDp.px * 2)
-
         val sharedModifier = Modifier
             .padding(16.dp)
             .clip(MaterialTheme.shapes.large)
@@ -51,7 +48,7 @@ fun AdaptiveThumbnail(
             )
         } else {
             AsyncImage(
-                model = url?.thumbnail(thumbnailSizePx),
+                model = url?.thumbnail(1024),
                 contentDescription = "Track thumbnail",
                 contentScale = ContentScale.Crop,
                 fallback = painterResource(id = R.drawable.app_icon),
