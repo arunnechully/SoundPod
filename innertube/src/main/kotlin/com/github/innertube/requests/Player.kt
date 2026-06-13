@@ -5,6 +5,7 @@ import com.github.innertube.models.Context
 import com.github.innertube.models.PlayerResponse
 import com.github.innertube.models.YouTubeClient
 import com.github.innertube.models.bodies.PlayerBody
+import com.github.innertube.models.bodies.ServiceIntegrityDimensions
 import com.github.innertube.utils.runCatchingNonCancellable
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -30,13 +31,16 @@ suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
         setBody(
             PlayerBody(
                 context = YouTubeClient.ANDROID_VR.toContext(visitorData = visitorData),
-                videoId = videoId
+                videoId = videoId,
+                serviceIntegrityDimensions = poToken?.let { ServiceIntegrityDimensions(poToken = it) }
             )
         )
         mask("playabilityStatus.status,playerConfig.audioConfig,streamingData.adaptiveFormats,streamingData.formats,videoDetails.videoId")
     }.body<PlayerResponse>()
 
-    if (response.playabilityStatus?.status == "OK") response
+    if (response.playabilityStatus?.status == "OK") {
+        return@runCatchingNonCancellable response.applyDecipher(decipher)
+    }
     else {
         val safePlayerResponse = client.post(PLAYER) {
             setBody(
@@ -53,7 +57,7 @@ suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
         }.body<PlayerResponse>()
 
         if (safePlayerResponse.playabilityStatus?.status != "OK") {
-            return@runCatchingNonCancellable response
+            return@runCatchingNonCancellable response.applyDecipher(decipher)
         }
 
         val audioStreams = runCatching {
@@ -63,7 +67,7 @@ suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
         }.getOrNull() ?: emptyList()
 
         if (audioStreams.isEmpty()) {
-            return@runCatchingNonCancellable safePlayerResponse
+            return@runCatchingNonCancellable safePlayerResponse.applyDecipher(decipher)
         }
 
         safePlayerResponse.copy(
@@ -87,6 +91,29 @@ suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
                     )
                 }
             )
-        )
+        ).applyDecipher(decipher)
     }
+}
+
+private suspend fun PlayerResponse.applyDecipher(decipher: (suspend (String) -> String)?): PlayerResponse {
+    if (decipher == null || streamingData == null) return this
+    
+    return copy(
+        streamingData = streamingData.copy(
+            adaptiveFormats = streamingData.adaptiveFormats?.map { format ->
+                format.copy(url = format.url?.let { decipherUrl(it, decipher) })
+            },
+            formats = streamingData.formats?.map { format ->
+                format.copy(url = format.url?.let { decipherUrl(it, decipher) })
+            }
+        )
+    )
+}
+
+private suspend fun decipherUrl(url: String, decipher: suspend (String) -> String): String {
+    val nParam = url.substringAfter("&n=", "").substringBefore("&")
+    if (nParam.isEmpty()) return url
+    
+    val decipheredN = decipher(nParam)
+    return url.replace("&n=$nParam", "&n=$decipheredN")
 }

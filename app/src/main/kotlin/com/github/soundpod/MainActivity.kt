@@ -62,6 +62,7 @@ import com.github.soundpod.enums.AppThemeColor
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.service.PlayerService
 import com.github.soundpod.github.UpdateCheckWorker
+import com.github.soundpod.ui.components.YouTubeWebView
 import com.github.soundpod.ui.navigation.MainNavigation
 import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.ui.navigation.SettingsDestinations
@@ -179,6 +180,7 @@ class MainActivity : ComponentActivity() {
                 usePureBlack = false,
                 useMaterialNeutral = false,
             ) {
+                YouTubeWebView()
                 Box(
                     modifier = Modifier.fillMaxSize()
                 ) {

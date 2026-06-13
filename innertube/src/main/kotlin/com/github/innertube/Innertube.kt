@@ -39,6 +39,8 @@ object Innertube {
 
     var onVisitorDataChanged: ((String?) -> Unit)? = null
     var poToken: String? = null
+    var cookies: String? = null
+    var decipher: (suspend (String) -> String)? = null
 
     interface PoTokenResolver {
         suspend fun getPoToken(videoId: String?): String?

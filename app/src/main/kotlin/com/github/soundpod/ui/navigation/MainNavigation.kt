@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -49,6 +50,7 @@ fun MainNavigation(
 ) {
     val scope = rememberCoroutineScope()
 
+    @OptIn(UnstableApi::class)
     NavHost(
         navController = navController,
         startDestination = Routes.Home,

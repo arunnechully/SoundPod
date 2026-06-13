@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.util.UnstableApi
 import com.github.innertube.Innertube
 import com.github.innertube.requests.searchPage
 import com.github.innertube.utils.from
@@ -66,6 +67,7 @@ import com.github.soundpod.utils.searchResultScreenTabIndexKey
 
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
+@UnstableApi
 @Composable
 fun SearchResults(
     query: String,
@@ -114,6 +116,7 @@ fun SearchResults(
                         }
                     },
                     emptyItemsText = emptyItemsText,
+                    enablePreCache = true,
                     itemContent = { song, _, _ ->
                         SwipeToActionBox(
                             modifier = Modifier.animateItem(),

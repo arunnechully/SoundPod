@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
@@ -37,6 +38,7 @@ import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlayAtIndex
 
 @OptIn(ExperimentalAnimationApi::class)
+@UnstableApi
 @Composable
 fun AlbumSongs(
     browseId: String,
@@ -63,6 +65,10 @@ fun AlbumSongs(
                 else -> fetchedSongs
             }
             songs = if (sortOrder.name == "Descending") sortedList.reversed() else sortedList
+            
+            if (songs.isNotEmpty()) {
+                binder?.preCacheManager?.preCache(songs.take(5).map { it.id })
+            }
         }
     }
     DisposableEffect(player) {

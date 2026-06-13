@@ -45,6 +45,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.media3.common.util.UnstableApi
 import com.github.innertube.Innertube
 import com.github.innertube.requests.searchSuggestions
 import com.github.soundpod.db
@@ -60,6 +61,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
+@UnstableApi
 @Composable
 fun SearchScreen(
     pop: () -> Unit,

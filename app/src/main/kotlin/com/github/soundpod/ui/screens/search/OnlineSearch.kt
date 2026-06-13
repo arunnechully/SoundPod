@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.util.UnstableApi
 import com.github.core.ui.LocalAppearance
 import com.github.innertube.Innertube
 import com.github.soundpod.LocalPlayerServiceBinder
@@ -43,6 +44,7 @@ import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlay
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
+@UnstableApi
 @Composable
 fun OnlineSearch(
     songResults: List<Innertube.SongItem>?,
@@ -58,6 +60,12 @@ fun OnlineSearch(
     val (colorPalette) = LocalAppearance.current
     val binder = LocalPlayerServiceBinder.current
     val menuState = LocalMenuState.current
+
+    androidx.compose.runtime.LaunchedEffect(songResults) {
+        songResults?.take(5)?.map { it.key }?.let { videoIds ->
+            binder?.preCacheManager?.preCache(videoIds)
+        }
+    }
 
     if (isLoading) {
         Column(

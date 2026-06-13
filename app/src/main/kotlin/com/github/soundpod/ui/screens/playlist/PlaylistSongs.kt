@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.util.UnstableApi
 import com.github.innertube.Innertube
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
@@ -29,6 +30,7 @@ import com.github.soundpod.utils.forcePlayAtIndex
 
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
+@UnstableApi
 @Composable
 fun PlaylistSongs(
     playlistPage: Innertube.PlaylistOrAlbumPage?,
@@ -38,6 +40,12 @@ fun PlaylistSongs(
     val binder = LocalPlayerServiceBinder.current
     val menuState = LocalMenuState.current
     val playerPadding = LocalPlayerPadding.current
+
+    androidx.compose.runtime.LaunchedEffect(playlistPage) {
+        playlistPage?.songsPage?.items?.take(5)?.map { it.key }?.let { videoIds ->
+            binder?.preCacheManager?.preCache(videoIds)
+        }
+    }
 
     LazyColumn(
         contentPadding = PaddingValues(top = 0.dp, bottom = 16.dp + playerPadding),

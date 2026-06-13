@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import com.github.innertube.Innertube
 import com.github.innertube.requests.searchPage
@@ -37,6 +38,7 @@ import com.github.soundpod.utils.enqueue
 import com.github.soundpod.utils.forcePlay
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
+@UnstableApi
 @Composable
 fun NewSearchResult(
     navController: NavController,
@@ -83,6 +85,7 @@ fun NewSearchResult(
                             }
                         },
                         emptyItemsText = emptyItemsText,
+                        enablePreCache = true,
                         itemContent = { song, _, _ ->
                             SwipeToActionBox(
                                 modifier = Modifier.animateItem(),

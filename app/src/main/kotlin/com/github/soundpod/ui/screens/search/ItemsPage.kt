@@ -27,10 +27,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.util.UnstableApi
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.innertube.Innertube
 import com.github.innertube.utils.plus
 import com.github.soundpod.LocalPlayerPadding
+import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.ui.components.ShimmerHost
 import com.github.soundpod.ui.styling.Dimensions
@@ -39,6 +41,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @ExperimentalAnimationApi
+@UnstableApi
 @Composable
 fun <T : Innertube.Item> ItemsPage(
     tag: String,
@@ -49,8 +52,10 @@ fun <T : Innertube.Item> ItemsPage(
     continuationPlaceholderCount: Int = 3,
     emptyItemsText: String = stringResource(id = R.string.no_items_found),
     itemsPageProvider: (suspend (String?) -> Result<Innertube.ItemsPage<T>?>?)? = null,
+    enablePreCache: Boolean = false,
 ) {
     val playerPadding = LocalPlayerPadding.current
+    val binder = LocalPlayerServiceBinder.current
 
     val updatedItemsPageProvider by rememberUpdatedState(itemsPageProvider)
     val lazyGridState = rememberLazyGridState()
@@ -65,6 +70,15 @@ fun <T : Innertube.Item> ItemsPage(
     val shouldLoadMore by remember {
         derivedStateOf {
             lazyGridState.layoutInfo.visibleItemsInfo.any { it.key.toString().contains("loading") }
+        }
+    }
+
+    LaunchedEffect(allItems, enablePreCache) {
+        if (enablePreCache && allItems.isNotEmpty()) {
+            val videoIds = allItems.take(5).map { it.key }.filter { it.isNotEmpty() }
+            if (videoIds.isNotEmpty()) {
+                binder?.preCacheManager?.preCache(videoIds)
+            }
         }
     }
 
