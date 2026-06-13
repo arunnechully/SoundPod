@@ -1,12 +1,10 @@
 package com.github.soundpod.ui.screens.player
 
 import android.content.ClipData
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import android.text.format.Formatter
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -30,12 +29,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -44,18 +40,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.C
 import androidx.media3.common.Player
-import coil3.compose.AsyncImage
+import androidx.media3.datasource.cache.Cache
+import androidx.media3.datasource.cache.CacheSpan
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.db
 import com.github.soundpod.models.Info
+import com.github.soundpod.ui.components.AdaptiveThumbnail
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.utils.toast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
 
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
@@ -99,17 +98,45 @@ fun TrackDetails() {
         }
     }
 
-    val song by remember(mediaItem?.mediaId) {
-        mediaItem?.mediaId?.let { db.song(it) } ?: flowOf(null)
+    val currentMediaId = mediaItem?.mediaId
+
+    var cachedBytes by remember(currentMediaId) {
+        mutableLongStateOf(
+            if (currentMediaId != null && binder != null) {
+                binder.cache.getCachedBytes(currentMediaId, 0, -1)
+            } else 0L
+        )
+    }
+
+    DisposableEffect(currentMediaId) {
+        if (currentMediaId == null || binder == null) return@DisposableEffect onDispose {}
+
+        val listener = object : Cache.Listener {
+            override fun onSpanAdded(cache: Cache, span: CacheSpan) {
+                cachedBytes += span.length
+            }
+
+            override fun onSpanRemoved(cache: Cache, span: CacheSpan) {
+                cachedBytes -= span.length
+            }
+
+            override fun onSpanTouched(cache: Cache, oldSpan: CacheSpan, newSpan: CacheSpan) = Unit
+        }
+
+        binder.cache.addListener(currentMediaId, listener)
+
+        onDispose {
+            binder.cache.removeListener(currentMediaId, listener)
+        }
+    }
+
+    val formatFromDb by remember(currentMediaId) {
+        currentMediaId?.let { db.format(it) } ?: flowOf(null)
     }.collectAsState(initial = null)
 
-    val formatFromDb by remember(mediaItem?.mediaId) {
-        mediaItem?.mediaId?.let { db.format(it) } ?: flowOf(null)
-    }.collectAsState(initial = null)
-
-    val albumInfo by produceState<Info?>(initialValue = null, key1 = mediaItem?.mediaId) {
+    val albumInfo by produceState<Info?>(initialValue = null, key1 = currentMediaId) {
         value = withContext(Dispatchers.IO) {
-            mediaItem?.mediaId?.let { db.songAlbumInfo(it) }
+            currentMediaId?.let { db.songAlbumInfo(it) }
         }
     }
 
@@ -124,30 +151,11 @@ fun TrackDetails() {
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        Box(
-            modifier = Modifier
-                .size(180.dp)
-                .clip(RoundedCornerShape(28.dp))
-                .background(colorPalette.text.copy(alpha = 0.05f)),
-            contentAlignment = Alignment.Center
-        ) {
-            val artworkUri = mediaItem?.mediaMetadata?.artworkUri
-            if (artworkUri != null) {
-                AsyncImage(
-                    model = artworkUri,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
-                Icon(
-                    painter = painterResource(id = R.drawable.music_icon),
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp),
-                    tint = colorPalette.text.copy(alpha = 0.4f)
-                )
-            }
-        }
+        AdaptiveThumbnail(
+            isLoading = false,
+            url = mediaItem?.mediaMetadata?.artworkUri?.toString(),
+            modifier = Modifier.fillMaxWidth(0.65f)
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -206,19 +214,6 @@ fun TrackDetails() {
                 )
 
                 DetailItem(
-                    label = stringResource(id = R.string.track_length),
-                    value = song?.durationText
-                        ?: mediaItem?.mediaMetadata?.extras?.getString("durationText")
-                        ?: stringResource(id = R.string.unknown)
-                )
-
-                HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    thickness = 0.5.dp,
-                    color = colorPalette.text.copy(alpha = 0.1f)
-                )
-
-                DetailItem(
                     label = stringResource(id = R.string.format),
                     value = formatFromDb?.mimeType ?: audioFormat?.sampleMimeType ?: stringResource(
                         id = R.string.unknown
@@ -230,6 +225,20 @@ fun TrackDetails() {
                     thickness = 0.5.dp,
                     color = colorPalette.text.copy(alpha = 0.1f)
                 )
+
+                val itag = formatFromDb?.itag ?: audioFormat?.id?.toIntOrNull()
+                if (itag != null) {
+                    DetailItem(
+                        label = stringResource(id = R.string.itag),
+                        value = itag.toString()
+                    )
+
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        thickness = 0.5.dp,
+                        color = colorPalette.text.copy(alpha = 0.1f)
+                    )
+                }
 
                 val bitrate = formatFromDb?.bitrate ?: audioFormat?.bitrate?.toLong()
                 if (bitrate != null && bitrate > 0) {
@@ -244,6 +253,34 @@ fun TrackDetails() {
                         color = colorPalette.text.copy(alpha = 0.1f)
                     )
                 }
+
+                val size = formatFromDb?.contentLength
+                if (size != null) {
+                    DetailItem(
+                        label = stringResource(id = R.string.size),
+                        value = Formatter.formatShortFileSize(context, size)
+                    )
+
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        thickness = 0.5.dp,
+                        color = colorPalette.text.copy(alpha = 0.1f)
+                    )
+                }
+
+                DetailItem(
+                    label = stringResource(id = R.string.cached),
+                    value = Formatter.formatShortFileSize(context, cachedBytes) +
+                            (formatFromDb?.contentLength?.let {
+                                if (it > 0) " (${(cachedBytes.toFloat() / it * 100).roundToInt()}%)" else ""
+                            } ?: "")
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    thickness = 0.5.dp,
+                    color = colorPalette.text.copy(alpha = 0.1f)
+                )
 
                 DetailItem(
                     label = stringResource(id = R.string.path_id),

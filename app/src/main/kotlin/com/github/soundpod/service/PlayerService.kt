@@ -11,8 +11,8 @@ import android.graphics.Color
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
-import android.net.Uri
 import android.os.Build
+import android.util.Log
 import android.os.Handler
 import android.support.v4.media.session.MediaSessionCompat
 import androidx.core.content.ContextCompat.startForegroundService
@@ -28,6 +28,7 @@ import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.CacheWriter
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.RenderersFactory
 import androidx.media3.exoplayer.analytics.PlaybackStatsListener
@@ -62,7 +63,7 @@ import com.github.soundpod.utils.volumeNormalizationKey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.cancellable
@@ -103,8 +104,9 @@ class PlayerService : InvincibleService(), Player.Listener,
     private lateinit var queueManager: QueuePersistenceManager
     private lateinit var bitmapProvider: BitmapProvider
     private lateinit var mediaSourceProvider: PlayerMediaSourceProvider
+    private lateinit var preCacheManager: PreCacheManager
 
-    private val coroutineScope = CoroutineScope(Dispatchers.IO) + Job()
+    private val coroutineScope = CoroutineScope(Dispatchers.IO) + SupervisorJob()
 
     private var isPersistentQueueEnabled = false
     private var isShowingThumbnailInLockscreen = true
@@ -166,8 +168,19 @@ class PlayerService : InvincibleService(), Player.Listener,
         cacheManager = PlayerCacheManager(this)
 
         mediaSourceProvider = PlayerMediaSourceProvider(this, cacheManager)
+        preCacheManager = PreCacheManager(this, cacheManager, mediaSourceProvider)
+
+        val loadControl = DefaultLoadControl.Builder()
+            .setBufferDurationsMs(
+                1000, // minBufferMs
+                5000, // maxBufferMs
+                500, // bufferForPlaybackMs
+                1000 // bufferForPlaybackAfterRebufferMs
+            )
+            .build()
 
         player = ExoPlayer.Builder(this, createRendersFactory(), mediaSourceProvider.createMediaSourceFactory())
+            .setLoadControl(loadControl)
             .setHandleAudioBecomingNoisy(true)
             .setWakeMode(C.WAKE_MODE_LOCAL)
             .setAudioAttributes(
@@ -243,6 +256,7 @@ class PlayerService : InvincibleService(), Player.Listener,
         }
 
         maybeResumePlaybackWhenDeviceConnected()
+        preCacheManager.cleanUp()
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
@@ -291,7 +305,15 @@ class PlayerService : InvincibleService(), Player.Listener,
         audioEffectManager.maybeNormalizeVolume()
         maybeProcessRadio()
         maybeFetchLyrics(mediaItem)
+        
+        // Trigger prefetch here
         prefetchNextTrack()
+        
+        mediaItem?.mediaId?.let { videoId ->
+            coroutineScope.launch {
+                db.deletePrecachedSong(videoId)
+            }
+        }
 
         if (mediaItem == null) {
             bitmapProvider.listener?.invoke(null)
@@ -305,65 +327,39 @@ class PlayerService : InvincibleService(), Player.Listener,
     }
 
     override fun onTimelineChanged(timeline: Timeline, reason: Int) {
-        if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) {
+        if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED || reason == Player.TIMELINE_CHANGE_REASON_SOURCE_UPDATE) {
             mediaSessionManager.updateQueue(timeline)
             prefetchNextTrack()
         }
     }
 
-    private val prefetchingIds = java.util.Collections.synchronizedSet(mutableSetOf<String>())
-
     private fun prefetchNextTrack() {
         val currentIndex = player.currentMediaItemIndex
         val totalItems = player.mediaItemCount
 
-        for (i in 1..1) {
+        val videoIdsToPrefetch = mutableListOf<String>()
+
+        for (i in 1..3) { // Prefetch next 3 tracks
             val nextIndex = currentIndex + i
-            if (nextIndex !in 0..<totalItems) break
+            if (nextIndex >= totalItems) break
 
             val nextMediaItem = player.getMediaItemAt(nextIndex)
             val videoId = nextMediaItem.mediaId
 
-            if (!prefetchingIds.add(videoId)) continue
-
-            coroutineScope.launch {
-                try {
-                    val uri = mediaSourceProvider.resolveUrl(videoId)
-                    if (!videoId.startsWith("http") && !videoId.startsWith("content://") && !videoId.startsWith("file://")) {
-                        cacheTrack(videoId, uri)
-                        LyricsFetcher.fetchLyrics(videoId)
-                    }
-                    nextMediaItem.mediaMetadata.artworkUri?.let { artworkUri ->
-                        bitmapProvider.load(artworkUri) { }
-                    }
-                } finally {
-                    prefetchingIds.remove(videoId)
-                }
-            }
+            if (videoId.isBlank() || videoId.startsWith("http") || videoId.startsWith("content://") || videoId.startsWith("file://")) continue
+            
+            videoIdsToPrefetch.add(videoId)
         }
-    }
 
-    private fun cacheTrack(videoId: String, uri: Uri) {
-        if (cacheManager.cache.isCached(videoId, 0, 100 * 1024L)) return
-
-        val dataSpec = DataSpec.Builder()
-            .setUri(uri)
-            .setKey(videoId)
-            .setPosition(0)
-            .setLength(512 * 1024L)
-            .build()
-
-        val upstreamDataSource = DefaultHttpDataSource.Factory()
-            .setAllowCrossProtocolRedirects(true)
-            .createDataSource()
-
-        val cacheDataSource = CacheDataSource.Factory()
-            .setCache(cacheManager.cache)
-            .setUpstreamDataSourceFactory { upstreamDataSource }
-            .createDataSource()
-
-        runCatching {
-            CacheWriter(cacheDataSource, dataSpec, null, null).cache()
+        if (videoIdsToPrefetch.isNotEmpty()) {
+            Log.d("SoundPod-Prefetch", "Triggering prefetch for: $videoIdsToPrefetch")
+            preCacheManager.preCache(videoIdsToPrefetch)
+            
+            // Also pre-fetch lyrics and artwork for the very next track
+            coroutineScope.launch {
+                val nextTrack = videoIdsToPrefetch.first()
+                LyricsFetcher.fetchLyrics(nextTrack)
+            }
         }
     }
 
@@ -597,9 +593,11 @@ class PlayerService : InvincibleService(), Player.Listener,
         }
     }
 
+    @androidx.compose.runtime.Stable
     inner class Binder : AndroidBinder() {
         val player get() = this@PlayerService.player
         val cache get() = this@PlayerService.cacheManager.cache
+        val preCacheManager get() = this@PlayerService.preCacheManager
         val mediaSession get() = this@PlayerService.mediaSessionManager.mediaSession
 
         val sleepTimerMillisLeft get() = this@PlayerService.sleepTimerManager.millisLeft

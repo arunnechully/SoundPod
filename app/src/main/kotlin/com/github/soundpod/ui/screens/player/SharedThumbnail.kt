@@ -174,13 +174,14 @@ fun SharedThumbnail(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
-        }
 
-        if (expandProgress > 0.8f) {
-            PlaybackError(
-                error = playerError,
-                onDismiss = { player.prepare() }
-            )
+            if (expandProgress > 0.8f) {
+                PlaybackError(
+                    error = playerError,
+                    onDismiss = { player.prepare() },
+                    modifier = Modifier.matchParentSize()
+                )
+            }
         }
     }
 }

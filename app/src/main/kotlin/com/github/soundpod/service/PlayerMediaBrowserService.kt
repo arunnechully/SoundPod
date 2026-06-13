@@ -9,6 +9,8 @@ import android.os.Bundle
 import android.os.IBinder
 import android.os.Process
 import android.service.media.MediaBrowserService
+import android.os.Build
+import java.util.Locale
 import androidx.annotation.DrawableRes
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
@@ -201,7 +203,7 @@ class PlayerMediaBrowserService : MediaBrowserService(), ServiceConnection {
             BrowserMediaDescription.Builder()
                 .setMediaId(MediaId.forPlaylist(playlist.id))
                 .setTitle(playlist.name)
-                .setSubtitle("$songCount ${getString(R.string.songs).lowercase()}")
+                .setSubtitle("$songCount ${getString(R.string.songs).lowercase(Locale.getDefault())}")
                 .setIconUri(uriFor(R.drawable.playlist))
                 .build(),
             BrowserMediaItem.FLAG_PLAYABLE

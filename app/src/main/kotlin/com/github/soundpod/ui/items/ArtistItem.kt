@@ -16,6 +16,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import java.util.Locale
 import coil3.compose.AsyncImage
 import com.github.innertube.Innertube
 import com.github.soundpod.R
@@ -34,7 +35,7 @@ fun ArtistItem(
         title = artist.info?.name ?: "",
         subtitle = artist.subscribersCountText?.replace(
             oldValue = "subscribers",
-            newValue = stringResource(id = R.string.subscribers).lowercase()
+            newValue = stringResource(id = R.string.subscribers).lowercase(Locale.ROOT)
         ),
         textAlign = TextAlign.Center,
         shape = CircleShape,
