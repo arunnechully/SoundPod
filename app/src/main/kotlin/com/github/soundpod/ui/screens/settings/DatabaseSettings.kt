@@ -49,6 +49,7 @@ import com.github.soundpod.enums.QuickPicksSource
 import com.github.soundpod.query
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SwitchSetting
+import com.github.soundpod.ui.navigation.SettingsDestinations
 import com.github.soundpod.utils.ScreenCache
 import com.github.soundpod.utils.coilDiskCacheMaxSizeKey
 import com.github.soundpod.utils.exoPlayerDiskCacheMaxSizeKey
@@ -63,7 +64,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 @SuppressLint("LocalContextGetResourceValueCall")
 @OptIn(UnstableApi::class)
 @Composable
-fun CacheSettingsContent() {
+fun CacheSettingsContent(
+    onOptionClick: (String) -> Unit
+) {
 
     val context = LocalContext.current
     val binder = LocalPlayerServiceBinder.current
@@ -99,12 +102,11 @@ fun CacheSettingsContent() {
     Column {
 
         SettingsGroup {
-            EnumValueSelectorSettingsEntry(
+            SettingsColumn(
                 title = stringResource(id = R.string.quick_picks_source),
-                selectedValue = quickPicksSource,
-                onValueSelected = { quickPicksSource = it },
+                description = stringResource(id = quickPicksSource.resourceId),
+                onClick = { onOptionClick(SettingsDestinations.QUICK_PICKS) },
                 icon = IconSource.Vector(Icons.Default.AutoAwesome),
-                valueText = { context.getString(it.resourceId) }
             )
 
             SwitchSetting(

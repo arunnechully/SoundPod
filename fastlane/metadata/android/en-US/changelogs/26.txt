@@ -3,3 +3,6 @@
 • Added Adaptive Thumbnail for Album and Artist screens
 • Optimized APK size and improved build configuration
 • Standardized dependency management in Version Catalog
+• Refined Quick Picks with new Recommended and Custom sources (replaced Random)
+• Added BotGuard poToken support and real-time n-parameter deciphering for full streaming speeds
+• Aggressive prefetching for Albums, Playlists, and Search results

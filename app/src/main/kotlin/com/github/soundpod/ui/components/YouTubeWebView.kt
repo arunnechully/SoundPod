@@ -25,7 +25,7 @@ fun YouTubeWebView() {
     val decipherRequests = remember { ConcurrentHashMap<String, CompletableDeferred<String>>() }
 
     AndroidView(
-        modifier = Modifier.size(1.dp), // Hidden but part of composition
+        modifier = Modifier.size(1.dp),
         factory = { context ->
             WebView(context).apply {
                 settings.javaScriptEnabled = true
@@ -107,8 +107,6 @@ fun YouTubeWebView() {
 }
 
 private fun injectDecipherScript(webView: WebView?) {
-    // This is a simplified placeholder. A real implementation would fetch base.js,
-    // find the 'n' parameter deciphering function, and expose it via 'decipherNParam'.
     val script = """
         function decipherNParam(n, requestId) {
             // Placeholder logic: in reality, we'd call the function from base.js

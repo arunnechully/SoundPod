@@ -157,9 +157,12 @@
     <string name="most_played">Most played</string>
     <string name="trending">Trending</string>
     <string name="last_played">Last played</string>
+    <string name="recommended">Recommended</string>
     <string name="general">General</string>
     <string name="history">History</string>
     <string name="quick_picks_source">Quick picks source</string>
+    <string name="quick_picks_custom_genre">Custom genre</string>
+    <string name="quick_picks_custom_genre_description">Enter your preferred genre for Quick Picks</string>
     <string name="stop">Stop</string>
     <string name="share">Share</string>
     <string name="add_bookmark">Add bookmark</string>

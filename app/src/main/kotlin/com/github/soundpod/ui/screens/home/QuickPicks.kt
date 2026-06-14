@@ -68,6 +68,7 @@ import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlay
 import com.github.soundpod.utils.isLandscape
+import com.github.soundpod.utils.quickPicksCustomGenreKey
 import com.github.soundpod.utils.quickPicksSourceKey
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.viewmodels.home.QuickPicksViewModel
@@ -90,6 +91,7 @@ fun QuickPicks(
 
     val viewModel: QuickPicksViewModel = viewModel()
     val quickPicksSource by rememberPreference(quickPicksSourceKey, QuickPicksSource.Trending)
+    val quickPicksCustomGenre by rememberPreference(quickPicksCustomGenreKey, "Psaltic music")
 
     val songThumbnailSizeDp = Dimensions.thumbnails.song
     val itemSize = 108.dp + 2 * 8.dp
@@ -98,8 +100,11 @@ fun QuickPicks(
         .padding(horizontal = 16.dp)
         .padding(bottom = 8.dp)
 
-    LaunchedEffect(quickPicksSource) {
-        viewModel.loadQuickPicks(quickPicksSource = quickPicksSource)
+    LaunchedEffect(quickPicksSource, quickPicksCustomGenre) {
+        viewModel.loadQuickPicks(
+            quickPicksSource = quickPicksSource,
+            forceRefresh = quickPicksSource == QuickPicksSource.Custom
+        )
     }
 
     LaunchedEffect(viewModel.relatedPageResult) {

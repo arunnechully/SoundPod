@@ -3,19 +3,23 @@ package com.github.soundpod.viewmodels.home
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.innertube.Innertube
 import com.github.innertube.requests.charts
+import com.github.innertube.requests.recommendations
 import com.github.innertube.requests.relatedPage
+import com.github.innertube.requests.searchPage
+import com.github.innertube.utils.from
 import com.github.soundpod.appContext
 import com.github.soundpod.db
 import com.github.soundpod.enums.QuickPicksSource
 import com.github.soundpod.models.Song
 import com.github.soundpod.utils.ScreenCache
+import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.isScreenCacheEnabledKey
 import com.github.soundpod.utils.preferences
+import com.github.soundpod.utils.quickPicksCustomGenreKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -23,21 +27,21 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 
 class QuickPicksViewModel : ViewModel() {
     var relatedPageResult: Result<Innertube.RelatedPage?>? by mutableStateOf(null)
     private var job: Job? = null
 
     companion object {
-        private const val CACHE_EXPIRATION = 30 * 60 * 1000L // 30 minutes
+        private const val CACHE_EXPIRATION = 30 * 60 * 1000L
         private const val PERSISTENT_CACHE_PREFIX = "quick_picks_cache_v2_"
     }
 
     private fun getSeedSongsFlow(source: QuickPicksSource, limit: Int): Flow<List<Song>> = when (source) {
         QuickPicksSource.Trending -> db.trending(limit)
         QuickPicksSource.LastPlayed -> db.lastPlayed(limit)
-        QuickPicksSource.Random -> db.randomSongs(limit)
+        QuickPicksSource.Recommended -> db.lastPlayed(limit)
+        QuickPicksSource.Custom -> db.randomSongs(limit)
     }
 
     private fun getCached(source: QuickPicksSource): Innertube.RelatedPage? {
@@ -82,7 +86,52 @@ class QuickPicksViewModel : ViewModel() {
 
         job?.cancel()
         job = viewModelScope.launch(Dispatchers.IO) {
-            val seedSongs = getSeedSongsFlow(quickPicksSource, 3).first()
+            val seedSongs = when (quickPicksSource) {
+                QuickPicksSource.Custom -> {
+                    val customGenre = appContext.preferences.getString(quickPicksCustomGenreKey, "Psaltic music") ?: "Psaltic music"
+                    val searchResult = Innertube.searchPage(
+                        query = customGenre,
+                        params = Innertube.SearchFilter.Song.value,
+                        fromMusicShelfRendererContent = Innertube.SongItem.Companion::from
+                    )?.getOrNull()
+                    
+                    searchResult?.items?.take(3)?.map { item -> 
+                        val mediaItem = item.asMediaItem
+                        Song(
+                            id = mediaItem.mediaId,
+                            title = mediaItem.mediaMetadata.title.toString(),
+                            artistsText = mediaItem.mediaMetadata.artist.toString(),
+                            durationText = null,
+                            thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString()
+                        )
+                    } ?: emptyList()
+                }
+                QuickPicksSource.Trending -> {
+                    Innertube.charts()?.getOrNull()?.take(3)?.map { item ->
+                        val mediaItem = item.asMediaItem
+                        Song(
+                            id = mediaItem.mediaId,
+                            title = mediaItem.mediaMetadata.title.toString(),
+                            artistsText = mediaItem.mediaMetadata.artist.toString(),
+                            durationText = null,
+                            thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString()
+                        )
+                    } ?: getSeedSongsFlow(quickPicksSource, 3).first()
+                }
+                QuickPicksSource.Recommended -> {
+                    Innertube.recommendations()?.getOrNull()?.take(3)?.map { item ->
+                        val mediaItem = item.asMediaItem
+                        Song(
+                            id = mediaItem.mediaId,
+                            title = mediaItem.mediaMetadata.title.toString(),
+                            artistsText = mediaItem.mediaMetadata.artist.toString(),
+                            durationText = null,
+                            thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString()
+                        )
+                    } ?: getSeedSongsFlow(QuickPicksSource.LastPlayed, 3).first()
+                }
+                else -> getSeedSongsFlow(quickPicksSource, 3).first()
+            }
 
             coroutineScope {
                 val chartsDeferred = async {

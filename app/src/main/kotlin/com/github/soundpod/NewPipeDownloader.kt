@@ -4,7 +4,6 @@ import com.github.innertube.Innertube
 import com.github.innertube.models.PlayerResponse
 import com.github.innertube.requests.player
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.Cache
 import okhttp3.OkHttpClient
@@ -74,7 +73,7 @@ class NewPipeDownloader private constructor() : Downloader() {
                         val html = "<html><head><script>var ytInitialPlayerResponse = $playerResponseJson;</script></head><body></body></html>"
                         return Response(200, "OK", mapOf("Content-Type" to listOf("text/html")), html, url)
                     }
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                 }
             }
         }

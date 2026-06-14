@@ -40,6 +40,7 @@ fun SettingsScreen(
         SettingsDestinations.EXPERIMENT -> stringResource(R.string.experimental)
         SettingsDestinations.ABOUT -> stringResource(R.string.about)
         SettingsDestinations.SLEEP_TIMER -> stringResource(R.string.sleep_timer)
+        SettingsDestinations.QUICK_PICKS -> stringResource(R.string.quick_picks)
         SettingsDestinations.TRACK_DETAILS -> stringResource(R.string.track_details)
         else -> stringResource(R.string.settings)
     }
@@ -61,10 +62,11 @@ fun SettingsScreen(
                 SettingsDestinations.SLEEP_TIMER -> SleepTimerSettingsContent()
                 SettingsDestinations.PRIVACY -> PrivacySettingsContent()
                 SettingsDestinations.BACKUP -> BackupSettingsContent()
-                SettingsDestinations.DATABASE -> CacheSettingsContent()
+                SettingsDestinations.DATABASE -> CacheSettingsContent(onOptionClick)
                 SettingsDestinations.MORE -> MoreSettingsContent()
                 SettingsDestinations.EXPERIMENT -> ExperimentSettingsContent()
                 SettingsDestinations.ABOUT -> AboutSettingsContent()
+                SettingsDestinations.QUICK_PICKS -> QuickPicksSettingsContent()
                 SettingsDestinations.TRACK_DETAILS -> TrackDetails()
             }
         }

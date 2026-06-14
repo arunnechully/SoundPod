@@ -44,5 +44,6 @@ object SettingsDestinations {
     const val EXPERIMENT = "settings_experiment"
     const val ABOUT = "settings_about"
     const val SLEEP_TIMER = "settings_sleep_timer"
+    const val QUICK_PICKS = "settings_quick_picks"
     const val TRACK_DETAILS = "settings_track_details"
 }

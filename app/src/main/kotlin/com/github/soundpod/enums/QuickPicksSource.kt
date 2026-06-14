@@ -12,7 +12,10 @@ enum class QuickPicksSource(
     LastPlayed(
         resourceId = R.string.last_played,
     ),
-    Random(
-        resourceId = R.string.random,
+    Recommended(
+        resourceId = R.string.recommended,
+    ),
+    Custom(
+        resourceId = R.string.custom,
     )
 }
