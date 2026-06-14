@@ -11,7 +11,7 @@ plugins {
 
 extensions.configure<LibraryExtension>("android") {
     namespace = "com.github.core.ui"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 23
