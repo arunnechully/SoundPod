@@ -30,24 +30,40 @@ suspend fun <T : Innertube.Item> Innertube.itemsPage(
         )
     }.body<BrowseResponse>()
 
-    val sectionListRendererContent = (response.contents?.singleColumnBrowseResultsRenderer?.tabs
+    val sectionListRenderer = (response.contents?.singleColumnBrowseResultsRenderer?.tabs
         ?: response.contents?.twoColumnBrowseResultsRenderer?.tabs)
         ?.firstOrNull()
         ?.tabRenderer
         ?.content
         ?.sectionListRenderer
-        ?.contents
-        ?.find { it.musicShelfRenderer != null || it.musicPlaylistShelfRenderer != null || it.gridRenderer != null }
 
-    itemsPageFromMusicShelRendererOrGridRenderer(
-        musicShelfRenderer = sectionListRendererContent
-            ?.musicShelfRenderer,
-        musicPlaylistShelfRenderer = sectionListRendererContent
-            ?.musicPlaylistShelfRenderer,
-        gridRenderer = sectionListRendererContent
-            ?.gridRenderer,
-        fromMusicResponsiveListItemRenderer = fromMusicResponsiveListItemRenderer,
-        fromMusicTwoRowItemRenderer = fromMusicTwoRowItemRenderer,
+    val shelves = sectionListRenderer?.contents
+        ?.filter { it.musicShelfRenderer != null || it.musicPlaylistShelfRenderer != null || it.gridRenderer != null }
+        ?: emptyList()
+
+    if (shelves.isEmpty()) return@runCatchingNonCancellable null
+
+    val items = mutableListOf<T>()
+    var continuation: String? = sectionListRenderer?.continuations
+        ?.firstOrNull()
+        ?.nextContinuationData
+        ?.continuation
+
+    shelves.forEach { shelf ->
+        val page = itemsPageFromMusicShelRendererOrGridRenderer(
+            musicShelfRenderer = shelf.musicShelfRenderer,
+            musicPlaylistShelfRenderer = shelf.musicPlaylistShelfRenderer,
+            gridRenderer = shelf.gridRenderer,
+            fromMusicResponsiveListItemRenderer = fromMusicResponsiveListItemRenderer,
+            fromMusicTwoRowItemRenderer = fromMusicTwoRowItemRenderer,
+        )
+        page?.items?.let { items.addAll(it) }
+        if (continuation == null) continuation = page?.continuation
+    }
+
+    Innertube.ItemsPage(
+        items = items.ifEmpty { null },
+        continuation = continuation
     )
 }
 
@@ -60,14 +76,45 @@ suspend fun <T : Innertube.Item> Innertube.itemsPageContinuation(
         setBody(ContinuationBody(continuation = continuation))
     }.body<ContinuationResponse>()
 
-    itemsPageFromMusicShelRendererOrGridRenderer(
-        musicShelfRenderer = response
-            .continuationContents
-            ?.musicShelfContinuation,
-        musicPlaylistShelfRenderer = null,
-        gridRenderer = null,
-        fromMusicResponsiveListItemRenderer = fromMusicResponsiveListItemRenderer,
-        fromMusicTwoRowItemRenderer = fromMusicTwoRowItemRenderer,
+    val items = mutableListOf<T>()
+    var nextContinuation: String? = null
+
+    response.continuationContents?.let { contents ->
+        contents.musicShelfContinuation?.let { shelf ->
+            val page = itemsPageFromMusicShelRendererOrGridRenderer(
+                musicShelfRenderer = shelf,
+                musicPlaylistShelfRenderer = null,
+                gridRenderer = null,
+                fromMusicResponsiveListItemRenderer = fromMusicResponsiveListItemRenderer,
+                fromMusicTwoRowItemRenderer = fromMusicTwoRowItemRenderer,
+            )
+            page?.items?.let { items.addAll(it) }
+            nextContinuation = page?.continuation
+        }
+
+        contents.sectionListContinuation?.let { sectionList ->
+            nextContinuation = sectionList.continuations
+                ?.firstOrNull()
+                ?.nextContinuationData
+                ?.continuation
+
+            sectionList.contents?.forEach { shelf ->
+                val page = itemsPageFromMusicShelRendererOrGridRenderer(
+                    musicShelfRenderer = shelf.musicShelfRenderer,
+                    musicPlaylistShelfRenderer = shelf.musicPlaylistShelfRenderer,
+                    gridRenderer = shelf.gridRenderer,
+                    fromMusicResponsiveListItemRenderer = fromMusicResponsiveListItemRenderer,
+                    fromMusicTwoRowItemRenderer = fromMusicTwoRowItemRenderer,
+                )
+                page?.items?.let { items.addAll(it) }
+                if (nextContinuation == null) nextContinuation = page?.continuation
+            }
+        }
+    }
+
+    Innertube.ItemsPage(
+        items = items.ifEmpty { null },
+        continuation = nextContinuation
     )
 }
 

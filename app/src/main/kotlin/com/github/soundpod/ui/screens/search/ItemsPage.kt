@@ -88,7 +88,9 @@ fun <T : Innertube.Item> ItemsPage(
 
     val shouldLoadMore by remember {
         derivedStateOf {
-            lazyGridState.layoutInfo.visibleItemsInfo.any { it.key.toString().contains("loading") }
+            val lastVisibleItemIndex = lazyGridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            val totalItemsCount = lazyGridState.layoutInfo.totalItemsCount
+            totalItemsCount > 0 && lastVisibleItemIndex >= totalItemsCount - 5
         }
     }
 
@@ -101,12 +103,13 @@ fun <T : Innertube.Item> ItemsPage(
         }
     }
 
-    LaunchedEffect(shouldLoadMore, updatedItemsPageProvider) {
+    LaunchedEffect(shouldLoadMore, updatedItemsPageProvider, itemsPage?.continuation) {
         if (!shouldLoadMore) return@LaunchedEffect
         val currentItemsPageProvider = updatedItemsPageProvider ?: return@LaunchedEffect
+        val continuation = itemsPage?.continuation ?: if (itemsPage != null) return@LaunchedEffect else null
 
         withContext(Dispatchers.IO) {
-            currentItemsPageProvider(itemsPage?.continuation)
+            currentItemsPageProvider(continuation)
         }?.onSuccess {
             if (it == null) {
                 if (itemsPage == null) {

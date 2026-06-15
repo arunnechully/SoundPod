@@ -202,20 +202,17 @@ fun ArtistScreen(
                             browseId = artistPage?.songsEndpoint?.browseId ?: browseId,
                             params = artistPage?.songsEndpoint?.params,
                             onAlbumClick = onAlbumClick,
-                            onArtistClick = onArtistClick,
-                            playerPadding = playerPadding
+                            onArtistClick = onArtistClick
                         )
                         ArtistTab.Albums -> ArtistAlbumsPage(
                             browseId = artistPage?.albumsEndpoint?.browseId ?: browseId,
                             params = artistPage?.albumsEndpoint?.params,
-                            onAlbumClick = onAlbumClick,
-                            playerPadding = playerPadding
+                            onAlbumClick = onAlbumClick
                         )
                         ArtistTab.Singles -> ArtistAlbumsPage(
                             browseId = artistPage?.singlesEndpoint?.browseId ?: browseId,
                             params = artistPage?.singlesEndpoint?.params,
-                            onAlbumClick = onAlbumClick,
-                            playerPadding = playerPadding
+                            onAlbumClick = onAlbumClick
                         )
                         ArtistTab.Playlists -> ArtistPlaylistsPage(
                             playlists = artistPage?.playlists ?: emptyList(),

@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
 import androidx.media3.common.util.UnstableApi
 import com.github.innertube.Innertube
 import com.github.innertube.requests.itemsPage
@@ -22,13 +21,12 @@ import com.github.soundpod.ui.screens.search.ItemsPage
 fun ArtistAlbumsPage(
     browseId: String,
     params: String? = null,
-    onAlbumClick: (String) -> Unit,
-    playerPadding: Dp
+    onAlbumClick: (String) -> Unit
 ) {
     val tag = "artistAlbums/$browseId/${params ?: ""}/grid"
     
     Box(modifier = Modifier.fillMaxSize()) {
-        ItemsPage<Innertube.AlbumItem>(
+        ItemsPage(
             tag = tag,
             enableScrollbar = true,
             itemsPageProvider = { continuation ->
