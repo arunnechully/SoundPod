@@ -14,10 +14,6 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 
-/**
- * A highly optimized background that renders a blurred version of the album art.
- * Uses AnimatedContent for smooth transitions between different covers.
- */
 @Composable
 fun BlurredBackground(
     thumbnailUrl: String?,
