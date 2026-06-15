@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -30,7 +31,6 @@ import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.ui.common.newSearchLayoutEnabled
 import com.github.soundpod.ui.screens.album.AlbumScreen
 import com.github.soundpod.ui.screens.artist.ArtistScreen
-import com.github.soundpod.ui.screens.artist.ArtistSongs
 import com.github.soundpod.ui.screens.builtinplaylist.BuiltInPlaylistScreen
 import com.github.soundpod.ui.screens.home.HomeScreen
 import com.github.soundpod.ui.screens.localplaylist.LocalPlaylistScreen
@@ -42,6 +42,7 @@ import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
 
 
+@UnstableApi
 @Composable
 fun MainNavigation(
     navController: NavHostController,
@@ -128,20 +129,7 @@ fun MainNavigation(
                 onArtistClick = navigateToArtist,
                 onPlaylistClick = { browseId ->
                     navController.navigate(route = Routes.Playlist(id = browseId))
-                },
-                onViewAllSongsClick = { browseId, params ->
-                    navController.navigate(route = Routes.ArtistSongs(id = browseId, params = params))
                 }
-            )
-        }
-
-        playerComposable(route = Routes.ArtistSongs::class) { navBackStackEntry ->
-            val route: Routes.ArtistSongs = navBackStackEntry.toRoute()
-
-            ArtistSongs(
-                navController = navController,
-                browseId = route.id,
-                params = route.params
             )
         }
 

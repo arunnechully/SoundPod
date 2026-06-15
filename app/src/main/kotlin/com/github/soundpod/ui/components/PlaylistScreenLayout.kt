@@ -65,6 +65,7 @@ fun PlaylistScreenLayout(
     actions: @Composable RowScope.() -> Unit = {},
     dropDownMenuContent: @Composable (ColumnScope.(dismissMenu: () -> Unit) -> Unit)? = null,
     headerContent: @Composable () -> Unit,
+    footerHeaderContent: @Composable (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
     onBackClick: (() -> Unit)? = null,
     backIcon: Int = R.drawable.arrow_back,
@@ -190,39 +191,47 @@ fun PlaylistScreenLayout(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(with(density) { peekHeightPx.toDp() })
-                    .graphicsLayer {
-                        alpha = progress
-                        val scale = 0.85f + (progress * 0.15f)
-                        scaleX = scale
-                        scaleY = scale
-                        translationY = (sheetOffset - peekHeightPx) * 0.5f
-                    },
+                    .height(with(density) { peekHeightPx.toDp() }),
                 contentAlignment = Alignment.Center
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .padding(top = statusBarHeight)
-//                        .padding(horizontal = 24.dp)
                 ) {
-                    headerContent()
+                    Box(
+                        modifier = Modifier.graphicsLayer {
+                            alpha = progress
+                            val scale = 0.85f + (progress * 0.15f)
+                            scaleX = scale
+                            scaleY = scale
+                            translationY = (sheetOffset - peekHeightPx) * 0.5f
+                        },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        headerContent()
+                    }
                 }
             }
 
-            Surface(
+            Column(
                 modifier = Modifier
                     .offset { IntOffset(0, sheetOffset.roundToInt()) }
                     .fillMaxSize()
-                    .nestedScroll(nestedScrollConnection),
-                shape = shape,
-                color = colorPalette.boxColor,
-                shadowElevation = ((1f - progress) * 8).dp
+                    .nestedScroll(nestedScrollConnection)
             ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth()
+                footerHeaderContent?.invoke()
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    shape = shape,
+                    color = colorPalette.boxColor,
+                    shadowElevation = ((1f - progress) * 8).dp
                 ) {
-                    content()
+                    Column(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        content()
+                    }
                 }
             }
 
