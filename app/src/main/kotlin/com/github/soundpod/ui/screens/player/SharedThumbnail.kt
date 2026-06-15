@@ -1,8 +1,10 @@
 package com.github.soundpod.ui.screens.player
 
+import androidx.compose.animation.*
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -95,16 +97,6 @@ fun SharedThumbnail(
         mediaItem?.mediaMetadata?.artworkUri?.thumbnail(1024)?.toString()
     }
 
-    val imageRequest = remember(artworkUrl, context) {
-        ImageRequest.Builder(context)
-            .data(artworkUrl)
-            .crossfade(true)
-            .size(Size.ORIGINAL)
-            .diskCacheKey(artworkUrl)
-            .memoryCacheKey(artworkUrl)
-            .build()
-    }
-
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val containerWidth = maxWidth
         val containerHeight = maxHeight
@@ -167,13 +159,29 @@ fun SharedThumbnail(
                 )
             }
 
-            // Image Layer
+        // Animated Image Layer for smooth transitions
+        AnimatedContent(
+            targetState = artworkUrl,
+            transitionSpec = {
+                fadeIn(animationSpec = tween(600)) togetherWith
+                        fadeOut(animationSpec = tween(600))
+            },
+            label = "ThumbnailTransition",
+            modifier = Modifier.fillMaxSize()
+        ) { targetUrl ->
             AsyncImage(
-                model = imageRequest,
+                model = ImageRequest.Builder(context)
+                    .data(targetUrl)
+                    .crossfade(true)
+                    .size(Size.ORIGINAL)
+                    .diskCacheKey(targetUrl)
+                    .memoryCacheKey(targetUrl)
+                    .build(),
                 contentDescription = "Album Art",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
+        }
 
             if (expandProgress > 0.8f) {
                 PlaybackError(

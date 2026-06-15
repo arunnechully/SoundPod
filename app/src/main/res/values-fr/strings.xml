@@ -287,8 +287,8 @@
     <string name="player_background">Arrière-plan du Lecteur</string>
     <string name="style">Style</string>
     <string name="dynamic_colors">Couleurs Dynamiques</string>
-    <string name="dynamic_colors_discription">S\'adapte à la lecture de musique</string>
-    <string name="animated_background">Arrière-plan Animé</string>
+    <string name="blurred_cover_description">Affiche une version floue de la pochette de l\'album</string>
+    <string name="blurred_cover">Pochette floue</string>
     <string name="on">Activé</string>
     <string name="primary_color">Couleur Primaire</string>
     <string name="secondary_color">Couleur Secondaire</string>

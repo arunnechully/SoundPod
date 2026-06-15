@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.appearance
+package com.github.core.visuals
 
 import android.content.Context
 import androidx.compose.ui.graphics.Color

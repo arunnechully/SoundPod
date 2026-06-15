@@ -34,6 +34,7 @@ import com.github.innertube.utils.plus
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
+import com.github.soundpod.ui.components.GridOverlay
 import com.github.soundpod.ui.components.ShimmerHost
 import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.viewmodels.ItemsPageViewModel
@@ -45,6 +46,10 @@ import kotlinx.coroutines.withContext
 @Composable
 fun <T : Innertube.Item> ItemsPage(
     tag: String,
+    header: (@Composable LazyGridItemScope.(allItems: List<T>) -> Unit)? = null,
+    sortTransform: ((List<T>) -> List<T>)? = null,
+    sortKeys: List<Any?> = emptyList(),
+    enableScrollbar: Boolean = false,
     itemContent: @Composable LazyGridItemScope.(item: T, index: Int, allItems: List<T>) -> Unit,
     itemPlaceholderContent: @Composable () -> Unit,
     modifier: Modifier = Modifier,
@@ -62,9 +67,23 @@ fun <T : Innertube.Item> ItemsPage(
     val viewModel: ItemsPageViewModel<T> = viewModel()
     val itemsPage: Innertube.ItemsPage<T>? =
         viewModel.itemsMap.getOrDefault(key = tag, defaultValue = null)
-    val allItems = itemsPage?.items ?: emptyList()
+    
+    val allItems by remember(itemsPage?.items, *sortKeys.toTypedArray()) {
+        derivedStateOf {
+            val items = itemsPage?.items ?: emptyList()
+            sortTransform?.invoke(items) ?: items
+        }
+    }
 
-    val listLayout = tag.contains("songs") || tag.contains("videos")
+    val filteredItems by remember(allItems) {
+        derivedStateOf {
+            allItems.filter { it.key.isNotEmpty() }.distinctBy { it.key }
+        }
+    }
+
+    val listLayout = tag.contains("songs", ignoreCase = true) || 
+                     tag.contains("videos", ignoreCase = true) || 
+                     tag.contains("list", ignoreCase = true)
     val artistsLayout = tag.contains("artists")
 
     val shouldLoadMore by remember {
@@ -73,9 +92,9 @@ fun <T : Innertube.Item> ItemsPage(
         }
     }
 
-    LaunchedEffect(allItems, enablePreCache) {
-        if (enablePreCache && allItems.isNotEmpty()) {
-            val videoIds = allItems.take(5).map { it.key }.filter { it.isNotEmpty() }
+    LaunchedEffect(filteredItems, enablePreCache) {
+        if (enablePreCache && filteredItems.isNotEmpty()) {
+            val videoIds = filteredItems.take(5).map { it.key }.filter { it.isNotEmpty() }
             if (videoIds.isNotEmpty()) {
                 binder?.preCacheManager?.preCache(videoIds)
             }
@@ -105,60 +124,76 @@ fun <T : Innertube.Item> ItemsPage(
         }
     }
 
-    LazyVerticalGrid(
-        state = lazyGridState,
-        columns = GridCells.Adaptive(
-            minSize = if (listLayout) 400.dp else if (artistsLayout) 100.dp else 150.dp
-        ),
-        contentPadding = PaddingValues(
-            start = if (listLayout) 0.dp else 8.dp,
-            top = 8.dp,
-            end = if (listLayout) 0.dp else 8.dp,
-            bottom = 16.dp + playerPadding
-        ),
-        verticalArrangement = Arrangement.spacedBy(if (listLayout) 0.dp else 4.dp),
-        modifier = modifier.fillMaxSize()
+    GridOverlay(
+        modifier = modifier,
+        lazyGridState = lazyGridState,
+        enableScrollbar = enableScrollbar,
+        enableScrollToTop = false
     ) {
-        item(
-            key = "anchor",
-            span = { GridItemSpan(maxCurrentLineSpan) }
+        LazyVerticalGrid(
+            state = lazyGridState,
+            columns = GridCells.Adaptive(
+                minSize = if (listLayout) 400.dp else if (artistsLayout) 100.dp else 150.dp
+            ),
+            contentPadding = PaddingValues(
+                start = if (listLayout) 0.dp else 8.dp,
+                top = 8.dp,
+                end = if (listLayout) 0.dp else 8.dp,
+                bottom = 16.dp + playerPadding
+            ),
+            verticalArrangement = Arrangement.spacedBy(if (listLayout) 0.dp else 4.dp),
+            modifier = Modifier.fillMaxSize()
         ) {
-            Spacer(modifier = Modifier.height(Dp.Hairline))
-        }
-
-        itemsIndexed(
-            items = allItems.filter { it.key.isNotEmpty() }.distinctBy { it.key },
-            key = { _, item -> item.key },
-            itemContent = { index, item ->
-                this.itemContent(item, index, allItems)
+            if (header != null) {
+                item(
+                    key = "header",
+                    span = { GridItemSpan(maxCurrentLineSpan) }
+                ) {
+                    header(filteredItems)
+                }
             }
-        )
 
-        if (itemsPage != null && itemsPage.items.isNullOrEmpty()) {
             item(
-                key = "empty",
+                key = "anchor",
                 span = { GridItemSpan(maxCurrentLineSpan) }
             ) {
-                Text(
-                    text = emptyItemsText,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 32.dp)
-                        .fillMaxWidth()
-                        .alpha(Dimensions.MEDIUMOPACITY)
-                )
+                Spacer(modifier = Modifier.height(Dp.Hairline))
             }
-        }
 
-        if (itemsPage == null || itemsPage.continuation != null) {
-            val isFirstLoad = itemsPage?.items.isNullOrEmpty()
+            itemsIndexed(
+                items = filteredItems,
+                key = { _, item -> item.key },
+                itemContent = { index, item ->
+                    this.itemContent(item, index, filteredItems)
+                }
+            )
 
-            items(
-                count = if (isFirstLoad) initialPlaceholderCount else continuationPlaceholderCount,
-                key = { "loading$it" }
-            ) {
-                ShimmerHost {
-                    itemPlaceholderContent()
+            if (itemsPage != null && itemsPage.items.isNullOrEmpty()) {
+                item(
+                    key = "empty",
+                    span = { GridItemSpan(maxCurrentLineSpan) }
+                ) {
+                    Text(
+                        text = emptyItemsText,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp, vertical = 32.dp)
+                            .fillMaxWidth()
+                            .alpha(Dimensions.MEDIUMOPACITY)
+                    )
+                }
+            }
+
+            if (itemsPage == null || itemsPage.continuation != null) {
+                val isFirstLoad = itemsPage?.items.isNullOrEmpty()
+
+                items(
+                    count = if (isFirstLoad) initialPlaceholderCount else continuationPlaceholderCount,
+                    key = { "loading$it" }
+                ) {
+                    ShimmerHost {
+                        itemPlaceholderContent()
+                    }
                 }
             }
         }

@@ -18,6 +18,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.platform.LocalContext
 import com.github.core.ui.LocalAppearance
+import com.github.core.visuals.ColorClusters
+import com.github.core.visuals.BlurredBackground
+import com.github.core.visuals.ThemedLottieBackground
+import com.github.core.visuals.adaptToTheme
+import com.github.core.visuals.extractColorClusters
 import com.github.soundpod.utils.rememberPreference
 
 const val PLAYER_BACKGROUND_STYLE_KEY = "player_background_style"
@@ -29,7 +34,7 @@ object BackgroundStyles {
     const val ABSTRACT_2 = 2
     const val ABSTRACT_3 = 3
     const val ABSTRACT_4 = 4
-    const val MORPHING = 5
+    const val BLURRED = 5
 }
 
 @Composable
@@ -40,7 +45,7 @@ fun PlayerBackground(
     expandProgress: Float = 0f,
     content: @Composable () -> Unit
 ) {
-    val currentStyle by rememberPreference(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.MORPHING)
+    val currentStyle by rememberPreference(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.BLURRED)
     val (colorPalette) = LocalAppearance.current
     val context = LocalContext.current
 
@@ -56,19 +61,21 @@ fun PlayerBackground(
 
     val isDark = colorPalette.isDark
     val baseBackground = if (isDark) Color(0xFF05050A) else Color(0xFFFAFAFF)
-
-    // Improved solid fill color logic
-    val targetBackgroundColor = remember(clusters, isDark) {
+    val targetBackgroundColorRaw = remember(clusters, isDark) {
         val adapted = clusters.surface.adaptToTheme(isDark)
         adapted.copy(alpha = if (isDark) 0.35f else 0.25f).compositeOver(baseBackground)
     }
+    val targetBackgroundColor by animateColorAsState(
+        targetValue = targetBackgroundColorRaw,
+        animationSpec = tween(1200),
+        label = "targetBackgroundColor"
+    )
 
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(targetBackgroundColor)
     ) {
-        // Overlay the animated background layer as the player expands
         Box(modifier = Modifier.fillMaxSize().alpha(expandProgress)) {
             when (currentStyle) {
                 BackgroundStyles.OFF -> {
@@ -93,11 +100,10 @@ fun PlayerBackground(
                             )
                     )
                 }
-                BackgroundStyles.MORPHING -> {
-                    MorphingBackground(
-                        colors = clusters,
-                        isDark = isDark,
-                        isPlaying = isPlaying
+                BackgroundStyles.BLURRED -> {
+                    BlurredBackground(
+                        thumbnailUrl = thumbnailUrl,
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
                 else -> {

@@ -66,7 +66,6 @@ fun PlayerMediaItem(
             .fillMaxWidth()
             .padding(horizontal = 32.dp)
     ) {
-
         // TITLE
         Text(
             text = mediaItem.mediaMetadata.title?.toString().orEmpty(),
@@ -90,7 +89,7 @@ fun PlayerMediaItem(
                 )
                 .fadingEdge(fadingEdge)
                 .basicMarquee()
-                .padding(horizontal = 8.dp, vertical = 4.dp)   // bigger hitbox
+                .padding(horizontal = 8.dp, vertical = 4.dp) // bigger hitbox
         ) {
             Text(
                 text = mediaItem.mediaMetadata.artist?.toString().orEmpty(),
@@ -100,6 +99,5 @@ fun PlayerMediaItem(
                 overflow = TextOverflow.Ellipsis
             )
         }
-
     }
 }

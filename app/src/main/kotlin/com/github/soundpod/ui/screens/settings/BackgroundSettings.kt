@@ -54,7 +54,7 @@ fun BackgroundSettingsContent() {
     val prefs = context.preferences
 
     // State
-    val currentStyle by rememberPreference(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.MORPHING)
+    val currentStyle by rememberPreference(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.BLURRED)
 
     val presetBaseName = stringResource(id = R.string.preset)
 
@@ -83,10 +83,10 @@ fun BackgroundSettingsContent() {
                 onClick = { prefs.edit { putInt(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.STATIC) } }
             )
             BackgroundOptionItem(
-                title = stringResource(id = R.string.animated_background),
-                description = stringResource(id = R.string.dynamic_colors_discription),
-                selected = currentStyle == BackgroundStyles.MORPHING,
-                onClick = { prefs.edit { putInt(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.MORPHING) } }
+                title = stringResource(id = R.string.blurred_cover),
+                description = stringResource(id = R.string.blurred_cover_description),
+                selected = currentStyle == BackgroundStyles.BLURRED,
+                onClick = { prefs.edit { putInt(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.BLURRED) } }
             )
         }
 

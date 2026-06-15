@@ -14,10 +14,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 data class PlayerUiState(
     val mediaItem: MediaItem? = null,
     val isPlaying: Boolean = false,
+    val playWhenReady: Boolean = false,
     val playbackState: Int = Player.STATE_IDLE,
     val currentPositionMs: Long = 0L,
     val durationMs: Long = 0L,
@@ -46,6 +48,10 @@ class PlayerViewModel(
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             _uiState.update { it.copy(isPlaying = isPlaying) }
             manageProgressTracker(isPlaying)
+        }
+
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+            _uiState.update { it.copy(playWhenReady = playWhenReady) }
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
@@ -77,6 +83,7 @@ class PlayerViewModel(
             it.copy(
                 mediaItem = player.currentMediaItem,
                 isPlaying = player.isPlaying,
+                playWhenReady = player.playWhenReady,
                 playbackState = player.playbackState,
                 playbackSpeed = player.playbackParameters.speed,
                 currentPositionMs = player.currentPosition,
@@ -118,7 +125,7 @@ class PlayerViewModel(
             progressTrackerJob = viewModelScope.launch {
                 while (isActive) {
                     _uiState.update { it.copy(currentPositionMs = player.currentPosition) }
-                    delay(250)
+                    delay(250.milliseconds)
                 }
             }
         }

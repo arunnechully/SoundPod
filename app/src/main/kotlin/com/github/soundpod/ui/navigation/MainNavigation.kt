@@ -30,6 +30,7 @@ import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.ui.common.newSearchLayoutEnabled
 import com.github.soundpod.ui.screens.album.AlbumScreen
 import com.github.soundpod.ui.screens.artist.ArtistScreen
+import com.github.soundpod.ui.screens.artist.ArtistSongs
 import com.github.soundpod.ui.screens.builtinplaylist.BuiltInPlaylistScreen
 import com.github.soundpod.ui.screens.home.HomeScreen
 import com.github.soundpod.ui.screens.localplaylist.LocalPlaylistScreen
@@ -127,7 +128,20 @@ fun MainNavigation(
                 onArtistClick = navigateToArtist,
                 onPlaylistClick = { browseId ->
                     navController.navigate(route = Routes.Playlist(id = browseId))
+                },
+                onViewAllSongsClick = { browseId, params ->
+                    navController.navigate(route = Routes.ArtistSongs(id = browseId, params = params))
                 }
+            )
+        }
+
+        playerComposable(route = Routes.ArtistSongs::class) { navBackStackEntry ->
+            val route: Routes.ArtistSongs = navBackStackEntry.toRoute()
+
+            ArtistSongs(
+                navController = navController,
+                browseId = route.id,
+                params = route.params
             )
         }
 

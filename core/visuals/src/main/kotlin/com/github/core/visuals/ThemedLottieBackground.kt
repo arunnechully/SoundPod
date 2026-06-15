@@ -1,6 +1,6 @@
 @file:Suppress("DEPRECATION")
 
-package com.github.soundpod.ui.appearance
+package com.github.core.visuals
 
 import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable

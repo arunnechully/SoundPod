@@ -10,6 +10,9 @@ sealed class Routes {
     data class Artist(val id: String)
 
     @Serializable
+    data class ArtistSongs(val id: String, val params: String? = null)
+
+    @Serializable
     data class Album(val id: String)
 
     @Serializable

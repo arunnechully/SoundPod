@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.enums.PlayerLayout
@@ -80,7 +81,7 @@ fun MainPlayerContent(
     val artistId = uiState.artistId
     val isSingleArtist = uiState.isSingleArtist
     val albumId = uiState.albumId
-    val shouldBePlaying = uiState.isPlaying
+    val shouldBePlaying = uiState.playWhenReady && uiState.playbackState != Player.STATE_ENDED
     val currentPositionMs = uiState.currentPositionMs
     val durationMs = uiState.durationMs
 

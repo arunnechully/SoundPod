@@ -148,6 +148,7 @@ dependencies {
     ksp(libs.room.compiler)
 
     implementation(project(":core:ui"))
+    implementation(project(":core:visuals"))
     implementation(project(":github"))
     implementation(project(":innertube"))
 
