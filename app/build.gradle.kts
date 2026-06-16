@@ -141,7 +141,7 @@ dependencies {
     implementation(libs.datastore.preferences)
     implementation(libs.ui.geometry)
 
-    implementation(libs.newpipeextractor)
+    implementation(project(":extractor"))
     implementation(libs.kotlin.coroutines)
     implementation(libs.ktor.serialization.json)
 

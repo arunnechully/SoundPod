@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Storage
@@ -61,6 +62,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     private fun loadSettings() {
         val menuStructure = listOf(
+            SettingsSection(
+                listOf(
+                    SettingOption(title = R.string.account, icon = Icons.Default.Person, screenId = SettingsDestinations.ACCOUNT)
+                )
+            ),
             SettingsSection(
                 listOf(
                     SettingOption(title = R.string.appearance, icon = Icons.Default.ColorLens, screenId = SettingsDestinations.APPEARANCE),

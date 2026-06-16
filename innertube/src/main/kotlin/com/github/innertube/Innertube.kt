@@ -2,6 +2,7 @@
 
 package com.github.innertube
 
+import androidx.compose.runtime.mutableStateOf
 import com.github.innertube.models.NavigationEndpoint
 import com.github.innertube.models.Runs
 import com.github.innertube.models.Thumbnail
@@ -39,7 +40,20 @@ object Innertube {
 
     var onVisitorDataChanged: ((String?) -> Unit)? = null
     var poToken: String? = null
-    var cookies: String? = null
+    
+    private val _cookies = mutableStateOf<String?>(null)
+    var cookies: String?
+        get() = _cookies.value
+        set(value) {
+            _cookies.value = value
+            onCookiesChanged?.invoke(value)
+        }
+    
+    var onCookiesChanged: ((String?) -> Unit)? = null
+
+    val isLoggedIn: Boolean
+        get() = cookies?.let { it.contains("__Secure-3PAPISID") || it.contains("SAPISID") } ?: false
+
     var decipher: (suspend (String) -> String)? = null
 
     interface PoTokenResolver {
@@ -74,6 +88,7 @@ object Innertube {
                 contentType(ContentType.Application.Json)
                 headers.append("X-Goog-Api-Key", "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8")
                 parameters.append("prettyPrint", "false")
+                cookies?.let { headers.append("Cookie", it) }
             }
         }
     }

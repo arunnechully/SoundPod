@@ -42,6 +42,8 @@ fun SettingsScreen(
         SettingsDestinations.SLEEP_TIMER -> stringResource(R.string.sleep_timer)
         SettingsDestinations.QUICK_PICKS -> stringResource(R.string.quick_picks)
         SettingsDestinations.TRACK_DETAILS -> stringResource(R.string.track_details)
+        SettingsDestinations.ACCOUNT -> stringResource(R.string.account)
+        SettingsDestinations.LOGIN -> stringResource(R.string.sign_in)
         else -> stringResource(R.string.settings)
     }
 
@@ -68,6 +70,8 @@ fun SettingsScreen(
                 SettingsDestinations.ABOUT -> AboutSettingsContent()
                 SettingsDestinations.QUICK_PICKS -> QuickPicksSettingsContent()
                 SettingsDestinations.TRACK_DETAILS -> TrackDetails()
+                SettingsDestinations.ACCOUNT -> AccountSettingsContent(onOptionClick)
+                SettingsDestinations.LOGIN -> LoginSettingsContent(onBackClick)
             }
         }
     )

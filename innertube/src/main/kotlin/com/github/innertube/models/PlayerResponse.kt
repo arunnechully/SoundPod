@@ -37,7 +37,7 @@ data class PlayerResponse(
         val highestQualityFormat: AdaptiveFormat?
             get() {
                 val combined = adaptiveFormats.orEmpty() + formats.orEmpty()
-                val audioFormats = combined.filter { it.url != null && it.mimeType.startsWith("audio/") }
+                val audioFormats = combined.filter { (it.url != null || it.signatureCipher != null) && it.mimeType.startsWith("audio/") }
                 if (audioFormats.isNotEmpty()) {
                     return audioFormats.find { it.itag == 251 }
                         ?: audioFormats.find { it.itag == 140 }
@@ -46,7 +46,7 @@ data class PlayerResponse(
                         ?: audioFormats.find { it.itag == 139 }
                         ?: audioFormats.maxByOrNull { it.bitrate ?: 0L }
                 }
-                return combined.find { it.url != null && it.mimeType.startsWith("video/") }
+                return combined.find { (it.url != null || it.signatureCipher != null) && it.mimeType.startsWith("video/") }
             }
 
         @Serializable
@@ -61,7 +61,8 @@ data class PlayerResponse(
             val lastModified: Long?,
             val loudnessDb: Double?,
             val audioSampleRate: Int?,
-            val url: String?,
+            val url: String? = null,
+            val signatureCipher: String? = null,
         )
     }
 

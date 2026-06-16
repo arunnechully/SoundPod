@@ -98,6 +98,13 @@
     <string name="artist">Artist</string>
 
     <string name="edit_lyrics">Edit lyrics</string>
+    <string name="youtube_account">YouTube account</string>
+    <string name="youtube_account_description">Logged in to YouTube</string>
+    <string name="sign_in">Sign in</string>
+    <string name="sign_in_description">Sign in to access your library</string>
+    <string name="sign_out">Sign out</string>
+    <string name="sign_out_description">Clear session and cookies</string>
+    <string name="account">Account</string>
     <string name="search_lyrics_online">Search lyrics online</string>
     <plurals name="number_of_songs">
         <item quantity="one">%d song</item>

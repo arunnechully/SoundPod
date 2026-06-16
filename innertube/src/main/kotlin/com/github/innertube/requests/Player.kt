@@ -96,21 +96,45 @@ suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
 }
 
 private suspend fun PlayerResponse.applyDecipher(decipher: (suspend (String) -> String)?): PlayerResponse {
-    if (decipher == null || streamingData == null) return this
+    if (streamingData == null) return this
     
     return copy(
         streamingData = streamingData.copy(
             adaptiveFormats = streamingData.adaptiveFormats?.map { format ->
-                format.copy(url = format.url?.let { decipherUrl(it, decipher) })
+                val url = format.url ?: format.signatureCipher?.let { parseSignatureCipher(it, decipher) }
+                format.copy(url = url?.let { decipherUrl(it, decipher) })
             },
             formats = streamingData.formats?.map { format ->
-                format.copy(url = format.url?.let { decipherUrl(it, decipher) })
+                val url = format.url ?: format.signatureCipher?.let { parseSignatureCipher(it, decipher) }
+                format.copy(url = url?.let { decipherUrl(it, decipher) })
             }
         )
     )
 }
 
-private suspend fun decipherUrl(url: String, decipher: suspend (String) -> String): String {
+private suspend fun parseSignatureCipher(cipher: String, decipher: (suspend (String) -> String)?): String? {
+    val params = cipher.split("&").associate { 
+        val parts = it.split("=")
+        parts[0] to java.net.URLDecoder.decode(parts[1], "UTF-8")
+    }
+    
+    val baseUrl = params["url"] ?: return null
+    val signature = params["s"] ?: return baseUrl
+    val sp = params["sp"] ?: "sig"
+    
+    // In many cases, if decipher is null, we can't do much with 's' 
+    // unless it's already a valid signature (rare for ciphered streams)
+    val decipheredSig = if (decipher != null) decipher(signature) else signature
+    
+    return if (baseUrl.contains("?")) {
+        "$baseUrl&$sp=$decipheredSig"
+    } else {
+        "$baseUrl?$sp=$decipheredSig"
+    }
+}
+
+private suspend fun decipherUrl(url: String, decipher: (suspend (String) -> String)?): String {
+    if (decipher == null) return url
     val nParam = url.substringAfter("&n=", "").substringBefore("&")
     if (nParam.isEmpty()) return url
     

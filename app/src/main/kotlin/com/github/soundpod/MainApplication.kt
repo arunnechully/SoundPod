@@ -15,7 +15,6 @@ import com.github.soundpod.utils.coilDiskCacheMaxSizeKey
 import com.github.soundpod.utils.getEnum
 import com.github.soundpod.utils.preferences
 import java.util.Locale
-import org.schabi.newpipe.extractor.NewPipe
 
 
 class MainApplication : Application(), SingletonImageLoader.Factory {
@@ -28,11 +27,15 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
 
         Thread {
             DatabaseInitializer.get(this)
-            NewPipe.init(NewPipeDownloader.getInstance())
 
             Innertube.visitorData = preferences.getString("visitor_data", null)
             Innertube.onVisitorDataChanged = { visitorData: String? ->
                 preferences.edit { putString("visitor_data", visitorData) }
+            }
+
+            Innertube.cookies = preferences.getString("cookies", null)
+            Innertube.onCookiesChanged = { cookies: String? ->
+                preferences.edit { putString("cookies", cookies) }
             }
         }.start()
     }

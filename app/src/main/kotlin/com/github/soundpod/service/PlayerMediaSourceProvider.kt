@@ -22,6 +22,7 @@ import com.github.soundpod.utils.pauseSongCacheKey
 import com.github.soundpod.utils.preferences
 import kotlinx.coroutines.runBlocking
 import org.schabi.newpipe.extractor.ServiceList
+import org.schabi.newpipe.extractor.services.youtube.YoutubeStreamExtractor
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock
@@ -55,6 +56,11 @@ class PlayerMediaSourceProvider(
             .setReadTimeoutMs(30000)
             .setAllowCrossProtocolRedirects(true)
             .setUserAgent(DEFAULT_USER_AGENT)
+            .apply {
+                Innertube.cookies?.let {
+                    setDefaultRequestProperties(mapOf("Cookie" to it))
+                }
+            }
 
         val upstreamFactory = androidx.media3.datasource.DefaultDataSource.Factory(context, httpDataSourceFactory)
 
@@ -121,18 +127,18 @@ class PlayerMediaSourceProvider(
             }
 
             // FALLBACK TO NEWPIPE (SLOWER)
-            val rawUrl = runCatching {
+            val rawUrl = runCatching<String> {
                 val streamExtractor = ServiceList.YouTube.getStreamExtractor("https://www.youtube.com/watch?v=$videoId")
                 streamExtractor.fetchPage()
 
                 val audioStreams = streamExtractor.audioStreams
 
-                val bestAudio = audioStreams
+                val bestAudio: YoutubeStreamExtractor.Stream = audioStreams
                     .filter { it.codec?.lowercase(Locale.ROOT) == "opus" }
                     .maxByOrNull { it.averageBitrate }
-                    ?: audioStreams.maxByOrNull { it.averageBitrate }
-                    ?: streamExtractor.videoStreams.maxByOrNull { it.bitrate }
-                    ?: throw Exception("No playable streams found by NewPipe for $videoId")
+                    ?: (audioStreams.maxByOrNull { it.averageBitrate }
+                        ?: streamExtractor.videoStreams.maxByOrNull { it.bitrate }
+                        ?: throw Exception("No playable streams found by NewPipe for $videoId"))
 
                 bestAudio.content
             }.getOrElse { e ->
