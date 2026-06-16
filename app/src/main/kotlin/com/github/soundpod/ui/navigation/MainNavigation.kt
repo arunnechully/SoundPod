@@ -126,10 +126,7 @@ fun MainNavigation(
                 onSearchClick = { navController.navigate(route = Routes.Search) },
                 onSettingsClick = onNavigateToSettings,
                 onAlbumClick = navigateToAlbum,
-                onArtistClick = navigateToArtist,
-                onPlaylistClick = { browseId ->
-                    navController.navigate(route = Routes.Playlist(id = browseId))
-                }
+                onArtistClick = navigateToArtist
             )
         }
 

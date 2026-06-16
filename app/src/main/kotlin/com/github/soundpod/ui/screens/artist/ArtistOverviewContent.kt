@@ -20,6 +20,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.github.innertube.Innertube
 import com.github.soundpod.LocalPlayerServiceBinder
@@ -29,9 +32,7 @@ import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
 import com.github.soundpod.ui.components.ShimmerHost
 import com.github.soundpod.ui.components.TextPlaceholder
 import com.github.soundpod.ui.items.AlbumItem
-import com.github.soundpod.ui.items.ArtistItem
 import com.github.soundpod.ui.items.ListItemPlaceholder
-import com.github.soundpod.ui.items.PlaylistItem
 import com.github.soundpod.ui.items.SongItem
 import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.utils.asMediaItem
@@ -42,12 +43,13 @@ import com.github.soundpod.utils.forcePlayAtIndex
 internal fun ArtistOverviewContent(
     youtubeArtistPage: Innertube.ArtistPage?,
     onAlbumClick: (String) -> Unit,
-    onArtistClick: (String) -> Unit,
-    onPlaylistClick: (String) -> Unit,
+    playerPadding: Dp,
 ) {
     Column(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(bottom = playerPadding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (youtubeArtistPage != null) {
@@ -73,22 +75,6 @@ internal fun ArtistOverviewContent(
                     title = stringResource(id = R.string.singles),
                     albums = singles,
                     onAlbumClick = onAlbumClick
-                )
-            }
-
-            youtubeArtistPage.playlists?.let { playlists ->
-                Spacer(modifier = Modifier.height(Dimensions.spacer))
-                ArtistPlaylistsSection(
-                    playlists = playlists,
-                    onPlaylistClick = onPlaylistClick
-                )
-            }
-
-            youtubeArtistPage.relatedArtists?.let { artists ->
-                Spacer(modifier = Modifier.height(Dimensions.spacer))
-                ArtistRelatedArtistsSection(
-                    artists = artists,
-                    onArtistClick = onArtistClick
                 )
             }
 
@@ -196,88 +182,6 @@ internal fun ArtistAlbumsSection(
                 modifier = Modifier.widthIn(max = itemSize),
                 album = album,
                 onClick = { onAlbumClick(album.key) }
-            )
-        }
-    }
-}
-
-@Composable
-internal fun ArtistPlaylistsSection(
-    playlists: List<Innertube.PlaylistItem>,
-    onPlaylistClick: (String) -> Unit,
-    showTitle: Boolean = true
-) {
-    val itemSize = 140.dp
-
-    if (showTitle) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        ) {
-            Text(
-                text = stringResource(id = R.string.playlists),
-                style = typography.titleMedium,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-        }
-    }
-
-    LazyRow(
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 8.dp)
-    ) {
-        items(
-            items = playlists.filter { it.key.isNotEmpty() }.distinctBy { it.key },
-            key = Innertube.PlaylistItem::key
-        ) { playlist ->
-            PlaylistItem(
-                modifier = Modifier.widthIn(max = itemSize),
-                playlist = playlist,
-                onClick = { onPlaylistClick(playlist.key) }
-            )
-        }
-    }
-}
-
-@Composable
-internal fun ArtistRelatedArtistsSection(
-    artists: List<Innertube.ArtistItem>,
-    onArtistClick: (String) -> Unit,
-    showTitle: Boolean = true
-) {
-    val itemSize = 140.dp
-
-    if (showTitle) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        ) {
-            Text(
-                text = stringResource(id = R.string.fans_might_also_like),
-                style = typography.titleMedium,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-        }
-    }
-
-    LazyRow(
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 8.dp)
-    ) {
-        items(
-            items = artists.filter { it.key.isNotEmpty() }.distinctBy { it.key },
-            key = Innertube.ArtistItem::key
-        ) { artist ->
-            ArtistItem(
-                modifier = Modifier.widthIn(max = itemSize),
-                artist = artist,
-                onClick = { onArtistClick(artist.key) }
             )
         }
     }

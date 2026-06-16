@@ -31,6 +31,9 @@ sealed class Routes {
 
     @Serializable
     data class LocalPlaylist(val id: Long)
+
+    @Serializable
+    data object Favorites
 }
 
 

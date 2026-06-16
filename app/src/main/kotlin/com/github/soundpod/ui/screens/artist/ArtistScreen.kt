@@ -52,7 +52,7 @@ import com.github.soundpod.viewmodels.ArtistViewModel
 import kotlinx.coroutines.launch
 
 enum class ArtistTab {
-    Songs, Albums, Singles, Playlists, Related
+    Overview, Songs, Albums, Singles
 }
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalFoundationApi::class)
@@ -65,7 +65,6 @@ fun ArtistScreen(
     onSettingsClick: () -> Unit,
     onAlbumClick: (String) -> Unit,
     onArtistClick: (String) -> Unit,
-    onPlaylistClick: (String) -> Unit,
     viewModel: ArtistViewModel = viewModel(),
 ) {
     val playerPadding = LocalPlayerPadding.current
@@ -81,11 +80,10 @@ fun ArtistScreen(
 
     val tabs = remember(artistPage) {
         listOfNotNull(
-            if (artistPage?.songs != null) ArtistTab.Songs to R.string.tracks else null,
-            if (artistPage?.albums != null) ArtistTab.Albums to R.string.albums else null,
-            if (artistPage?.singles != null) ArtistTab.Singles to R.string.singles else null,
-            if (artistPage?.playlists != null) ArtistTab.Playlists to R.string.playlists else null,
-            if (artistPage?.relatedArtists != null) ArtistTab.Related to R.string.fans_might_also_like else null
+            ArtistTab.Overview to R.string.overview,
+            if (artistPage?.songs != null || artistPage?.songsEndpoint != null) ArtistTab.Songs to R.string.tracks else null,
+            if (artistPage?.albums != null || artistPage?.albumsEndpoint != null) ArtistTab.Albums to R.string.albums else null,
+            if (artistPage?.singles != null || artistPage?.singlesEndpoint != null) ArtistTab.Singles to R.string.singles else null
         )
     }
     val pagerState = rememberPagerState { tabs.size }
@@ -138,17 +136,21 @@ fun ArtistScreen(
             )
         },
         headerContent = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                modifier = Modifier
+                    .padding(top = 22.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 AdaptiveThumbnail(
                     isLoading = artist?.timestamp == null,
                     url = artist?.thumbnailUrl,
                     modifier = Modifier.fillMaxWidth(0.65f)
                 )
-                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = artist?.name.orEmpty(),
-                    style = typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
-                    color = colorPalette.accent,
+                    style = typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
+                    color = colorPalette.text,
                     textAlign = TextAlign.Center,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -162,8 +164,8 @@ fun ArtistScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        .padding(vertical = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
                 ) {
                     tabs.forEachIndexed { index, (_, titleRes) ->
                         val selected = pagerState.currentPage == index
@@ -198,6 +200,11 @@ fun ArtistScreen(
                     val tab = tabs[pageIndex].first
                     
                     when (tab) {
+                        ArtistTab.Overview -> ArtistOverviewContent(
+                            youtubeArtistPage = artistPage,
+                            onAlbumClick = onAlbumClick,
+                            playerPadding = playerPadding
+                        )
                         ArtistTab.Songs -> ArtistTracksPage(
                             browseId = artistPage?.songsEndpoint?.browseId ?: browseId,
                             params = artistPage?.songsEndpoint?.params,
@@ -214,31 +221,7 @@ fun ArtistScreen(
                             params = artistPage?.singlesEndpoint?.params,
                             onAlbumClick = onAlbumClick
                         )
-                        ArtistTab.Playlists -> ArtistPlaylistsPage(
-                            playlists = artistPage?.playlists ?: emptyList(),
-                            onPlaylistClick = onPlaylistClick,
-                            playerPadding = playerPadding
-                        )
-                        ArtistTab.Related -> ArtistRelatedArtistsPage(
-                            artists = artistPage?.relatedArtists ?: emptyList(),
-                            onArtistClick = onArtistClick,
-                            playerPadding = playerPadding
-                        )
                     }
-                }
-            } else if (artistPage == null) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(bottom = 16.dp + playerPadding),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    ArtistOverviewContent(
-                        youtubeArtistPage = null,
-                        onAlbumClick = onAlbumClick,
-                        onArtistClick = onArtistClick,
-                        onPlaylistClick = onPlaylistClick,
-                    )
                 }
             }
         }
