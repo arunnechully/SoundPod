@@ -9,6 +9,7 @@ class HomeViewModel : ViewModel() {
         R.string.songs,
         R.string.artists,
         R.string.albums,
-        R.string.playlists
+        R.string.playlists,
+        R.string.favorites
     )
 }

@@ -137,7 +137,7 @@ fun HorizontalTabs(
                 Text(
                     text = stringResource(id = tabs[index]),
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Normal,
                     color = transformation.color
                 )
             }

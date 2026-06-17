@@ -34,6 +34,15 @@ sealed class Routes {
 
     @Serializable
     data object Favorites
+
+    @Serializable
+    data object FavoriteSongs
+
+    @Serializable
+    data object FavoriteAlbums
+
+    @Serializable
+    data object FavoriteArtists
 }
 
 

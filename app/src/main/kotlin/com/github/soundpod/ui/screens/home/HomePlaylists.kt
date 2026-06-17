@@ -106,14 +106,6 @@ fun HomePlaylists(
                 )
             }
 
-            item(key = "favorites") {
-                BuiltInPlaylistItem(
-                    icon = Icons.Default.Favorite,
-                    name = stringResource(id = R.string.favorites),
-                    onClick = { onBuiltInPlaylist(BuiltInPlaylist.Favorites.ordinal) }
-                )
-            }
-
             item(key = "offline") {
                 BuiltInPlaylistItem(
                     icon = Icons.Default.DownloadForOffline,

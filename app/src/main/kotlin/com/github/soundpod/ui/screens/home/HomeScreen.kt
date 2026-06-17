@@ -33,7 +33,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.soundpod.ui.components.HorizontalTabs
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
+import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.ui.navigation.Routes
+import com.github.soundpod.ui.screens.favorites.FavoritesScreen
 import com.github.soundpod.viewmodels.home.HomeViewModel
 
 @Composable
@@ -137,11 +139,21 @@ fun HomeScreen(
 
                     4 -> HomePlaylists(
                         onBuiltInPlaylist = { playlistIndex ->
-                            navController.navigate(route = Routes.BuiltInPlaylist(index = playlistIndex))
+                            if (playlistIndex == BuiltInPlaylist.Favorites.ordinal) {
+                                navController.navigate(route = Routes.Favorites)
+                            } else {
+                                navController.navigate(route = Routes.BuiltInPlaylist(index = playlistIndex))
+                            }
                         },
                         onPlaylistClick = { playlist ->
                             navController.navigate(route = Routes.LocalPlaylist(id = playlist.id))
                         }
+                    )
+
+                    5 -> FavoritesScreen(
+                        onFavoriteSongsClick = { navController.navigate(route = Routes.FavoriteSongs) },
+                        onFavoriteAlbumsClick = { navController.navigate(route = Routes.FavoriteAlbums) },
+                        onFavoriteArtistsClick = { navController.navigate(route = Routes.FavoriteArtists) }
                     )
                 }
             }
