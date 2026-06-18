@@ -58,9 +58,9 @@ fun HomeScreen(
         title = {
             Text(
                 text = "SoundPod",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = colorPalette.accent
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = colorPalette.text
             )
         },
         scrollable = false,
@@ -124,20 +124,26 @@ fun HomeScreen(
                         }
                     )
 
-                    1 -> HomeSongs(
+                    1 -> FavoritesScreen(
+                        onFavoriteSongsClick = { navController.navigate(route = Routes.FavoriteSongs) },
+                        onFavoriteAlbumsClick = { navController.navigate(route = Routes.FavoriteAlbums) },
+                        onFavoriteArtistsClick = { navController.navigate(route = Routes.FavoriteArtists) }
+                    )
+
+                    2 -> HomeSongs(
                         onGoToAlbum = navigateToAlbum,
                         onGoToArtist = navigateToArtist
                     )
 
-                    2 -> HomeArtistList(
+                    3 -> HomeArtistList(
                         onArtistClick = { artist -> navigateToArtist(artist.id) }
                     )
 
-                    3 -> HomeAlbums(
+                    4 -> HomeAlbums(
                         onAlbumClick = { album -> navigateToAlbum(album.id) }
                     )
 
-                    4 -> HomePlaylists(
+                    5 -> HomePlaylists(
                         onBuiltInPlaylist = { playlistIndex ->
                             if (playlistIndex == BuiltInPlaylist.Favorites.ordinal) {
                                 navController.navigate(route = Routes.Favorites)
@@ -148,12 +154,6 @@ fun HomeScreen(
                         onPlaylistClick = { playlist ->
                             navController.navigate(route = Routes.LocalPlaylist(id = playlist.id))
                         }
-                    )
-
-                    5 -> FavoritesScreen(
-                        onFavoriteSongsClick = { navController.navigate(route = Routes.FavoriteSongs) },
-                        onFavoriteAlbumsClick = { navController.navigate(route = Routes.FavoriteAlbums) },
-                        onFavoriteArtistsClick = { navController.navigate(route = Routes.FavoriteArtists) }
                     )
                 }
             }

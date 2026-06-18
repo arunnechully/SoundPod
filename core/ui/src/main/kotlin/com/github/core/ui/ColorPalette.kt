@@ -39,7 +39,7 @@ data class ColorPalette(
     val background4: Color get() = if (isDark) Color.Black else Color(0xFFF6F6F8)
 
     @IgnoredOnParcel
-    val baseColor: Color get() = if (isDark) Color(0xFF1E1E1E) else Color.White
+    val cardColor: Color get() = if (isDark) Color(0xFF2E2E30) else Color(0xFF9C9C9C)
 
     @IgnoredOnParcel
     val boxColor: Color get() = if (isDark) Color(0xFF1E1E1E) else Color.White
