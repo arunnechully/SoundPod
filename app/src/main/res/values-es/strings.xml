@@ -79,7 +79,7 @@
     <string name="hour_1">1 hora</string>
     <string name="hour_1_30">1 hora 30 minutos</string>
     <string name="hours_2">2 horas</string>
-    <string name="custom">Custom</string>
+    <string name="custom">Personalizar</string>
     <string name="hide">Ocultar</string>
     <string name="remove_from_queue">Eliminar de la cola</string>
     <string name="remove_from_playlist">Eliminar de la lista</string>
@@ -93,8 +93,14 @@
     <string name="year">Año</string>
     <string name="song_count">Número de canciones</string>
     <string name="artist">Artista</string>
-
     <string name="edit_lyrics">Modificar la letra</string>
+    <string name="youtube_account">YouTube account</string>
+    <string name="youtube_account_description">Logged in to YouTube</string>
+    <string name="sign_in">Sign in</string>
+    <string name="sign_in_description">Sign in to access your library</string>
+    <string name="sign_out">Sign out</string>
+    <string name="sign_out_description">Clear session and cookies</string>
+    <string name="account">Account</string>
     <string name="search_lyrics_online">Buscar la letra en línea</string>
     <plurals name="number_of_songs">
         <item quantity="one">%d canción</item>
@@ -154,9 +160,12 @@
     <string name="most_played">Más reproducido</string>
     <string name="trending">Tendencias</string>
     <string name="last_played">Más reciente</string>
+    <string name="recommended">Recommended</string>
     <string name="general">General</string>
     <string name="history">Historial</string>
     <string name="quick_picks_source">Fuente de las selecciones rápidas</string>
+    <string name="quick_picks_custom_genre">Custom genre</string>
+    <string name="quick_picks_custom_genre_description">Enter your preferred genre for Quick Picks</string>
     <string name="stop">Detener</string>
     <string name="share">Compartir</string>
     <string name="add_bookmark">Añadir marcador</string>
@@ -266,9 +275,9 @@
     <string name="customise">Personalizar</string>
     <string name="ok">OK</string>
     <string name="off">Apagado</string>
-    <string name="off_description">Pure theme color</string>
+    <string name="off_description">Color temático puro</string>
     <string name="static_colors">Static Colors</string>
-    <string name="static_colors_description">Minimalist background</string>
+    <string name="static_colors_description">Fondo minimalista</string>
     <string name="add_to_favorites">Agregar a favoritos</string>
     <string name="add_to_blocklist">Agregar a la lista de bloqueo</string>
     <string name="reset_quick_picks_alert">¿Estás seguro de que quieres borrar todo el historial de selecciones rápidas? Esta acción no se puede deshacer.</string>
@@ -333,13 +342,18 @@
     <string name="clear_audio_cache">¿Está seguro de que desea borrar la caché de audio? Esta acción no se puede deshacer.</string>
     <string name="show_cached_songs">Mostrar canciones almacenadas en caché</string>
     <string name="show_cached_songs_description">Mostrar canciones almacenadas en caché en la lista de reproducción sin conexión</string>
-    <string name="screen_cache">Screen cache</string>
-    <string name="screen_cache_description">Save online screens to load them faster next time</string>
-    <string name="clear_screen_cache">Are you sure you want to clear the screen cache? This action cannot be undone.</string>
-    <string name="copy_to_clipboard">Copied to clipboard</string>
-    <string name="track_length">Track length</string>
-    <string name="format">Format</string>
-    <string name="path_id">Path / ID</string>
+    <string name="screen_cache">Caché de pantalla</string>
+    <string name="screen_cache_description">Guarda las capturas de pantalla online para que se carguen más rápido la próxima vez.</string>
+    <string name="clear_screen_cache">¿Seguro que quieres borrar la caché de pantalla? Esta acción no se puede deshacer.</string>
+    <string name="copy_to_clipboard">Copiado al portapapeles</string>
+    <string name="track_length">Longitud de la pista</string>
+    <string name="format">Formato</string>
+    <string name="path_id">Ruta / ID</string>
     <string name="kbps">%d kbps</string>
     <string name="decibel">%s dB</string>
+    <string name="favorite_tracks">Favorite Tracks</string>
+    <string name="favorite_albums">Favorite Albums</string>
+    <string name="favorite_artists">Favorite Artists</string>
+    <string name="no_favorites">No favorites</string>
+    <string name="no_favorites_description">Tap the heart icon on songs, albums, or artists to add them to your favorites.</string>
 </resources>
