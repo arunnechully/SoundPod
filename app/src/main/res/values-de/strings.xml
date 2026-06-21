@@ -93,8 +93,14 @@
     <string name="year">Jahr</string>
     <string name="song_count">Anzahl der Lieder</string>
     <string name="artist">Künstler</string>
-
     <string name="edit_lyrics">Songtext bearbeiten</string>
+    <string name="youtube_account">YouTube account</string>
+    <string name="youtube_account_description">Logged in to YouTube</string>
+    <string name="sign_in">Sign in</string>
+    <string name="sign_in_description">Sign in to access your library</string>
+    <string name="sign_out">Sign out</string>
+    <string name="sign_out_description">Clear session and cookies</string>
+    <string name="account">Account</string>
     <string name="search_lyrics_online">Songtexte online suchen</string>
     <plurals name="number_of_songs">
         <item quantity="one">%d song</item>
@@ -154,9 +160,12 @@
     <string name="most_played">Meist gespielter Song</string>
     <string name="trending">Trending</string>
     <string name="last_played">Zuletzt gespielter Song</string>
+    <string name="recommended">Recommended</string>
     <string name="general">Allgemein</string>
     <string name="history">Verlauf</string>
     <string name="quick_picks_source">Empfehlungen auf der Startseite</string>
+    <string name="quick_picks_custom_genre">Custom genre</string>
+    <string name="quick_picks_custom_genre_description">Enter your preferred genre for Quick Picks</string>
     <string name="stop">Stop</string>
     <string name="share">Share</string>
     <string name="add_bookmark">Add bookmark</string>
@@ -342,4 +351,9 @@
     <string name="path_id">Path / ID</string>
     <string name="kbps">%d kbps</string>
     <string name="decibel">%s dB</string>
+    <string name="favorite_tracks">Favorite Tracks</string>
+    <string name="favorite_albums">Favorite Albums</string>
+    <string name="favorite_artists">Favorite Artists</string>
+    <string name="no_favorites">No favorites</string>
+    <string name="no_favorites_description">Tap the heart icon on songs, albums, or artists to add them to your favorites.</string>
 </resources>
