@@ -43,7 +43,15 @@ suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
     }
     logFailure("ANDROID_VR", vrResponse)
     
-    return@runCatchingNonCancellable vrResponse ?: webRemixResponse
+    // TIER 3: TVHTML5_SIMPLY_EMBEDDED_PLAYER (Permissive for embedded content)
+    val tvResponse = tryPlayer(videoId, YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER, useCookies = false)
+    if (tvResponse?.playabilityStatus?.status == "OK") {
+        println("$TAG: Successfully resolved player via TVHTML5_SIMPLY_EMBEDDED_PLAYER")
+        return@runCatchingNonCancellable tvResponse.applyDecipher(decipher)
+    }
+    logFailure("TVHTML5_SIMPLY_EMBEDDED_PLAYER", tvResponse)
+
+    return@runCatchingNonCancellable tvResponse ?: vrResponse ?: webRemixResponse
 }
 
 private fun logFailure(clientName: String, response: PlayerResponse?) {

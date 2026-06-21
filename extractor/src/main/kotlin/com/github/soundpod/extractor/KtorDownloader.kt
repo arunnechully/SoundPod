@@ -28,6 +28,7 @@ class KtorDownloader : Downloader() {
                     if (body != null) {
                         setBody(body)
                     }
+                    attributes.put(Innertube.Attributes.UseCookies, true)
                 }
 
                 val responseBody = response.bodyAsText()

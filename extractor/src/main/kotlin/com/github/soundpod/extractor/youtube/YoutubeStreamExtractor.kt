@@ -18,7 +18,7 @@ class YoutubeStreamExtractor(private val url: String) {
         playerResponse = runBlocking { Innertube.player(videoId) }?.getOrNull()
         
         // SECONDARY: Fallback to real NewPipe (now non-optional as per user request)
-        if (playerResponse == null || playerResponse?.playabilityStatus?.status != "OK") {
+        if (playerResponse == null || playerResponse?.playabilityStatus?.status != "OK" || playerResponse?.streamingData?.highestQualityFormat == null) {
             try {
                 NewPipeHelper.init()
                 val extractor = ServiceList.YouTube.getStreamExtractor(url)
@@ -36,9 +36,12 @@ class YoutubeStreamExtractor(private val url: String) {
             realExtractor?.let { ext ->
                 return ext.audioStreams.map { RealStreamWrapper(it) }
             }
-            return playerResponse?.streamingData?.adaptiveFormats
-                ?.filter { it.mimeType.startsWith("audio/") }
-                ?.map { AudioStream(it) } ?: emptyList()
+            val streamingData = playerResponse?.streamingData ?: return emptyList()
+            val combined = (streamingData.adaptiveFormats.orEmpty() + streamingData.formats.orEmpty())
+            
+            return combined
+                .filter { it.mimeType.startsWith("audio/") }
+                .map { AudioStream(it) }
         }
 
     val videoStreams: List<Stream>
@@ -46,9 +49,12 @@ class YoutubeStreamExtractor(private val url: String) {
             realExtractor?.let { ext ->
                 return ext.videoStreams.map { RealStreamWrapper(it) }
             }
-            return playerResponse?.streamingData?.adaptiveFormats
-                ?.filter { it.mimeType.startsWith("video/") }
-                ?.map { VideoStream(it) } ?: emptyList()
+            val streamingData = playerResponse?.streamingData ?: return emptyList()
+            val combined = (streamingData.adaptiveFormats.orEmpty() + streamingData.formats.orEmpty())
+            
+            return combined
+                .filter { it.mimeType.startsWith("video/") }
+                .map { VideoStream(it) }
         }
 
     interface Stream {
