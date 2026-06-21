@@ -93,8 +93,14 @@
     <string name="year">Année</string>
     <string name="song_count">Nombre de titres</string>
     <string name="artist">Artiste</string>
-
     <string name="edit_lyrics">Modifier les paroles</string>
+    <string name="youtube_account">YouTube account</string>
+    <string name="youtube_account_description">Logged in to YouTube</string>
+    <string name="sign_in">Sign in</string>
+    <string name="sign_in_description">Sign in to access your library</string>
+    <string name="sign_out">Sign out</string>
+    <string name="sign_out_description">Clear session and cookies</string>
+    <string name="account">Account</string>
     <string name="search_lyrics_online">Rechercher des paroles en ligne</string>
     <plurals name="number_of_songs">
         <item quantity="one">%d titre</item>
@@ -154,9 +160,12 @@
     <string name="most_played">Les plus joués</string>
     <string name="trending">Tendances</string>
     <string name="last_played">Joués dernièrement</string>
+    <string name="recommended">Recommended</string>
     <string name="general">Général</string>
     <string name="history">Historique</string>
     <string name="quick_picks_source">Source de Sélection Rapide</string>
+    <string name="quick_picks_custom_genre">Custom genre</string>
+    <string name="quick_picks_custom_genre_description">Enter your preferred genre for Quick Picks</string>
     <string name="stop">Stop</string>
     <string name="share">Partager</string>
     <string name="add_bookmark">Ajouter en favoris</string>
@@ -342,4 +351,9 @@
     <string name="path_id">Chemin / ID</string>
     <string name="kbps">%d kbps</string>
     <string name="decibel">%s dB</string>
+    <string name="favorite_tracks">Favorite Tracks</string>
+    <string name="favorite_albums">Favorite Albums</string>
+    <string name="favorite_artists">Favorite Artists</string>
+    <string name="no_favorites">No favorites</string>
+    <string name="no_favorites_description">Tap the heart icon on songs, albums, or artists to add them to your favorites.</string>
 </resources>
