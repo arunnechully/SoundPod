@@ -11,32 +11,75 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
+import com.github.soundpod.LocalPlayerPadding
+import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
+import com.github.soundpod.ui.components.SettingsScreenLayout
+import com.github.soundpod.utils.asMediaItem
+import com.github.soundpod.utils.forcePlayFromBeginning
 import com.github.soundpod.viewmodels.favorites.FavoritesViewModel
 
 @Composable
 fun FavoritesScreen(
-    onFavoriteSongsClick: () -> Unit,
-    onFavoriteAlbumsClick: () -> Unit,
-    onFavoriteArtistsClick: () -> Unit,
+    onBackClick: () -> Unit = {},
+    onFavoriteTracksClick: () -> Unit,
+    onGoToAlbum: (String) -> Unit,
+    onGoToArtist: (String) -> Unit,
+    isEmbedded: Boolean = false
 ) {
+    val binder = LocalPlayerServiceBinder.current
     val viewModel: FavoritesViewModel = viewModel()
 
+    val content = @Composable {
+        FavoritesMainContent(
+            viewModel = viewModel,
+            onFavoriteTracksClick = onFavoriteTracksClick,
+            onGoToAlbum = onGoToAlbum,
+            onGoToArtist = onGoToArtist,
+            onPlayTracks = {
+                binder?.stopRadio()
+                binder?.player?.forcePlayFromBeginning(viewModel.favoriteSongs.map { it.asMediaItem })
+            }
+        )
+    }
+
+    if (isEmbedded) {
+        content()
+    } else {
+        SettingsScreenLayout(
+            title = stringResource(R.string.favorites),
+            onBackClick = onBackClick,
+            scrollable = false,
+            horizontalPadding = 0.dp
+        ) {
+            content()
+        }
+    }
+}
+
+@Composable
+fun FavoritesMainContent(
+    viewModel: FavoritesViewModel,
+    onFavoriteTracksClick: () -> Unit,
+    onGoToAlbum: (String) -> Unit,
+    onGoToArtist: (String) -> Unit,
+    onPlayTracks: () -> Unit
+) {
     val noFavorites = viewModel.favoriteSongs.isEmpty() &&
             viewModel.favoriteAlbums.isEmpty() &&
             viewModel.favoriteArtists.isEmpty()
@@ -72,40 +115,60 @@ fun FavoritesScreen(
             }
         }
     } else {
+        val playerPadding = LocalPlayerPadding.current
+
         LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(16.dp),
+            columns = GridCells.Adaptive(minSize = 150.dp),
+            contentPadding = PaddingValues(
+                top = 8.dp,
+                start = 8.dp,
+                end = 8.dp,
+                bottom = playerPadding + 16.dp
+            ),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxSize()
         ) {
             if (viewModel.favoriteSongs.isNotEmpty()) {
                 item {
+                    val songCount = viewModel.favoriteSongs.size
                     FavoritesCard(
                         title = stringResource(R.string.favorite_tracks),
+                        subtitle = pluralStringResource(id = R.plurals.number_of_songs, count = songCount, songCount),
                         icon = Icons.Default.MusicNote,
-                        onClick = onFavoriteSongsClick
+                        thumbnailUrls = viewModel.favoriteSongs.mapNotNull { it.thumbnailUrl }.take(1),
+                        onClick = onFavoriteTracksClick,
+                        onPlayClick = onPlayTracks
                     )
                 }
             }
-            if (viewModel.favoriteAlbums.isNotEmpty()) {
-                item {
-                    FavoritesCard(
-                        title = stringResource(R.string.favorite_albums),
-                        icon = Icons.Default.Album,
-                        onClick = onFavoriteAlbumsClick
-                    )
-                }
+
+            items(
+                items = viewModel.favoriteAlbums,
+                key = { "album_${it.id}" }
+            ) { album ->
+                FavoritesCard(
+                    title = album.title ?: "",
+                    label = stringResource(R.string.album),
+                    icon = Icons.Default.MusicNote, // Fallback if no thumbnail
+                    thumbnailUrls = listOfNotNull(album.thumbnailUrl),
+                    onClick = { onGoToAlbum(album.id) }
+                )
             }
-            if (viewModel.favoriteArtists.isNotEmpty()) {
-                item {
-                    FavoritesCard(
-                        title = stringResource(R.string.favorite_artists),
-                        icon = Icons.Default.Person,
-                        onClick = onFavoriteArtistsClick
-                    )
-                }
+
+            items(
+                items = viewModel.favoriteArtists,
+                key = { "artist_${it.id}" }
+            ) { artist ->
+                FavoritesCard(
+                    title = artist.name ?: "",
+                    label = stringResource(R.string.artist),
+                    icon = Icons.Default.MusicNote, // Fallback
+                    thumbnailUrls = listOfNotNull(artist.thumbnailUrl),
+                    onClick = { onGoToArtist(artist.id) }
+                )
             }
         }
     }
 }
+

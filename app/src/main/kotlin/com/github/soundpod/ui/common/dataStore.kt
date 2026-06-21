@@ -16,6 +16,7 @@ object UpdatePrefs {
     val AUTO_CHECK_ENABLED = booleanPreferencesKey("auto_check_enabled")
     val SHOW_UPDATE_ALERT = booleanPreferencesKey("show_update_alert")
     val NEW_SEARCH_LAYOUT = booleanPreferencesKey("new_search_layout")
+    val LOGIN_EXPERIMENTAL_ENABLED = booleanPreferencesKey("login_experimental_enabled")
     val THEME_KEY = stringPreferencesKey("theme_preference")
     val INCLUDE_PRERELEASE = booleanPreferencesKey("include_prerelease")
 }
@@ -62,6 +63,17 @@ fun newSearchLayoutEnabled(context: Context) =
 suspend fun setNewSearchLayoutEnabled(context: Context, value: Boolean) {
     context.updateDataStore.edit {
         it[UpdatePrefs.NEW_SEARCH_LAYOUT] = value
+    }
+}
+
+fun loginExperimentalEnabled(context: Context) =
+    context.updateDataStore.data.map {
+        it[UpdatePrefs.LOGIN_EXPERIMENTAL_ENABLED] ?: false
+    }
+
+suspend fun setLoginExperimentalEnabled(context: Context, value: Boolean) {
+    context.updateDataStore.edit {
+        it[UpdatePrefs.LOGIN_EXPERIMENTAL_ENABLED] = value
     }
 }
 

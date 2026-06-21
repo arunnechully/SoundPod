@@ -125,9 +125,10 @@ fun HomeScreen(
                     )
 
                     1 -> FavoritesScreen(
-                        onFavoriteSongsClick = { navController.navigate(route = Routes.FavoriteSongs) },
-                        onFavoriteAlbumsClick = { navController.navigate(route = Routes.FavoriteAlbums) },
-                        onFavoriteArtistsClick = { navController.navigate(route = Routes.FavoriteArtists) }
+                        onFavoriteTracksClick = { navController.navigate(route = Routes.FavoriteTracks) },
+                        onGoToAlbum = navigateToAlbum,
+                        onGoToArtist = navigateToArtist,
+                        isEmbedded = true
                     )
 
                     2 -> HomeSongs(

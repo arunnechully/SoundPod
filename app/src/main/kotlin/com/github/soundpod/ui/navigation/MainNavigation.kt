@@ -27,23 +27,19 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.toRoute
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.ui.common.newSearchLayoutEnabled
 import com.github.soundpod.ui.screens.album.AlbumScreen
 import com.github.soundpod.ui.screens.artist.ArtistScreen
 import com.github.soundpod.ui.screens.builtinplaylist.BuiltInPlaylistScreen
-import com.github.soundpod.ui.screens.favorites.FavoritesAlbums
-import com.github.soundpod.ui.screens.favorites.FavoritesArtist
+import com.github.soundpod.ui.screens.favorites.FavoriteTracksScreen
 import com.github.soundpod.ui.screens.favorites.FavoritesScreen
-import com.github.soundpod.ui.screens.favorites.FavoritesSongs
 import com.github.soundpod.ui.screens.home.HomeScreen
 import com.github.soundpod.ui.screens.localplaylist.LocalPlaylistScreen
 import com.github.soundpod.ui.screens.playlist.PlaylistScreen
 import com.github.soundpod.ui.screens.search.NewSearchLayout
 import com.github.soundpod.ui.screens.search.NewSearchResult
 import com.github.soundpod.ui.screens.search.SearchScreen
-import com.github.soundpod.viewmodels.favorites.FavoritesViewModel
 import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
 
@@ -213,37 +209,18 @@ fun MainNavigation(
 
         playerComposable(route = Routes.Favorites::class) {
             FavoritesScreen(
-                onFavoriteSongsClick = { navController.navigate(route = Routes.FavoriteSongs) },
-                onFavoriteAlbumsClick = { navController.navigate(route = Routes.FavoriteAlbums) },
-                onFavoriteArtistsClick = { navController.navigate(route = Routes.FavoriteArtists) }
-            )
-        }
-
-        playerComposable(route = Routes.FavoriteSongs::class) {
-            val viewModel: FavoritesViewModel = viewModel()
-            FavoritesSongs(
-                songs = viewModel.favoriteSongs,
                 onBackClick = { navController.popBackStack() },
+                onFavoriteTracksClick = { navController.navigate(route = Routes.FavoriteTracks) },
                 onGoToAlbum = navigateToAlbum,
                 onGoToArtist = navigateToArtist
             )
         }
 
-        playerComposable(route = Routes.FavoriteAlbums::class) {
-            val viewModel: FavoritesViewModel = viewModel()
-            FavoritesAlbums(
-                albums = viewModel.favoriteAlbums,
+        playerComposable(route = Routes.FavoriteTracks::class) {
+            FavoriteTracksScreen(
                 onBackClick = { navController.popBackStack() },
-                onAlbumClick = navigateToAlbum
-            )
-        }
-
-        playerComposable(route = Routes.FavoriteArtists::class) {
-            val viewModel: FavoritesViewModel = viewModel()
-            FavoritesArtist(
-                artists = viewModel.favoriteArtists,
-                onBackClick = { navController.popBackStack() },
-                onArtistClick = navigateToArtist
+                onGoToAlbum = navigateToAlbum,
+                onGoToArtist = navigateToArtist
             )
         }
     }

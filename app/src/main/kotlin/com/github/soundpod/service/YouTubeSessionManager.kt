@@ -6,6 +6,7 @@ import com.github.soundpod.utils.preferences
 import androidx.core.content.edit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 object YouTubeSessionManager {
     private val _isSessionReady = MutableStateFlow(false)
@@ -14,6 +15,9 @@ object YouTubeSessionManager {
     fun updateSession(
         visitorData: String? = null,
         poToken: String? = null,
+        apiKey: String? = null,
+        clientVersion: String? = null,
+        jsUrl: String? = null,
         cookies: String? = null,
         decipher: (suspend (String) -> String)? = null
     ) {
@@ -21,10 +25,18 @@ object YouTubeSessionManager {
         
         visitorData?.let { Innertube.visitorData = it }
         poToken?.let { Innertube.poToken = it }
+        apiKey?.let { Innertube.apiKey = it }
+        clientVersion?.let { Innertube.clientVersion = it }
+        
+        jsUrl?.let { 
+            val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO)
+            scope.launch { YouTubeDecipherer.initialize(it) }
+        }
         
         cookies?.let { 
             Innertube.cookies = it
-            prefs.edit { putString("cookies", it) }
+            // Also store in preferences for persistence
+            MainApplication.appContext.preferences.edit { putString("cookies", it) }
         }
         
         decipher?.let { Innertube.decipher = it }

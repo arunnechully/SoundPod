@@ -42,6 +42,9 @@ extensions.configure<ApplicationExtension>("android") {
     }
 
     packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
         resources {
             excludes += setOf(
                 "**/*.prof",
@@ -140,9 +143,12 @@ dependencies {
     implementation(libs.compose.lottie)
     implementation(libs.datastore.preferences)
     implementation(libs.ui.geometry)
+    implementation(libs.duktape)
 
     implementation(project(":extractor"))
     implementation(libs.kotlin.coroutines)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.serialization.json)
 
     ksp(libs.room.compiler)
@@ -151,6 +157,8 @@ dependencies {
     implementation(project(":core:visuals"))
     implementation(project(":github"))
     implementation(project(":innertube"))
+
+    "githubImplementation"(libs.newpipe.extractor)
 
     coreLibraryDesugaring(libs.desugaring)
 }

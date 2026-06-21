@@ -3,9 +3,9 @@ activity = "1.13.0"
 agp = "9.2.1"
 brotli = "0.1.2"
 coil = "3.5.0"
-compose-bom = "2026.05.01"
+compose-bom = "2026.06.00"
 compose-shimmer = "1.4.0"
-datastore-preferences = "1.2.1"
+datastore-preferences = "1.3.0-alpha09"
 desugaring = "2.1.5"
 
 glance-appwidget = "1.1.1"
@@ -13,24 +13,25 @@ glance-material3 = "1.1.1"
 kotlin = "2.4.0"
 kotlin-coroutines = "1.11.0"
 kotlin-ksp = "2.3.6"
-lifecycle = "2.10.0"
+lifecycle = "2.11.0"
 ktor = "3.5.0"
 material-motion = "2.0.1"
 media = "1.8.0"
 media3 = "1.10.1"
 navigation = "2.9.8"
-# newpipeextractor removed
 palette-ktx = "1.0.0"
 preference-ktx = "1.2.1"
 reorderable = "3.1.0"
 room = "2.8.4"
-runtime = "1.11.2"
+runtime = "1.11.3"
 swipe = "1.3.0"
 core-ktx = "1.19.0"
 core-splashscreen = "1.2.0"
 material = "1.14.0"
 detekt = "1.23.8"
 work-runtime-ktx = "2.11.2"
+duktape = "1.4.0"
+newpipe-extractor = "v0.24.2"
 
 
 [libraries]
@@ -65,7 +66,6 @@ material-motion-compose = { group = "io.github.fornewid", name = "material-motio
 media = { group = "androidx.media", name = "media", version.ref = "media" }
 media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
 media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }
-# newpipeextractor removed
 palette-ktx = { module = "androidx.palette:palette-ktx", version.ref = "palette-ktx" }
 preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "preference-ktx" }
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
@@ -77,11 +77,13 @@ core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
-detekt_compose = { module = "io.nlopez.compose.rules:detekt", version = "0.6.0" }
+detekt_compose = { module = "io.nlopez.compose.rules:detekt", version = "0.6.1" }
 detekt_formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 palette = { module = "androidx.palette:palette", version = "1.0.0" }
 compose_lottie = { module = "com.airbnb.android:lottie-compose", version = "6.7.1" }
 work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work-runtime-ktx" }
+duktape = { module = "com.squareup.duktape:duktape-android", version.ref = "duktape" }
+newpipe-extractor = { group = "com.github.TeamNewPipe", name = "NewPipeExtractor", version.ref = "newpipe-extractor" }
 
 
 [plugins]

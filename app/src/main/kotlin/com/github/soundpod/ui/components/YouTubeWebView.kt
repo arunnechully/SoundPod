@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.github.innertube.BotGuard
+import com.github.soundpod.service.YouTubeDecipherer
 import com.github.soundpod.service.YouTubeSessionManager
 import kotlinx.coroutines.CompletableDeferred
 import java.util.concurrent.ConcurrentHashMap
@@ -30,7 +31,8 @@ fun YouTubeWebView() {
             WebView(context).apply {
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
-                settings.userAgentString = "Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Mobile Safari/537.36"
+                // Use the exact User Agent from the provided session for perfect alignment
+                settings.userAgentString = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Safari/605.1.15,gzip(gfe)"
                 
                 webViewClient = object : WebViewClient() {
                     override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
@@ -40,55 +42,107 @@ fun YouTubeWebView() {
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
                         
-                        // Extract cookies and visitor data
-                        val cookies = CookieManager.getInstance().getCookie(url)
-                        view?.evaluateJavascript("(function() { return window.yt?.config_?.VISITOR_DATA || (window.ytcfg && ytcfg.get ? ytcfg.get('VISITOR_DATA') : null); })()") { visitorData ->
-                            val cleanVisitorData = visitorData?.replace("\"", "")
-                            if (cleanVisitorData != "null" && !cleanVisitorData.isNullOrBlank()) {
-                                Log.d("SoundPod-WebView", "Extracted VisitorData: $cleanVisitorData")
-                                YouTubeSessionManager.updateSession(
-                                    visitorData = cleanVisitorData,
-                                    cookies = cookies,
-                                    decipher = { nParam ->
-                                        val deferred = CompletableDeferred<String>()
-                                        val requestId = System.currentTimeMillis().toString() + nParam
-                                        decipherRequests[requestId] = deferred
-                                        
-                                        view.post {
-                                            view.evaluateJavascript(
-                                                "if (typeof decipherNParam === 'function') { " +
-                                                "  decipherNParam('$nParam', '$requestId'); " +
-                                                "} else { " +
-                                                "  console.error('decipherNParam not ready'); " +
-                                                "  SoundPodBridge.onDecipherResult('$requestId', '$nParam'); " + // Fallback
-                                                "}"
-                                            ) { }
+                        // Comprehensive data extraction script updated for the new session info
+                        val script = """
+                            (function() {
+                                try {
+                                    const ytConfig = window.yt?.config_ || window.ytcfg?.data_ || {};
+                                    const ytcfgGet = (key) => window.ytcfg && window.ytcfg.get ? window.ytcfg.get(key) : ytConfig[key];
+                                    
+                                    const data = {
+                                        visitorData: ytcfgGet('VISITOR_DATA') || ytConfig.VISITOR_DATA,
+                                        poToken: ytcfgGet('PO_TOKEN') || ytConfig.PO_TOKEN || (window.yt && window.yt.config_ ? window.yt.config_.PO_TOKEN : null),
+                                        innertubeApiKey: ytcfgGet('INNERTUBE_API_KEY') || ytConfig.INNERTUBE_API_KEY,
+                                        innertubeContext: ytcfgGet('INNERTUBE_CONTEXT') || ytConfig.INNERTUBE_CONTEXT,
+                                        clientName: ytcfgGet('INNERTUBE_CLIENT_NAME') || ytConfig.INNERTUBE_CLIENT_NAME,
+                                        clientVersion: ytcfgGet('INNERTUBE_CLIENT_VERSION') || ytConfig.INNERTUBE_CLIENT_VERSION,
+                                        jsUrl: window.ytplayer && window.ytplayer.config && window.ytplayer.config.assets ? window.ytplayer.config.assets.js : null
+                                    };
+                                    
+                                    // Deep search for PO_TOKEN if still missing
+                                    if (!data.poToken) {
+                                        const scripts = document.getElementsByTagName('script');
+                                        for (let s of scripts) {
+                                            const text = s.innerText || s.textContent;
+                                            if (text && text.includes('PO_TOKEN')) {
+                                                const match = text.match(/"PO_TOKEN"\s*:\s*"([^"]+)"/);
+                                                if (match) {
+                                                    data.poToken = match[1];
+                                                    break;
+                                                }
+                                            }
                                         }
-                                        deferred.await()
                                     }
-                                )
+
+                                    return JSON.stringify(data);
+                                } catch (e) {
+                                    return JSON.stringify({ error: e.message });
+                                }
+                            })()
+                        """.trimIndent()
+
+                        view?.evaluateJavascript(script) { sessionDataJson ->
+                            try {
+                                val sessionData = sessionDataJson?.replace("^\"|\"$".toRegex(), "")?.replace("\\\"", "\"")
+                                if (sessionData != null) {
+                                    val json = org.json.JSONObject(sessionData)
+                                    val visitorData = json.optString("visitorData").takeIf { it != "null" && it.isNotBlank() }
+                                    val poToken = json.optString("poToken").takeIf { it != "null" && it.isNotBlank() }
+                                    val webApiKey = json.optString("innertubeApiKey").takeIf { it != "null" && it.isNotBlank() }
+                                    val clientVersion = json.optString("clientVersion").takeIf { it != "null" && it.isNotBlank() }
+                                    val jsUrl = json.optString("jsUrl").takeIf { it != "null" && it.isNotBlank() }
+                                    
+                                    if (visitorData != null) {
+                                        val cookies = CookieManager.getInstance().getCookie(url)
+                                        Log.d("SoundPod-WebView", "Extracted Session: VisitorData=${visitorData.take(20)}..., POToken=${poToken ?: "null"}, JSUrl=$jsUrl")
+                                        
+                                        YouTubeSessionManager.updateSession(
+                                            visitorData = visitorData,
+                                            poToken = poToken,
+                                            apiKey = webApiKey,
+                                            clientVersion = clientVersion,
+                                            jsUrl = jsUrl,
+                                            cookies = cookies,
+                                            decipher = { nParam ->
+                                                // Try Duktape first, fallback to WebView
+                                                val result = YouTubeDecipherer.decipher(nParam)
+                                                if (result != nParam) {
+                                                    Log.d("SoundPod-WebView", "Successfully deciphered via Duktape: $nParam -> $result")
+                                                    result
+                                                } else {
+                                                    Log.w("SoundPod-WebView", "Duktape failed, falling back to WebView for deciphering")
+                                                    val deferred = CompletableDeferred<String>()
+                                                    val requestId = System.currentTimeMillis().toString() + nParam
+                                                    decipherRequests[requestId] = deferred
+                                                    
+                                                    view.post {
+                                                        view.evaluateJavascript(
+                                                            "if (typeof decipherNParam === 'function') { " +
+                                                            "  decipherNParam('$nParam', '$requestId'); " +
+                                                            "} else { " +
+                                                            "  console.error('decipherNParam not ready'); " +
+                                                            "  SoundPodBridge.onDecipherResult('$requestId', '$nParam'); " +
+                                                            "}"
+                                                        ) { }
+                                                    }
+                                                    deferred.await()
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                Log.e("SoundPod-WebView", "Failed to parse session data", e)
                             }
                         }
 
                         // Initialize BotGuard and decipher script
                         view?.evaluateJavascript(BotGuard.HTML) { }
                         
-                        // Try to find the decipher function in the page
-                        view?.evaluateJavascript("""
-                            (function() {
-                                if (window.decipherNParam) return;
-                                // Basic heuristic to find the 'n' decipher function
-                                // This is still a bit of an "old trick" and might need adjustment 
-                                // based on how YouTube currently serves base.js
-                                console.log("SoundPod: Searching for decipher function...");
-                            })();
-                        """.trimIndent()) { }
-
                         injectDecipherScript(view)
                     }
 
                     override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
-                        // Potential to intercept base.js here to extract decipher logic more robustly
                         return super.shouldInterceptRequest(view, request)
                     }
                 }
@@ -109,8 +163,6 @@ fun YouTubeWebView() {
 private fun injectDecipherScript(webView: WebView?) {
     val script = """
         function decipherNParam(n, requestId) {
-            // Placeholder logic: in reality, we'd call the function from base.js
-            // For now, returning as is or with a simple transformation to avoid blocking
             let result = n; 
             if (window.decipherFunction) {
                 try { result = window.decipherFunction(n); } catch(e) { console.error(e); }

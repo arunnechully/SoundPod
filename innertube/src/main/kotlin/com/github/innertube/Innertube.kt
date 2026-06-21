@@ -22,6 +22,7 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
+import java.security.MessageDigest
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.Serializable
@@ -40,6 +41,8 @@ object Innertube {
 
     var onVisitorDataChanged: ((String?) -> Unit)? = null
     var poToken: String? = null
+    var apiKey: String? = null
+    var clientVersion: String? = null
     
     private val _cookies = mutableStateOf<String?>(null)
     var cookies: String?
@@ -86,11 +89,57 @@ object Innertube {
         defaultRequest {
             url(scheme = "https", host ="music.youtube.com") {
                 contentType(ContentType.Application.Json)
-                headers.append("X-Goog-Api-Key", "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8")
+                
+                // Use extracted API Key if available, otherwise default
+                headers.append("X-Goog-Api-Key", apiKey ?: "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8")
+
                 parameters.append("prettyPrint", "false")
-                cookies?.let { headers.append("Cookie", it) }
+                
+                // Set default User-Agent if not already set by the request
+                if (headers["User-Agent"] == null) {
+                    headers.append("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36")
+                }
+
+                // Only append cookies if the request explicitly allows it via a custom attribute
+                // This prevents sending browser cookies to clients like ANDROID_VR
+                if (attributes.getOrNull(Attributes.UseCookies) == true) {
+                    cookies?.let { cookieString ->
+                        headers.append("Cookie", cookieString)
+                        headers.append("X-Goog-AuthUser", "0")
+                        
+                        // Set Visitor ID header if available
+                        visitorData?.let { headers.append("X-Goog-Visitor-Id", it) }
+                        
+                        // Generate Authorization header (SAPISIDHASH)
+                        generateSapisidHash(cookieString)?.let { 
+                            headers.append("Authorization", "SAPISIDHASH $it")
+                        }
+                    }
+                }
             }
         }
+    }
+    
+    private fun generateSapisidHash(cookies: String): String? {
+        val sapisid = cookies.split("; ")
+            .find { it.startsWith("SAPISID=") }
+            ?.substringAfter("SAPISID=") ?: return null
+            
+        val timestamp = System.currentTimeMillis() / 1000
+        val origin = "https://music.youtube.com"
+        val payload = "$timestamp $sapisid $origin"
+        
+        return try {
+            val digest = MessageDigest.getInstance("SHA-1").digest(payload.toByteArray())
+            val hash = digest.joinToString("") { "%02x".format(it) }
+            "$timestamp" + "_" + hash
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    object Attributes {
+        val UseCookies = io.ktor.util.AttributeKey<Boolean>("UseCookies")
     }
 
     @Serializable

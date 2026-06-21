@@ -1,99 +1,87 @@
 package com.github.innertube.requests
 
 import com.github.innertube.Innertube
-import com.github.innertube.models.Context
 import com.github.innertube.models.PlayerResponse
 import com.github.innertube.models.YouTubeClient
 import com.github.innertube.models.bodies.PlayerBody
 import com.github.innertube.models.bodies.ServiceIntegrityDimensions
 import com.github.innertube.utils.runCatchingNonCancellable
 import io.ktor.client.call.body
-import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import kotlinx.serialization.Serializable
 
-@Serializable
-private data class AudioStream(
-    val url: String,
-    val bitrate: Long
-)
-
-@Serializable
-private data class PipedResponse(
-    val audioStreams: List<AudioStream>
-)
+private const val TAG = "SoundPod-Player"
 
 suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
-    val response = client.post(PLAYER) {
+    println("$TAG: Starting player request for videoId: $videoId")
+    
+    // Ensure we have a session before proceeding
+    waitForSession(5000)
+
+    // TIER 1: WEB_REMIX (Exact match for WebView)
+    val webRemixResponse = tryPlayer(videoId, YouTubeClient.WEB_REMIX, useCookies = true, extraHeaders = mapOf(
+        "Sec-Fetch-Mode" to "cors",
+        "Sec-Fetch-Site" to "same-origin",
+        "X-Youtube-Client-Name" to "67",
+        "X-Youtube-Client-Version" to (clientVersion ?: YouTubeClient.WEB_REMIX.clientVersion),
+        "Origin" to "https://music.youtube.com",
+        "Referer" to "https://music.youtube.com/"
+    ))
+    
+    if (webRemixResponse?.playabilityStatus?.status == "OK") {
+        println("$TAG: Successfully resolved player via WEB_REMIX")
+        return@runCatchingNonCancellable webRemixResponse.applyDecipher(decipher)
+    }
+    logFailure("WEB_REMIX", webRemixResponse)
+
+    // TIER 2: ANDROID_VR (The most reliable workaround)
+    val vrResponse = tryPlayer(videoId, YouTubeClient.ANDROID_VR, useCookies = false)
+    if (vrResponse?.playabilityStatus?.status == "OK") {
+        println("$TAG: Successfully resolved player via ANDROID_VR")
+        return@runCatchingNonCancellable vrResponse.applyDecipher(decipher)
+    }
+    logFailure("ANDROID_VR", vrResponse)
+    
+    return@runCatchingNonCancellable vrResponse ?: webRemixResponse
+}
+
+private fun logFailure(clientName: String, response: PlayerResponse?) {
+    val info = response?.playabilityStatus?.let { 
+        "Status: ${it.status}, Reason: ${it.reason}, Messages: ${it.messages}"
+    } ?: "Unknown error"
+    println("$TAG: $clientName failed ($info)")
+}
+
+private suspend fun Innertube.tryPlayer(
+    videoId: String, 
+    clientType: YouTubeClient, 
+    useCookies: Boolean,
+    extraHeaders: Map<String, String> = emptyMap()
+): PlayerResponse? = runCatching {
+    println("$TAG: Attempting player request with client: ${clientType.clientName} (useCookies=$useCookies)")
+    
+    client.post(Innertube.PLAYER) {
+        header("User-Agent", clientType.userAgent)
+        
+        // Control cookie usage via custom attribute
+        attributes.put(Innertube.Attributes.UseCookies, useCookies)
+        
+        // Apply extra headers
+        extraHeaders.forEach { (key, value) -> header(key, value) }
+        
         setBody(
             PlayerBody(
-                context = YouTubeClient.ANDROID_VR.toContext(visitorData = visitorData),
+                context = clientType.toContext(visitorData = visitorData),
                 videoId = videoId,
                 serviceIntegrityDimensions = poToken?.let { ServiceIntegrityDimensions(poToken = it) }
             )
         )
-        mask("playabilityStatus.status,playerConfig.audioConfig,streamingData.adaptiveFormats,streamingData.formats,videoDetails.videoId")
+        mask("playabilityStatus(status,reason,messages),playerConfig.audioConfig,streamingData.adaptiveFormats,streamingData.formats,videoDetails.videoId")
     }.body<PlayerResponse>()
-
-    if (response.playabilityStatus?.status == "OK") {
-        return@runCatchingNonCancellable response.applyDecipher(decipher)
-    }
-    else {
-        val safePlayerResponse = client.post(PLAYER) {
-            setBody(
-                PlayerBody(
-                    context = YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER.toContext(visitorData = visitorData).copy(
-                        thirdParty = Context.ThirdParty(
-                            embedUrl = "https://www.youtube.com/watch?v=$videoId"
-                        )
-                    ),
-                    videoId = videoId
-                )
-            )
-            mask("playabilityStatus.status,playerConfig.audioConfig,streamingData.adaptiveFormats,streamingData.formats,videoDetails.videoId")
-        }.body<PlayerResponse>()
-
-        if (safePlayerResponse.playabilityStatus?.status != "OK") {
-            return@runCatchingNonCancellable response.applyDecipher(decipher)
-        }
-
-        val audioStreams = runCatching {
-            client.get("https://pipedapi.adminforge.de/streams/$videoId") {
-                contentType(ContentType.Application.Json)
-            }.body<PipedResponse>().audioStreams
-        }.getOrNull() ?: emptyList()
-
-        if (audioStreams.isEmpty()) {
-            return@runCatchingNonCancellable safePlayerResponse.applyDecipher(decipher)
-        }
-
-        safePlayerResponse.copy(
-            streamingData = safePlayerResponse.streamingData?.copy(
-                adaptiveFormats = safePlayerResponse.streamingData.adaptiveFormats?.map { adaptiveFormat ->
-                    adaptiveFormat.copy(
-                        url = audioStreams.minByOrNull {
-                            val bitrate = adaptiveFormat.bitrate ?: 0L
-                            if (bitrate == 0L) Long.MAX_VALUE
-                            else kotlin.math.abs(it.bitrate - bitrate)
-                        }?.url
-                    )
-                },
-                formats = safePlayerResponse.streamingData.formats?.map { format ->
-                    format.copy(
-                        url = audioStreams.minByOrNull {
-                            val bitrate = format.bitrate ?: 0L
-                            if (bitrate == 0L) Long.MAX_VALUE
-                            else kotlin.math.abs(it.bitrate - bitrate)
-                        }?.url
-                    )
-                }
-            )
-        ).applyDecipher(decipher)
-    }
-}
+}.onFailure {
+    println("$TAG: Network or parsing error for ${clientType.clientName}: ${it.message}")
+}.getOrNull()
 
 private suspend fun PlayerResponse.applyDecipher(decipher: (suspend (String) -> String)?): PlayerResponse {
     if (streamingData == null) return this
@@ -122,8 +110,6 @@ private suspend fun parseSignatureCipher(cipher: String, decipher: (suspend (Str
     val signature = params["s"] ?: return baseUrl
     val sp = params["sp"] ?: "sig"
     
-    // In many cases, if decipher is null, we can't do much with 's' 
-    // unless it's already a valid signature (rare for ciphered streams)
     val decipheredSig = if (decipher != null) decipher(signature) else signature
     
     return if (baseUrl.contains("?")) {

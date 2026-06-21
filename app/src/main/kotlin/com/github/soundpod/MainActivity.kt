@@ -133,6 +133,9 @@ class MainActivity : ComponentActivity() {
             
             LaunchedEffect(Unit) {
                 withContext(Dispatchers.IO) {
+                    val isNewPipeAvailable = com.github.soundpod.extractor.NewPipeHelper.isLibraryAvailable
+                    android.util.Log.d("SoundPod-Init", "NewPipe Extractor available: ${isNewPipeAvailable}")
+
                     val updateFile = File(externalCacheDir, "update.apk")
                     if (updateFile.exists()) {
                         updateFile.delete()
