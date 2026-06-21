@@ -1,4 +1,4 @@
-package org.schabi.newpipe.extractor.services.youtube
+package com.github.soundpod.extractor.youtube
 
 class YoutubeService {
     fun getStreamExtractor(url: String): YoutubeStreamExtractor {

@@ -38,3 +38,7 @@
 -dontwarn java.beans.IntrospectionException
 -dontwarn java.beans.Introspector
 -dontwarn java.beans.PropertyDescriptor
+
+# Extractor reflection support
+-keep class org.schabi.newpipe.extractor.** { *; }
+-keep class com.github.soundpod.extractor.** { *; }

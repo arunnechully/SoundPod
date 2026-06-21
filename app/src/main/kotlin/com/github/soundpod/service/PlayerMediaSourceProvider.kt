@@ -21,8 +21,8 @@ import com.github.innertube.requests.player
 import com.github.soundpod.utils.pauseSongCacheKey
 import com.github.soundpod.utils.preferences
 import kotlinx.coroutines.runBlocking
-import org.schabi.newpipe.extractor.ServiceList
-import org.schabi.newpipe.extractor.services.youtube.YoutubeStreamExtractor
+import com.github.soundpod.extractor.ServiceList
+import com.github.soundpod.extractor.youtube.YoutubeStreamExtractor
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock

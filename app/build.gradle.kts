@@ -158,7 +158,7 @@ dependencies {
     implementation(project(":github"))
     implementation(project(":innertube"))
 
-    "githubImplementation"(libs.newpipe.extractor)
+    implementation(libs.newpipe.extractor)
 
     coreLibraryDesugaring(libs.desugaring)
 }
