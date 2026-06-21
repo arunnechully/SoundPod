@@ -164,8 +164,8 @@
     <string name="general">Général</string>
     <string name="history">Historique</string>
     <string name="quick_picks_source">Source de Sélection Rapide</string>
-    <string name="quick_picks_custom_genre">Custom genre</string>
-    <string name="quick_picks_custom_genre_description">Enter your preferred genre for Quick Picks</string>
+    <string name="quick_picks_custom_genre">Genre personnalisé</string>
+    <string name="quick_picks_custom_genre_description">Indiquez votre genre préféré pour la « Sélection Rapide »</string>
     <string name="stop">Stop</string>
     <string name="share">Partager</string>
     <string name="add_bookmark">Ajouter en favoris</string>
@@ -351,9 +351,9 @@
     <string name="path_id">Chemin / ID</string>
     <string name="kbps">%d kbps</string>
     <string name="decibel">%s dB</string>
-    <string name="favorite_tracks">Favorite Tracks</string>
-    <string name="favorite_albums">Favorite Albums</string>
-    <string name="favorite_artists">Favorite Artists</string>
+    <string name="favorite_tracks">Titres Favoris</string>
+    <string name="favorite_albums">Albums Favoris</string>
+    <string name="favorite_artists">Artistes Favoris</string>
     <string name="no_favorites">Aucun favori</string>
     <string name="no_favorites_description">Appuyez sur l\'icône en forme de cœur à côté des titres, des albums ou des artistes pour les ajouter à vos favoris.</string>
 </resources>
