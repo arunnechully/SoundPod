@@ -32,13 +32,21 @@ enum class YouTubeClient(
         userAgent = "com.google.android.apps.youtube.vr.oculus/1.71.26 (Linux; U; Android 14; eureka-user Build/SQ3A.220605.009.A1) gzip",
         osVersion = "14",
         clientId = "28"
+    ),
+    ANDROID_TESTSUITE(
+        clientName = "ANDROID_TESTSUITE",
+        clientVersion = "1.9.30.1",
+        userAgent = "com.google.android.youtube.testsuite/1.9.30.1 (Linux; U; Android 14; en_US) gzip",
+        osVersion = "14",
+        clientId = "30"
     );
 
     fun toContext(
         localized: Boolean = true,
         visitorData: String? = null,
         gl: String? = null,
-        hl: String? = null
+        hl: String? = null,
+        includeThirdParty: Boolean = false
     ) = Context(
         client = Context.Client(
             clientName = clientName,
@@ -46,7 +54,7 @@ enum class YouTubeClient(
             clientId = clientId ?: "67",
             osVersion = osVersion ?: "13",
             platform = platform ?: when (this) {
-                ANDROID_VR -> "MOBILE"
+                ANDROID_VR, ANDROID_TESTSUITE -> "MOBILE"
                 TVHTML5_SIMPLY_EMBEDDED_PLAYER -> "TV"
                 else -> "DESKTOP"
             },
@@ -54,6 +62,7 @@ enum class YouTubeClient(
             gl = gl ?: if (localized) Locale.getDefault().country.takeIf { it.length == 2 } ?: "US" else "US",
             hl = hl ?: if (localized) Locale.getDefault().language.ifBlank { "en" } else "en",
             visitorData = visitorData ?: ""
-        )
+        ),
+        thirdParty = if (includeThirdParty) Context.ThirdParty(embedUrl = "https://www.youtube.com/watch?v=") else null
     )
 }

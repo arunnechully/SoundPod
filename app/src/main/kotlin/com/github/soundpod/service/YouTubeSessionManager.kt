@@ -19,7 +19,8 @@ object YouTubeSessionManager {
         clientVersion: String? = null,
         jsUrl: String? = null,
         cookies: String? = null,
-        decipher: (suspend (String) -> String)? = null
+        decipher: (suspend (String) -> String)? = null,
+        signatureDecipher: (suspend (String) -> String)? = null
     ) {
         val prefs = MainApplication.appContext.preferences
         
@@ -40,6 +41,7 @@ object YouTubeSessionManager {
         }
         
         decipher?.let { Innertube.decipher = it }
+        signatureDecipher?.let { Innertube.signatureDecipher = it }
         
         if (Innertube.visitorData != null) {
             _isSessionReady.value = true

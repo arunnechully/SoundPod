@@ -19,39 +19,31 @@ suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
     // Ensure we have a session before proceeding
     waitForSession(5000)
 
-    // TIER 1: WEB_REMIX (Exact match for WebView)
-    val webRemixResponse = tryPlayer(videoId, YouTubeClient.WEB_REMIX, useCookies = true, extraHeaders = mapOf(
-        "Sec-Fetch-Mode" to "cors",
-        "Sec-Fetch-Site" to "same-origin",
-        "X-Youtube-Client-Name" to "67",
-        "X-Youtube-Client-Version" to (clientVersion ?: YouTubeClient.WEB_REMIX.clientVersion),
-        "Origin" to "https://music.youtube.com",
-        "Referer" to "https://music.youtube.com/"
-    ))
-    
-    if (webRemixResponse?.playabilityStatus?.status == "OK") {
-        println("$TAG: Successfully resolved player via WEB_REMIX")
-        return@runCatchingNonCancellable webRemixResponse.applyDecipher(decipher)
-    }
-    logFailure("WEB_REMIX", webRemixResponse)
-
-    // TIER 2: ANDROID_VR (The most reliable workaround)
+    // TIER 1: ANDROID_VR (The most reliable workaround)
     val vrResponse = tryPlayer(videoId, YouTubeClient.ANDROID_VR, useCookies = false)
     if (vrResponse?.playabilityStatus?.status == "OK") {
         println("$TAG: Successfully resolved player via ANDROID_VR")
-        return@runCatchingNonCancellable vrResponse.applyDecipher(decipher)
+        return@runCatchingNonCancellable vrResponse.applyDecipher(decipher, signatureDecipher)
     }
     logFailure("ANDROID_VR", vrResponse)
+
+    // TIER 2: ANDROID_TESTSUITE (Reliable fallback for many tracks)
+    val testSuiteResponse = tryPlayer(videoId, YouTubeClient.ANDROID_TESTSUITE, useCookies = false)
+    if (testSuiteResponse?.playabilityStatus?.status == "OK") {
+        println("$TAG: Successfully resolved player via ANDROID_TESTSUITE")
+        return@runCatchingNonCancellable testSuiteResponse.applyDecipher(decipher, signatureDecipher)
+    }
+    logFailure("ANDROID_TESTSUITE", testSuiteResponse)
     
     // TIER 3: TVHTML5_SIMPLY_EMBEDDED_PLAYER (Permissive for embedded content)
-    val tvResponse = tryPlayer(videoId, YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER, useCookies = false)
+    val tvResponse = tryPlayer(videoId, YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER, useCookies = false, includeThirdParty = true)
     if (tvResponse?.playabilityStatus?.status == "OK") {
         println("$TAG: Successfully resolved player via TVHTML5_SIMPLY_EMBEDDED_PLAYER")
-        return@runCatchingNonCancellable tvResponse.applyDecipher(decipher)
+        return@runCatchingNonCancellable tvResponse.applyDecipher(decipher, signatureDecipher)
     }
     logFailure("TVHTML5_SIMPLY_EMBEDDED_PLAYER", tvResponse)
 
-    return@runCatchingNonCancellable tvResponse ?: vrResponse ?: webRemixResponse
+    return@runCatchingNonCancellable tvResponse ?: testSuiteResponse ?: vrResponse
 }
 
 private fun logFailure(clientName: String, response: PlayerResponse?) {
@@ -65,7 +57,8 @@ private suspend fun Innertube.tryPlayer(
     videoId: String, 
     clientType: YouTubeClient, 
     useCookies: Boolean,
-    extraHeaders: Map<String, String> = emptyMap()
+    extraHeaders: Map<String, String> = emptyMap(),
+    includeThirdParty: Boolean = false
 ): PlayerResponse? = runCatching {
     println("$TAG: Attempting player request with client: ${clientType.clientName} (useCookies=$useCookies)")
     
@@ -80,7 +73,7 @@ private suspend fun Innertube.tryPlayer(
         
         setBody(
             PlayerBody(
-                context = clientType.toContext(visitorData = visitorData),
+                context = clientType.toContext(visitorData = visitorData, includeThirdParty = includeThirdParty),
                 videoId = videoId,
                 serviceIntegrityDimensions = poToken?.let { ServiceIntegrityDimensions(poToken = it) }
             )
@@ -91,18 +84,21 @@ private suspend fun Innertube.tryPlayer(
     println("$TAG: Network or parsing error for ${clientType.clientName}: ${it.message}")
 }.getOrNull()
 
-private suspend fun PlayerResponse.applyDecipher(decipher: (suspend (String) -> String)?): PlayerResponse {
+private suspend fun PlayerResponse.applyDecipher(
+    decipherN: (suspend (String) -> String)?,
+    decipherSig: (suspend (String) -> String)?
+): PlayerResponse {
     if (streamingData == null) return this
     
     return copy(
         streamingData = streamingData.copy(
             adaptiveFormats = streamingData.adaptiveFormats?.map { format ->
-                val url = format.url ?: format.signatureCipher?.let { parseSignatureCipher(it, decipher) }
-                format.copy(url = url?.let { decipherUrl(it, decipher) })
+                val url = format.url ?: format.signatureCipher?.let { parseSignatureCipher(it, decipherSig) }
+                format.copy(url = url?.let { decipherUrl(it, decipherN) })
             },
             formats = streamingData.formats?.map { format ->
-                val url = format.url ?: format.signatureCipher?.let { parseSignatureCipher(it, decipher) }
-                format.copy(url = url?.let { decipherUrl(it, decipher) })
+                val url = format.url ?: format.signatureCipher?.let { parseSignatureCipher(it, decipherSig) }
+                format.copy(url = url?.let { decipherUrl(it, decipherN) })
             }
         )
     )

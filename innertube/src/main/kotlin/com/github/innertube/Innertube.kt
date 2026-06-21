@@ -23,7 +23,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import java.security.MessageDigest
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -58,6 +58,7 @@ object Innertube {
         get() = cookies?.let { it.contains("__Secure-3PAPISID") || it.contains("SAPISID") } ?: false
 
     var decipher: (suspend (String) -> String)? = null
+    var signatureDecipher: (suspend (String) -> String)? = null
 
     interface PoTokenResolver {
         suspend fun getPoToken(videoId: String?): String?
@@ -90,8 +91,8 @@ object Innertube {
             url(scheme = "https", host ="music.youtube.com") {
                 contentType(ContentType.Application.Json)
                 
-                // Use extracted API Key if available, otherwise default
-                headers.append("X-Goog-Api-Key", apiKey ?: "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8")
+                // Use extracted API Key if available
+                apiKey?.let { headers.append("X-Goog-Api-Key", it) }
 
                 parameters.append("prettyPrint", "false")
                 
@@ -153,6 +154,7 @@ object Innertube {
     }
 
     suspend fun fetchVisitorData(): String? {
+        if (apiKey == null) return null
         return runCatching {
             client.post("https://music.youtube.com/youtubei/v1/music/get_search_suggestions") {
                 setBody(mapOf("context" to YouTubeClient.WEB_REMIX.toContext(localized = false), "input" to ""))
@@ -163,14 +165,19 @@ object Innertube {
     }
 
     suspend fun waitForSession(timeoutMs: Long = 10000): Boolean {
-        if (visitorData != null) return true
+        if (apiKey != null && visitorData != null) return true
         
-        return coroutineScope {
-            val result = withTimeoutOrNull(timeoutMs.milliseconds) {
-                if (visitorData == null) fetchVisitorData() else visitorData
+        return withTimeoutOrNull(timeoutMs.milliseconds) {
+            while (apiKey == null || visitorData == null) {
+                if (visitorData == null) {
+                    fetchVisitorData()
+                }
+                if (apiKey == null) {
+                    delay(100)
+                }
             }
-            result != null
-        }
+            true
+        } ?: (apiKey != null && visitorData != null)
     }
 
     val hasRequiredTokens: Boolean

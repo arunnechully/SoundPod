@@ -14,10 +14,16 @@ import com.github.soundpod.enums.CoilDiskCacheMaxSize
 import com.github.soundpod.utils.coilDiskCacheMaxSizeKey
 import com.github.soundpod.utils.getEnum
 import com.github.soundpod.utils.preferences
+import com.github.soundpod.service.YouTubeBootstrap
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import java.util.Locale
 
 
 class MainApplication : Application(), SingletonImageLoader.Factory {
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     override fun onCreate() {
         super.onCreate()
@@ -36,6 +42,11 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
             Innertube.cookies = preferences.getString("cookies", null)
             Innertube.onCookiesChanged = { cookies: String? ->
                 preferences.edit { putString("cookies", cookies) }
+            }
+            
+            // Trigger dynamic session bootstrap
+            applicationScope.launch {
+                YouTubeBootstrap.initialize()
             }
         }.start()
     }

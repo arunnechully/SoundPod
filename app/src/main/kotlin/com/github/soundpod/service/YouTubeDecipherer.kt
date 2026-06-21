@@ -11,15 +11,17 @@ import java.util.concurrent.atomic.AtomicReference
 
 object YouTubeDecipherer {
     private const val TAG = "SoundPod-Decipherer"
-    private val scriptCache = AtomicReference<String?>(null)
-    private val decipherFunctionName = AtomicReference<String?>(null)
+    private val nScriptCache = AtomicReference<String?>(null)
+    private val nFunctionName = AtomicReference<String?>(null)
+    private val sigScriptCache = AtomicReference<String?>(null)
+    private val sigFunctionName = AtomicReference<String?>(null)
     
     suspend fun decipher(n: String): String {
-        val script = scriptCache.get()
-        val funcName = decipherFunctionName.get()
+        val script = nScriptCache.get()
+        val funcName = nFunctionName.get()
         
         if (script == null || funcName == null) {
-            Log.w(TAG, "Decipherer not initialized, returning original n")
+            Log.w(TAG, "N-Decipherer not initialized, returning original n")
             return n
         }
         
@@ -36,6 +38,29 @@ object YouTubeDecipherer {
             }
         }
     }
+
+    suspend fun signatureDecipher(s: String): String {
+        val script = sigScriptCache.get()
+        val funcName = sigFunctionName.get()
+        
+        if (script == null || funcName == null) {
+            Log.w(TAG, "Sig-Decipherer not initialized, returning original s")
+            return s
+        }
+        
+        return withContext(Dispatchers.Default) {
+            try {
+                Duktape.create().use { duktape ->
+                    duktape.evaluate(script)
+                    val result = duktape.evaluate("$funcName('$s')") as String
+                    result
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to decipher signature with Duktape", e)
+                s
+            }
+        }
+    }
     
     suspend fun initialize(jsUrl: String) {
         withContext(Dispatchers.IO) {
@@ -43,23 +68,36 @@ object YouTubeDecipherer {
                 Log.d(TAG, "Initializing decipherer from $jsUrl")
                 val fullUrl = if (jsUrl.startsWith("http")) jsUrl else "https://music.youtube.com$jsUrl"
                 
-                // Use Innertube.client to fetch the JS content
                 val response = Innertube.client.get(fullUrl)
                 val jsContent = response.bodyAsText()
                 
-                // Extract the n-parameter decipher function
-                val name = extractDecipherFunctionName(jsContent)
-                if (name != null) {
-                    val functionBody = extractFunction(jsContent, name)
-                    if (functionBody != null) {
-                        scriptCache.set(functionBody)
-                        decipherFunctionName.set(name)
-                        Log.i(TAG, "Successfully initialized decipherer with function: $name")
-                    } else {
-                        Log.w(TAG, "Could not extract function body for $name")
+                // 1. Handle N-Parameter
+                val nName = extractDecipherFunctionName(jsContent)
+                if (nName != null) {
+                    val nFunctionBody = extractFunction(jsContent, nName)
+                    if (nFunctionBody != null) {
+                        nScriptCache.set(nFunctionBody)
+                        nFunctionName.set(nName)
+                        Log.i(TAG, "Successfully initialized n-decipherer: $nName")
                     }
-                } else {
-                    Log.w(TAG, "Could not find decipher function name in JS")
+                }
+
+                // 2. Handle Signature
+                val sigName = extractSignatureFunctionName(jsContent)
+                if (sigName != null) {
+                    val sigFunctionBody = extractSignatureFunctionAndHelpers(jsContent, sigName)
+                    if (sigFunctionBody != null) {
+                        sigScriptCache.set(sigFunctionBody)
+                        sigFunctionName.set(sigName)
+                        Log.i(TAG, "Successfully initialized sig-decipherer: $sigName")
+                    }
+                }
+
+                if (nFunctionName.get() != null || sigFunctionName.get() != null) {
+                    YouTubeSessionManager.updateSession(
+                        decipher = ::decipher,
+                        signatureDecipher = ::signatureDecipher
+                    )
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to initialize decipherer", e)
@@ -68,17 +106,68 @@ object YouTubeDecipherer {
     }
     
     private fun extractDecipherFunctionName(js: String): String? {
-        // Pattern for finding the n-decipher function name in modern base.js
-        // Updated regex to handle more variations
-        val regex = Regex("""\.get\("n"\)\)&&\(b=([a-zA-Z0-9$]+)\(b\)""")
-        return regex.find(js)?.groupValues?.get(1)
-    }
-    
-    private fun extractFunction(js: String, name: String): String? {
-        // Updated regex to be more robust
         val patterns = listOf(
-            Regex("""var\s+${Regex.escape(name)}\s*=\s*function\s*\(([a-z]+)\)\{"""),
-            Regex("""function\s+${Regex.escape(name)}\s*\(([a-z]+)\)\{""")
+            Regex("""\.get\("n"\)\)&&\(b=([a-zA-Z0-9$]+)\(b\)"""),
+            Regex("""([a-zA-Z0-9$]+)\s*=\s*function\([a-z]\)\{var\s+[a-z]=\[.*\];[a-z]\.set\("n",[a-z]\)"""),
+            Regex("""([a-zA-Z0-9$]+)=function\([a-z]\)\{var\s+[a-z]=\[.*\];[a-z]\.set\("n",[a-z]\)""")
+        )
+        
+        for (pattern in patterns) {
+            pattern.find(js)?.groupValues?.get(1)?.let { return it }
+        }
+        return null
+    }
+
+    private fun extractSignatureFunctionName(js: String): String? {
+        val patterns = listOf(
+            Regex("""\b[cs]\s*&&\s*[ad]\.set\([^,]+\s*,\s*encodeURIComponent\s*\(\s*([a-zA-Z0-9$]+)\s*\("""),
+            Regex("""\.sig\|\|([a-zA-Z0-9$]+)\("""),
+            Regex("""([a-zA-Z0-9$]+)\s*=\s*function\s*\(\s*a\s*\)\s*\{\s*a\s*=\s*a\.split\(\s*""\s*\)""")
+        )
+        for (pattern in patterns) {
+            pattern.find(js)?.groupValues?.get(1)?.let { return it }
+        }
+        return null
+    }
+
+    private fun extractSignatureFunctionAndHelpers(js: String, name: String): String? {
+        val functionBody = extractFunction(js, name) ?: return null
+        
+        // Find the helper object name used in the function (e.g. "abc.de(a, 2)" -> "abc")
+        val helperNameRegex = Regex(""";([a-zA-Z0-9$]+)\.[a-zA-Z0-9$]+\(""")
+        val helperName = helperNameRegex.find(functionBody)?.groupValues?.get(1) ?: return functionBody
+        
+        val helperObject = extractObject(js, helperName) ?: ""
+        return helperObject + "\n" + functionBody
+    }
+
+    private fun extractObject(js: String, name: String): String? {
+        val pattern = Regex("""var\s+${Regex.escape(name)}\s*=\s*\{""")
+        val match = pattern.find(js) ?: return null
+        val startIndex = match.range.first
+        
+        var braceCount = 0
+        var foundFirstBrace = false
+        for (i in startIndex until js.length) {
+            if (js[i] == '{') {
+                braceCount++
+                foundFirstBrace = true
+            } else if (js[i] == '}') {
+                braceCount--
+            }
+            
+            if (foundFirstBrace && braceCount == 0) {
+                return "var $name =" + js.substring(startIndex + "var $name =".length - 4, i + 1) + ";"
+            }
+        }
+        return null
+    }
+
+    private fun extractFunction(js: String, name: String): String? {
+        val patterns = listOf(
+            Regex("""var\s+${Regex.escape(name)}\s*=\s*function\s*\(([a-z,]+)\)\{"""),
+            Regex("""function\s+${Regex.escape(name)}\s*\(([a-z,]+)\)\{"""),
+            Regex("""${Regex.escape(name)}\s*=\s*function\s*\(([a-z,]+)\)\{""")
         )
         
         for (pattern in patterns) {

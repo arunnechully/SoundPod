@@ -39,9 +39,12 @@ class YoutubeStreamExtractor(private val url: String) {
             val streamingData = playerResponse?.streamingData ?: return emptyList()
             val combined = (streamingData.adaptiveFormats.orEmpty() + streamingData.formats.orEmpty())
             
-            return combined
+            val streams = combined
                 .filter { it.mimeType.startsWith("audio/") }
                 .map { AudioStream(it) }
+            
+            println("SoundPod-Extractor: Found ${streams.size} audio streams for $videoId")
+            return streams
         }
 
     val videoStreams: List<Stream>
@@ -52,9 +55,12 @@ class YoutubeStreamExtractor(private val url: String) {
             val streamingData = playerResponse?.streamingData ?: return emptyList()
             val combined = (streamingData.adaptiveFormats.orEmpty() + streamingData.formats.orEmpty())
             
-            return combined
+            val streams = combined
                 .filter { it.mimeType.startsWith("video/") }
                 .map { VideoStream(it) }
+            
+            println("SoundPod-Extractor: Found ${streams.size} video streams for $videoId")
+            return streams
         }
 
     interface Stream {
