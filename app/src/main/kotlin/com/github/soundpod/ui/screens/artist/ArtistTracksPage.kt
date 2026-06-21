@@ -11,6 +11,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import com.github.innertube.Innertube
 import com.github.innertube.requests.itemsPage
@@ -28,6 +29,7 @@ import com.github.soundpod.ui.items.SongItem
 import com.github.soundpod.ui.screens.search.ItemsPage
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlayAtIndex
+import com.github.soundpod.viewmodels.ItemsPageViewModel
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @UnstableApi
@@ -36,7 +38,8 @@ fun ArtistTracksPage(
     browseId: String,
     params: String? = null,
     onAlbumClick: (String) -> Unit,
-    onArtistClick: (String) -> Unit
+    onArtistClick: (String) -> Unit,
+    initialItems: List<Innertube.SongItem>? = null
 ) {
     val binder = LocalPlayerServiceBinder.current
     val menuState = LocalMenuState.current
@@ -46,6 +49,13 @@ fun ArtistTracksPage(
     var sortOrder by rememberSaveable { mutableStateOf(SortOrder.Ascending) }
 
     val tag = "artistSongs/$browseId/${params ?: ""}/list"
+    val viewModel: ItemsPageViewModel<Innertube.SongItem> = viewModel()
+
+    androidx.compose.runtime.LaunchedEffect(tag, initialItems) {
+        if (initialItems != null && !viewModel.itemsMap.containsKey(tag)) {
+            viewModel.setItems(tag, Innertube.ItemsPage(items = initialItems, continuation = null))
+        }
+    }
     
     Box(modifier = Modifier.fillMaxSize()) {
         androidx.compose.runtime.key(sortBy, sortOrder) {
@@ -81,6 +91,8 @@ fun ArtistTracksPage(
                 },
                 itemsPageProvider = { continuation ->
                     if (continuation == null) {
+                        if (initialItems != null) return@ItemsPage null
+
                         Innertube.itemsPage(
                             browseId = browseId,
                             params = params,

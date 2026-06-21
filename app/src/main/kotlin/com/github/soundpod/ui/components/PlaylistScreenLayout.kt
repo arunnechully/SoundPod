@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
+import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.R
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -78,6 +79,7 @@ fun PlaylistScreenLayout(
         containerColor = colorPalette.background4,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
+        val playerPadding = LocalPlayerPadding.current
         val statusBarHeight = WindowInsets.statusBars.asPaddingValues(density).calculateTopPadding()
         val topBarHeight = 64.dp + statusBarHeight
         val topBarHeightPx = with(density) { topBarHeight.toPx() }
@@ -85,7 +87,7 @@ fun PlaylistScreenLayout(
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = innerPadding.calculateBottomPadding())
+                .padding(bottom = innerPadding.calculateBottomPadding() + playerPadding)
         ) {
             val fullHeightPx = constraints.maxHeight.toFloat()
             // Dynamic peek height: approximately 45% of screen height, but with sensible bounds

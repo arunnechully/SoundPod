@@ -1,0 +1,4 @@
+• New top-level Favorites tab with unified grid UI
+• Overhauled extraction engine using Duktape & NewPipe
+• Experimental authenticated login via session scraping
+• Fixed mini-player overlap & optimized Artist pages

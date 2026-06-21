@@ -194,7 +194,9 @@ fun ArtistScreen(
             if (tabs.isNotEmpty()) {
                 HorizontalPager(
                     state = pagerState,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = playerPadding),
                     verticalAlignment = Alignment.Top
                 ) { pageIndex ->
                     val tab = tabs[pageIndex].first
@@ -209,17 +211,20 @@ fun ArtistScreen(
                             browseId = artistPage?.songsEndpoint?.browseId ?: browseId,
                             params = artistPage?.songsEndpoint?.params,
                             onAlbumClick = onAlbumClick,
-                            onArtistClick = onArtistClick
+                            onArtistClick = onArtistClick,
+                            initialItems = if (artistPage?.songsEndpoint == null) artistPage?.songs else null
                         )
                         ArtistTab.Albums -> ArtistAlbumsPage(
                             browseId = artistPage?.albumsEndpoint?.browseId ?: browseId,
                             params = artistPage?.albumsEndpoint?.params,
-                            onAlbumClick = onAlbumClick
+                            onAlbumClick = onAlbumClick,
+                            initialItems = if (artistPage?.albumsEndpoint == null) artistPage?.albums else null
                         )
                         ArtistTab.Singles -> ArtistAlbumsPage(
                             browseId = artistPage?.singlesEndpoint?.browseId ?: browseId,
                             params = artistPage?.singlesEndpoint?.params,
-                            onAlbumClick = onAlbumClick
+                            onAlbumClick = onAlbumClick,
+                            initialItems = if (artistPage?.singlesEndpoint == null) artistPage?.singles else null
                         )
                     }
                 }
