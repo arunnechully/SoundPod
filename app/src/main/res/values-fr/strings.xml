@@ -94,13 +94,13 @@
     <string name="song_count">Nombre de titres</string>
     <string name="artist">Artiste</string>
     <string name="edit_lyrics">Modifier les paroles</string>
-    <string name="youtube_account">YouTube account</string>
-    <string name="youtube_account_description">Logged in to YouTube</string>
-    <string name="sign_in">Sign in</string>
-    <string name="sign_in_description">Sign in to access your library</string>
-    <string name="sign_out">Sign out</string>
-    <string name="sign_out_description">Clear session and cookies</string>
-    <string name="account">Account</string>
+    <string name="youtube_account">Compte YouTube</string>
+    <string name="youtube_account_description">Connecté à YouTube</string>
+    <string name="sign_in">Se connecter</string>
+    <string name="sign_in_description">Connectez-vous pour accéder à votre bibliothèque</string>
+    <string name="sign_out">Se déconnecter</string>
+    <string name="sign_out_description">Effacer la session et les cookies</string>
+    <string name="account">Compte</string>
     <string name="search_lyrics_online">Rechercher des paroles en ligne</string>
     <plurals name="number_of_songs">
         <item quantity="one">%d titre</item>
@@ -160,7 +160,7 @@
     <string name="most_played">Les plus joués</string>
     <string name="trending">Tendances</string>
     <string name="last_played">Joués dernièrement</string>
-    <string name="recommended">Recommended</string>
+    <string name="recommended">Recommandé</string>
     <string name="general">Général</string>
     <string name="history">Historique</string>
     <string name="quick_picks_source">Source de Sélection Rapide</string>
@@ -354,6 +354,6 @@
     <string name="favorite_tracks">Favorite Tracks</string>
     <string name="favorite_albums">Favorite Albums</string>
     <string name="favorite_artists">Favorite Artists</string>
-    <string name="no_favorites">No favorites</string>
-    <string name="no_favorites_description">Tap the heart icon on songs, albums, or artists to add them to your favorites.</string>
+    <string name="no_favorites">Aucun favori</string>
+    <string name="no_favorites_description">Appuyez sur l\'icône en forme de cœur à côté des titres, des albums ou des artistes pour les ajouter à vos favoris.</string>
 </resources>
