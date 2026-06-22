@@ -62,3 +62,7 @@
     public protected <methods>;
 }
 -dontwarn org.mozilla.javascript.tools.**
+
+# Rhino optional dependencies not available on Android
+-dontwarn javax.script.**
+-dontwarn jdk.dynalink.**
