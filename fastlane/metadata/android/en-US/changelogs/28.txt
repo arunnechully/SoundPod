@@ -1,0 +1,7 @@
+• Fixed playback issues with NewPipe extractor fallback
+• Optimized thumbnail loading for faster list scrolling
+• Improved bandwidth efficiency with dynamic image sizing
+• Fixed thumbnail resolution issues on high-DPI screens
+• Enhanced playback stability with new networking engine
+• Improved recovery from regional connection resets
+• General performance improvements and bug fixes

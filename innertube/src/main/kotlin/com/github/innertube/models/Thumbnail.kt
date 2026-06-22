@@ -16,7 +16,7 @@ data class Thumbnail(
             url.startsWith("https://lh3.googleusercontent.com") ||
             url.startsWith("https://yt3.ggpht.com") -> {
                 val cleanUrl = url.substringBefore("=")
-                "$cleanUrl=w1024-h1024-p-l100-rj"
+                "$cleanUrl=w$size-h$size-p-l100-rj"
             }
             else -> url
         }

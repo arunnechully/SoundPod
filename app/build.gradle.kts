@@ -23,8 +23,8 @@ extensions.configure<ApplicationExtension>("android") {
         applicationId = "com.github.soundpod"
         minSdk = 23
         targetSdk = 37
-        versionCode = 27
-        versionName = "1.3.2"
+        versionCode = 28
+        versionName = "1.3.3"
     }
 
     flavorDimensions += "store"
@@ -160,6 +160,8 @@ dependencies {
     implementation(project(":innertube"))
 
     implementation(libs.newpipe.extractor)
+
+    testImplementation(libs.junit)
 
     coreLibraryDesugaring(libs.desugaring)
 }

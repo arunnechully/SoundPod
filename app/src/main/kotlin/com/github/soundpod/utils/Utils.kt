@@ -92,14 +92,19 @@ fun String?.thumbnail(size: Int): String? {
     if (this == null) return null
 
     if (this.contains("i.ytimg.com")) {
-        return this.replace("hqdefault.jpg", "maxresdefault.jpg")
-            .replace("mqdefault.jpg", "maxresdefault.jpg")
-            .replace("sddefault.jpg", "maxresdefault.jpg")
+        val quality = when {
+            size <= 120 -> "default.jpg"
+            size <= 320 -> "mqdefault.jpg"
+            size <= 480 -> "hqdefault.jpg"
+            size <= 640 -> "sddefault.jpg"
+            else -> "maxresdefault.jpg"
+        }
+        return this.replace(Regex("(default|mqdefault|hqdefault|sddefault|maxresdefault|hq720)\\.jpg"), quality)
     }
 
     if (this.contains("googleusercontent.com") || this.contains("ggpht.com")) {
         val cleanUrl = this.substringBefore("=")
-        return "$cleanUrl=w1024-h1024-p-l100-rj"
+        return "$cleanUrl=w$size-h$size-p-l100-rj"
     }
 
     return this
