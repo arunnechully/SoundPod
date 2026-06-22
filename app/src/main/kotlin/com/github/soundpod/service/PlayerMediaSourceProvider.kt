@@ -7,11 +7,11 @@ import androidx.media3.common.C
 import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
-import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.ResolvingDataSource
+import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.datasource.cache.CacheDataSink
 import androidx.media3.datasource.cache.CacheDataSource
-import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy
@@ -37,6 +37,20 @@ class PlayerMediaSourceProvider(
     private val urlCache = ConcurrentHashMap<String, Triple<Uri, String?, Long>>()
     private val resolutionLocks = ConcurrentHashMap<String, ReentrantLock>()
 
+    internal val okHttpClient = Innertube.client.engine.let { engine ->
+        if (engine is io.ktor.client.engine.okhttp.OkHttpEngine) {
+            engine.config.preconfigured ?: okhttp3.OkHttpClient.Builder()
+                .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                .build()
+        } else {
+            okhttp3.OkHttpClient.Builder()
+                .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                .build()
+        }
+    }
+
     fun injectUrl(videoId: String, uri: Uri) {
         urlCache[videoId] = Triple(uri, null, System.currentTimeMillis())
     }
@@ -52,10 +66,7 @@ class PlayerMediaSourceProvider(
     }
 
     private fun createDataSourceFactory(): DataSource.Factory {
-        val httpDataSourceFactory = DefaultHttpDataSource.Factory()
-            .setConnectTimeoutMs(30000)
-            .setReadTimeoutMs(30000)
-            .setAllowCrossProtocolRedirects(true)
+        val httpDataSourceFactory = OkHttpDataSource.Factory(okHttpClient)
             .setUserAgent(null)
 
         val upstreamFactory = androidx.media3.datasource.DefaultDataSource.Factory(context, httpDataSourceFactory)
@@ -63,8 +74,7 @@ class PlayerMediaSourceProvider(
         val resolvingUpstreamFactory = ResolvingDataSource.Factory(upstreamFactory) { dataSpec ->
             val videoId = dataSpec.key ?: throw java.io.IOException("A key must be set")
             
-            val headers = mutableMapOf<String, String>()
-            Innertube.cookies?.let { headers["Cookie"] = it }
+            val headers = dataSpec.httpRequestHeaders.toMutableMap()
             
             if (videoId.startsWith("http") || videoId.startsWith("content://") || videoId.startsWith("file://")) {
                 headers["User-Agent"] = DEFAULT_USER_AGENT
@@ -166,19 +176,28 @@ private class YouTubeErrorPolicy(
         val exception = loadErrorInfo.exception
         val videoId = loadErrorInfo.loadEventInfo.dataSpec.key
         
-        val shouldRetry = when (exception) {
+        val isTransient = when (exception) {
             is HttpDataSource.InvalidResponseCodeException -> {
-                exception.responseCode == 403 || exception.responseCode == 410
+                exception.responseCode == 403 || exception.responseCode == 410 || exception.responseCode == 429
             }
             is java.net.SocketException,
             is java.net.SocketTimeoutException -> true
-            else -> false
+            else -> true
         }
 
-        if (shouldRetry && videoId != null) {
-            Log.w("SoundPod", "Retrying $videoId (transient error: $exception)")
-            urlCache.remove(videoId)
-            return 1000L
+        if (isTransient && videoId != null) {
+            val retryCount = loadErrorInfo.errorCount
+            Log.w("SoundPod", "Retrying $videoId (attempt $retryCount, transient error: $exception)")
+
+            if (exception is HttpDataSource.InvalidResponseCodeException &&
+                (exception.responseCode == 403 || exception.responseCode == 410)) {
+                urlCache.remove(videoId)
+                return 0 // Retry immediately with a fresh URL
+            } else if (retryCount >= 2) {
+                urlCache.remove(videoId)
+            }
+            
+            return (1000L * retryCount).coerceAtMost(5000L)
         }
 
         if (videoId != null) {
@@ -190,6 +209,6 @@ private class YouTubeErrorPolicy(
     }
 
     override fun getMinimumLoadableRetryCount(dataType: Int): Int {
-        return 3
+        return 6
     }
 }

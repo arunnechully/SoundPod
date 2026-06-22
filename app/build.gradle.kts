@@ -133,6 +133,7 @@ dependencies {
     implementation(libs.media)
     implementation(libs.media3.exoplayer)
     implementation(libs.media3.session)
+    implementation(libs.media3.datasource.okhttp)
     implementation(libs.reorderable)
     implementation(libs.room)
     implementation(libs.swipe)
