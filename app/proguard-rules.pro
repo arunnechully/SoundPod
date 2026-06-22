@@ -39,6 +39,26 @@
 -dontwarn java.beans.Introspector
 -dontwarn java.beans.PropertyDescriptor
 
-# Extractor reflection support
--keep class org.schabi.newpipe.extractor.** { *; }
--keep class com.github.soundpod.extractor.** { *; }
+-keep class org.schabi.newpipe.extractor.NewPipe { *; }
+-keep class org.schabi.newpipe.extractor.ServiceList { *; }
+
+-keep class org.schabi.newpipe.extractor.services.youtube.** {
+    public protected <fields>;
+    public protected <methods>;
+}
+
+-keep class org.schabi.newpipe.extractor.stream.** {
+    public protected <fields>;
+    public protected <methods>;
+}
+
+-keep class org.schabi.newpipe.extractor.downloader.** {
+    public protected <fields>;
+    public protected <methods>;
+}
+
+-keep class org.mozilla.javascript.** {
+    public protected <fields>;
+    public protected <methods>;
+}
+-dontwarn org.mozilla.javascript.tools.**

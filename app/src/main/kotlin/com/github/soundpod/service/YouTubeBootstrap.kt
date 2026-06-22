@@ -30,17 +30,28 @@ object YouTubeBootstrap {
                 val html = response.bodyAsText()
 
                 val apiKey = extractValue(html, "INNERTUBE_API_KEY")
-                val clientVersion = extractValue(html, "INNERTUBE_CLIENT_VERSION")
+                val clientName = extractValue(html, "INNERTUBE_CONTEXT_CLIENT_NAME") ?: "WEB_REMIX"
+                val clientVersion = extractValue(html, "INNERTUBE_CONTEXT_CLIENT_VERSION")
                 val visitorData = extractValue(html, "VISITOR_DATA")
+                var poToken: String? = extractValue(html, "PO_TOKEN") ?: extractPoTokenFromConfig(html)
+                
+                if (poToken == null) {
+                    Log.d(TAG, "poToken null, trying iframe_api fallback...")
+                    poToken = fetchPoTokenViaIframe()
+                }
+
                 val jsUrl = extractJsUrl(html)
 
-                Log.d(TAG, "Extracted: apiKey=$apiKey, version=$clientVersion, visitorData=$visitorData, jsUrl=$jsUrl")
+                Log.i(TAG, "BOOTSTRAP_DEBUG: Extracted clientName=$clientName, clientVersion=$clientVersion")
+                Log.d(TAG, "BOOTSTRAP_DEBUG: Extracted apiKey=$apiKey, visitorData=$visitorData, poToken=$poToken, jsUrl=$jsUrl")
 
                 if (apiKey != null || clientVersion != null || visitorData != null || jsUrl != null) {
                     YouTubeSessionManager.updateSession(
                         apiKey = apiKey,
+                        clientName = clientName,
                         clientVersion = clientVersion,
                         visitorData = visitorData,
+                        poToken = poToken,
                         jsUrl = jsUrl
                     )
                     Log.i(TAG, "Bootstrap successful: Applied dynamic session values")
@@ -57,6 +68,30 @@ object YouTubeBootstrap {
         // Matches "key":"value" or "key": "value"
         val regex = Regex(""""$key"\s*:\s*"([^"]+)"""")
         return regex.find(html)?.groupValues?.get(1)
+    }
+
+    private fun extractPoTokenFromConfig(html: String): String? {
+        // Look for poToken inside serviceIntegrityDimensions or placeholderToken in ytcfg
+        val patterns = listOf(
+            Regex(""""poToken"\s*:\s*"([^"]+)""""),
+            Regex(""""placeholderToken"\s*:\s*"([^"]+)""""),
+            Regex(""""integrityToken"\s*:\s*"([^"]+)"""")
+        )
+        for (pattern in patterns) {
+            pattern.find(html)?.groupValues?.get(1)?.let { return it }
+        }
+        return null
+    }
+
+    private suspend fun fetchPoTokenViaIframe(): String? {
+        return try {
+            val response = client.get("https://www.youtube.com/iframe_api")
+            val content = response.bodyAsText()
+            extractValue(content, "poToken") ?: extractPoTokenFromConfig(content)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to fetch poToken via iframe_api", e)
+            null
+        }
     }
 
     private fun extractJsUrl(html: String): String? {

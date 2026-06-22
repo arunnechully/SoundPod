@@ -40,14 +40,17 @@ data class PlayerResponse(
             get() {
                 val combined = adaptiveFormats.orEmpty() + formats.orEmpty()
                 val audioFormats = combined.filter { (it.url != null || it.signatureCipher != null) && it.mimeType.startsWith("audio/") }
+                
                 if (audioFormats.isNotEmpty()) {
-                    return audioFormats.find { it.itag == 251 }
-                        ?: audioFormats.find { it.itag == 140 }
-                        ?: audioFormats.find { it.itag == 250 }
-                        ?: audioFormats.find { it.itag == 249 }
-                        ?: audioFormats.find { it.itag == 139 }
+                    // Strictly prioritize Opus (itag 251, 250, 249) over AAC (itag 140, 139)
+                    return audioFormats.find { it.itag == 251 } // Opus 160kbps
+                        ?: audioFormats.find { it.itag == 250 } // Opus 64kbps
+                        ?: audioFormats.find { it.itag == 249 } // Opus 48kbps
+                        ?: audioFormats.find { it.itag == 140 } // AAC 128kbps
+                        ?: audioFormats.find { it.itag == 139 } // AAC 48kbps
                         ?: audioFormats.maxByOrNull { it.bitrate ?: 0L }
                 }
+
                 return combined.find { (it.url != null || it.signatureCipher != null) && it.mimeType.startsWith("video/") }
             }
 

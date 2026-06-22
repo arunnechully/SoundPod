@@ -63,16 +63,17 @@ class PreCacheManager(
         Log.d("SoundPod-PreCache", "⏳ Pre-caching $videoId...")
 
         // 2. Fetch PlayerResponse
-        val response = Innertube.player(videoId)?.getOrNull()
-        if (response == null) {
+        val result = Innertube.player(videoId)?.getOrNull()
+        if (result == null) {
             Log.e("SoundPod-PreCache", "❌ Failed to get metadata for $videoId")
             return
         }
+        val response = result.response
         
         // 3. Early resolution injection
         NewPipeDownloader.getInstance().preCache(videoId, response)
         val bestFormat = response.streamingData?.highestQualityFormat
-        val uri = bestFormat?.url?.toUri()
+        val uri = bestFormat?.url?.let { it.toUri() }
         
         if (uri != null) {
             mediaSourceProvider.injectUrl(videoId, uri)

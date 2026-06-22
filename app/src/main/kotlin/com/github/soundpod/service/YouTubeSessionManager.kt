@@ -16,6 +16,7 @@ object YouTubeSessionManager {
         visitorData: String? = null,
         poToken: String? = null,
         apiKey: String? = null,
+        clientName: String? = null,
         clientVersion: String? = null,
         jsUrl: String? = null,
         cookies: String? = null,
@@ -27,6 +28,7 @@ object YouTubeSessionManager {
         visitorData?.let { Innertube.visitorData = it }
         poToken?.let { Innertube.poToken = it }
         apiKey?.let { Innertube.apiKey = it }
+        clientName?.let { Innertube.clientName = it }
         clientVersion?.let { Innertube.clientVersion = it }
         
         jsUrl?.let { 

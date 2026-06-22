@@ -30,6 +30,7 @@ object YouTubeDecipherer {
                 Duktape.create().use { duktape ->
                     duktape.evaluate(script)
                     val result = duktape.evaluate("$funcName('$n')") as String
+                    Log.d(TAG, "Successfully deciphered n: $n -> $result")
                     result
                 }
             } catch (e: Exception) {

@@ -1,6 +1,8 @@
 package com.github.soundpod.extractor
 
 import com.github.innertube.Innertube
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -11,24 +13,39 @@ import org.schabi.newpipe.extractor.downloader.Request
 import org.schabi.newpipe.extractor.downloader.Response
 
 class KtorDownloader : Downloader() {
+    companion object {
+        private const val DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+    }
+
+    private val client = HttpClient(OkHttp) {
+        followRedirects = true
+    }
+
     override fun execute(request: Request): Response {
         val url = request.url()
         val method = request.httpMethod()
         val headers = request.headers()
-        // val body = request.data // Troubleshooting data error
-        val body: ByteArray? = null 
+        val body = request.dataToSend()
 
         return runBlocking {
             try {
-                val response = Innertube.client.request(url) {
+                val response = client.request(url) {
                     this.method = HttpMethod.parse(method)
                     headers.forEach { (key, values) ->
                         values.forEach { value -> header(key, value) }
                     }
-                    if (body != null) {
+                    
+                    if (headers.none { it.key.equals("User-Agent", ignoreCase = true) }) {
+                        header("User-Agent", DEFAULT_USER_AGENT)
+                    }
+                    
+                    if (body != null && body.isNotEmpty()) {
                         setBody(body)
                     }
-                    attributes.put(Innertube.Attributes.UseCookies, true)
+                    
+                    if (headers.none { it.key.equals("Cookie", ignoreCase = true) }) {
+                        Innertube.cookies?.let { header("Cookie", it) }
+                    }
                 }
 
                 val responseBody = response.bodyAsText()

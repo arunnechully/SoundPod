@@ -1,5 +1,6 @@
 package com.github.innertube.models
 
+import com.github.innertube.Innertube
 import java.util.Locale
 
 @Suppress("SpellCheckingInspection")
@@ -21,7 +22,7 @@ enum class YouTubeClient(
     ),
     TVHTML5_SIMPLY_EMBEDDED_PLAYER(
         clientName = "TVHTML5_SIMPLY_EMBEDDED_PLAYER",
-        clientVersion = "2.0",
+        clientVersion = "3.20250615.01.00",
         userAgent = "Mozilla/5.0 (PlayStation; PlayStation 4/12.02) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Safari/605.1.15",
         platform = "TV",
         clientId = "85"
@@ -39,6 +40,16 @@ enum class YouTubeClient(
         userAgent = "com.google.android.youtube.testsuite/1.9.30.1 (Linux; U; Android 14; en_US) gzip",
         osVersion = "14",
         clientId = "30"
+    ),
+    WEB_EMBEDDED_PLAYER(
+        clientName = "WEB_EMBEDDED_PLAYER",
+        clientVersion = "1.20260615.01.00",
+        userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Safari/605.1.15,gzip(gfe)"
+    ),
+    DYNAMIC(
+        clientName = "DYNAMIC",
+        clientVersion = "1.0",
+        userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
     );
 
     fun toContext(
@@ -49,8 +60,8 @@ enum class YouTubeClient(
         includeThirdParty: Boolean = false
     ) = Context(
         client = Context.Client(
-            clientName = clientName,
-            clientVersion = clientVersion,
+            clientName = if (this == DYNAMIC) Innertube.clientName ?: "WEB_REMIX" else clientName,
+            clientVersion = if (this == DYNAMIC) Innertube.clientVersion ?: clientVersion else clientVersion,
             clientId = clientId ?: "67",
             osVersion = osVersion ?: "13",
             platform = platform ?: when (this) {

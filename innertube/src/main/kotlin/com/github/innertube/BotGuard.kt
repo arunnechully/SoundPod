@@ -1,19 +1,5 @@
 package com.github.innertube
 
-import kotlinx.serialization.Serializable
-
-@Serializable
-data class BotGuardData(
-    val program: String,
-    val globalName: String,
-    val interpreterJavascript: InterpreterJavascript
-) {
-    @Serializable
-    data class InterpreterJavascript(
-        val privateDoNotAccessOrElseSafeScriptWrappedValue: String
-    )
-}
-
 object BotGuard {
     const val HTML = """<!DOCTYPE html>
 <html lang="en"><head><title></title><script>
