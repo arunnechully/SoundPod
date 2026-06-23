@@ -18,17 +18,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -51,6 +52,7 @@ fun YouTubeWebView() {
 
     val needsConsent by YouTubeSessionManager.needsConsent.collectAsState()
     val decipherRequests = remember { ConcurrentHashMap<String, CompletableDeferred<String>>() }
+    var isPageLoading by remember { mutableStateOf(true) }
 
     if (needsConsent) {
         Dialog(
@@ -60,19 +62,37 @@ fun YouTubeWebView() {
             Card(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                    .padding(vertical = 48.dp, horizontal = 16.dp),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
-                    YouTubeWebViewContent(decipherRequests)
+                    AndroidView(
+                        modifier = Modifier.fillMaxSize(),
+                        factory = { context ->
+                            WebView(context).apply {
+                                setupWebView(this, decipherRequests) { loading ->
+                                    isPageLoading = loading
+                                }
+                                loadUrl("https://music.youtube.com")
+                            }
+                        }
+                    )
+                    
+                    if (isPageLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                     
                     IconButton(
                         onClick = { YouTubeSessionManager.setNeedsConsent(false) },
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .padding(8.dp)
-                            .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(50))
+                            .padding(12.dp)
+                            .background(Color.Black.copy(alpha = 0.3f), RoundedCornerShape(50))
                     ) {
                         Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
                     }
@@ -84,7 +104,7 @@ fun YouTubeWebView() {
             modifier = Modifier.size(1.dp),
             factory = { context ->
                 WebView(context).apply {
-                    setupWebView(this, decipherRequests)
+                    setupWebView(this, decipherRequests) { }
                     loadUrl("https://music.youtube.com")
                 }
             }
@@ -93,21 +113,11 @@ fun YouTubeWebView() {
 }
 
 @SuppressLint("SetJavaScriptEnabled")
-@Composable
-private fun YouTubeWebViewContent(decipherRequests: ConcurrentHashMap<String, CompletableDeferred<String>>) {
-    AndroidView(
-        modifier = Modifier.fillMaxSize(),
-        factory = { context ->
-            WebView(context).apply {
-                setupWebView(this, decipherRequests)
-                loadUrl("https://music.youtube.com")
-            }
-        }
-    )
-}
-
-@SuppressLint("SetJavaScriptEnabled")
-private fun setupWebView(webView: WebView, decipherRequests: ConcurrentHashMap<String, CompletableDeferred<String>>) {
+private fun setupWebView(
+    webView: WebView, 
+    decipherRequests: ConcurrentHashMap<String, CompletableDeferred<String>>,
+    onLoadingStatusChanged: (Boolean) -> Unit
+) {
     webView.settings.javaScriptEnabled = true
     webView.settings.domStorageEnabled = true
     webView.settings.userAgentString = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36"
@@ -115,6 +125,7 @@ private fun setupWebView(webView: WebView, decipherRequests: ConcurrentHashMap<S
     webView.webViewClient = object : WebViewClient() {
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
             super.onPageStarted(view, url, favicon)
+            onLoadingStatusChanged(true)
             if (url?.contains("consent.youtube.com") == true) {
                 Log.i("SoundPod-WebView", "Consent page detected: $url")
                 YouTubeSessionManager.setNeedsConsent(true)
@@ -123,9 +134,12 @@ private fun setupWebView(webView: WebView, decipherRequests: ConcurrentHashMap<S
 
         override fun onPageFinished(view: WebView?, url: String?) {
             super.onPageFinished(view, url)
+            onLoadingStatusChanged(false)
             
+            // If we are back on music.youtube.com and not on a consent page, we likely have what we need
             if (url?.contains("music.youtube.com") == true && !url.contains("consent")) {
-                YouTubeSessionManager.setNeedsConsent(false)
+                // We don't immediately set needsConsent = false here, 
+                // we wait for the script to successfully extract data.
             }
 
             val script = """
@@ -162,7 +176,7 @@ private fun setupWebView(webView: WebView, decipherRequests: ConcurrentHashMap<S
                             }
                             if (!data.jsUrl && text.includes('base.js')) {
                                 const match = text.match(/"js"\s*:\s*"([^"]+base\.js)"/) || text.match(/\/s\/player\/[a-zA-Z0-9]+\/player_ias\.vflset\/[a-zA-Z0-9_\/.]+\/base\.js/);
-                                if (match) data.jsUrl = Array.isArray(match) ? match[match.length-1] : match;
+                                if (match) data.jsUrl = Array.isArray(match) ? match[match.length-1] : (typeof match === 'string' ? match : null);
                             }
                         }
 
@@ -185,6 +199,9 @@ private fun setupWebView(webView: WebView, decipherRequests: ConcurrentHashMap<S
                         val jsUrl = json.optString("jsUrl").takeIf { it != "null" && it.isNotBlank() }
                         
                         if (visitorData != null) {
+                            // MAGIC MOMENT: If we successfully got visitorData, we can close the consent dialog!
+                            YouTubeSessionManager.setNeedsConsent(false)
+
                             val cookies = CookieManager.getInstance().getCookie(url)
                             Log.d("SoundPod-WebView", "Extracted Session: VisitorData=${visitorData.take(20)}..., POToken=${poToken ?: "null"}, JSUrl=$jsUrl")
                             
