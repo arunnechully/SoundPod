@@ -366,4 +366,9 @@
     <string name="favorite_artists">Favorite Artists</string>
     <string name="no_favorites">No favorites</string>
     <string name="no_favorites_description">Tap the heart icon on songs, albums, or artists to add them to your favorites.</string>
+
+    <string name="youtube_session">YouTube Session</string>
+    <string name="consent_granted">Consent: Granted</string>
+    <string name="consent_required">Consent: Required</string>
+    <string name="renew_consent">Renew Consent</string>
 </resources>

@@ -100,6 +100,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 ),
                 SettingsSection(
                     listOf(
+                        SettingOption(title = R.string.youtube_session, icon = Icons.Default.Person, screenId = SettingsDestinations.YOUTUBE)
+                    )
+                ),
+                SettingsSection(
+                    listOf(
                         SettingOption(title = R.string.privacy, icon = Icons.Default.PrivacyTip, screenId = SettingsDestinations.PRIVACY)
                     )
                 ),
