@@ -144,7 +144,7 @@ dependencies {
     implementation(libs.compose.lottie)
     implementation(libs.datastore.preferences)
     implementation(libs.ui.geometry)
-    implementation(libs.duktape)
+    implementation(libs.rhino)
 
     implementation(project(":extractor"))
     implementation(libs.kotlin.coroutines)

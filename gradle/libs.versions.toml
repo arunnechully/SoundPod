@@ -30,7 +30,7 @@ core-splashscreen = "1.2.0"
 material = "1.14.0"
 detekt = "1.23.8"
 work-runtime-ktx = "2.11.2"
-duktape = "1.4.0"
+rhino = "1.7.15"
 newpipe-extractor = "v0.26.3"
 
 
@@ -86,7 +86,7 @@ detekt_formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", 
 palette = { module = "androidx.palette:palette", version = "1.0.0" }
 compose_lottie = { module = "com.airbnb.android:lottie-compose", version = "6.7.1" }
 work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work-runtime-ktx" }
-duktape = { module = "com.squareup.duktape:duktape-android", version.ref = "duktape" }
+rhino = { module = "org.mozilla:rhino", version.ref = "rhino" }
 newpipe-extractor = { group = "com.github.TeamNewPipe", name = "NewPipeExtractor", version.ref = "newpipe-extractor" }
 
 

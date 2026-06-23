@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.github.innertube.BotGuard
@@ -23,6 +24,11 @@ import java.util.concurrent.ConcurrentHashMap
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun YouTubeWebView() {
+    if (!isWebViewAvailable(LocalContext.current)) {
+        Log.w("SoundPod-WebView", "WebView not available, skipping background WebView initialization")
+        return
+    }
+
     val decipherRequests = remember { ConcurrentHashMap<String, CompletableDeferred<String>>() }
 
     AndroidView(
@@ -104,13 +110,13 @@ fun YouTubeWebView() {
                                             jsUrl = jsUrl,
                                             cookies = cookies,
                                             decipher = { nParam ->
-                                                // Try Duktape first, fallback to WebView
+                                                // Try Rhino first, fallback to WebView
                                                 val result = YouTubeDecipherer.decipher(nParam)
                                                 if (result != nParam) {
-                                                    Log.d("SoundPod-WebView", "Successfully deciphered via Duktape: $nParam -> $result")
+                                                    Log.d("SoundPod-WebView", "Successfully deciphered via Rhino: $nParam -> $result")
                                                     result
                                                 } else {
-                                                    Log.w("SoundPod-WebView", "Duktape failed, falling back to WebView for deciphering")
+                                                    Log.w("SoundPod-WebView", "Rhino failed, falling back to WebView for deciphering")
                                                     val deferred = CompletableDeferred<String>()
                                                     val requestId = System.currentTimeMillis().toString() + nParam
                                                     decipherRequests[requestId] = deferred
@@ -171,4 +177,14 @@ private fun injectDecipherScript(webView: WebView?) {
         }
     """.trimIndent()
     webView?.evaluateJavascript(script) { }
+}
+
+fun isWebViewAvailable(context: android.content.Context): Boolean {
+    return try {
+        // This will throw if the WebView package is missing or disabled
+        CookieManager.getInstance()
+        true
+    } catch (_: Exception) {
+        false
+    }
 }

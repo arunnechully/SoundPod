@@ -172,36 +172,50 @@ private class YouTubeErrorPolicy(
     private val urlCache: ConcurrentHashMap<String, Triple<Uri, String?, Long>>
 ) : DefaultLoadErrorHandlingPolicy() {
 
+    private fun isTransient(exception: Throwable): Boolean {
+        var cause: Throwable? = exception
+        while (cause != null) {
+            if (cause is java.net.SocketException ||
+                cause is java.net.SocketTimeoutException ||
+                cause is java.net.UnknownHostException ||
+                cause is java.net.ConnectException ||
+                cause is java.io.InterruptedIOException ||
+                cause is javax.net.ssl.SSLException) {
+                return true
+            }
+            if (cause is HttpDataSource.InvalidResponseCodeException) {
+                val code = cause.responseCode
+                return code == 403 || code == 410 || code == 429
+            }
+            cause = cause.cause
+        }
+        return false
+    }
+
     override fun getRetryDelayMsFor(loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo): Long {
         val exception = loadErrorInfo.exception
         val videoId = loadErrorInfo.loadEventInfo.dataSpec.key
-        
-        val isTransient = when (exception) {
-            is HttpDataSource.InvalidResponseCodeException -> {
-                exception.responseCode == 403 || exception.responseCode == 410 || exception.responseCode == 429
-            }
-            is java.net.SocketException,
-            is java.net.SocketTimeoutException -> true
-            else -> true
-        }
+        val retryCount = loadErrorInfo.errorCount
 
-        if (isTransient && videoId != null) {
-            val retryCount = loadErrorInfo.errorCount
+        if (isTransient(exception) && videoId != null) {
             Log.w("SoundPod", "Retrying $videoId (attempt $retryCount, transient error: $exception)")
 
-            if (exception is HttpDataSource.InvalidResponseCodeException &&
-                (exception.responseCode == 403 || exception.responseCode == 410)) {
-                urlCache.remove(videoId)
-                return 0 // Retry immediately with a fresh URL
-            } else if (retryCount >= 2) {
-                urlCache.remove(videoId)
+            var cause: Throwable? = exception
+            while (cause != null) {
+                if (cause is HttpDataSource.InvalidResponseCodeException &&
+                    (cause.responseCode == 403 || cause.responseCode == 410)) {
+                    
+                    urlCache.remove(videoId)
+                    return if (retryCount <= 1) 0 else (1000L * retryCount).coerceAtMost(10000L)
+                }
+                cause = cause.cause
             }
             
-            return (1000L * retryCount).coerceAtMost(5000L)
+            return (1000L * retryCount).coerceAtMost(10000L)
         }
 
         if (videoId != null) {
-            Log.e("SoundPod", "Fatal error for $videoId: $exception")
+            Log.e("SoundPod", "Fatal error for $videoId (count $retryCount): $exception")
             urlCache.remove(videoId)
         }
 
@@ -209,6 +223,6 @@ private class YouTubeErrorPolicy(
     }
 
     override fun getMinimumLoadableRetryCount(dataType: Int): Int {
-        return 6
+        return 3
     }
 }

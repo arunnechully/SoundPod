@@ -10,12 +10,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,11 +26,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.github.innertube.Innertube
 import com.github.soundpod.R
 import com.github.soundpod.service.YouTubeSessionManager
 import com.github.soundpod.ui.common.IconSource
+import com.github.soundpod.ui.components.isWebViewAvailable
 import com.github.soundpod.ui.navigation.SettingsDestinations
 
 @Composable
@@ -67,6 +71,19 @@ fun AccountSettingsContent(onOptionClick: (String) -> Unit) {
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun LoginSettingsContent(onBack: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    if (!isWebViewAvailable(context)) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(
+                text = "WebView is required for Login. Please install or enable Android System WebView.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+        return
+    }
+
     var isLoading by remember { mutableStateOf(value = true) }
 
     Box(

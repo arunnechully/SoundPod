@@ -35,7 +35,9 @@ import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,6 +64,7 @@ import com.github.soundpod.enums.AppThemeColor
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.service.PlayerService
 import com.github.soundpod.github.UpdateCheckWorker
+import com.github.soundpod.service.YouTubeSessionManager
 import com.github.soundpod.ui.components.YouTubeWebView
 import com.github.soundpod.ui.navigation.MainNavigation
 import com.github.soundpod.ui.navigation.Routes
@@ -161,6 +164,7 @@ class MainActivity : ComponentActivity() {
             )
 
             val appTheme by rememberPreference(appTheme, AppThemeColor.System)
+            val isBootstrapped by YouTubeSessionManager.isBootstrapped.collectAsState()
 
             val darkTheme = when (appTheme) {
                 AppThemeColor.System -> isSystemInDarkTheme()
@@ -183,7 +187,9 @@ class MainActivity : ComponentActivity() {
                 usePureBlack = false,
                 useMaterialNeutral = false,
             ) {
-                YouTubeWebView()
+                if (!isBootstrapped) {
+                    YouTubeWebView()
+                }
                 Box(
                     modifier = Modifier.fillMaxSize()
                 ) {

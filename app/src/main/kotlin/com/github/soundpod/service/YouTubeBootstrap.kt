@@ -52,7 +52,8 @@ object YouTubeBootstrap {
                         clientVersion = clientVersion,
                         visitorData = visitorData,
                         poToken = poToken,
-                        jsUrl = jsUrl
+                        jsUrl = jsUrl,
+                        isFromBootstrap = true
                     )
                     Log.i(TAG, "Bootstrap successful: Applied dynamic session values")
                 } else {
@@ -65,9 +66,16 @@ object YouTubeBootstrap {
     }
 
     private fun extractValue(html: String, key: String): String? {
-        // Matches "key":"value" or "key": "value"
-        val regex = Regex(""""$key"\s*:\s*"([^"]+)"""")
-        return regex.find(html)?.groupValues?.get(1)
+        // Matches "key":"value", "key": "value", or key: "value"
+        val patterns = listOf(
+            Regex(""""$key"\s*:\s*"([^"]+)""""),
+            Regex("""$key\s*:\s*"([^"]+)""""),
+            Regex("""'$key'\s*:\s*'([^']+)'""")
+        )
+        for (pattern in patterns) {
+            pattern.find(html)?.groupValues?.get(1)?.let { return it }
+        }
+        return null
     }
 
     private fun extractPoTokenFromConfig(html: String): String? {
@@ -75,7 +83,8 @@ object YouTubeBootstrap {
         val patterns = listOf(
             Regex(""""poToken"\s*:\s*"([^"]+)""""),
             Regex(""""placeholderToken"\s*:\s*"([^"]+)""""),
-            Regex(""""integrityToken"\s*:\s*"([^"]+)"""")
+            Regex(""""integrityToken"\s*:\s*"([^"]+)""""),
+            Regex("""\\?["']poToken\\?["']\s*[:=]\s*\\?["']([^\\"']+)""")
         )
         for (pattern in patterns) {
             pattern.find(html)?.groupValues?.get(1)?.let { return it }

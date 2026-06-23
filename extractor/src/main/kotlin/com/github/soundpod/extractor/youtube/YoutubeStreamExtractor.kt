@@ -22,8 +22,8 @@ class YoutubeStreamExtractor(private val url: String) {
                 val extractor = ServiceList.YouTube.getStreamExtractor(url)
                 extractor.fetchPage()
                 realExtractor = extractor as? org.schabi.newpipe.extractor.services.youtube.extractors.YoutubeStreamExtractor
-            } catch (e: Exception) {
-                // Silently fail or log minimally
+            } catch (_: Exception) {
+                // Silently fail
             }
         }
     }

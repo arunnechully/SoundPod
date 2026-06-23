@@ -11,6 +11,7 @@ import com.github.innertube.Innertube
 import com.github.innertube.requests.player
 import com.github.soundpod.NewPipeDownloader
 import com.github.soundpod.db
+import com.github.soundpod.extractor.ServiceList
 import com.github.soundpod.models.PrecachedSong
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -60,33 +61,45 @@ class PreCacheManager(
         Log.d("SoundPod-PreCache", "⏳ Pre-caching $videoId...")
 
         val result = Innertube.player(videoId)?.getOrNull()
-        if (result == null) {
-            Log.e("SoundPod-PreCache", "Failed to get metadata for $videoId")
-            return
-        }
-        val response = result.response
-
-        NewPipeDownloader.getInstance().preCache(videoId, response)
-        val bestFormat = response.streamingData?.highestQualityFormat
-        val uri = bestFormat?.url?.toUri()
-        val userAgent = result.userAgent
+        val response = result?.response
         
+        if (response != null) {
+            NewPipeDownloader.getInstance().preCache(videoId, response)
+        }
+
+        var uri = response?.streamingData?.highestQualityFormat?.url?.toUri()
+        var userAgent = result?.userAgent
+
+        if (uri == null) {
+            Log.w("SoundPod-PreCache", "Innertube failed for $videoId, falling back to NewPipe")
+            runCatching {
+                val extractor = ServiceList.YouTube.getStreamExtractor("https://www.youtube.com/watch?v=$videoId")
+                extractor.fetchPage()
+                val bestAudio = extractor.audioStreams
+                    .filter { it.codec?.lowercase() == "opus" }
+                    .maxByOrNull { it.averageBitrate }
+                    ?: extractor.audioStreams.maxByOrNull { it.averageBitrate }
+                
+                uri = bestAudio?.content?.toUri()
+                userAgent = null
+            }.onFailure { e ->
+                Log.e("SoundPod-PreCache", "NewPipe fallback failed for $videoId", e)
+            }
+        }
+
         if (uri != null) {
             mediaSourceProvider.injectUrl(videoId, uri)
         } else {
-            Log.w("SoundPod-PreCache", "No direct URL found for $videoId, pre-fetch might be partial")
-            // Resolve via Provider if needed (this might be slower but safer)
-            runCatching { mediaSourceProvider.resolveUrl(videoId) }
+            Log.w("SoundPod-PreCache", "No direct URL found for $videoId after fallback")
             return
         }
 
-        // 4. Download first 1MB
         val dataSpec = DataSpec.Builder()
             .setUri(uri)
             .setKey(videoId)
             .setPosition(0)
-            .setLength(1024 * 1024L)
-            .setHttpRequestHeaders(mapOf("User-Agent" to userAgent))
+            .setLength(256 * 1024L)
+            .setHttpRequestHeaders(userAgent?.let { mapOf("User-Agent" to it) } ?: emptyMap())
             .build()
 
         val upstreamDataSource = OkHttpDataSource.Factory(mediaSourceProvider.okHttpClient)
@@ -100,9 +113,9 @@ class PreCacheManager(
         try {
             CacheWriter(cacheDataSource, dataSpec, null, null).cache()
             db.insert(PrecachedSong(videoId))
-            Log.i("SoundPod-PreCache", "✨ Successfully buffered 1MB for $videoId")
+            Log.i("SoundPod-PreCache", "Successfully buffered 256KB for $videoId")
         } catch (e: Exception) {
-            Log.e("SoundPod-PreCache", "❌ Caching failed for $videoId: ${e.message}")
+            Log.e("SoundPod-PreCache", "Caching failed for $videoId: ${e.message}")
         }
     }
 

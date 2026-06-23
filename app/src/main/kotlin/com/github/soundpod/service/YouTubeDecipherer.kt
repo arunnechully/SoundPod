@@ -2,11 +2,11 @@ package com.github.soundpod.service
 
 import android.util.Log
 import com.github.innertube.Innertube
-import com.squareup.duktape.Duktape
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.mozilla.javascript.Context
 import java.util.concurrent.atomic.AtomicReference
 
 object YouTubeDecipherer {
@@ -27,14 +27,20 @@ object YouTubeDecipherer {
         
         return withContext(Dispatchers.Default) {
             try {
-                Duktape.create().use { duktape ->
-                    duktape.evaluate(script)
-                    val result = duktape.evaluate("$funcName('$n')") as String
-                    Log.d(TAG, "Successfully deciphered n: $n -> $result")
-                    result
+                val rhino = Context.enter()
+                rhino.optimizationLevel = -1
+                try {
+                    val scope = rhino.initSafeStandardObjects()
+                    rhino.evaluateString(scope, script, "JavaScript", 1, null)
+                    val result = rhino.evaluateString(scope, "$funcName('$n')", "JavaScript", 1, null)
+                    val finalResult = Context.toString(result)
+                    Log.d(TAG, "Successfully deciphered n: $n -> $finalResult")
+                    finalResult
+                } finally {
+                    Context.exit()
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to decipher n-parameter with Duktape", e)
+                Log.e(TAG, "Failed to decipher n-parameter with Rhino", e)
                 n
             }
         }
@@ -51,13 +57,18 @@ object YouTubeDecipherer {
         
         return withContext(Dispatchers.Default) {
             try {
-                Duktape.create().use { duktape ->
-                    duktape.evaluate(script)
-                    val result = duktape.evaluate("$funcName('$s')") as String
-                    result
+                val rhino = Context.enter()
+                rhino.optimizationLevel = -1
+                try {
+                    val scope = rhino.initSafeStandardObjects()
+                    rhino.evaluateString(scope, script, "JavaScript", 1, null)
+                    val result = rhino.evaluateString(scope, "$funcName('$s')", "JavaScript", 1, null)
+                    Context.toString(result)
+                } finally {
+                    Context.exit()
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to decipher signature with Duktape", e)
+                Log.e(TAG, "Failed to decipher signature with Rhino", e)
                 s
             }
         }
@@ -109,8 +120,8 @@ object YouTubeDecipherer {
     private fun extractDecipherFunctionName(js: String): String? {
         val patterns = listOf(
             Regex("""\.get\("n"\)\)&&\(b=([a-zA-Z0-9$]+)\(b\)"""),
-            Regex("""([a-zA-Z0-9$]+)\s*=\s*function\([a-z]\)\{var\s+[a-z]=\[.*\];[a-z]\.set\("n",[a-z]\)"""),
-            Regex("""([a-zA-Z0-9$]+)=function\([a-z]\)\{var\s+[a-z]=\[.*\];[a-z]\.set\("n",[a-z]\)""")
+            Regex("""([a-zA-Z0-9$]+)\s*=\s*function\([a-z]\)\{var\s+[a-z]=\[.*];[a-z]\.set\("n",[a-z]\)"""),
+            Regex("""([a-zA-Z0-9$]+)=function\([a-z]\)\{var\s+[a-z]=\[.*];[a-z]\.set\("n",[a-z]\)""")
         )
         
         for (pattern in patterns) {

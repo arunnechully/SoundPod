@@ -12,6 +12,9 @@ object YouTubeSessionManager {
     private val _isSessionReady = MutableStateFlow(false)
     val isSessionReady = _isSessionReady.asStateFlow()
 
+    private val _isBootstrapped = MutableStateFlow(false)
+    val isBootstrapped = _isBootstrapped.asStateFlow()
+
     fun updateSession(
         visitorData: String? = null,
         poToken: String? = null,
@@ -21,7 +24,8 @@ object YouTubeSessionManager {
         jsUrl: String? = null,
         cookies: String? = null,
         decipher: (suspend (String) -> String)? = null,
-        signatureDecipher: (suspend (String) -> String)? = null
+        signatureDecipher: (suspend (String) -> String)? = null,
+        isFromBootstrap: Boolean = false
     ) {
         val prefs = MainApplication.appContext.preferences
         
@@ -47,6 +51,10 @@ object YouTubeSessionManager {
         
         if (Innertube.visitorData != null) {
             _isSessionReady.value = true
+        }
+
+        if (isFromBootstrap && Innertube.visitorData != null && Innertube.apiKey != null) {
+            _isBootstrapped.value = true
         }
     }
 }

@@ -14,10 +14,10 @@ enum class YouTubeClient(
 ) {
     WEB_REMIX(
         clientName = "WEB_REMIX",
-        clientVersion = "1.20260615.01.00",
-        userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Safari/605.1.15,gzip(gfe)",
+        clientVersion = "1.20240214.01.00",
+        userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
         platform = "DESKTOP",
-        osVersion = "10_15_7",
+        osVersion = "10",
         clientId = "67"
     ),
     TVHTML5_SIMPLY_EMBEDDED_PLAYER(
@@ -72,7 +72,7 @@ enum class YouTubeClient(
             userAgent = userAgent,
             gl = gl ?: if (localized) Locale.getDefault().country.takeIf { it.length == 2 } ?: "US" else "US",
             hl = hl ?: if (localized) Locale.getDefault().language.ifBlank { "en" } else "en",
-            visitorData = visitorData ?: ""
+            visitorData = visitorData ?: Innertube.visitorData ?: ""
         ),
         thirdParty = if (includeThirdParty) Context.ThirdParty(embedUrl = "https://www.youtube.com/watch?v=") else null
     )
