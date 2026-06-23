@@ -15,6 +15,13 @@ object YouTubeSessionManager {
     private val _isBootstrapped = MutableStateFlow(false)
     val isBootstrapped = _isBootstrapped.asStateFlow()
 
+    private val _needsConsent = MutableStateFlow(false)
+    val needsConsent = _needsConsent.asStateFlow()
+
+    fun setNeedsConsent(value: Boolean) {
+        _needsConsent.value = value
+    }
+
     fun updateSession(
         visitorData: String? = null,
         poToken: String? = null,

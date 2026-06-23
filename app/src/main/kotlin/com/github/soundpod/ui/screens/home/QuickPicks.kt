@@ -36,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +55,7 @@ import com.github.soundpod.R
 import com.github.soundpod.enums.QuickPicksSource
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.query
+import com.github.soundpod.service.YouTubeSessionManager
 import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
 import com.github.soundpod.ui.components.ShimmerHost
 import com.github.soundpod.ui.components.TextPlaceholder
@@ -250,6 +252,15 @@ fun QuickPicks(
                                 Icon(imageVector = Icons.Outlined.Refresh, contentDescription = null)
                                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                                 Text(text = stringResource(id = R.string.retry))
+                            }
+
+                            val needsConsent by YouTubeSessionManager.needsConsent.collectAsState()
+                            if (needsConsent) {
+                                Button(
+                                    onClick = { YouTubeSessionManager.setNeedsConsent(true) }
+                                ) {
+                                    Text(text = "Consent")
+                                }
                             }
 
                             FilledTonalButton(onClick = onOfflinePlaylistClick) {

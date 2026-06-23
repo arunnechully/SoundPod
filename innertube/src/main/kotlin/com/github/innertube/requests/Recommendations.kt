@@ -19,11 +19,11 @@ suspend fun Innertube.recommendations(): Result<List<Innertube.SongItem>?>? = ru
     }
 
     val response = client.post(BROWSE) {
+        attributes.put(Innertube.Attributes.UseCookies, true)
         setBody(
             BrowseBody(
                 browseId = "FEmusic_home",
                 context = YouTubeClient.WEB_REMIX.toContext(
-                    hl = Locale.getDefault().language.ifBlank { "en" },
                     gl = Locale.getDefault().country.ifBlank { "US" },
                     visitorData = visitorData
                 )

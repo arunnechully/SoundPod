@@ -17,6 +17,7 @@ suspend fun <T : Innertube.Item> Innertube.searchPage(
     fromMusicShelfRendererContent: (MusicShelfRenderer.Content) -> T?
 ) = runCatchingNonCancellable {
     val response = client.post(SEARCH) {
+        attributes.put(Innertube.Attributes.UseCookies, true)
         setBody(
             SearchBody(
                 query = query,
@@ -45,6 +46,7 @@ suspend fun <T : Innertube.Item> Innertube.searchPage(
     fromMusicShelfRendererContent: (MusicShelfRenderer.Content) -> T?
 ) = runCatchingNonCancellable {
     val response = client.post(SEARCH) {
+        attributes.put(Innertube.Attributes.UseCookies, true)
         setBody(ContinuationBody(continuation = continuation))
         mask("continuationContents.musicShelfContinuation(continuations,contents.$MUSIC_RESPONSIVE_LIST_ITEM_RENDERER_MASK)")
     }.body<ContinuationResponse>()

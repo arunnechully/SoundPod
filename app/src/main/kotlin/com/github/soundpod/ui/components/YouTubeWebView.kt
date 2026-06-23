@@ -8,13 +8,33 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.github.innertube.BotGuard
 import com.github.soundpod.service.YouTubeDecipherer
 import com.github.soundpod.service.YouTubeSessionManager
@@ -29,141 +49,199 @@ fun YouTubeWebView() {
         return
     }
 
+    val needsConsent by YouTubeSessionManager.needsConsent.collectAsState()
     val decipherRequests = remember { ConcurrentHashMap<String, CompletableDeferred<String>>() }
 
-    AndroidView(
-        modifier = Modifier.size(1.dp),
-        factory = { context ->
-            WebView(context).apply {
-                settings.javaScriptEnabled = true
-                settings.domStorageEnabled = true
-                // Use the exact User Agent from the provided session for perfect alignment
-                settings.userAgentString = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Safari/605.1.15,gzip(gfe)"
-                
-                webViewClient = object : WebViewClient() {
-                    override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                        super.onPageStarted(view, url, favicon)
-                    }
-
-                    override fun onPageFinished(view: WebView?, url: String?) {
-                        super.onPageFinished(view, url)
-                        
-                        // Comprehensive data extraction script updated for the new session info
-                        val script = """
-                            (function() {
-                                try {
-                                    const ytConfig = window.yt?.config_ || window.ytcfg?.data_ || {};
-                                    const ytcfgGet = (key) => window.ytcfg && window.ytcfg.get ? window.ytcfg.get(key) : ytConfig[key];
-                                    
-                                    const data = {
-                                        visitorData: ytcfgGet('VISITOR_DATA') || ytConfig.VISITOR_DATA,
-                                        poToken: ytcfgGet('PO_TOKEN') || ytConfig.PO_TOKEN || (window.yt && window.yt.config_ ? window.yt.config_.PO_TOKEN : null),
-                                        innertubeApiKey: ytcfgGet('INNERTUBE_API_KEY') || ytConfig.INNERTUBE_API_KEY,
-                                        innertubeContext: ytcfgGet('INNERTUBE_CONTEXT') || ytConfig.INNERTUBE_CONTEXT,
-                                        clientName: ytcfgGet('INNERTUBE_CLIENT_NAME') || ytConfig.INNERTUBE_CLIENT_NAME,
-                                        clientVersion: ytcfgGet('INNERTUBE_CLIENT_VERSION') || ytConfig.INNERTUBE_CLIENT_VERSION,
-                                        jsUrl: window.ytplayer && window.ytplayer.config && window.ytplayer.config.assets ? window.ytplayer.config.assets.js : null
-                                    };
-                                    
-                                    // Deep search for PO_TOKEN if still missing
-                                    if (!data.poToken) {
-                                        const scripts = document.getElementsByTagName('script');
-                                        for (let s of scripts) {
-                                            const text = s.innerText || s.textContent;
-                                            if (text && text.includes('PO_TOKEN')) {
-                                                const match = text.match(/"PO_TOKEN"\s*:\s*"([^"]+)"/);
-                                                if (match) {
-                                                    data.poToken = match[1];
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    return JSON.stringify(data);
-                                } catch (e) {
-                                    return JSON.stringify({ error: e.message });
-                                }
-                            })()
-                        """.trimIndent()
-
-                        view?.evaluateJavascript(script) { sessionDataJson ->
-                            try {
-                                val sessionData = sessionDataJson?.replace("^\"|\"$".toRegex(), "")?.replace("\\\"", "\"")
-                                if (sessionData != null) {
-                                    val json = org.json.JSONObject(sessionData)
-                                    val visitorData = json.optString("visitorData").takeIf { it != "null" && it.isNotBlank() }
-                                    val poToken = json.optString("poToken").takeIf { it != "null" && it.isNotBlank() }
-                                    val webApiKey = json.optString("innertubeApiKey").takeIf { it != "null" && it.isNotBlank() }
-                                    val clientVersion = json.optString("clientVersion").takeIf { it != "null" && it.isNotBlank() }
-                                    val jsUrl = json.optString("jsUrl").takeIf { it != "null" && it.isNotBlank() }
-                                    
-                                    if (visitorData != null) {
-                                        val cookies = CookieManager.getInstance().getCookie(url)
-                                        Log.d("SoundPod-WebView", "Extracted Session: VisitorData=${visitorData.take(20)}..., POToken=${poToken ?: "null"}, JSUrl=$jsUrl")
-                                        
-                                        YouTubeSessionManager.updateSession(
-                                            visitorData = visitorData,
-                                            poToken = poToken,
-                                            apiKey = webApiKey,
-                                            clientVersion = clientVersion,
-                                            jsUrl = jsUrl,
-                                            cookies = cookies,
-                                            decipher = { nParam ->
-                                                // Try Rhino first, fallback to WebView
-                                                val result = YouTubeDecipherer.decipher(nParam)
-                                                if (result != nParam) {
-                                                    Log.d("SoundPod-WebView", "Successfully deciphered via Rhino: $nParam -> $result")
-                                                    result
-                                                } else {
-                                                    Log.w("SoundPod-WebView", "Rhino failed, falling back to WebView for deciphering")
-                                                    val deferred = CompletableDeferred<String>()
-                                                    val requestId = System.currentTimeMillis().toString() + nParam
-                                                    decipherRequests[requestId] = deferred
-                                                    
-                                                    view.post {
-                                                        view.evaluateJavascript(
-                                                            "if (typeof decipherNParam === 'function') { " +
-                                                            "  decipherNParam('$nParam', '$requestId'); " +
-                                                            "} else { " +
-                                                            "  console.error('decipherNParam not ready'); " +
-                                                            "  SoundPodBridge.onDecipherResult('$requestId', '$nParam'); " +
-                                                            "}"
-                                                        ) { }
-                                                    }
-                                                    deferred.await()
-                                                }
-                                            }
-                                        )
-                                    }
-                                }
-                            } catch (e: Exception) {
-                                Log.e("SoundPod-WebView", "Failed to parse session data", e)
-                            }
-                        }
-
-                        // Initialize BotGuard and decipher script
-                        view?.evaluateJavascript(BotGuard.HTML) { }
-                        
-                        injectDecipherScript(view)
-                    }
-
-                    override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
-                        return super.shouldInterceptRequest(view, request)
+    if (needsConsent) {
+        Dialog(
+            onDismissRequest = { YouTubeSessionManager.setNeedsConsent(false) },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    YouTubeWebViewContent(decipherRequests)
+                    
+                    IconButton(
+                        onClick = { YouTubeSessionManager.setNeedsConsent(false) },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(8.dp)
+                            .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(50))
+                    ) {
+                        Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
                     }
                 }
+            }
+        }
+    } else {
+        AndroidView(
+            modifier = Modifier.size(1.dp),
+            factory = { context ->
+                WebView(context).apply {
+                    setupWebView(this, decipherRequests)
+                    loadUrl("https://music.youtube.com")
+                }
+            }
+        )
+    }
+}
 
-                addJavascriptInterface(object {
-                    @android.webkit.JavascriptInterface
-                    fun onDecipherResult(requestId: String, result: String) {
-                        decipherRequests.remove(requestId)?.complete(result)
-                    }
-                }, "SoundPodBridge")
-
+@SuppressLint("SetJavaScriptEnabled")
+@Composable
+private fun YouTubeWebViewContent(decipherRequests: ConcurrentHashMap<String, CompletableDeferred<String>>) {
+    AndroidView(
+        modifier = Modifier.fillMaxSize(),
+        factory = { context ->
+            WebView(context).apply {
+                setupWebView(this, decipherRequests)
                 loadUrl("https://music.youtube.com")
             }
         }
     )
+}
+
+@SuppressLint("SetJavaScriptEnabled")
+private fun setupWebView(webView: WebView, decipherRequests: ConcurrentHashMap<String, CompletableDeferred<String>>) {
+    webView.settings.javaScriptEnabled = true
+    webView.settings.domStorageEnabled = true
+    webView.settings.userAgentString = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36"
+    
+    webView.webViewClient = object : WebViewClient() {
+        override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+            super.onPageStarted(view, url, favicon)
+            if (url?.contains("consent.youtube.com") == true) {
+                Log.i("SoundPod-WebView", "Consent page detected: $url")
+                YouTubeSessionManager.setNeedsConsent(true)
+            }
+        }
+
+        override fun onPageFinished(view: WebView?, url: String?) {
+            super.onPageFinished(view, url)
+            
+            if (url?.contains("music.youtube.com") == true && !url.contains("consent")) {
+                YouTubeSessionManager.setNeedsConsent(false)
+            }
+
+            val script = """
+                (function() {
+                    try {
+                        const ytConfig = window.yt?.config_ || window.ytcfg?.data_ || {};
+                        const ytcfgGet = (key) => {
+                            if (window.ytcfg && window.ytcfg.get) return window.ytcfg.get(key);
+                            return ytConfig[key];
+                        };
+                        
+                        const data = {
+                            visitorData: ytcfgGet('VISITOR_DATA') || ytConfig.VISITOR_DATA,
+                            poToken: ytcfgGet('PO_TOKEN') || ytConfig.PO_TOKEN || (window.yt && window.yt.config_ ? window.yt.config_.PO_TOKEN : null),
+                            innertubeApiKey: ytcfgGet('INNERTUBE_API_KEY') || ytConfig.INNERTUBE_API_KEY,
+                            innertubeContext: ytcfgGet('INNERTUBE_CONTEXT') || ytConfig.INNERTUBE_CONTEXT,
+                            clientName: ytcfgGet('INNERTUBE_CLIENT_NAME') || ytConfig.INNERTUBE_CLIENT_NAME,
+                            clientVersion: ytcfgGet('INNERTUBE_CLIENT_VERSION') || ytConfig.INNERTUBE_CLIENT_VERSION,
+                            jsUrl: (window.ytplayer && window.ytplayer.config && window.ytplayer.config.assets) ? window.ytplayer.config.assets.js : null
+                        };
+                        
+                        const scripts = document.getElementsByTagName('script');
+                        for (let s of scripts) {
+                            const text = s.innerText || s.textContent;
+                            if (!text) continue;
+                            
+                            if (!data.visitorData && text.includes('VISITOR_DATA')) {
+                                const match = text.match(/"VISITOR_DATA"\s*:\s*"([^"]+)"/);
+                                if (match) data.visitorData = match[1];
+                            }
+                            if (!data.poToken && text.includes('PO_TOKEN')) {
+                                const match = text.match(/"PO_TOKEN"\s*:\s*"([^"]+)"/);
+                                if (match) data.poToken = match[1];
+                            }
+                            if (!data.jsUrl && text.includes('base.js')) {
+                                const match = text.match(/"js"\s*:\s*"([^"]+base\.js)"/) || text.match(/\/s\/player\/[a-zA-Z0-9]+\/player_ias\.vflset\/[a-zA-Z0-9_\/.]+\/base\.js/);
+                                if (match) data.jsUrl = Array.isArray(match) ? match[match.length-1] : match;
+                            }
+                        }
+
+                        return JSON.stringify(data);
+                    } catch (e) {
+                        return JSON.stringify({ error: e.message });
+                    }
+                })()
+            """.trimIndent()
+
+            view?.evaluateJavascript(script) { sessionDataJson ->
+                try {
+                    val sessionData = sessionDataJson?.replace("^\"|\"$".toRegex(), "")?.replace("\\\"", "\"")
+                    if (sessionData != null) {
+                        val json = org.json.JSONObject(sessionData)
+                        val visitorData = json.optString("visitorData").takeIf { it != "null" && it.isNotBlank() }
+                        val poToken = json.optString("poToken").takeIf { it != "null" && it.isNotBlank() }
+                        val webApiKey = json.optString("innertubeApiKey").takeIf { it != "null" && it.isNotBlank() }
+                        val clientVersion = json.optString("clientVersion").takeIf { it != "null" && it.isNotBlank() }
+                        val jsUrl = json.optString("jsUrl").takeIf { it != "null" && it.isNotBlank() }
+                        
+                        if (visitorData != null) {
+                            val cookies = CookieManager.getInstance().getCookie(url)
+                            Log.d("SoundPod-WebView", "Extracted Session: VisitorData=${visitorData.take(20)}..., POToken=${poToken ?: "null"}, JSUrl=$jsUrl")
+                            
+                            YouTubeSessionManager.updateSession(
+                                visitorData = visitorData,
+                                poToken = poToken,
+                                apiKey = webApiKey,
+                                clientVersion = clientVersion,
+                                jsUrl = jsUrl,
+                                cookies = cookies,
+                                decipher = { nParam ->
+                                    val result = YouTubeDecipherer.decipher(nParam)
+                                    if (result != nParam) {
+                                        Log.d("SoundPod-WebView", "Successfully deciphered via Rhino: $nParam -> $result")
+                                        result
+                                    } else {
+                                        Log.w("SoundPod-WebView", "Rhino failed, falling back to WebView for deciphering")
+                                        val deferred = CompletableDeferred<String>()
+                                        val requestId = System.currentTimeMillis().toString() + nParam
+                                        decipherRequests[requestId] = deferred
+                                        
+                                        view.post {
+                                            view.evaluateJavascript(
+                                                "if (typeof decipherNParam === 'function') { " +
+                                                "  decipherNParam('$nParam', '$requestId'); " +
+                                                "} else { " +
+                                                "  console.error('decipherNParam not ready'); " +
+                                                "  SoundPodBridge.onDecipherResult('$requestId', '$nParam'); " +
+                                                "}"
+                                            ) { }
+                                        }
+                                        deferred.await()
+                                    }
+                                }
+                            )
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("SoundPod-WebView", "Failed to parse session data", e)
+                }
+            }
+
+            view?.evaluateJavascript(BotGuard.HTML) { }
+            injectDecipherScript(view)
+        }
+
+        override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
+            return super.shouldInterceptRequest(view, request)
+        }
+    }
+
+    webView.addJavascriptInterface(object {
+        @android.webkit.JavascriptInterface
+        fun onDecipherResult(requestId: String, result: String) {
+            decipherRequests.remove(requestId)?.complete(result)
+        }
+    }, "SoundPodBridge")
 }
 
 private fun injectDecipherScript(webView: WebView?) {
@@ -181,7 +259,6 @@ private fun injectDecipherScript(webView: WebView?) {
 
 fun isWebViewAvailable(context: android.content.Context): Boolean {
     return try {
-        // This will throw if the WebView package is missing or disabled
         CookieManager.getInstance()
         true
     } catch (_: Exception) {

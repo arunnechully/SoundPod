@@ -17,8 +17,8 @@ object NewPipeHelper {
     fun init() {
         if (isLibraryAvailable && isInitialized.compareAndSet(false, true)) {
             try {
-                println("SoundPod-Extractor: Initializing NewPipe with KtorDownloader")
-                org.schabi.newpipe.extractor.NewPipe.init(KtorDownloader())
+                println("SoundPod-Extractor: Initializing NewPipe with NewPipeDownloader")
+                org.schabi.newpipe.extractor.NewPipe.init(NewPipeDownloader.getInstance())
             } catch (e: Exception) {
                 println("SoundPod-Extractor: Failed to initialize NewPipe: ${e.message}")
                 e.printStackTrace()

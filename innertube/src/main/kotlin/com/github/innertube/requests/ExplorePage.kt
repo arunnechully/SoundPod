@@ -20,6 +20,7 @@ suspend fun Innertube.charts(): Result<List<Innertube.SongItem>?>? = runCatching
 
     suspend fun fetchCharts(browseId: String): List<Innertube.SongItem>? {
         val response = client.post(BROWSE) {
+            attributes.put(Innertube.Attributes.UseCookies, true)
             setBody(
                 BrowseBody(
                     browseId = browseId,

@@ -71,7 +71,7 @@ enum class YouTubeClient(
             },
             userAgent = userAgent,
             gl = gl ?: if (localized) Locale.getDefault().country.takeIf { it.length == 2 } ?: "US" else "US",
-            hl = hl ?: if (localized) Locale.getDefault().language.ifBlank { "en" } else "en",
+            hl = hl ?: "en",
             visitorData = visitorData ?: Innertube.visitorData ?: ""
         ),
         thirdParty = if (includeThirdParty) Context.ThirdParty(embedUrl = "https://www.youtube.com/watch?v=") else null

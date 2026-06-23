@@ -24,7 +24,7 @@ object YouTubeBootstrap {
                 Log.d(TAG, "Starting bootstrap from $MUSIC_URL")
                 
                 val response = client.get(MUSIC_URL) {
-                    header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36")
+                    header("User-Agent", "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36")
                     header("Accept-Language", "en-US,en;q=0.9")
                 }
                 val html = response.bodyAsText()
@@ -45,7 +45,7 @@ object YouTubeBootstrap {
                 Log.i(TAG, "BOOTSTRAP_DEBUG: Extracted clientName=$clientName, clientVersion=$clientVersion")
                 Log.d(TAG, "BOOTSTRAP_DEBUG: Extracted apiKey=$apiKey, visitorData=$visitorData, poToken=$poToken, jsUrl=$jsUrl")
 
-                if (apiKey != null || clientVersion != null || visitorData != null || jsUrl != null) {
+                if (apiKey != null) {
                     YouTubeSessionManager.updateSession(
                         apiKey = apiKey,
                         clientName = clientName,
@@ -55,9 +55,14 @@ object YouTubeBootstrap {
                         jsUrl = jsUrl,
                         isFromBootstrap = true
                     )
-                    Log.i(TAG, "Bootstrap successful: Applied dynamic session values")
+                    
+                    if (visitorData != null && jsUrl != null) {
+                        Log.i(TAG, "Bootstrap fully successful: Applied all dynamic session values")
+                    } else {
+                        Log.i(TAG, "Bootstrap partially successful: Applied API Key, waiting for WebView for full session")
+                    }
                 } else {
-                    Log.w(TAG, "Bootstrap failed: Could not extract any values from HTML")
+                    Log.w(TAG, "Bootstrap failed: Could not extract API Key from HTML")
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Bootstrap failed during initialization", e)
