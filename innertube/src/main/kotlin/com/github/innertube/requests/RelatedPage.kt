@@ -22,6 +22,7 @@ suspend fun Innertube.relatedPage(videoId: String) = runCatchingNonCancellable {
     }
 
     val nextResponse = client.post(NEXT) {
+        attributes.put(Innertube.Attributes.UseCookies, true)
         setBody(NextBody(videoId = videoId))
     }.body<NextResponse>()
 
@@ -43,6 +44,7 @@ suspend fun Innertube.relatedPage(videoId: String) = runCatchingNonCancellable {
         ?: return@runCatchingNonCancellable null
 
     val response = client.post(BROWSE) {
+        attributes.put(Innertube.Attributes.UseCookies, true)
         setBody(
             BrowseBody(
                 browseId = browseId,
@@ -60,13 +62,13 @@ suspend fun Innertube.relatedPage(videoId: String) = runCatchingNonCancellable {
 
     Innertube.RelatedPage(
         songs = sectionListRenderer
-            ?.findSectionByTitle("You might also like")
+            ?.findSectionByTitle("You might also like", "Related", "More from", "Similar")
             ?.musicCarouselShelfRenderer
             ?.contents
             ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicResponsiveListItemRenderer)
             ?.mapNotNull(Innertube.SongItem::from),
         playlists = sectionListRenderer
-            ?.findSectionByTitle("Recommended playlists")
+            ?.findSectionByTitle("Recommended playlists", "Playlists")
             ?.musicCarouselShelfRenderer
             ?.contents
             ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicTwoRowItemRenderer)
@@ -79,7 +81,7 @@ suspend fun Innertube.relatedPage(videoId: String) = runCatchingNonCancellable {
             ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicTwoRowItemRenderer)
             ?.mapNotNull(Innertube.AlbumItem::from),
         artists = sectionListRenderer
-            ?.findSectionByTitle("Similar artists")
+            ?.findSectionByTitle("Similar artists", "Artists")
             ?.musicCarouselShelfRenderer
             ?.contents
             ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicTwoRowItemRenderer)

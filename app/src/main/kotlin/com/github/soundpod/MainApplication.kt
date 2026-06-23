@@ -10,6 +10,7 @@ import coil3.disk.DiskCache
 import coil3.disk.directory
 import coil3.request.crossfade
 import com.github.innertube.Innertube
+import com.github.soundpod.extractor.NewPipeDownloader
 import com.github.soundpod.enums.CoilDiskCacheMaxSize
 import com.github.soundpod.utils.coilDiskCacheMaxSizeKey
 import com.github.soundpod.utils.getEnum
@@ -30,6 +31,7 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
         instance = this
         
         Locale.setDefault(Locale.US)
+        NewPipeDownloader.init(cacheDir)
 
         Thread {
             DatabaseInitializer.get(this)

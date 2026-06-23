@@ -4,7 +4,7 @@ import io.ktor.utils.io.CancellationException
 import com.github.innertube.Innertube
 import com.github.innertube.models.SectionListRenderer
 
-internal fun SectionListRenderer.findSectionByTitle(text: String): SectionListRenderer.Content? {
+internal fun SectionListRenderer.findSectionByTitle(vararg titles: String): SectionListRenderer.Content? {
     return contents?.find { content ->
         val title = content
             .musicCarouselShelfRenderer
@@ -15,10 +15,8 @@ internal fun SectionListRenderer.findSectionByTitle(text: String): SectionListRe
                 .musicShelfRenderer
                 ?.title
 
-        title
-            ?.runs
-            ?.firstOrNull()
-            ?.text?.contains(text, ignoreCase = true) == true
+        val text = title?.runs?.firstOrNull()?.text ?: return@find false
+        titles.any { text.contains(it, ignoreCase = true) }
     }
 }
 

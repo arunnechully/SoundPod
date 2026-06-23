@@ -9,8 +9,8 @@ import androidx.media3.datasource.cache.CacheWriter
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import com.github.innertube.Innertube
 import com.github.innertube.requests.player
-import com.github.soundpod.NewPipeDownloader
 import com.github.soundpod.db
+import com.github.soundpod.extractor.NewPipeDownloader
 import com.github.soundpod.extractor.ServiceList
 import com.github.soundpod.models.PrecachedSong
 import kotlinx.coroutines.CoroutineScope
