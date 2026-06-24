@@ -57,5 +57,4 @@ object SettingsDestinations {
     const val TRACK_DETAILS = "settings_track_details"
     const val ACCOUNT = "settings_account"
     const val LOGIN = "settings_login"
-    const val YOUTUBE = "settings_youtube"
 }

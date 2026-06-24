@@ -104,7 +104,7 @@
     <string name="sign_in_description">Sign in to access your library</string>
     <string name="sign_out">Sign out</string>
     <string name="sign_out_description">Clear session and cookies</string>
-    <string name="account">Account</string>
+    <string name="youtube">YouTube</string>
     <string name="search_lyrics_online">Search lyrics online</string>
     <plurals name="number_of_songs">
         <item quantity="one">%d song</item>
@@ -267,10 +267,6 @@
     <string name="search_history">Recent Search</string>
     <string name="new_search_screen">New search screen</string>
     <string name="new_search_screen_description">Try the experimental search layout. Some features may be unstable.</string>
-    <string name="login_experimental" translatable="false">Login</string>
-    <string name="login_experimental_description" translatable="false">Enable login to access your YouTube account</string>
-    <string name="login_experimental_dialog_title" translatable="false">Experimental Login</string>
-    <string name="login_experimental_dialog_message" translatable="false">This app uses a WebView to get YouTube information. We won\'t collect your data; it only grabs and passes it to the app to work. This setting is experimental and may not be finished or work correctly.</string>
     <string name="_search_history">No recent searches</string>
     <string name="no_search_history">No recent searches</string>
     <string name="tracks">Tracks</string>

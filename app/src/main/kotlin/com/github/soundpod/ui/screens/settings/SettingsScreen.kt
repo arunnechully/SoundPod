@@ -42,9 +42,8 @@ fun SettingsScreen(
         SettingsDestinations.SLEEP_TIMER -> stringResource(R.string.sleep_timer)
         SettingsDestinations.QUICK_PICKS -> stringResource(R.string.quick_picks)
         SettingsDestinations.TRACK_DETAILS -> stringResource(R.string.track_details)
-        SettingsDestinations.ACCOUNT -> stringResource(R.string.account)
+        SettingsDestinations.ACCOUNT -> stringResource(R.string.youtube)
         SettingsDestinations.LOGIN -> stringResource(R.string.sign_in)
-        SettingsDestinations.YOUTUBE -> stringResource(R.string.youtube_session)
         else -> stringResource(R.string.settings)
     }
 
@@ -71,9 +70,8 @@ fun SettingsScreen(
                 SettingsDestinations.ABOUT -> AboutSettingsContent()
                 SettingsDestinations.QUICK_PICKS -> QuickPicksSettingsContent()
                 SettingsDestinations.TRACK_DETAILS -> TrackDetails()
-                SettingsDestinations.ACCOUNT -> AccountSettingsContent(onOptionClick)
+                SettingsDestinations.ACCOUNT -> YouTubeSettingsContent(onOptionClick)
                 SettingsDestinations.LOGIN -> LoginSettingsContent(onBackClick)
-                SettingsDestinations.YOUTUBE -> YouTubeSettingsContent()
             }
         }
     )

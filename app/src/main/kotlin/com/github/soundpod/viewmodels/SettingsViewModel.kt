@@ -17,8 +17,6 @@ import androidx.lifecycle.viewModelScope
 import com.github.soundpod.R
 import com.github.soundpod.ui.common.newSearchLayoutEnabled
 import com.github.soundpod.ui.common.setNewSearchLayoutEnabled
-import com.github.soundpod.ui.common.loginExperimentalEnabled
-import com.github.soundpod.ui.common.setLoginExperimentalEnabled
 import com.github.soundpod.ui.navigation.SettingsDestinations
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,9 +41,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val _newSearchEnabled = MutableStateFlow(false)
     val newSearchEnabled = _newSearchEnabled.asStateFlow()
 
-    private val _loginExperimentalEnabled = MutableStateFlow(false)
-    val loginExperimentalEnabled = _loginExperimentalEnabled.asStateFlow()
-
     init {
         loadSettings()
         observePreferences()
@@ -57,12 +52,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 _newSearchEnabled.value = isEnabled
             }
         }
-        viewModelScope.launch {
-            loginExperimentalEnabled(getApplication()).collect { isEnabled ->
-                _loginExperimentalEnabled.value = isEnabled
-                loadSettings()
-            }
-        }
     }
 
     fun setNewSearchEnabled(enabled: Boolean) {
@@ -71,24 +60,16 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun setLoginExperimentalEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            setLoginExperimentalEnabled(getApplication(), enabled)
-        }
-    }
-
     private fun loadSettings() {
         val menuStructure = mutableListOf<SettingsSection>()
 
-        if (_loginExperimentalEnabled.value) {
-            menuStructure.add(
-                SettingsSection(
-                    listOf(
-                        SettingOption(title = R.string.account, icon = Icons.Default.Person, screenId = SettingsDestinations.ACCOUNT)
-                    )
+        menuStructure.add(
+            SettingsSection(
+                listOf(
+                    SettingOption(title = R.string.youtube, icon = Icons.Default.Person, screenId = SettingsDestinations.ACCOUNT)
                 )
             )
-        }
+        )
 
         menuStructure.addAll(
             listOf(
@@ -96,11 +77,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     listOf(
                         SettingOption(title = R.string.appearance, icon = Icons.Default.ColorLens, screenId = SettingsDestinations.APPEARANCE),
                         SettingOption(title = R.string.player, icon = Icons.Default.PlayArrow, screenId = SettingsDestinations.PLAYER)
-                    )
-                ),
-                SettingsSection(
-                    listOf(
-                        SettingOption(title = R.string.youtube_session, icon = Icons.Default.Person, screenId = SettingsDestinations.YOUTUBE)
                     )
                 ),
                 SettingsSection(
