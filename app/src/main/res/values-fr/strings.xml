@@ -356,4 +356,8 @@
     <string name="favorite_artists">Artistes Favoris</string>
     <string name="no_favorites">Aucun favori</string>
     <string name="no_favorites_description">Appuyez sur l\'icône en forme de cœur à côté des titres, des albums ou des artistes pour les ajouter à vos favoris.</string>
+    <string name="youtube_session">Session YouTube</string>
+    <string name="consent_granted">Consentement : accordé</string>
+    <string name="consent_required">Consentement : obligatoire</string>
+    <string name="renew_consent">Renouveler le consentement</string>
 </resources>
