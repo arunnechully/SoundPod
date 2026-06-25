@@ -100,7 +100,7 @@
     <string name="sign_in_description">Connectez-vous pour accéder à votre bibliothèque</string>
     <string name="sign_out">Se déconnecter</string>
     <string name="sign_out_description">Effacer la session et les cookies</string>
-    <string name="account">Compte</string>
+    <string name="youtube">YouTube</string>
     <string name="search_lyrics_online">Rechercher des paroles en ligne</string>
     <plurals name="number_of_songs">
         <item quantity="one">%d titre</item>

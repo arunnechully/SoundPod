@@ -100,7 +100,7 @@
     <string name="sign_in_description">Sign in to access your library</string>
     <string name="sign_out">Sign out</string>
     <string name="sign_out_description">Clear session and cookies</string>
-    <string name="account">Account</string>
+    <string name="youtube">YouTube</string>
     <string name="search_lyrics_online">Buscar la letra en línea</string>
     <plurals name="number_of_songs">
         <item quantity="one">%d canción</item>
