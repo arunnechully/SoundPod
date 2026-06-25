@@ -28,6 +28,7 @@ object YouTubeSessionManager {
         apiKey: String? = null,
         clientName: String? = null,
         clientVersion: String? = null,
+        context: com.github.innertube.models.Context? = null,
         jsUrl: String? = null,
         cookies: String? = null,
         decipher: (suspend (String) -> String)? = null,
@@ -41,8 +42,9 @@ object YouTubeSessionManager {
         apiKey?.let { Innertube.apiKey = it }
         clientName?.let { Innertube.clientName = it }
         clientVersion?.let { Innertube.clientVersion = it }
+        context?.let { Innertube.context = it }
         
-        jsUrl?.let { 
+        jsUrl?.let {
             val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO)
             scope.launch { YouTubeDecipherer.initialize(it) }
         }

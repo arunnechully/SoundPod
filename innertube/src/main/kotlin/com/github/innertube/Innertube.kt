@@ -44,6 +44,7 @@ object Innertube {
     var apiKey: String? = null
     var clientName: String? = null
     var clientVersion: String? = null
+    var context: com.github.innertube.models.Context? = null
     
     private val _cookies = mutableStateOf<String?>(null)
     var cookies: String?

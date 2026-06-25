@@ -18,8 +18,24 @@ data class PlayerResult(
 
 suspend fun Innertube.player(videoId: String): Result<PlayerResult>? = runCatchingNonCancellable {
     waitForSession(5000)
+    
+    // Try DYNAMIC client first if we have extracted context
+    if (context != null) {
+        val dynamicResponse = tryPlayer(videoId, YouTubeClient.DYNAMIC, useCookies = true)
+        if (dynamicResponse?.playabilityStatus?.status == "OK") {
+            println("Innertube: Successfully used DYNAMIC client for $videoId")
+            return@runCatchingNonCancellable PlayerResult(
+                response = dynamicResponse.applyDecipher(decipher, signatureDecipher),
+                userAgent = YouTubeClient.DYNAMIC.userAgent
+            )
+        } else {
+            println("Innertube: DYNAMIC client failed for $videoId: ${dynamicResponse?.playabilityStatus?.status}")
+        }
+    }
+
     val vrResponse = tryPlayer(videoId, YouTubeClient.ANDROID_VR, useCookies = false)
     if (vrResponse?.playabilityStatus?.status == "OK") {
+        println("Innertube: Successfully used ANDROID_VR client for $videoId")
         return@runCatchingNonCancellable PlayerResult(
             response = vrResponse.applyDecipher(decipher, signatureDecipher),
             userAgent = YouTubeClient.ANDROID_VR.userAgent
@@ -27,6 +43,7 @@ suspend fun Innertube.player(videoId: String): Result<PlayerResult>? = runCatchi
     }
     val tvResponse = tryPlayer(videoId, YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER, useCookies = false)
     if (tvResponse?.playabilityStatus?.status == "OK") {
+        println("Innertube: Successfully used TVHTML5 client for $videoId")
         return@runCatchingNonCancellable PlayerResult(
             response = tvResponse.applyDecipher(decipher, signatureDecipher),
             userAgent = YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER.userAgent

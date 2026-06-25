@@ -15,12 +15,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,7 +38,6 @@ import com.github.soundpod.ui.navigation.SettingsDestinations
 @Composable
 fun YouTubeSettingsContent(onOptionClick: (String) -> Unit) {
     val isLoggedIn = Innertube.isLoggedIn
-    val isSessionReady by YouTubeSessionManager.isSessionReady.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize()) {
         SettingsGroup(title = stringResource(R.string.youtube_account)) {
@@ -69,21 +66,6 @@ fun YouTubeSettingsContent(onOptionClick: (String) -> Unit) {
             }
         }
 
-        SettingsGroup(title = stringResource(R.string.youtube_session)) {
-            SettingsColumn(
-                title = if (isSessionReady) stringResource(R.string.consent_granted) else stringResource(R.string.consent_required),
-                description = "Status of your connection to YouTube services.",
-                icon = IconSource.Vector(Icons.Default.PrivacyTip),
-                onClick = {}
-            )
-
-            SettingsColumn(
-                title = stringResource(R.string.renew_consent),
-                description = "Manually refresh your session if the homepage is not loading (Common in EU).",
-                icon = IconSource.Vector(Icons.AutoMirrored.Filled.Login),
-                onClick = { YouTubeSessionManager.setNeedsConsent(true) }
-            )
-        }
     }
 }
 

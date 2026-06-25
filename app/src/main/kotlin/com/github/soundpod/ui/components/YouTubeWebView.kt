@@ -37,10 +37,17 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.github.innertube.BotGuard
+import com.github.innertube.models.Context
 import com.github.soundpod.service.YouTubeDecipherer
 import com.github.soundpod.service.YouTubeSessionManager
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.serialization.json.Json
 import java.util.concurrent.ConcurrentHashMap
+
+private val jsonParser = Json { 
+    ignoreUnknownKeys = true
+    coerceInputValues = true
+}
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
@@ -136,12 +143,6 @@ private fun setupWebView(
             super.onPageFinished(view, url)
             onLoadingStatusChanged(false)
             
-            // If we are back on music.youtube.com and not on a consent page, we likely have what we need
-            if (url?.contains("music.youtube.com") == true && !url.contains("consent")) {
-                // We don't immediately set needsConsent = false here, 
-                // we wait for the script to successfully extract data.
-            }
-
             val script = """
                 (function() {
                     try {
@@ -151,93 +152,96 @@ private fun setupWebView(
                             return ytConfig[key];
                         };
                         
+                        let context = ytcfgGet('INNERTUBE_CONTEXT') || ytConfig.INNERTUBE_CONTEXT || {};
+                        if (context.client) {
+                            if (!context.client.clientId) {
+                                context.client.clientId = (ytcfgGet('INNERTUBE_CONTEXT_CLIENT_NAME') || ytConfig.INNERTUBE_CONTEXT_CLIENT_NAME || "67").toString();
+                            }
+                            if (!context.client.visitorData) {
+                                context.client.visitorData = ytcfgGet('VISITOR_DATA') || ytConfig.VISITOR_DATA;
+                            }
+                        }
+
                         const data = {
                             visitorData: ytcfgGet('VISITOR_DATA') || ytConfig.VISITOR_DATA,
                             poToken: ytcfgGet('PO_TOKEN') || ytConfig.PO_TOKEN || (window.yt && window.yt.config_ ? window.yt.config_.PO_TOKEN : null),
                             innertubeApiKey: ytcfgGet('INNERTUBE_API_KEY') || ytConfig.INNERTUBE_API_KEY,
-                            innertubeContext: ytcfgGet('INNERTUBE_CONTEXT') || ytConfig.INNERTUBE_CONTEXT,
+                            innertubeContext: context,
                             clientName: ytcfgGet('INNERTUBE_CLIENT_NAME') || ytConfig.INNERTUBE_CLIENT_NAME,
                             clientVersion: ytcfgGet('INNERTUBE_CLIENT_VERSION') || ytConfig.INNERTUBE_CLIENT_VERSION,
                             jsUrl: (window.ytplayer && window.ytplayer.config && window.ytplayer.config.assets) ? window.ytplayer.config.assets.js : null
                         };
                         
-                        const scripts = document.getElementsByTagName('script');
-                        for (let s of scripts) {
-                            const text = s.innerText || s.textContent;
-                            if (!text) continue;
-                            
-                            if (!data.visitorData && text.includes('VISITOR_DATA')) {
-                                const match = text.match(/"VISITOR_DATA"\s*:\s*"([^"]+)"/);
-                                if (match) data.visitorData = match[1];
-                            }
-                            if (!data.poToken && text.includes('PO_TOKEN')) {
-                                const match = text.match(/"PO_TOKEN"\s*:\s*"([^"]+)"/);
-                                if (match) data.poToken = match[1];
-                            }
-                            if (!data.jsUrl && text.includes('base.js')) {
-                                const match = text.match(/"js"\s*:\s*"([^"]+base\.js)"/) || text.match(/\/s\/player\/[a-zA-Z0-9]+\/player_ias\.vflset\/[a-zA-Z0-9_\/.]+\/base\.js/);
-                                if (match) data.jsUrl = Array.isArray(match) ? match[match.length-1] : (typeof match === 'string' ? match : null);
-                            }
-                        }
-
-                        return JSON.stringify(data);
+                        return data;
                     } catch (e) {
-                        return JSON.stringify({ error: e.message });
+                        return { error: e.message };
                     }
                 })()
             """.trimIndent()
 
             view?.evaluateJavascript(script) { sessionDataJson ->
                 try {
-                    val sessionData = sessionDataJson?.replace("^\"|\"$".toRegex(), "")?.replace("\\\"", "\"")
-                    if (sessionData != null) {
-                        val json = org.json.JSONObject(sessionData)
-                        val visitorData = json.optString("visitorData").takeIf { it != "null" && it.isNotBlank() }
-                        val poToken = json.optString("poToken").takeIf { it != "null" && it.isNotBlank() }
-                        val webApiKey = json.optString("innertubeApiKey").takeIf { it != "null" && it.isNotBlank() }
-                        val clientVersion = json.optString("clientVersion").takeIf { it != "null" && it.isNotBlank() }
-                        val jsUrl = json.optString("jsUrl").takeIf { it != "null" && it.isNotBlank() }
-                        
-                        if (visitorData != null) {
-                            // MAGIC MOMENT: If we successfully got visitorData, we can close the consent dialog!
-                            YouTubeSessionManager.setNeedsConsent(false)
-
-                            val cookies = CookieManager.getInstance().getCookie(url)
-                            Log.d("SoundPod-WebView", "Extracted Session: VisitorData=${visitorData.take(20)}..., POToken=${poToken ?: "null"}, JSUrl=$jsUrl")
-                            
-                            YouTubeSessionManager.updateSession(
-                                visitorData = visitorData,
-                                poToken = poToken,
-                                apiKey = webApiKey,
-                                clientVersion = clientVersion,
-                                jsUrl = jsUrl,
-                                cookies = cookies,
-                                decipher = { nParam ->
-                                    val result = YouTubeDecipherer.decipher(nParam)
-                                    if (result != nParam) {
-                                        Log.d("SoundPod-WebView", "Successfully deciphered via Rhino: $nParam -> $result")
-                                        result
-                                    } else {
-                                        Log.w("SoundPod-WebView", "Rhino failed, falling back to WebView for deciphering")
-                                        val deferred = CompletableDeferred<String>()
-                                        val requestId = System.currentTimeMillis().toString() + nParam
-                                        decipherRequests[requestId] = deferred
-                                        
-                                        view.post {
-                                            view.evaluateJavascript(
-                                                "if (typeof decipherNParam === 'function') { " +
-                                                "  decipherNParam('$nParam', '$requestId'); " +
-                                                "} else { " +
-                                                "  console.error('decipherNParam not ready'); " +
-                                                "  SoundPodBridge.onDecipherResult('$requestId', '$nParam'); " +
-                                                "}"
-                                            ) { }
-                                        }
-                                        deferred.await()
-                                    }
-                                }
-                            )
+                    if (sessionDataJson == null || sessionDataJson == "null") return@evaluateJavascript
+                    
+                    val json = org.json.JSONObject(sessionDataJson)
+                    val visitorData = json.optString("visitorData").takeIf { it != "null" && it.isNotBlank() }
+                    val poToken = json.optString("poToken").takeIf { it != "null" && it.isNotBlank() }
+                    val webApiKey = json.optString("innertubeApiKey").takeIf { it != "null" && it.isNotBlank() }
+                    val clientName = json.optString("clientName").takeIf { it != "null" && it.isNotBlank() }
+                    val clientVersion = json.optString("clientVersion").takeIf { it != "null" && it.isNotBlank() }
+                    val jsUrl = json.optString("jsUrl").takeIf { it != "null" && it.isNotBlank() }
+                    
+                    val contextObj = json.optJSONObject("innertubeContext")
+                    val context = contextObj?.let {
+                        try {
+                            jsonParser.decodeFromString<Context>(it.toString())
+                        } catch (e: Exception) {
+                            Log.e("SoundPod-WebView", "Failed to parse context: ${e.message}")
+                            null
                         }
+                    }
+                    
+                    if (visitorData != null) {
+                        // MAGIC MOMENT: If we successfully got visitorData, we can close the consent dialog!
+                        YouTubeSessionManager.setNeedsConsent(false)
+
+                        val cookies = CookieManager.getInstance().getCookie(url)
+                        Log.d("SoundPod-WebView", "Extracted Session: VisitorData=${visitorData.take(20)}..., POToken=${poToken ?: "null"}, JSUrl=$jsUrl")
+                        
+                        YouTubeSessionManager.updateSession(
+                            visitorData = visitorData,
+                            poToken = poToken,
+                            apiKey = webApiKey,
+                            clientName = clientName,
+                            clientVersion = clientVersion,
+                            context = context,
+                            jsUrl = jsUrl,
+                            cookies = cookies,
+                            decipher = { nParam ->
+                                val result = YouTubeDecipherer.decipher(nParam)
+                                if (result != nParam) {
+                                    Log.d("SoundPod-WebView", "Successfully deciphered via Rhino: $nParam -> $result")
+                                    result
+                                } else {
+                                    Log.w("SoundPod-WebView", "Rhino failed, falling back to WebView for deciphering")
+                                    val deferred = CompletableDeferred<String>()
+                                    val requestId = System.currentTimeMillis().toString() + nParam
+                                    decipherRequests[requestId] = deferred
+                                    
+                                    view.post {
+                                        view.evaluateJavascript(
+                                            "if (typeof decipherNParam === 'function') { " +
+                                            "  decipherNParam('$nParam', '$requestId'); " +
+                                            "} else { " +
+                                            "  console.error('decipherNParam not ready'); " +
+                                            "  SoundPodBridge.onDecipherResult('$requestId', '$nParam'); " +
+                                            "}"
+                                        ) { }
+                                    }
+                                    deferred.await()
+                                }
+                            }
+                        )
                     }
                 } catch (e: Exception) {
                     Log.e("SoundPod-WebView", "Failed to parse session data", e)
