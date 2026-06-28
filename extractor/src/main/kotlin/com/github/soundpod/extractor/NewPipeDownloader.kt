@@ -92,11 +92,6 @@ class NewPipeDownloader private constructor(cacheDir: File) : Downloader() {
             }
         }
         
-        // Ensure Cookies are synced
-        if (headers.none { it.key.equals("Cookie", ignoreCase = true) }) {
-            Innertube.cookies?.let { builder.addHeader("Cookie", it) }
-        }
-        
         if (headers.none { it.key.equals("User-Agent", ignoreCase = true) }) {
             builder.addHeader("User-Agent", "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36")
         }

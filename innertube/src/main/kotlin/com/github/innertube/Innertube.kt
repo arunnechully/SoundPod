@@ -2,7 +2,6 @@
 
 package com.github.innertube
 
-import androidx.compose.runtime.mutableStateOf
 import com.github.innertube.models.NavigationEndpoint
 import com.github.innertube.models.Runs
 import com.github.innertube.models.Thumbnail
@@ -11,8 +10,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.compression.ContentEncoding
-import io.ktor.client.plugins.compression.brotli
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.HttpRequestBuilder
@@ -44,20 +41,6 @@ object Innertube {
     var apiKey: String? = null
     var clientName: String? = null
     var clientVersion: String? = null
-    var context: com.github.innertube.models.Context? = null
-    
-    private val _cookies = mutableStateOf<String?>(null)
-    var cookies: String?
-        get() = _cookies.value
-        set(value) {
-            _cookies.value = value
-            onCookiesChanged?.invoke(value)
-        }
-    
-    var onCookiesChanged: ((String?) -> Unit)? = null
-
-    val isLoggedIn: Boolean
-        get() = cookies?.let { it.contains("__Secure-3PAPISID") || it.contains("SAPISID") } ?: false
 
     var decipher: (suspend (String) -> String)? = null
     var signatureDecipher: (suspend (String) -> String)? = null
@@ -79,10 +62,6 @@ object Innertube {
             })
         }
 
-        install(ContentEncoding) {
-            brotli()
-        }
-
         defaultRequest {
             url(scheme = "https", host ="music.youtube.com") {
                 contentType(ContentType.Application.Json)
@@ -96,47 +75,8 @@ object Innertube {
                 if (headers["User-Agent"] == null) {
                     headers.append("User-Agent", "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36")
                 }
-
-                // Only append cookies if the request explicitly allows it via a custom attribute
-                // This prevents sending browser cookies to clients like ANDROID_VR
-                if (attributes.getOrNull(Attributes.UseCookies) == true) {
-                    cookies?.let { cookieString ->
-                        headers.append("Cookie", cookieString)
-                        headers.append("X-Goog-AuthUser", "0")
-                        
-                        // Set Visitor ID header if available
-                        visitorData?.let { headers.append("X-Goog-Visitor-Id", it) }
-                        
-                        // Generate Authorization header (SAPISIDHASH)
-                        generateSapisidHash(cookieString)?.let { 
-                            headers.append("Authorization", "SAPISIDHASH $it")
-                        }
-                    }
-                }
             }
         }
-    }
-    
-    private fun generateSapisidHash(cookies: String): String? {
-        val sapisid = cookies.split("; ")
-            .find { it.startsWith("SAPISID=") }
-            ?.substringAfter("SAPISID=") ?: return null
-            
-        val timestamp = System.currentTimeMillis() / 1000
-        val origin = "https://music.youtube.com"
-        val payload = "$timestamp $sapisid $origin"
-        
-        return try {
-            val digest = MessageDigest.getInstance("SHA-1").digest(payload.toByteArray())
-            val hash = digest.joinToString("") { "%02x".format(it) }
-            "$timestamp" + "_" + hash
-        } catch (_: Exception) {
-            null
-        }
-    }
-
-    object Attributes {
-        val UseCookies = io.ktor.util.AttributeKey<Boolean>("UseCookies")
     }
 
     @Serializable

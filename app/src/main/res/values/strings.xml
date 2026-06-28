@@ -97,14 +97,6 @@
     <string name="song_count">Song count</string>
     <string name="artist">Artist</string>
 
-    <string name="edit_lyrics">Edit lyrics</string>
-    <string name="youtube_account">YouTube account</string>
-    <string name="youtube_account_description">Logged in to YouTube</string>
-    <string name="sign_in">Sign in</string>
-    <string name="sign_in_description">Sign in to access your library</string>
-    <string name="sign_out">Sign out</string>
-    <string name="sign_out_description">Clear session and cookies</string>
-    <string name="youtube">YouTube</string>
     <string name="search_lyrics_online">Search lyrics online</string>
     <plurals name="number_of_songs">
         <item quantity="one">%d song</item>
@@ -122,6 +114,7 @@
         <item quantity="one">%d playlist</item>
         <item quantity="other">%d playlists</item>
     </plurals>
+    <string name="edit_lyrics">Edit lyrics</string>
     <string name="hide_from_quick_picks">Hide from quick picks</string>
     <string name="more_from">More from</string>
     <string name="stop_sleep_timer_dialog">Stop sleep timer?</string>
@@ -222,7 +215,6 @@
     <string name="backup_restore">Backup and restore</string>
     <string name="storage_and_cache">Storage and cache</string>
     <string name="more_settings">More Settings</string>
-    <string name="experimental">Experimental</string>
     <string name="theme">Theme</string>
     <string name="app_theme">App Theme</string>
     <string name="app_theme_description">Select App Theme</string>
@@ -265,8 +257,6 @@
     <string name="install">Install</string>
     <string name="search_placeholder">No Search History Found</string>
     <string name="search_history">Recent Search</string>
-    <string name="new_search_screen">New search screen</string>
-    <string name="new_search_screen_description">Try the experimental search layout. Some features may be unstable.</string>
     <string name="_search_history">No recent searches</string>
     <string name="no_search_history">No recent searches</string>
     <string name="tracks">Tracks</string>
@@ -292,8 +282,6 @@
     <string name="new_layout">New Layout</string>
     <string name="loading">Loading</string>
     <string name="clear">Clear</string>
-    <string name="new_player">New Player</string>
-    <string name="new_player_description">Try the new experimental player. Some features may be unstable.</string>
     <string name="updates_handled_by_fdroid">Updates for this version are handled through the F-Droid</string>
     <string name="distribution_info">Distribution</string>
     <string name="view_on_f_droid">View on F-Droid</string>
@@ -363,8 +351,4 @@
     <string name="no_favorites">No favorites</string>
     <string name="no_favorites_description">Tap the heart icon on songs, albums, or artists to add them to your favorites.</string>
 
-    <string name="youtube_session">YouTube Session</string>
-    <string name="consent_granted">Consent: Granted</string>
-    <string name="consent_required">Consent: Required</string>
-    <string name="renew_consent">Renew Consent</string>
 </resources>

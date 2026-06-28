@@ -57,9 +57,9 @@ object YouTubeBootstrap {
                     )
                     
                     if (visitorData != null && jsUrl != null) {
-                        Log.i(TAG, "Bootstrap fully successful: Applied all dynamic session values")
+                        Log.i(TAG, "Bootstrap fully successful")
                     } else {
-                        Log.i(TAG, "Bootstrap partially successful: Applied API Key, waiting for WebView for full session")
+                        Log.i(TAG, "Bootstrap partially successful: Applied API Key")
                     }
                 } else {
                     Log.w(TAG, "Bootstrap failed: Could not extract API Key from HTML")
