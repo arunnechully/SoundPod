@@ -41,10 +41,6 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
                 preferences.edit { putString("visitor_data", visitorData) }
             }
 
-            Innertube.cookies = preferences.getString("cookies", null)
-            Innertube.onCookiesChanged = { cookies: String? ->
-                preferences.edit { putString("cookies", cookies) }
-            }
             
             // Trigger dynamic session bootstrap
             applicationScope.launch {

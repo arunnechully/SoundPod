@@ -7,16 +7,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
 import com.github.soundpod.R
-import com.github.soundpod.ui.common.newSearchLayoutEnabled
-import com.github.soundpod.ui.common.setNewSearchLayoutEnabled
 import com.github.soundpod.ui.navigation.SettingsDestinations
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -38,38 +34,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val _sections = MutableStateFlow<List<SettingsSection>>(emptyList())
     val sections = _sections.asStateFlow()
 
-    private val _newSearchEnabled = MutableStateFlow(false)
-    val newSearchEnabled = _newSearchEnabled.asStateFlow()
-
     init {
         loadSettings()
-        observePreferences()
-    }
-
-    private fun observePreferences() {
-        viewModelScope.launch {
-            newSearchLayoutEnabled(getApplication()).collect { isEnabled ->
-                _newSearchEnabled.value = isEnabled
-            }
-        }
-    }
-
-    fun setNewSearchEnabled(enabled: Boolean) {
-        viewModelScope.launch {
-            setNewSearchLayoutEnabled(getApplication(), enabled)
-        }
     }
 
     private fun loadSettings() {
         val menuStructure = mutableListOf<SettingsSection>()
-
-        menuStructure.add(
-            SettingsSection(
-                listOf(
-                    SettingOption(title = R.string.youtube, icon = Icons.Default.Person, screenId = SettingsDestinations.ACCOUNT)
-                )
-            )
-        )
 
         menuStructure.addAll(
             listOf(
@@ -96,11 +66,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                             title = R.string.more_settings,
                             iconRes = R.drawable.more_settings,
                             screenId = SettingsDestinations.MORE
-                        ),
-                        SettingOption(
-                            title = R.string.experimental,
-                            iconRes = R.drawable.experimental,
-                            screenId = SettingsDestinations.EXPERIMENT
                         )
                     )
                 ),

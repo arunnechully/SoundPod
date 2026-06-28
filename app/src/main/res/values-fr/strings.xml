@@ -94,13 +94,6 @@
     <string name="song_count">Nombre de titres</string>
     <string name="artist">Artiste</string>
     <string name="edit_lyrics">Modifier les paroles</string>
-    <string name="youtube_account">Compte YouTube</string>
-    <string name="youtube_account_description">Connecté à YouTube</string>
-    <string name="sign_in">Se connecter</string>
-    <string name="sign_in_description">Connectez-vous pour accéder à votre bibliothèque</string>
-    <string name="sign_out">Se déconnecter</string>
-    <string name="sign_out_description">Effacer la session et les cookies</string>
-    <string name="youtube">YouTube</string>
     <string name="search_lyrics_online">Rechercher des paroles en ligne</string>
     <plurals name="number_of_songs">
         <item quantity="one">%d titre</item>
@@ -216,7 +209,6 @@
     <string name="backup_restore">Sauvegarde et Restauration</string>
     <string name="storage_and_cache">Stockage et Mémoire Cache</string>
     <string name="more_settings">Autres Paramètres</string>
-    <string name="experimental">Expérimental</string>
     <string name="theme">Thème</string>
     <string name="app_theme">Thème de l\'application</string>
     <string name="app_theme_description">Sélectionnez un thème pour l\'application</string>
@@ -259,8 +251,6 @@
     <string name="install">Installer</string>
     <string name="search_placeholder">Aucun historique de recherche trouvé</string>
     <string name="search_history">Recherches récentes</string>
-    <string name="new_search_screen">Nouvel écran de recherche</string>
-    <string name="new_search_screen_description">Essayez la nouvelle interface de recherche expérimentale. Certaines fonctionnalités peuvent présenter des instabilités.</string>
     <string name="_search_history">Aucune recherche récente</string>
     <string name="no_search_history">Aucune recherche récente</string>
     <string name="tracks">Titres</string>
@@ -286,8 +276,6 @@
     <string name="new_layout">Nouvelle mise en page</string>
     <string name="loading">Chargement en cours</string>
     <string name="clear">Effacer</string>
-    <string name="new_player">Nouveau lecteur</string>
-    <string name="new_player_description">Essayez le nouveau lecteur expérimental. Certaines fonctionnalités peuvent présenter des instabilités.</string>
     <string name="updates_handled_by_fdroid">Les mises à jour de cette version sont gérées via F-Droid</string>
     <string name="distribution_info">Distribution</string>
     <string name="view_on_f_droid">Voir sur F-Droid</string>
@@ -356,8 +344,4 @@
     <string name="favorite_artists">Artistes Favoris</string>
     <string name="no_favorites">Aucun favori</string>
     <string name="no_favorites_description">Appuyez sur l\'icône en forme de cœur à côté des titres, des albums ou des artistes pour les ajouter à vos favoris.</string>
-    <string name="youtube_session">Session YouTube</string>
-    <string name="consent_granted">Consentement : accordé</string>
-    <string name="consent_required">Consentement : obligatoire</string>
-    <string name="renew_consent">Renouveler le consentement</string>
 </resources>

@@ -23,6 +23,7 @@ import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.models.ActionInfo
 import com.github.soundpod.models.LocalMenuState
+import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
@@ -40,7 +41,7 @@ import com.github.soundpod.utils.forcePlay
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @UnstableApi
 @Composable
-fun NewSearchResult(
+fun SearchResult(
     navController: NavController,
     query: String,
     resultType: String?
@@ -51,9 +52,9 @@ fun NewSearchResult(
     val menuState = LocalMenuState.current
     val emptyItemsText = stringResource(id = R.string.no_results_found)
 
-    val onAlbumClick: (String) -> Unit = { albumId -> navController.navigate("album/$albumId") }
-    val onArtistClick: (String) -> Unit = { artistId -> navController.navigate("artist/$artistId") }
-    val onPlaylistClick: (String) -> Unit = { playlistId -> navController.navigate("playlist/$playlistId") }
+    val onAlbumClick: (String) -> Unit = { albumId -> navController.navigate(route = Routes.Album(id = albumId)) }
+    val onArtistClick: (String) -> Unit = { artistId -> navController.navigate(route = Routes.Artist(id = artistId)) }
+    val onPlaylistClick: (String) -> Unit = { playlistId -> navController.navigate(route = Routes.Playlist(id = playlistId)) }
 
     SettingsScreenLayout(
         title = resultType ?: "Results",

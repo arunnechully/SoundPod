@@ -243,20 +243,6 @@ fun QuickPicks(
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                        val needsConsent by YouTubeSessionManager.needsConsent.collectAsState()
-                        if (needsConsent) {
-                            Button(
-                                onClick = { YouTubeSessionManager.setNeedsConsent(true) },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                            ) {
-                                Icon(imageVector = Icons.Outlined.DownloadForOffline, contentDescription = null) // Using a placeholder for YouTube icon
-                                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                Text(text = "Grant YouTube Consent")
-                            }
-                        } else {
                             Button(
                                 onClick = {
                                     viewModel.relatedPageResult = null
@@ -267,7 +253,6 @@ fun QuickPicks(
                                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                                 Text(text = stringResource(id = R.string.retry))
                             }
-                        }
 
                             FilledTonalButton(onClick = onOfflinePlaylistClick) {
                                 Icon(imageVector = Icons.Outlined.DownloadForOffline, contentDescription = null)
