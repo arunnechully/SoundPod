@@ -93,7 +93,6 @@
     <string name="year">Año</string>
     <string name="song_count">Número de canciones</string>
     <string name="artist">Artista</string>
-    <string name="edit_lyrics">Modificar la letra</string>
     <string name="search_lyrics_online">Buscar la letra en línea</string>
     <plurals name="number_of_songs">
         <item quantity="one">%d canción</item>
@@ -111,6 +110,7 @@
         <item quantity="one">%d lista</item>
         <item quantity="other">%d listas</item>
     </plurals>
+    <string name="edit_lyrics">Modificar la letra</string>
     <string name="hide_from_quick_picks">Ocultar de las selecciones rápidas</string>
     <string name="more_from">Más de</string>
     <string name="stop_sleep_timer_dialog">¿Detener el temporizador de apagado?</string>
