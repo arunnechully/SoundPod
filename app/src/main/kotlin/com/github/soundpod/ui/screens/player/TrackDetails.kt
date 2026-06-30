@@ -68,6 +68,9 @@ fun TrackDetails() {
 
     var mediaItem by remember(player) { mutableStateOf(player?.currentMediaItem) }
     var tracks by remember(player) { mutableStateOf(player?.currentTracks) }
+    var playbackSource by remember(mediaItem) {
+        mutableStateOf(mediaItem?.mediaId?.let { binder?.mediaSourceProvider?.getPlaybackSource(it) })
+    }
 
     DisposableEffect(player) {
         if (player == null) return@DisposableEffect onDispose {}
@@ -81,6 +84,7 @@ fun TrackDetails() {
                     )
                 ) {
                     mediaItem = player.currentMediaItem
+                    playbackSource = mediaItem?.mediaId?.let { binder.mediaSourceProvider.getPlaybackSource(it) }
                 }
 
                 if (events.contains(Player.EVENT_TRACKS_CHANGED)) {
@@ -225,6 +229,19 @@ fun TrackDetails() {
                     thickness = 0.5.dp,
                     color = colorPalette.text.copy(alpha = 0.1f)
                 )
+
+                if (playbackSource != null) {
+                    DetailItem(
+                        label = stringResource(id = R.string.playback_source),
+                        value = playbackSource!!
+                    )
+
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        thickness = 0.5.dp,
+                        color = colorPalette.text.copy(alpha = 0.1f)
+                    )
+                }
 
                 val itag = formatFromDb?.itag ?: audioFormat?.id?.toIntOrNull()
                 if (itag != null) {

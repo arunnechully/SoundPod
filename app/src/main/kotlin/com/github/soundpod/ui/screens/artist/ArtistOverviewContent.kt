@@ -99,6 +99,7 @@ internal fun ArtistOverviewContent(
     }
 }
 
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 internal fun ArtistSongsSection(
@@ -108,6 +109,12 @@ internal fun ArtistSongsSection(
 ) {
     val binder = LocalPlayerServiceBinder.current
     val menuState = LocalMenuState.current
+
+    androidx.compose.runtime.LaunchedEffect(songs) {
+        songs.take(5).map { it.key }.let { videoIds ->
+            binder?.preCacheManager?.preCache(videoIds)
+        }
+    }
 
     if (showTitle) {
         Row(

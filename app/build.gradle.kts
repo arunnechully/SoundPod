@@ -158,6 +158,9 @@ dependencies {
     implementation(project(":core:visuals"))
     implementation(project(":github"))
     implementation(project(":innertube"))
+    implementation(project(":betterlyrics"))
+    
+    implementation(libs.timber)
 
     implementation(libs.newpipe.extractor)
 

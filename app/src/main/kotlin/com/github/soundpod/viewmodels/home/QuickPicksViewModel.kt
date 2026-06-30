@@ -26,6 +26,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -34,11 +36,15 @@ class QuickPicksViewModel : ViewModel() {
     var relatedPageResult: Result<Innertube.RelatedPage?>? by mutableStateOf(null)
     private var job: Job? = null
 
+    private val _preFetchFlow = MutableSharedFlow<List<String>>(replay = 5)
+    val preFetchFlow = _preFetchFlow.asSharedFlow()
+
     companion object {
         private const val CACHE_EXPIRATION = 30 * 60 * 1000L
         private const val PERSISTENT_CACHE_PREFIX = "quick_picks_cache_v2_"
     }
 
+    @Suppress("SameParameterValue")
     private fun getSeedSongsFlow(source: QuickPicksSource, limit: Int): Flow<List<Song>> = when (source) {
         QuickPicksSource.Trending -> db.trending(limit)
         QuickPicksSource.LastPlayed -> db.lastPlayed(limit)
@@ -80,6 +86,11 @@ class QuickPicksViewModel : ViewModel() {
         val cached = if (isScreenCacheEnabled) getCached(quickPicksSource) else null
         if (cached != null) {
             relatedPageResult = Result.success(cached)
+            viewModelScope.launch {
+                cached.songs?.take(10)?.mapNotNull { it.info?.endpoint?.videoId }?.let { 
+                    _preFetchFlow.emit(it)
+                }
+            }
         }
 
         if (!forceRefresh && cached != null && !ScreenCache.isExpired(PERSISTENT_CACHE_PREFIX + quickPicksSource.name, CACHE_EXPIRATION)) {
@@ -142,6 +153,9 @@ class QuickPicksViewModel : ViewModel() {
             }
 
             Log.d("SoundPod", "Seed songs found: ${seedSongs.size}")
+            if (seedSongs.isNotEmpty()) {
+                _preFetchFlow.emit(seedSongs.map { it.id })
+            }
 
             coroutineScope {
                 val chartsDeferred = async {
@@ -149,7 +163,13 @@ class QuickPicksViewModel : ViewModel() {
                 }
 
                 val relatedDeferreds = seedSongs.map { song ->
-                    async { Innertube.relatedPage(videoId = song.id)?.getOrNull() }
+                    async {
+                        val result = Innertube.relatedPage(videoId = song.id)?.getOrNull()
+                        result?.songs?.let { songs ->
+                            _preFetchFlow.emit(songs.take(5).mapNotNull { it.info?.endpoint?.videoId })
+                        }
+                        result
+                    }
                 }
 
                 val relatedResults = relatedDeferreds.mapNotNull { it.await() }
@@ -184,9 +204,12 @@ class QuickPicksViewModel : ViewModel() {
                 val finalResult = mergedPage?.let { Result.success(it) } 
                     ?: Result.failure(Exception("Failed to load Quick Picks"))
 
-                finalResult.getOrNull()?.let {
+                finalResult.getOrNull()?.let { page ->
                     if (isScreenCacheEnabled) {
-                        saveToCache(quickPicksSource, it)
+                        saveToCache(quickPicksSource, page)
+                    }
+                    page.songs?.take(10)?.mapNotNull { it.info?.endpoint?.videoId }?.let {
+                        _preFetchFlow.emit(it)
                     }
                 }
 

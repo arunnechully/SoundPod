@@ -106,10 +106,7 @@ object YouTubeDecipherer {
                 }
 
                 if (nFunctionName.get() != null || sigFunctionName.get() != null) {
-                    YouTubeSessionManager.updateSession(
-                        decipher = ::decipher,
-                        signatureDecipher = ::signatureDecipher
-                    )
+                    YouTubeSessionManager.updateSession()
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to initialize decipherer", e)

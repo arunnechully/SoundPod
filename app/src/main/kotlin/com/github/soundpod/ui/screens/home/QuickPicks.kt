@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.flow.collect
 import com.github.innertube.Innertube
 import com.github.innertube.models.NavigationEndpoint
 import com.github.soundpod.LocalPlayerPadding
@@ -109,9 +110,11 @@ fun QuickPicks(
         )
     }
 
-    LaunchedEffect(viewModel.relatedPageResult) {
-        viewModel.relatedPageResult?.getOrNull()?.songs?.let { songs ->
-            binder?.preCacheManager?.preCache(songs.mapNotNull { it.info?.endpoint?.videoId })
+    LaunchedEffect(binder) {
+        if (binder != null) {
+            viewModel.preFetchFlow.collect { videoIds ->
+                binder.preCacheManager.preCache(videoIds)
+            }
         }
     }
 

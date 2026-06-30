@@ -38,6 +38,8 @@ newpipe-extractor = "v0.26.3"
 junit = "4.13.2"
 
 [libraries]
+ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor" }
+timber = { group = "com.jakewharton.timber", name = "timber", version = "5.0.1" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 brotli = { group = "org.brotli", name = "dec", version.ref = "brotli" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }

@@ -55,15 +55,26 @@ fun OnlineSearch(
     onAlbumClick: (String) -> Unit,
     onArtistClick: (String) -> Unit,
     onPlaylistClick: (String) -> Unit,
-    onViewAllClick: (String) -> Unit
+    onViewAllClick: (String) -> Unit,
+    searchViewModel: com.github.soundpod.viewmodels.SearchViewModel? = null
 ) {
     val (colorPalette) = LocalAppearance.current
     val binder = LocalPlayerServiceBinder.current
     val menuState = LocalMenuState.current
 
+    androidx.compose.runtime.LaunchedEffect(binder, searchViewModel) {
+        if (binder != null && searchViewModel != null) {
+            searchViewModel.preFetchFlow.collect { videoIds ->
+                binder.preCacheManager.preCache(videoIds)
+            }
+        }
+    }
+
     androidx.compose.runtime.LaunchedEffect(songResults) {
-        songResults?.take(5)?.map { it.key }?.let { videoIds ->
-            binder?.preCacheManager?.preCache(videoIds)
+        if (searchViewModel == null) {
+            songResults?.take(5)?.map { it.key }?.let { videoIds ->
+                binder?.preCacheManager?.preCache(videoIds)
+            }
         }
     }
 

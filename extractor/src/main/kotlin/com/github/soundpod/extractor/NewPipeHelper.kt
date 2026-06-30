@@ -18,7 +18,14 @@ object NewPipeHelper {
         if (isLibraryAvailable && isInitialized.compareAndSet(false, true)) {
             try {
                 println("SoundPod-Extractor: Initializing NewPipe with NewPipeDownloader")
-                org.schabi.newpipe.extractor.NewPipe.init(NewPipeDownloader.getInstance())
+                val localization = org.schabi.newpipe.extractor.localization.Localization.fromLocale(java.util.Locale.getDefault())
+                val contentCountry = org.schabi.newpipe.extractor.localization.ContentCountry(java.util.Locale.getDefault().country)
+                
+                org.schabi.newpipe.extractor.NewPipe.init(
+                    NewPipeDownloader.getInstance(),
+                    localization,
+                    contentCountry
+                )
             } catch (e: Exception) {
                 println("SoundPod-Extractor: Failed to initialize NewPipe: ${e.message}")
                 e.printStackTrace()

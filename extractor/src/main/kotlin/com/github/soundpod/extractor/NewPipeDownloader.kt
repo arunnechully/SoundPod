@@ -1,42 +1,32 @@
 package com.github.soundpod.extractor
 
-import com.github.innertube.Innertube
-import com.github.innertube.models.PlayerResponse
-import com.github.innertube.requests.player
-import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
+import com.github.innertube.PreferIpv4Dns
 import okhttp3.Cache
+import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.schabi.newpipe.extractor.downloader.Downloader
 import org.schabi.newpipe.extractor.downloader.Request
 import org.schabi.newpipe.extractor.downloader.Response
 import java.io.File
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 class NewPipeDownloader private constructor(cacheDir: File) : Downloader() {
     private val client = OkHttpClient.Builder()
+        .dns(PreferIpv4Dns)
         .cache(Cache(File(cacheDir, "newpipe_cache"), 10 * 1024 * 1024))
+        .dispatcher(Dispatcher().apply {
+            maxRequests = 64
+            maxRequestsPerHost = 20
+        })
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .writeTimeout(30, TimeUnit.SECONDS)
         .followRedirects(true)
         .build()
 
-    private val json = Json {
-        ignoreUnknownKeys = true
-        explicitNulls = false
-        encodeDefaults = true
-    }
-
     private val jsCacheFile = File(cacheDir, "base_js_content")
     private val jsUrlFile = File(cacheDir, "base_js_url")
-    private val playerResponseCache = ConcurrentHashMap<String, Pair<PlayerResponse, Long>>()
-
-    fun preCache(videoId: String, playerResponse: PlayerResponse) {
-        playerResponseCache[videoId] = playerResponse to System.currentTimeMillis()
-    }
 
     override fun execute(request: Request): Response {
         val url = request.url()
@@ -48,34 +38,6 @@ class NewPipeDownloader private constructor(cacheDir: File) : Downloader() {
                 val lastModified = jsCacheFile.lastModified()
                 if (System.currentTimeMillis() - lastModified < TimeUnit.DAYS.toMillis(1)) {
                     return Response(200, "OK", mapOf("Content-Type" to listOf("application/javascript")), jsCacheFile.readText(), url)
-                }
-            }
-        }
-
-        // Intercept YouTube watch requests to inject InnerTube data
-        if (method == "GET" && (url.contains("youtube.com/watch?v=") || url.contains("music.youtube.com/watch?v="))) {
-            val videoId = url.substringAfter("v=").substringBefore("&").substringBefore("?")
-            if (videoId.length == 11) {
-                val currentTime = System.currentTimeMillis()
-                val cached = playerResponseCache[videoId]
-
-                if (cached != null && (currentTime - cached.second) < TimeUnit.MINUTES.toMillis(5)) {
-                    val playerResponseJson = json.encodeToString(cached.first)
-                    val html = "<html><head><script>var ytInitialPlayerResponse = $playerResponseJson;</script></head><body></body></html>"
-                    return Response(200, "OK", mapOf("Content-Type" to listOf("text/html")), html, url)
-                }
-
-                try {
-                    val playerResponse = runBlocking { Innertube.player(videoId) }?.getOrNull()?.also {
-                        playerResponseCache[videoId] = it.response to currentTime
-                    }
-
-                    if (playerResponse != null) {
-                        val playerResponseJson = json.encodeToString(playerResponse.response)
-                        val html = "<html><head><script>var ytInitialPlayerResponse = $playerResponseJson;</script></head><body></body></html>"
-                        return Response(200, "OK", mapOf("Content-Type" to listOf("text/html")), html, url)
-                    }
-                } catch (_: Exception) {
                 }
             }
         }
@@ -93,8 +55,26 @@ class NewPipeDownloader private constructor(cacheDir: File) : Downloader() {
         }
         
         if (headers.none { it.key.equals("User-Agent", ignoreCase = true) }) {
-            builder.addHeader("User-Agent", "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36")
+            builder.addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
         }
+
+        if (headers.none { it.key.equals("Cookie", ignoreCase = true) }) {
+            builder.addHeader("Cookie", "SOCS=CAESEwgDEgk0ODE3Nzk3MjQaAmVuIAEaBgiA_LyaBg")
+        }
+        
+        if (headers.none { it.key.equals("Accept-Language", ignoreCase = true) }) {
+            builder.addHeader("Accept-Language", "en-US,en;q=0.9")
+        }
+
+        if (headers.none { it.key.equals("Accept", ignoreCase = true) }) {
+            builder.addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
+        }
+        
+        builder.addHeader("Sec-Fetch-Dest", "document")
+        builder.addHeader("Sec-Fetch-Mode", "navigate")
+        builder.addHeader("Sec-Fetch-Site", "none")
+        builder.addHeader("Sec-Fetch-User", "?1")
+        builder.addHeader("Upgrade-Insecure-Requests", "1")
 
         val requestBody = dataToSend?.toRequestBody()
             ?: if (method == "POST") ByteArray(0).toRequestBody() else null
@@ -104,7 +84,7 @@ class NewPipeDownloader private constructor(cacheDir: File) : Downloader() {
         val response = client.newCall(builder.build()).execute()
         val body = response.body.string()
 
-        if (method == "GET" && url.contains("base.js") && response.isSuccessful && body != null) {
+        if (method == "GET" && url.contains("base.js") && response.isSuccessful) {
             jsUrlFile.writeText(url)
             jsCacheFile.writeText(body)
         }

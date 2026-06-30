@@ -257,7 +257,8 @@ fun SearchScreen(
                         onPlaylistClick = onPlaylistClick,
                         onViewAllClick = { category ->
                             navController.navigate(route = Routes.SearchResult(query = confirmedSearchQuery ?: "", type = category))
-                        }
+                        },
+                        searchViewModel = searchViewModel
                     )
                 }
 

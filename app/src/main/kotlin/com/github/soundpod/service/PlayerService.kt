@@ -352,9 +352,17 @@ class PlayerService : InvincibleService(), Player.Listener,
             preCacheManager.preCache(videoIdsToPrefetch)
             
             // Also pre-fetch lyrics and artwork for the very next track
-            coroutineScope.launch {
-                val nextTrack = videoIdsToPrefetch.first()
-                LyricsFetcher.fetchLyrics(nextTrack)
+            val nextTrack = videoIdsToPrefetch.first()
+            val nextMediaItem = player.getMediaItemAt(currentIndex + 1)
+            val metadata = nextMediaItem.mediaMetadata
+            
+            coroutineScope.launch(Dispatchers.IO) {
+                LyricsFetcher.fetchLyrics(
+                    mediaId = nextTrack,
+                    title = metadata.title?.toString(),
+                    artist = metadata.artist?.toString(),
+                    album = metadata.albumTitle?.toString()
+                )
             }
         }
     }
@@ -368,15 +376,23 @@ class PlayerService : InvincibleService(), Player.Listener,
 
     private fun maybeFetchLyrics(mediaItem: MediaItem?) {
         val mediaId = mediaItem?.mediaId ?: return
-        mediaItem.mediaMetadata
+        val metadata = mediaItem.mediaMetadata
+        val title = metadata.title?.toString()
+        val artist = metadata.artist?.toString()
+        val album = metadata.albumTitle?.toString()
 
         coroutineScope.launch(Dispatchers.IO) {
-
-            withContext(Dispatchers.Main) {
-                if (player.duration == C.TIME_UNSET) 0L else player.duration
+            val duration = withContext(Dispatchers.Main) {
+                if (player.duration == C.TIME_UNSET) null else (player.duration / 1000).toInt()
             }
 
-            LyricsFetcher.fetchLyrics(mediaId)
+            LyricsFetcher.fetchLyrics(
+                mediaId = mediaId,
+                title = title,
+                artist = artist,
+                duration = duration,
+                album = album
+            )
         }
     }
 
@@ -595,6 +611,7 @@ class PlayerService : InvincibleService(), Player.Listener,
         val cache get() = this@PlayerService.cacheManager.cache
         val preCacheManager get() = this@PlayerService.preCacheManager
         val mediaSession get() = this@PlayerService.mediaSessionManager.mediaSession
+        val mediaSourceProvider get() = this@PlayerService.mediaSourceProvider
 
         val sleepTimerMillisLeft get() = this@PlayerService.sleepTimerManager.millisLeft
 

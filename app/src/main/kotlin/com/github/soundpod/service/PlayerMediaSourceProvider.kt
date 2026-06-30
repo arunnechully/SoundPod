@@ -34,25 +34,23 @@ class PlayerMediaSourceProvider(
     private val context: Context,
     private val cacheManager: PlayerCacheManager
 ) {
-    private val urlCache = ConcurrentHashMap<String, Triple<Uri, String?, Long>>()
+    // Triple: uri, userAgent, timestamp
+    // We add a Fourth element to mark if it's low quality: Triple(uri, userAgent, timestamp) -> Pair(Triple, isLowQuality)
+    private val urlCache = ConcurrentHashMap<String, CacheEntry>()
     private val resolutionLocks = ConcurrentHashMap<String, ReentrantLock>()
 
-    internal val okHttpClient = Innertube.client.engine.let { engine ->
-        if (engine is io.ktor.client.engine.okhttp.OkHttpEngine) {
-            engine.config.preconfigured ?: okhttp3.OkHttpClient.Builder()
-                .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-                .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-                .build()
-        } else {
-            okhttp3.OkHttpClient.Builder()
-                .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-                .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-                .build()
-        }
-    }
+    internal val okHttpClient = Innertube.okHttpClient
 
-    fun injectUrl(videoId: String, uri: Uri) {
-        urlCache[videoId] = Triple(uri, null, System.currentTimeMillis())
+    data class CacheEntry(
+        val uri: Uri,
+        val userAgent: String?,
+        val timestamp: Long,
+        val isLowQuality: Boolean = false,
+        val playbackSource: String? = null
+    )
+
+    fun injectUrl(videoId: String, uri: Uri, isLowQuality: Boolean = false, playbackSource: String? = "NewPipe Extractor") {
+        urlCache[videoId] = CacheEntry(uri, null, System.currentTimeMillis(), isLowQuality, playbackSource)
     }
     
     companion object {
@@ -116,32 +114,27 @@ class PlayerMediaSourceProvider(
             return videoId.toUri() to null
         }
 
-        urlCache[videoId]?.let { (uri, userAgent, timestamp) ->
-            if (System.currentTimeMillis() - timestamp < CACHE_EXPIRATION_MS) {
-                return uri to userAgent
+        urlCache[videoId]?.let { entry ->
+            if (System.currentTimeMillis() - entry.timestamp < CACHE_EXPIRATION_MS) {
+                return entry.uri to entry.userAgent
             }
         }
 
         val lock = resolutionLocks.getOrPut(videoId) { ReentrantLock() }
         
         lock.withLock {
-            urlCache[videoId]?.let { (uri, userAgent, timestamp) ->
-                if (System.currentTimeMillis() - timestamp < CACHE_EXPIRATION_MS) {
-                    return uri to userAgent
+            urlCache[videoId]?.let { entry ->
+                if (System.currentTimeMillis() - entry.timestamp < CACHE_EXPIRATION_MS) {
+                    return entry.uri to entry.userAgent
                 }
             }
-            val fastResult: Pair<Uri, String?>? = runCatching {
-                val result = runBlocking { Innertube.player(videoId)?.getOrNull() }
-                val uri = result?.response?.streamingData?.highestQualityFormat?.url?.toUri()
-                uri?.let { it to result.userAgent }
+
+            val fastResult = runCatching {
+                runBlocking { Innertube.player(videoId)?.getOrNull() }
             }.getOrNull()
 
-            if (fastResult != null) {
-                urlCache[videoId] = Triple(fastResult.first, fastResult.second, System.currentTimeMillis())
-                return fastResult
-            }
             val rawUrl = runCatching<String> {
-                val streamExtractor = ServiceList.YouTube.getStreamExtractor("https://www.youtube.com/watch?v=$videoId")
+                val streamExtractor = ServiceList.YouTube.getStreamExtractor("https://www.youtube.com/watch?v=$videoId", fastResult)
                 streamExtractor.fetchPage()
 
                 val audioStreams = streamExtractor.audioStreams
@@ -153,6 +146,7 @@ class PlayerMediaSourceProvider(
                         ?: streamExtractor.videoStreams.maxByOrNull { it.bitrate }
                         ?: throw Exception("No playable streams found"))
 
+                if (bestAudio.content.isBlank()) throw Exception("Empty stream content for $videoId")
                 bestAudio.content
             }.getOrElse { e ->
                 Log.e("SoundPod", "Resolution failed for $videoId", e)
@@ -160,16 +154,19 @@ class PlayerMediaSourceProvider(
             }
 
             val newUri = rawUrl.toUri()
-            urlCache[videoId] = Triple(newUri, null, System.currentTimeMillis())
+            val playbackSource = if (fastResult != null) "InnerTube" else "NewPipe Extractor"
+            urlCache[videoId] = CacheEntry(newUri, null, System.currentTimeMillis(), isLowQuality = false, playbackSource = playbackSource)
             
             return newUri to null
         }
     }
+
+    fun getPlaybackSource(videoId: String): String? = urlCache[videoId]?.playbackSource
 }
 
 @UnstableApi
 private class YouTubeErrorPolicy(
-    private val urlCache: ConcurrentHashMap<String, Triple<Uri, String?, Long>>
+    private val urlCache: ConcurrentHashMap<String, PlayerMediaSourceProvider.CacheEntry>
 ) : DefaultLoadErrorHandlingPolicy() {
 
     private fun isTransient(exception: Throwable): Boolean {
