@@ -230,6 +230,8 @@
     <string name="wave">Wave</string>
     <string name="pause_song_cache">Pause song cache</string>
     <string name="pause_song_cache_description">Pause the song caching process</string>
+    <string name="pause_image_cache">Pause image cache</string>
+    <string name="pause_image_cache_description">Pause the image caching process</string>
     <string name="suggest_an_idea">Suggest an Idea</string>
     <string name="report_a_bug">Generate bug report</string>
     <string name="stop_and_share_report">Stop and share report</string>
@@ -330,9 +332,6 @@
     <string name="clear_audio_cache">Are you sure you want to clear the audio cache? This action cannot be undone.</string>
     <string name="show_cached_songs">Show cached songs</string>
     <string name="show_cached_songs_description">Show cached songs in the offline playlist</string>
-    <string name="screen_cache">Screen cache</string>
-    <string name="screen_cache_description">Save online screens to load them faster next time</string>
-    <string name="clear_screen_cache">Are you sure you want to clear the screen cache? This action cannot be undone.</string>
     <string name="copy_to_clipboard">Copied to clipboard</string>
     <string name="track_length">Track length</string>
     <string name="format">Format</string>
