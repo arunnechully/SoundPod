@@ -45,7 +45,7 @@ fun ArtistTracksPage(
     val menuState = LocalMenuState.current
     val emptyItemsText = stringResource(id = R.string.no_results_found)
 
-    var sortBy by rememberSaveable { mutableStateOf(SongSortBy.Title) }
+    var sortBy by rememberSaveable { mutableStateOf(SongSortBy.Artist) }
     var sortOrder by rememberSaveable { mutableStateOf(SortOrder.Ascending) }
 
     val tag = "artistSongs/$browseId/${params ?: ""}/list"

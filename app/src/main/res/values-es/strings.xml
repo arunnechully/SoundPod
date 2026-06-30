@@ -330,9 +330,6 @@
     <string name="clear_audio_cache">¿Está seguro de que desea borrar la caché de audio? Esta acción no se puede deshacer.</string>
     <string name="show_cached_songs">Mostrar canciones almacenadas en caché</string>
     <string name="show_cached_songs_description">Mostrar canciones almacenadas en caché en la lista de reproducción sin conexión</string>
-    <string name="screen_cache">Caché de pantalla</string>
-    <string name="screen_cache_description">Guarda las capturas de pantalla online para que se carguen más rápido la próxima vez.</string>
-    <string name="clear_screen_cache">¿Seguro que quieres borrar la caché de pantalla? Esta acción no se puede deshacer.</string>
     <string name="copy_to_clipboard">Copiado al portapapeles</string>
     <string name="track_length">Longitud de la pista</string>
     <string name="format">Formato</string>

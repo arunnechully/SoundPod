@@ -83,20 +83,17 @@ fun InHistoryMediaItemMenu(
     onGoToAlbum: (String) -> Unit,
     onGoToArtist: (String) -> Unit
 ) {
-    val binder = LocalPlayerServiceBinder.current
-    var isHiding by remember { mutableStateOf(false) }
+    var isDeleting by remember { mutableStateOf(false) }
 
-    if (isHiding) {
+    if (isDeleting) {
         ConfirmationDialog(
-            title = stringResource(id = R.string.hide_song_dialog),
-            text = stringResource(id = R.string.hide_song_dialog_description),
-            onDismiss = { isHiding = false },
+            title = stringResource(id = R.string.clear_playlist),
+            text = stringResource(id = R.string.clear_playlist_alert),
+            onDismiss = { isDeleting = false },
             onConfirm = {
                 onDismiss()
                 query {
-                    // Not sure we can do this here
-                    binder?.cache?.removeResource(song.id)
-                    db.incrementTotalPlayTimeMs(song.id, -song.totalPlayTimeMs)
+                    db.deleteSong(song.id)
                 }
             }
         )
@@ -105,7 +102,9 @@ fun InHistoryMediaItemMenu(
     NonQueuedMediaItemMenu(
         mediaItem = song.asMediaItem,
         onDismiss = onDismiss,
-        onHideFromDatabase = { isHiding = true },
+        onDeleteFromLibrary = if (song.id.startsWith("content://")) {
+            { isDeleting = true }
+        } else null,
         modifier = modifier,
         onGoToAlbum = onGoToAlbum,
         onGoToArtist = onGoToArtist
@@ -145,7 +144,7 @@ fun NonQueuedMediaItemMenu(
     mediaItem: MediaItem,
     modifier: Modifier = Modifier,
     onRemoveFromPlaylist: (() -> Unit)? = null,
-    onHideFromDatabase: (() -> Unit)? = null,
+    onDeleteFromLibrary: (() -> Unit)? = null,
     onRemoveFromQuickPicks: (() -> Unit)? = null,
     onGoToAlbum: ((String) -> Unit)? = null,
     onGoToArtist: ((String) -> Unit)? = null
@@ -169,7 +168,7 @@ fun NonQueuedMediaItemMenu(
         onPlayNext = { binder?.player?.addNext(mediaItem) },
         onEnqueue = { binder?.player?.enqueue(mediaItem) },
         onRemoveFromPlaylist = onRemoveFromPlaylist,
-        onHideFromDatabase = onHideFromDatabase,
+        onDeleteFromLibrary = onDeleteFromLibrary,
         onRemoveFromQuickPicks = onRemoveFromQuickPicks,
         onGoToAlbum = onGoToAlbum,
         onGoToArtist = onGoToArtist
@@ -211,7 +210,7 @@ fun BaseMediaItemMenu(
     onEnqueue: (() -> Unit)? = null,
     onRemoveFromQueue: (() -> Unit)? = null,
     onRemoveFromPlaylist: (() -> Unit)? = null,
-    onHideFromDatabase: (() -> Unit)? = null,
+    onDeleteFromLibrary: (() -> Unit)? = null,
     onRemoveFromQuickPicks: (() -> Unit)? = null,
     onGoToAlbum: ((String) -> Unit)? = null,
     onGoToArtist: ((String) -> Unit)? = null
@@ -225,7 +224,7 @@ fun BaseMediaItemMenu(
         onStartRadio = onStartRadio,
         onPlayNext = onPlayNext,
         onEnqueue = onEnqueue,
-        onHideFromDatabase = onHideFromDatabase,
+        onDeleteFromLibrary = onDeleteFromLibrary,
         onRemoveFromQueue = onRemoveFromQueue,
         onRemoveFromPlaylist = onRemoveFromPlaylist,
         onAddToPlaylist = { playlist, position ->
@@ -257,7 +256,6 @@ fun BaseMediaItemMenu(
     }
 }
 
-@Suppress("AssignedValueIsNeverRead")
 @ExperimentalAnimationApi
 @Composable
 fun MediaItemMenu(
@@ -267,7 +265,7 @@ fun MediaItemMenu(
     onStartRadio: (() -> Unit)? = null,
     onPlayNext: (() -> Unit)? = null,
     onEnqueue: (() -> Unit)? = null,
-    onHideFromDatabase: (() -> Unit)? = null,
+    onDeleteFromLibrary: (() -> Unit)? = null,
     onRemoveFromQueue: (() -> Unit)? = null,
     onRemoveFromPlaylist: (() -> Unit)? = null,
     onAddToPlaylist: ((Playlist, Int) -> Unit)? = null,
@@ -548,11 +546,11 @@ fun MediaItemMenu(
                     )
                 }
 
-                onHideFromDatabase?.let { onHideFromDatabase ->
+                onDeleteFromLibrary?.let { onDeleteFromLibrary ->
                     MenuEntry(
                         icon = Icons.Outlined.Delete,
-                        text = stringResource(id = R.string.hide),
-                        onClick = onHideFromDatabase
+                        text = stringResource(id = R.string.clear_playlist),
+                        onClick = onDeleteFromLibrary
                     )
                 }
 

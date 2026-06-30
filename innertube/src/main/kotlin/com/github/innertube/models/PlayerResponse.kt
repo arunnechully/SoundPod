@@ -8,6 +8,7 @@ data class PlayerResponse(
     val playerConfig: PlayerConfig?,
     val streamingData: StreamingData?,
     val videoDetails: VideoDetails?,
+    var clientName: String? = null
 ) {
     @Serializable
     data class PlayabilityStatus(

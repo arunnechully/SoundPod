@@ -17,7 +17,7 @@ class HomeAlbumsViewModel : ViewModel() {
         sortOrder: SortOrder
     ) {
         db
-            .albums(sortBy, sortOrder)
+            .localAlbums(sortBy, sortOrder)
             .collect { items = it }
     }
 }

@@ -7,11 +7,8 @@ import com.github.innertube.requests.albumPage
 import com.github.soundpod.db
 import com.github.soundpod.models.Album
 import com.github.soundpod.models.SongAlbumMap
-import com.github.soundpod.utils.ScreenCache
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.completed
-import com.github.soundpod.utils.isScreenCacheEnabledKey
-import com.github.soundpod.utils.preferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,14 +34,6 @@ class AlbumViewModel : ViewModel() {
         if (currentBrowseId == browseId) return
         currentBrowseId = browseId
 
-        val isScreenCacheEnabled = com.github.soundpod.appContext.preferences.getBoolean(isScreenCacheEnabledKey, true)
-        if (isScreenCacheEnabled) {
-            val cacheKey = "album_$browseId"
-            ScreenCache.load<Innertube.PlaylistOrAlbumPage>(cacheKey)?.let { cachedPage ->
-                _uiState.update { it.copy(albumPage = cachedPage) }
-            }
-        }
-
         viewModelScope.launch {
             db.album(browseId).collect { localAlbum ->
                 _uiState.update { 
@@ -55,7 +44,7 @@ class AlbumViewModel : ViewModel() {
                     ) 
                 }
 
-                if (localAlbum?.timestamp == null) {
+                if (localAlbum?.timestamp == null && !browseId.startsWith("local_album_")) {
                     fetchAlbumData(browseId)
                 }
             }
@@ -64,6 +53,7 @@ class AlbumViewModel : ViewModel() {
 
     fun onTabSelected(tabIndex: Int) {
         val browseId = currentBrowseId ?: return
+        if (browseId.startsWith("local_album_")) return
         val currentState = _uiState.value
 
         if (currentState.albumPage == null && tabIndex >= 1) {
@@ -72,16 +62,12 @@ class AlbumViewModel : ViewModel() {
     }
 
     private fun fetchAlbumData(browseId: String) {
-        val isScreenCacheEnabled = com.github.soundpod.appContext.preferences.getBoolean(isScreenCacheEnabledKey, true)
         viewModelScope.launch(Dispatchers.IO) {
             Innertube.albumPage(browseId = browseId)
                 ?.completed()
                 ?.onSuccess { currentAlbumPage ->
 
                     _uiState.update { it.copy(albumPage = currentAlbumPage, isLoading = false) }
-                    if (isScreenCacheEnabled) {
-                        ScreenCache.save("album_$browseId", currentAlbumPage)
-                    }
 
                     db.clearAlbum(browseId)
 

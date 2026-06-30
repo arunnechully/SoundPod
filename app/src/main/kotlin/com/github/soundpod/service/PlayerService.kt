@@ -168,10 +168,10 @@ class PlayerService : InvincibleService(), Player.Listener,
 
         val loadControl = DefaultLoadControl.Builder()
             .setBufferDurationsMs(
-                1000, // minBufferMs
-                5000, // maxBufferMs
-                500, // bufferForPlaybackMs
-                1000 // bufferForPlaybackAfterRebufferMs
+                10000, // minBufferMs
+                30000, // maxBufferMs
+                2500, // bufferForPlaybackMs
+                5000 // bufferForPlaybackAfterRebufferMs
             )
             .build()
 
@@ -307,7 +307,7 @@ class PlayerService : InvincibleService(), Player.Listener,
         
         mediaItem?.mediaId?.let { videoId ->
             coroutineScope.launch {
-                db.deletePrecachedSong(videoId)
+                db.insert(com.github.soundpod.models.PrecachedSong(videoId))
             }
         }
 
@@ -335,7 +335,7 @@ class PlayerService : InvincibleService(), Player.Listener,
 
         val videoIdsToPrefetch = mutableListOf<String>()
 
-        for (i in 1..3) { // Prefetch next 3 tracks
+        for (i in 1..10) { // Prefetch next 10 tracks
             val nextIndex = currentIndex + i
             if (nextIndex >= totalItems) break
 
@@ -581,15 +581,21 @@ class PlayerService : InvincibleService(), Player.Listener,
         return playerNotificationManager.getNotification()
     }
     private fun createRendersFactory(): RenderersFactory {
-        val audioSink = DefaultAudioSink.Builder(applicationContext)
-            .setEnableFloatOutput(false)
-            .setAudioProcessorChain(
-                DefaultAudioProcessorChain(
-                    emptyArray(),
-                    SilenceSkippingAudioProcessor(2_000_000, 0.01f, 2_000_000, 0, 256),
-                    SonicAudioProcessor()
-                )
+        val isOldAndroid = Build.VERSION.SDK_INT <= Build.VERSION_CODES.N_MR1
+        
+        val audioProcessors = if (isOldAndroid) {
+            // Simplified chain for older Android to prevent StuckPlayerException
+            arrayOf(SonicAudioProcessor())
+        } else {
+            arrayOf(
+                SilenceSkippingAudioProcessor(2_000_000, 0.01f, 2_000_000, 0, 256),
+                SonicAudioProcessor()
             )
+        }
+
+        val audioSink = DefaultAudioSink.Builder(applicationContext)
+            .setEnableFloatOutput(false) // Disable float output for better compatibility on older devices
+            .setAudioProcessorChain(DefaultAudioProcessorChain(*audioProcessors))
             .build()
 
         return RenderersFactory { handler: Handler?, _, audioListener: AudioRendererEventListener?, _, _ ->

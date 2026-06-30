@@ -16,9 +16,7 @@ import com.github.soundpod.appContext
 import com.github.soundpod.db
 import com.github.soundpod.enums.QuickPicksSource
 import com.github.soundpod.models.Song
-import com.github.soundpod.utils.ScreenCache
 import com.github.soundpod.utils.asMediaItem
-import com.github.soundpod.utils.isScreenCacheEnabledKey
 import com.github.soundpod.utils.preferences
 import com.github.soundpod.utils.quickPicksCustomGenreKey
 import kotlinx.coroutines.Dispatchers
@@ -39,25 +37,12 @@ class QuickPicksViewModel : ViewModel() {
     private val _preFetchFlow = MutableSharedFlow<List<String>>(replay = 5)
     val preFetchFlow = _preFetchFlow.asSharedFlow()
 
-    companion object {
-        private const val CACHE_EXPIRATION = 30 * 60 * 1000L
-        private const val PERSISTENT_CACHE_PREFIX = "quick_picks_cache_v2_"
-    }
-
     @Suppress("SameParameterValue")
     private fun getSeedSongsFlow(source: QuickPicksSource, limit: Int): Flow<List<Song>> = when (source) {
         QuickPicksSource.Trending -> db.trending(limit)
         QuickPicksSource.LastPlayed -> db.lastPlayed(limit)
         QuickPicksSource.Recommended -> db.lastPlayed(limit)
         QuickPicksSource.Custom -> db.randomSongs(limit)
-    }
-
-    private fun getCached(source: QuickPicksSource): Innertube.RelatedPage? {
-        return ScreenCache.load(PERSISTENT_CACHE_PREFIX + source.name)
-    }
-
-    private fun saveToCache(source: QuickPicksSource, page: Innertube.RelatedPage) {
-        ScreenCache.save(PERSISTENT_CACHE_PREFIX + source.name, page)
     }
 
     private fun <T : Innertube.Item> interleave(lists: List<List<T>>): List<T> {
@@ -82,21 +67,6 @@ class QuickPicksViewModel : ViewModel() {
     }
 
     fun loadQuickPicks(quickPicksSource: QuickPicksSource, forceRefresh: Boolean = false) {
-        val isScreenCacheEnabled = appContext.preferences.getBoolean(isScreenCacheEnabledKey, true)
-        val cached = if (isScreenCacheEnabled) getCached(quickPicksSource) else null
-        if (cached != null) {
-            relatedPageResult = Result.success(cached)
-            viewModelScope.launch {
-                cached.songs?.take(10)?.mapNotNull { it.info?.endpoint?.videoId }?.let { 
-                    _preFetchFlow.emit(it)
-                }
-            }
-        }
-
-        if (!forceRefresh && cached != null && !ScreenCache.isExpired(PERSISTENT_CACHE_PREFIX + quickPicksSource.name, CACHE_EXPIRATION)) {
-            return
-        }
-
         job?.cancel()
         job = viewModelScope.launch(Dispatchers.IO) {
             Log.d("SoundPod", "Loading Quick Picks for source: $quickPicksSource")
@@ -205,9 +175,6 @@ class QuickPicksViewModel : ViewModel() {
                     ?: Result.failure(Exception("Failed to load Quick Picks"))
 
                 finalResult.getOrNull()?.let { page ->
-                    if (isScreenCacheEnabled) {
-                        saveToCache(quickPicksSource, page)
-                    }
                     page.songs?.take(10)?.mapNotNull { it.info?.endpoint?.videoId }?.let {
                         _preFetchFlow.emit(it)
                     }

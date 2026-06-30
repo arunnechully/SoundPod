@@ -252,7 +252,7 @@ interface Database {
     fun albumTimestamp(id: String): Long?
 
     @Transaction
-    @Query("SELECT * FROM Song JOIN SongAlbumMap ON Song.id = SongAlbumMap.songId WHERE SongAlbumMap.albumId = :albumId AND position IS NOT NULL ORDER BY position")
+    @Query("SELECT * FROM Song JOIN SongAlbumMap ON Song.id = SongAlbumMap.songId WHERE SongAlbumMap.albumId = :albumId ORDER BY CASE WHEN position IS NULL THEN Song.ROWID ELSE position END ASC")
     @RewriteQueriesToDropUnusedColumns
     fun albumSongs(albumId: String): Flow<List<Song>>
 
@@ -287,6 +287,66 @@ interface Database {
             AlbumSortBy.DateAdded -> when (sortOrder) {
                 SortOrder.Ascending -> albumsByRowIdAsc()
                 SortOrder.Descending -> albumsByRowIdDesc()
+            }
+        }
+    }
+
+    @Query("SELECT Artist.* FROM Artist JOIN SongArtistMap ON Artist.id = SongArtistMap.artistId JOIN Song ON SongArtistMap.songId = Song.id WHERE Song.id LIKE 'content://%' GROUP BY Artist.id ORDER BY Artist.name ASC")
+    fun localArtistsByNameAsc(): Flow<List<Artist>>
+
+    @Query("SELECT Artist.* FROM Artist JOIN SongArtistMap ON Artist.id = SongArtistMap.artistId JOIN Song ON SongArtistMap.songId = Song.id WHERE Song.id LIKE 'content://%' GROUP BY Artist.id ORDER BY Artist.name DESC")
+    fun localArtistsByNameDesc(): Flow<List<Artist>>
+
+    @Query("SELECT Artist.* FROM Artist JOIN SongArtistMap ON Artist.id = SongArtistMap.artistId JOIN Song ON SongArtistMap.songId = Song.id WHERE Song.id LIKE 'content://%' GROUP BY Artist.id ORDER BY Artist.bookmarkedAt ASC")
+    fun localArtistsByRowIdAsc(): Flow<List<Artist>>
+
+    @Query("SELECT Artist.* FROM Artist JOIN SongArtistMap ON Artist.id = SongArtistMap.artistId JOIN Song ON SongArtistMap.songId = Song.id WHERE Song.id LIKE 'content://%' GROUP BY Artist.id ORDER BY Artist.bookmarkedAt DESC")
+    fun localArtistsByRowIdDesc(): Flow<List<Artist>>
+
+    fun localArtists(sortBy: ArtistSortBy, sortOrder: SortOrder): Flow<List<Artist>> {
+        return when (sortBy) {
+            ArtistSortBy.Name -> when (sortOrder) {
+                SortOrder.Ascending -> localArtistsByNameAsc()
+                SortOrder.Descending -> localArtistsByNameDesc()
+            }
+            ArtistSortBy.DateAdded -> when (sortOrder) {
+                SortOrder.Ascending -> localArtistsByRowIdAsc()
+                SortOrder.Descending -> localArtistsByRowIdDesc()
+            }
+        }
+    }
+
+    @Query("SELECT Album.* FROM Album JOIN SongAlbumMap ON Album.id = SongAlbumMap.albumId JOIN Song ON SongAlbumMap.songId = Song.id WHERE Song.id LIKE 'content://%' GROUP BY Album.id ORDER BY Album.title ASC")
+    fun localAlbumsByTitleAsc(): Flow<List<Album>>
+
+    @Query("SELECT Album.* FROM Album JOIN SongAlbumMap ON Album.id = SongAlbumMap.albumId JOIN Song ON SongAlbumMap.songId = Song.id WHERE Song.id LIKE 'content://%' GROUP BY Album.id ORDER BY Album.title DESC")
+    fun localAlbumsByTitleDesc(): Flow<List<Album>>
+
+    @Query("SELECT Album.* FROM Album JOIN SongAlbumMap ON Album.id = SongAlbumMap.albumId JOIN Song ON SongAlbumMap.songId = Song.id WHERE Song.id LIKE 'content://%' GROUP BY Album.id ORDER BY Album.year ASC")
+    fun localAlbumsByYearAsc(): Flow<List<Album>>
+
+    @Query("SELECT Album.* FROM Album JOIN SongAlbumMap ON Album.id = SongAlbumMap.albumId JOIN Song ON SongAlbumMap.songId = Song.id WHERE Song.id LIKE 'content://%' GROUP BY Album.id ORDER BY Album.year DESC")
+    fun localAlbumsByYearDesc(): Flow<List<Album>>
+
+    @Query("SELECT Album.* FROM Album JOIN SongAlbumMap ON Album.id = SongAlbumMap.albumId JOIN Song ON SongAlbumMap.songId = Song.id WHERE Song.id LIKE 'content://%' GROUP BY Album.id ORDER BY Album.bookmarkedAt ASC")
+    fun localAlbumsByRowIdAsc(): Flow<List<Album>>
+
+    @Query("SELECT Album.* FROM Album JOIN SongAlbumMap ON Album.id = SongAlbumMap.albumId JOIN Song ON SongAlbumMap.songId = Song.id WHERE Song.id LIKE 'content://%' GROUP BY Album.id ORDER BY Album.bookmarkedAt DESC")
+    fun localAlbumsByRowIdDesc(): Flow<List<Album>>
+
+    fun localAlbums(sortBy: AlbumSortBy, sortOrder: SortOrder): Flow<List<Album>> {
+        return when (sortBy) {
+            AlbumSortBy.Title -> when (sortOrder) {
+                SortOrder.Ascending -> localAlbumsByTitleAsc()
+                SortOrder.Descending -> localAlbumsByTitleDesc()
+            }
+            AlbumSortBy.Year -> when (sortOrder) {
+                SortOrder.Ascending -> localAlbumsByYearAsc()
+                SortOrder.Descending -> localAlbumsByYearDesc()
+            }
+            AlbumSortBy.DateAdded -> when (sortOrder) {
+                SortOrder.Ascending -> localAlbumsByRowIdAsc()
+                SortOrder.Descending -> localAlbumsByRowIdDesc()
             }
         }
     }
@@ -353,7 +413,7 @@ interface Database {
     fun playlistThumbnailUrls(id: Long): Flow<List<String>>
 
     @Transaction
-    @Query("SELECT * FROM Song JOIN SongArtistMap ON Song.id = SongArtistMap.songId WHERE SongArtistMap.artistId = :artistId AND totalPlayTimeMs > 0 ORDER BY Song.ROWID DESC")
+    @Query("SELECT * FROM Song JOIN SongArtistMap ON Song.id = SongArtistMap.songId WHERE SongArtistMap.artistId = :artistId AND (totalPlayTimeMs > 0 OR Song.id LIKE 'content://%') ORDER BY Song.ROWID DESC")
     @RewriteQueriesToDropUnusedColumns
     fun artistSongs(artistId: String): Flow<List<Song>>
 
@@ -480,12 +540,16 @@ interface Database {
             durationText = mediaItem.mediaMetadata.extras?.getString("durationText"),
             thumbnailUrl = mediaItem.mediaMetadata.artworkUri?.toString()
         ).let(block).also { songInstance ->
-            if (insert(songInstance) == -1L) return
+            insert(songInstance)
         }
 
         mediaItem.mediaMetadata.extras?.getString("albumId")?.let { albumId ->
             insert(
-                Album(id = albumId, title = mediaItem.mediaMetadata.albumTitle?.toString()),
+                Album(
+                    id = albumId,
+                    title = mediaItem.mediaMetadata.albumTitle?.toString(),
+                    year = mediaItem.mediaMetadata.releaseYear?.toString()
+                ),
                 SongAlbumMap(songId = song.id, albumId = albumId, position = null)
             )
         }
@@ -566,6 +630,9 @@ interface Database {
 
     @Delete
     fun delete(songPlaylistMap: SongPlaylistMap)
+
+    @Query("DELETE FROM Song WHERE id = :id")
+    fun deleteSong(id: String)
 
     @RawQuery
     fun raw(supportSQLiteQuery: SupportSQLiteQuery): Int

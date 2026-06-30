@@ -14,7 +14,10 @@ import io.ktor.serialization.kotlinx.json.json
 import com.github.innertube.models.NavigationEndpoint
 import com.github.innertube.models.Runs
 import com.github.innertube.models.Thumbnail
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
+import okhttp3.ConnectionSpec
 import okhttp3.Dns
 import okhttp3.OkHttpClient
 import java.net.Inet4Address
@@ -30,8 +33,11 @@ object PreferIpv4Dns : Dns {
 }
 
 object Innertube {
+    const val USER_AGENT = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36"
+
     val okHttpClient = OkHttpClient.Builder()
         .dns(PreferIpv4Dns)
+        .connectionSpecs(listOf(ConnectionSpec.MODERN_TLS, ConnectionSpec.COMPATIBLE_TLS))
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .writeTimeout(30, TimeUnit.SECONDS)
@@ -54,9 +60,10 @@ object Innertube {
         defaultRequest {
             url(scheme = "https", host ="music.youtube.com") {
                 contentType(ContentType.Application.Json)
-                headers.append("X-Goog-Api-Key", "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8")
+                header("User-Agent", USER_AGENT)
+                header("X-Goog-Api-Key", "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8")
                 // Consent cookie to bypass EU restrictions
-                headers.append("Cookie", "SOCS=CAESEwgDEgk0ODE3Nzk3MjQaAmVuIAEaBgiA_LyaBg")
+                header("Cookie", "SOCS=CAESEwgDEgk0ODE3Nzk3MjQaAmVuIAEaBgiA_LyaBg")
                 parameters.append("prettyPrint", "false")
             }
         }
@@ -69,6 +76,10 @@ object Innertube {
         }
 
     var onVisitorDataChanged: ((String?) -> Unit)? = null
+
+    private val visitorDataMutex = Mutex()
+
+    suspend fun <T> withVisitorDataLock(block: suspend () -> T): T = visitorDataMutex.withLock { block() }
 
     internal const val BROWSE = "/youtubei/v1/browse"
     internal const val NEXT = "/youtubei/v1/next"

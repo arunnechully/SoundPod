@@ -26,22 +26,20 @@ object YouTubeDecipherer {
         }
         
         return withContext(Dispatchers.Default) {
+            val rhino = Context.enter()
             try {
-                val rhino = Context.enter()
                 rhino.optimizationLevel = -1
-                try {
-                    val scope = rhino.initSafeStandardObjects()
-                    rhino.evaluateString(scope, script, "JavaScript", 1, null)
-                    val result = rhino.evaluateString(scope, "$funcName('$n')", "JavaScript", 1, null)
-                    val finalResult = Context.toString(result)
-                    Log.d(TAG, "Successfully deciphered n: $n -> $finalResult")
-                    finalResult
-                } finally {
-                    Context.exit()
-                }
+                val scope = rhino.initSafeStandardObjects()
+                rhino.evaluateString(scope, script, "JavaScript", 1, null)
+                val result = rhino.evaluateString(scope, "$funcName('$n')", "JavaScript", 1, null)
+                val finalResult = Context.toString(result)
+                Log.d(TAG, "Successfully deciphered n: $n -> $finalResult")
+                finalResult
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to decipher n-parameter with Rhino", e)
                 n
+            } finally {
+                Context.exit()
             }
         }
     }
@@ -56,20 +54,18 @@ object YouTubeDecipherer {
         }
         
         return withContext(Dispatchers.Default) {
+            val rhino = Context.enter()
             try {
-                val rhino = Context.enter()
                 rhino.optimizationLevel = -1
-                try {
-                    val scope = rhino.initSafeStandardObjects()
-                    rhino.evaluateString(scope, script, "JavaScript", 1, null)
-                    val result = rhino.evaluateString(scope, "$funcName('$s')", "JavaScript", 1, null)
-                    Context.toString(result)
-                } finally {
-                    Context.exit()
-                }
+                val scope = rhino.initSafeStandardObjects()
+                rhino.evaluateString(scope, script, "JavaScript", 1, null)
+                val result = rhino.evaluateString(scope, "$funcName('$s')", "JavaScript", 1, null)
+                Context.toString(result)
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to decipher signature with Rhino", e)
                 s
+            } finally {
+                Context.exit()
             }
         }
     }

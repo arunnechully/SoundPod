@@ -10,9 +10,6 @@ import com.github.innertube.Innertube
 import com.github.innertube.requests.artistPage
 import com.github.soundpod.db
 import com.github.soundpod.models.Artist
-import com.github.soundpod.utils.ScreenCache
-import com.github.soundpod.utils.isScreenCacheEnabledKey
-import com.github.soundpod.utils.preferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -24,10 +21,6 @@ class ArtistViewModel : ViewModel() {
     var artist: Artist? by mutableStateOf(null)
     var artistPage: Innertube.ArtistPage? by mutableStateOf(null)
 
-    companion object {
-        private const val CACHE_EXPIRATION = 60 * 60 * 1000L // 1 hour
-    }
-
     fun toggleBookmark() {
         val currentArtist = artist ?: return
         val bookmarkedAt = if (currentArtist.bookmarkedAt == null) System.currentTimeMillis() else null
@@ -38,14 +31,6 @@ class ArtistViewModel : ViewModel() {
     }
 
     suspend fun loadArtist(browseId: String, tabIndex: Int) {
-        val context = com.github.soundpod.appContext
-        val isScreenCacheEnabled = context.preferences.getBoolean(isScreenCacheEnabledKey, true)
-        val cacheKey = "artist_$browseId"
-
-        if (artistPage == null && isScreenCacheEnabled) {
-            artistPage = ScreenCache.load(cacheKey)
-        }
-
         db
             .artist(browseId)
             .combine(snapshotFlow { tabIndex }.map { it != 4 }) { artist, mustFetch -> artist to mustFetch }
@@ -53,16 +38,11 @@ class ArtistViewModel : ViewModel() {
             .collect { (currentArtist, mustFetch) ->
                 artist = currentArtist
 
-                val isExpired = ScreenCache.isExpired(cacheKey, CACHE_EXPIRATION)
-
-                if (artistPage == null || (isExpired && mustFetch && isScreenCacheEnabled)) {
+                if (artistPage == null && mustFetch && !browseId.startsWith("local_artist_")) {
                     withContext(Dispatchers.IO) {
                         Innertube.artistPage(browseId = browseId)
                             ?.onSuccess { currentArtistPage ->
                                 artistPage = currentArtistPage
-                                if (isScreenCacheEnabled) {
-                                    ScreenCache.save(cacheKey, currentArtistPage)
-                                }
 
                                 db.upsert(
                                     Artist(

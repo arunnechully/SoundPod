@@ -1,7 +1,9 @@
 package com.github.soundpod.extractor
 
+import com.github.innertube.Innertube
 import com.github.innertube.PreferIpv4Dns
 import okhttp3.Cache
+import okhttp3.ConnectionSpec
 import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -14,10 +16,11 @@ import java.util.concurrent.TimeUnit
 class NewPipeDownloader private constructor(cacheDir: File) : Downloader() {
     private val client = OkHttpClient.Builder()
         .dns(PreferIpv4Dns)
+        .connectionSpecs(listOf(ConnectionSpec.MODERN_TLS, ConnectionSpec.COMPATIBLE_TLS))
         .cache(Cache(File(cacheDir, "newpipe_cache"), 10 * 1024 * 1024))
         .dispatcher(Dispatcher().apply {
-            maxRequests = 64
-            maxRequestsPerHost = 20
+            maxRequests = 10
+            maxRequestsPerHost = 5
         })
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
@@ -28,16 +31,34 @@ class NewPipeDownloader private constructor(cacheDir: File) : Downloader() {
     private val jsCacheFile = File(cacheDir, "base_js_content")
     private val jsUrlFile = File(cacheDir, "base_js_url")
 
+    private var cachedJsUrl: String? = null
+    private var cachedJsContent: String? = null
+    private var cachedJsTimestamp: Long = 0
+
     override fun execute(request: Request): Response {
         val url = request.url()
         val method = request.httpMethod()
 
-        // Cache base.js to speed up extraction
+        // Cache base.js to speed up extraction and reduce memory pressure
         if (method == "GET" && url.contains("base.js")) {
-            if (jsUrlFile.exists() && jsUrlFile.readText() == url && jsCacheFile.exists()) {
-                val lastModified = jsCacheFile.lastModified()
-                if (System.currentTimeMillis() - lastModified < TimeUnit.DAYS.toMillis(1)) {
-                    return Response(200, "OK", mapOf("Content-Type" to listOf("application/javascript")), jsCacheFile.readText(), url)
+            synchronized(this) {
+                // Check in-memory cache first
+                if (cachedJsUrl == url && cachedJsContent != null &&
+                    System.currentTimeMillis() - cachedJsTimestamp < TimeUnit.DAYS.toMillis(1)) {
+                    return Response(200, "OK", mapOf("Content-Type" to listOf("application/javascript")), cachedJsContent, url)
+                }
+
+                // Check disk cache
+                if (jsUrlFile.exists() && jsUrlFile.readText() == url && jsCacheFile.exists()) {
+                    val lastModified = jsCacheFile.lastModified()
+                    if (System.currentTimeMillis() - lastModified < TimeUnit.DAYS.toMillis(1)) {
+                        val content = jsCacheFile.readText()
+                        // Update in-memory cache
+                        cachedJsUrl = url
+                        cachedJsContent = content
+                        cachedJsTimestamp = lastModified
+                        return Response(200, "OK", mapOf("Content-Type" to listOf("application/javascript")), content, url)
+                    }
                 }
             }
         }
@@ -55,7 +76,7 @@ class NewPipeDownloader private constructor(cacheDir: File) : Downloader() {
         }
         
         if (headers.none { it.key.equals("User-Agent", ignoreCase = true) }) {
-            builder.addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
+            builder.addHeader("User-Agent", Innertube.USER_AGENT)
         }
 
         if (headers.none { it.key.equals("Cookie", ignoreCase = true) }) {
@@ -81,21 +102,29 @@ class NewPipeDownloader private constructor(cacheDir: File) : Downloader() {
 
         builder.method(method, requestBody)
 
-        val response = client.newCall(builder.build()).execute()
-        val body = response.body.string()
+        client.newCall(builder.build()).execute().use { response ->
+            val body = response.body.string()
 
-        if (method == "GET" && url.contains("base.js") && response.isSuccessful) {
-            jsUrlFile.writeText(url)
-            jsCacheFile.writeText(body)
+            if (method == "GET" && url.contains("base.js") && response.isSuccessful) {
+                jsUrlFile.writeText(url)
+                jsCacheFile.writeText(body)
+                
+                // Update in-memory cache
+                synchronized(this) {
+                    cachedJsUrl = url
+                    cachedJsContent = body
+                    cachedJsTimestamp = System.currentTimeMillis()
+                }
+            }
+
+            return Response(
+                response.code,
+                response.message,
+                response.headers.toMultimap(),
+                body,
+                response.request.url.toString(),
+            )
         }
-
-        return Response(
-            response.code,
-            response.message,
-            response.headers.toMultimap(),
-            body,
-            response.request.url.toString(),
-        )
     }
 
     companion object {

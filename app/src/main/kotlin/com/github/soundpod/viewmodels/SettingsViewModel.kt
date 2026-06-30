@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.outlined.CleaningServices
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.AndroidViewModel
 import com.github.soundpod.R
@@ -57,16 +58,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 SettingsSection(
                     listOf(
                         SettingOption(title = R.string.backup_restore, icon = Icons.Default.Restore, screenId = SettingsDestinations.BACKUP),
-                        SettingOption(title = R.string.database, icon = Icons.Default.Storage, screenId = SettingsDestinations.DATABASE)
+                        SettingOption(title = R.string.database, icon = Icons.Default.Storage, screenId = SettingsDestinations.DATABASE),
                     )
                 ),
                 SettingsSection(
                     listOf(
-                        SettingOption(
-                            title = R.string.more_settings,
-                            iconRes = R.drawable.more_settings,
-                            screenId = SettingsDestinations.MORE
-                        )
+                        SettingOption(title = R.string.cache, iconRes = R.drawable.cache, screenId = SettingsDestinations.CACHE),
+                        SettingOption(title = R.string.more_settings, iconRes = R.drawable.more_settings, screenId = SettingsDestinations.MORE)
                     )
                 ),
                 SettingsSection(

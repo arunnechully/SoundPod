@@ -49,6 +49,7 @@ object SettingsDestinations {
     const val PRIVACY = "settings_privacy"
     const val BACKUP = "settings_backup"
     const val DATABASE = "settings_database"
+    const val CACHE = "settings_cache"
     const val MORE = "settings_more"
     const val ABOUT = "settings_about"
     const val SLEEP_TIMER = "settings_sleep_timer"

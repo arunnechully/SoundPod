@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.util.UnstableApi
 import com.github.core.ui.LocalAppearance
 import com.github.innertube.Innertube
 import com.github.innertube.requests.playlistPage
@@ -43,15 +44,13 @@ import com.github.soundpod.transaction
 import com.github.soundpod.ui.components.AdaptiveThumbnail
 import com.github.soundpod.ui.components.PlaylistScreenLayout
 import com.github.soundpod.ui.components.TextFieldDialog
-import com.github.soundpod.utils.ScreenCache
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.completed
-import com.github.soundpod.utils.isScreenCacheEnabledKey
-import com.github.soundpod.utils.preferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @Composable
 fun PlaylistScreen(
@@ -68,13 +67,6 @@ fun PlaylistScreen(
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(browseId) {
-        val isScreenCacheEnabled = context.preferences.getBoolean(isScreenCacheEnabledKey, true)
-        val cacheKey = "playlist_$browseId"
-
-        if (playlistPage == null && isScreenCacheEnabled) {
-            playlistPage = ScreenCache.load(cacheKey)
-        }
-
         withContext(Dispatchers.IO) {
             Innertube.playlistPage(browseId = browseId)
                 ?.completed()
@@ -82,9 +74,6 @@ fun PlaylistScreen(
                 ?.let { page ->
                     withContext(Dispatchers.Main) {
                         playlistPage = page
-                        if (isScreenCacheEnabled) {
-                            ScreenCache.save(cacheKey, page)
-                        }
                     }
                 }
         }

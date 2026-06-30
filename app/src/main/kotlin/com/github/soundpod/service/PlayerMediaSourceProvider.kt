@@ -55,7 +55,6 @@ class PlayerMediaSourceProvider(
     
     companion object {
         private const val CACHE_EXPIRATION_MS = 4 * 3600000L
-        private const val DEFAULT_USER_AGENT = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36"
     }
 
     fun createMediaSourceFactory(): MediaSource.Factory {
@@ -75,13 +74,13 @@ class PlayerMediaSourceProvider(
             val headers = dataSpec.httpRequestHeaders.toMutableMap()
             
             if (videoId.startsWith("http") || videoId.startsWith("content://") || videoId.startsWith("file://")) {
-                headers["User-Agent"] = DEFAULT_USER_AGENT
+                headers["User-Agent"] = Innertube.USER_AGENT
                 dataSpec.buildUpon()
                     .setHttpRequestHeaders(headers)
                     .build()
             } else {
                 val (uri, userAgent) = resolveUrl(videoId)
-                headers["User-Agent"] = userAgent ?: DEFAULT_USER_AGENT
+                headers["User-Agent"] = userAgent ?: Innertube.USER_AGENT
                 
                 dataSpec.withUri(uri)
                     .buildUpon()
@@ -115,7 +114,7 @@ class PlayerMediaSourceProvider(
         }
 
         urlCache[videoId]?.let { entry ->
-            if (System.currentTimeMillis() - entry.timestamp < CACHE_EXPIRATION_MS) {
+            if (!entry.isLowQuality && System.currentTimeMillis() - entry.timestamp < CACHE_EXPIRATION_MS) {
                 return entry.uri to entry.userAgent
             }
         }
@@ -124,20 +123,32 @@ class PlayerMediaSourceProvider(
         
         lock.withLock {
             urlCache[videoId]?.let { entry ->
-                if (System.currentTimeMillis() - entry.timestamp < CACHE_EXPIRATION_MS) {
+                if (!entry.isLowQuality && System.currentTimeMillis() - entry.timestamp < CACHE_EXPIRATION_MS) {
                     return entry.uri to entry.userAgent
+                }
+                
+                if (entry.isLowQuality) {
+                    Log.d("SoundPod", "Upgrading quality for $videoId (was using ${entry.playbackSource})...")
                 }
             }
 
+            Log.d("SoundPod", "Resolving URL for $videoId...")
             val fastResult = runCatching {
                 runBlocking { Innertube.player(videoId)?.getOrNull() }
             }.getOrNull()
+
+            if (fastResult != null) {
+                Log.d("SoundPod", "InnerTube player response status: ${fastResult.playabilityStatus?.status}")
+            } else {
+                Log.w("SoundPod", "InnerTube player request failed for $videoId")
+            }
 
             val rawUrl = runCatching<String> {
                 val streamExtractor = ServiceList.YouTube.getStreamExtractor("https://www.youtube.com/watch?v=$videoId", fastResult)
                 streamExtractor.fetchPage()
 
                 val audioStreams = streamExtractor.audioStreams
+                Log.d("SoundPod", "Found ${audioStreams.size} audio streams for $videoId")
 
                 val bestAudio: YoutubeStreamExtractor.Stream = audioStreams
                     .filter { it.codec?.lowercase(Locale.ROOT) == "opus" }
@@ -147,6 +158,7 @@ class PlayerMediaSourceProvider(
                         ?: throw Exception("No playable streams found"))
 
                 if (bestAudio.content.isBlank()) throw Exception("Empty stream content for $videoId")
+                Log.d("SoundPod", "Selected stream for $videoId: ${bestAudio.codec} (${bestAudio.averageBitrate / 1000}kbps)")
                 bestAudio.content
             }.getOrElse { e ->
                 Log.e("SoundPod", "Resolution failed for $videoId", e)
@@ -154,7 +166,9 @@ class PlayerMediaSourceProvider(
             }
 
             val newUri = rawUrl.toUri()
-            val playbackSource = if (fastResult != null) "InnerTube" else "NewPipe Extractor"
+            val playbackSource = if (fastResult != null) {
+                "InnerTube (${fastResult.clientName ?: "Unknown Client"})"
+            } else "NewPipe Extractor"
             urlCache[videoId] = CacheEntry(newUri, null, System.currentTimeMillis(), isLowQuality = false, playbackSource = playbackSource)
             
             return newUri to null
@@ -202,6 +216,7 @@ private class YouTubeErrorPolicy(
                 if (cause is HttpDataSource.InvalidResponseCodeException &&
                     (cause.responseCode == 403 || cause.responseCode == 410)) {
                     
+                    Innertube.visitorData = null
                     urlCache.remove(videoId)
                     return if (retryCount <= 1) 0 else (1000L * retryCount).coerceAtMost(10000L)
                 }

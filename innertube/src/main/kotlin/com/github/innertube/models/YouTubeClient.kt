@@ -12,7 +12,7 @@ class YouTubeClient(
 ) {
     fun toContext(
         localized: Boolean = true,
-        visitorData: String? = null
+        visitorData: String? = com.github.innertube.Innertube.visitorData
     ) = Context(
         client = Context.Client(
             clientName = clientName,

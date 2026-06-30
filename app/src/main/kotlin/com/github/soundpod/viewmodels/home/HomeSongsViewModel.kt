@@ -23,10 +23,10 @@ class HomeSongsViewModel : ViewModel() {
 
     fun refreshMediaStore() {
         viewModelScope.launch(Dispatchers.IO) {
-            val localSongs = appContext.queryMediaStoreSongs()
-            if (localSongs.isNotEmpty()) {
+            val localMediaItems = appContext.queryMediaStoreSongs()
+            if (localMediaItems.isNotEmpty()) {
                 query {
-                    localSongs.forEach { db.insert(it) }
+                    localMediaItems.forEach { db.insert(it) }
                 }
             }
         }

@@ -31,6 +31,7 @@
     <application
         android:name=".MainApplication"
         android:allowBackup="true"
+        android:largeHeap="true"
         android:banner="@mipmap/ic_banner"
         android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher_round"

@@ -78,13 +78,19 @@ fun ArtistScreen(
         viewModel.loadArtist(browseId, 0)
     }
 
-    val tabs = remember(artistPage) {
-        listOfNotNull(
-            ArtistTab.Overview to R.string.overview,
-            if (artistPage?.songs != null || artistPage?.songsEndpoint != null) ArtistTab.Songs to R.string.tracks else null,
-            if (artistPage?.albums != null || artistPage?.albumsEndpoint != null) ArtistTab.Albums to R.string.albums else null,
-            if (artistPage?.singles != null || artistPage?.singlesEndpoint != null) ArtistTab.Singles to R.string.singles else null
-        )
+    val isLocal = browseId.startsWith("local_artist_")
+
+    val tabs = remember(artistPage, isLocal) {
+        if (isLocal) {
+            listOf(ArtistTab.Songs to R.string.tracks)
+        } else {
+            listOfNotNull(
+                ArtistTab.Overview to R.string.overview,
+                if (artistPage?.songs != null || artistPage?.songsEndpoint != null) ArtistTab.Songs to R.string.tracks else null,
+                if (artistPage?.albums != null || artistPage?.albumsEndpoint != null) ArtistTab.Albums to R.string.albums else null,
+                if (artistPage?.singles != null || artistPage?.singlesEndpoint != null) ArtistTab.Singles to R.string.singles else null
+            )
+        }
     }
     val pagerState = rememberPagerState { tabs.size }
     val coroutineScope = rememberCoroutineScope()
@@ -207,13 +213,20 @@ fun ArtistScreen(
                             onAlbumClick = onAlbumClick,
                             playerPadding = playerPadding
                         )
-                        ArtistTab.Songs -> ArtistTracksPage(
-                            browseId = artistPage?.songsEndpoint?.browseId ?: browseId,
-                            params = artistPage?.songsEndpoint?.params,
-                            onAlbumClick = onAlbumClick,
-                            onArtistClick = onArtistClick,
-                            initialItems = if (artistPage?.songsEndpoint == null) artistPage?.songs else null
-                        )
+                        ArtistTab.Songs -> if (isLocal) {
+                            LocalArtistSongs(
+                                browseId = browseId,
+                                onGoToAlbum = onAlbumClick
+                            )
+                        } else {
+                            ArtistTracksPage(
+                                browseId = artistPage?.songsEndpoint?.browseId ?: browseId,
+                                params = artistPage?.songsEndpoint?.params,
+                                onAlbumClick = onAlbumClick,
+                                onArtistClick = onArtistClick,
+                                initialItems = if (artistPage?.songsEndpoint == null) artistPage?.songs else null
+                            )
+                        }
                         ArtistTab.Albums -> ArtistAlbumsPage(
                             browseId = artistPage?.albumsEndpoint?.browseId ?: browseId,
                             params = artistPage?.albumsEndpoint?.params,
