@@ -230,6 +230,8 @@
     <string name="wave">Vague</string>
     <string name="pause_song_cache">Mettre en pause le cache des titres</string>
     <string name="pause_song_cache_description">Mettre en pause la mise en cache des titres</string>
+    <string name="pause_image_cache">Pause image cache</string>
+    <string name="pause_image_cache_description">Pause the image caching process</string>
     <string name="suggest_an_idea">Proposer une idée</string>
     <string name="report_a_bug">Créer un rapport de bogue</string>
     <string name="stop_and_share_report">Arrêter et partager le rapport</string>
@@ -330,9 +332,6 @@
     <string name="clear_audio_cache">Êtes-vous sûr de vouloir vider le cache audio ? Cette action est irréversible.</string>
     <string name="show_cached_songs">Afficher les morceaux mis en cache</string>
     <string name="show_cached_songs_description">Afficher les morceaux mis en cache dans la playlist hors ligne</string>
-    <string name="screen_cache">Cache d\'écran</string>
-    <string name="screen_cache_description">Enregistrez les pages web pour les charger plus rapidement la prochaine fois</string>
-    <string name="clear_screen_cache">Êtes-vous sûr de vouloir vider le cache de l\'écran ? Cette action ne peut pas être annulée.</string>
     <string name="copy_to_clipboard">Copié dans le presse-papiers</string>
     <string name="track_length">Durée du titre</string>
     <string name="format">Format</string>
