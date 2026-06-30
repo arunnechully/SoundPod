@@ -339,6 +339,7 @@
     <string name="path_id">Path / ID</string>
     <string name="kbps">%d kbps</string>
     <string name="decibel">%s dB</string>
+    <string name="playback_source">Playback source</string>
     <string name="favorite_tracks">Favorite Tracks</string>
     <string name="favorite_albums">Favorite Albums</string>
     <string name="favorite_artists">Favorite Artists</string>
