@@ -81,12 +81,12 @@ class SearchViewModel : ViewModel() {
                 }
 
                 val songs = songsDeferred.await()?.getOrNull()?.items
-                songResults = songs?.take(10)
+                songResults = songs?.take(4)
                 albumResults = albumsDeferred.await()?.getOrNull()?.items?.take(8)
                 artistResults = artistsDeferred.await()?.getOrNull()?.items?.take(8)
                 playlistResults = playlistsDeferred.await()?.getOrNull()?.items?.take(8)
 
-                songs?.take(5)?.map { it.key }?.let {
+                songs?.take(4)?.map { it.key }?.let {
                     _preFetchFlow.emit(it)
                 }
             } catch (e: Exception) {
