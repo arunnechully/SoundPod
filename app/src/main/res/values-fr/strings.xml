@@ -230,6 +230,8 @@
     <string name="wave">Vague</string>
     <string name="pause_song_cache">Mettre en pause le cache des titres</string>
     <string name="pause_song_cache_description">Mettre en pause la mise en cache des titres</string>
+    <string name="pause_image_cache">Pause image cache</string>
+    <string name="pause_image_cache_description">Pause the image caching process</string>
     <string name="suggest_an_idea">Proposer une idée</string>
     <string name="report_a_bug">Créer un rapport de bogue</string>
     <string name="stop_and_share_report">Arrêter et partager le rapport</string>
@@ -336,6 +338,7 @@
     <string name="path_id">Chemin / ID</string>
     <string name="kbps">%d kbps</string>
     <string name="decibel">%s dB</string>
+    <string name="playback_source">Source de lecture</string>
     <string name="favorite_tracks">Titres Favoris</string>
     <string name="favorite_albums">Albums Favoris</string>
     <string name="favorite_artists">Artistes Favoris</string>
