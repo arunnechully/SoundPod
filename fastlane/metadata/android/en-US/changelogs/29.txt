@@ -1,0 +1,5 @@
+• Added support for downloading music
+• Enhanced local music playback experience
+• Migrated to the new search screen
+• Improved background image blur rendering in the player
+• Minor UI improvements and bug fixes

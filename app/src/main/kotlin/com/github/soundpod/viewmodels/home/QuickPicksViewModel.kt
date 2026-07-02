@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 class QuickPicksViewModel : ViewModel() {
     var relatedPageResult: Result<Innertube.RelatedPage?>? by mutableStateOf(null)
@@ -128,12 +129,19 @@ class QuickPicksViewModel : ViewModel() {
 
             coroutineScope {
                 val chartsDeferred = async {
-                    runCatching { Innertube.charts()?.getOrNull() }.getOrNull()
+                    runCatching { 
+                        withTimeoutOrNull(5000) { Innertube.charts()?.getOrNull() }
+                    }.getOrNull()
                 }
 
                 val relatedDeferreds = seedSongs.map { song ->
                     async {
-                        val result = Innertube.relatedPage(videoId = song.id)?.getOrNull()
+                        val result = runCatching {
+                            withTimeoutOrNull(5000) { Innertube.relatedPage(videoId = song.id)?.getOrNull() }
+                        }.getOrElse { e ->
+                            Log.e("SoundPod", "Failed to fetch related for ${song.id}", e)
+                            null
+                        }
                         result?.songs?.let { songs ->
                             _preFetchFlow.emit(songs.take(5).mapNotNull { it.info?.endpoint?.videoId })
                         }
@@ -155,9 +163,15 @@ class QuickPicksViewModel : ViewModel() {
 
                 if (mergedPage == null || mergedPage.songs.isNullOrEmpty()) {
                     Log.d("SoundPod", "No related songs, trying charts fallback")
-                    chartsDeferred.await()?.shuffled()?.take(2)?.forEach { fallbackSong ->
-                        val fallbackResult = Innertube.relatedPage(videoId = fallbackSong.key)?.getOrNull()
+                    val charts = chartsDeferred.await()
+                    charts?.shuffled()?.take(5)?.forEach { fallbackSong ->
+                        Log.d("SoundPod", "Trying fallback song: ${fallbackSong.key}")
+                        val fallbackResult = runCatching {
+                            withTimeoutOrNull(5000) { Innertube.relatedPage(videoId = fallbackSong.key)?.getOrNull() }
+                        }.getOrNull()
+                        
                         if (fallbackResult != null && !fallbackResult.songs.isNullOrEmpty()) {
+                            Log.d("SoundPod", "Fallback succeeded with ${fallbackSong.key}")
                             mergedPage = fallbackResult
                             return@forEach
                         }
@@ -166,12 +180,23 @@ class QuickPicksViewModel : ViewModel() {
 
                 if (mergedPage == null || mergedPage.songs.isNullOrEmpty()) {
                     Log.d("SoundPod", "Still no songs, trying global fallbacks")
-                    val globalFallbacks = listOf("fJ9rUzIMcZQ", "kJQP7kiw5Fk", "JGwWNGJdvx8")
-                    mergedPage = Innertube.relatedPage(videoId = globalFallbacks.random())?.getOrNull()
+                    val globalFallbacks = listOf("fJ9rUzIMcZQ", "kJQP7kiw5Fk", "JGwWNGJdvx8").shuffled()
+                    for (videoId in globalFallbacks) {
+                        Log.d("SoundPod", "Trying global fallback: $videoId")
+                        val fallbackResult = runCatching {
+                            withTimeoutOrNull(5000) { Innertube.relatedPage(videoId = videoId)?.getOrNull() }
+                        }.getOrNull()
+                        
+                        if (fallbackResult != null && !fallbackResult.songs.isNullOrEmpty()) {
+                            Log.d("SoundPod", "Global fallback succeeded with $videoId")
+                            mergedPage = fallbackResult
+                            break
+                        }
+                    }
                 }
 
                 val finalResult = mergedPage?.let { Result.success(it) } 
-                    ?: Result.failure(Exception("Failed to load Quick Picks"))
+                    ?: Result.failure(Exception("Failed to load Quick Picks after all fallbacks"))
 
                 finalResult.getOrNull()?.let { page ->
                     page.songs?.take(10)?.mapNotNull { it.info?.endpoint?.videoId }?.let {

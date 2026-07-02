@@ -7,6 +7,7 @@ import com.github.innertube.Innertube
 import com.github.innertube.models.BrowseResponse
 import com.github.innertube.models.MusicCarouselShelfRenderer
 import com.github.innertube.models.NextResponse
+import com.github.innertube.models.YouTubeClient
 import com.github.innertube.models.bodies.BrowseBody
 import com.github.innertube.models.bodies.NextBody
 import com.github.innertube.utils.findSectionByStrapline
@@ -16,21 +17,19 @@ import com.github.innertube.utils.runCatchingNonCancellable
 
 suspend fun Innertube.relatedPage(videoId: String) = runCatchingNonCancellable {
     val nextResponse = client.post(NEXT) {
-        setBody(NextBody(videoId = videoId))
+        setBody(NextBody(videoId = videoId, context = YouTubeClient.WEB_REMIX.toContext(localized = false)))
         mask("contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs.tabRenderer(endpoint,title)")
     }.body<NextResponse>()
 
-    val browseId = nextResponse
+    val tabs = nextResponse
         .contents
         ?.singleColumnMusicWatchNextResultsRenderer
         ?.tabbedRenderer
         ?.watchNextTabbedResultsRenderer
-        ?.tabs
-        ?.getOrNull(2)
-        ?.tabRenderer
-        ?.endpoint
-        ?.browseEndpoint
-        ?.browseId
+        ?.tabs ?: return@runCatchingNonCancellable null
+
+    val browseId = tabs.find { it.tabRenderer?.title == "Related" }?.tabRenderer?.endpoint?.browseEndpoint?.browseId
+        ?: tabs.getOrNull(2)?.tabRenderer?.endpoint?.browseEndpoint?.browseId
         ?: return@runCatchingNonCancellable null
 
     val response = client.post(BROWSE) {
