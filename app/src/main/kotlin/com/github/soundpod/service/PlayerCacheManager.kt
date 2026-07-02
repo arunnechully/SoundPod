@@ -73,5 +73,6 @@ class PlayerCacheManager(private val context: Context) {
     fun removeCache(videoId: String) {
         cache.removeResource(videoId)
         downloadCache.removeResource(videoId)
+        context.filesDir.resolve("songs").resolve(videoId).delete()
     }
 }

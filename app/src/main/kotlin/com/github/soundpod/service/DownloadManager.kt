@@ -4,13 +4,10 @@ import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DataSpec
-import androidx.media3.datasource.cache.CacheDataSource
-import androidx.media3.datasource.cache.CacheWriter
-import androidx.media3.datasource.okhttp.OkHttpDataSource
 import com.github.innertube.Innertube
 import com.github.innertube.requests.player
 import com.github.soundpod.db
+import com.github.soundpod.NewPipeDownloader
 import com.github.soundpod.enums.DownloadDiskCacheMaxSize
 import com.github.soundpod.extractor.youtube.YoutubeStreamExtractor
 import com.github.soundpod.models.Album
@@ -42,7 +39,6 @@ import java.util.concurrent.ConcurrentHashMap
 @UnstableApi
 class DownloadManager(
     private val context: android.content.Context,
-    private val cacheManager: PlayerCacheManager,
     private val mediaSourceProvider: PlayerMediaSourceProvider
 ) {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -71,25 +67,18 @@ class DownloadManager(
 
         val job = scope.launch {
             try {
-                // 0. Check if already downloaded or cached
                 if (db.downloadedSong(videoId).first() != null) {
                     withContext(Dispatchers.Main) {
                         context.toast("Already downloaded")
                     }
                     return@launch
                 }
-                
-                // If it's already in the regular cache, we might still want to "promote" it to download cache
-                // to make it permanent, so we proceed with download logic which uses CacheWriter.
-                // CacheWriter is smart enough to not re-download if data is already present in the TARGET cache.
-                // But here our target is downloadCache.
 
                 withContext(Dispatchers.Main) {
                     context.toast("Downloading ${mediaItem.mediaMetadata.title ?: "song"}...")
                 }
                 Log.d("SoundPod-Download", "Starting download for $videoId")
 
-                // 0. Check Max Size Limit
                 val maxSizeEnum = context.preferences.getEnum(downloadDiskCacheMaxSizeKey, DownloadDiskCacheMaxSize.`2GB`)
                 if (maxSizeEnum != DownloadDiskCacheMaxSize.Unlimited) {
                     val currentSize = db.downloadedSongsWithContentLength().first().sumOf { it.contentLength ?: 0L }
@@ -101,15 +90,17 @@ class DownloadManager(
                         return@launch
                     }
                 }
-                
-                // 1. Resolve Highest Quality URL via NewPipe (prefers Opus) + Innertube fallback
-                val streamExtractor = YoutubeStreamExtractor("https://www.youtube.com/watch?v=$videoId", null)
+
+                Log.d("SoundPod-Download", "Fetching player response from Innertube for $videoId")
+                val playerResponse = Innertube.player(videoId)?.getOrNull()
+                val streamExtractor = YoutubeStreamExtractor("https://www.youtube.com/watch?v=$videoId", playerResponse)
                 streamExtractor.fetchPage()
                 val bestStream = streamExtractor.audioStreams.maxByOrNull { it.averageBitrate }
+                Log.d("SoundPod-Download", "Best stream: ${bestStream?.codec} (${bestStream?.averageBitrate})")
                 
                 val resolvedStream = bestStream ?: run {
-                    val playerResponse = Innertube.player(videoId)?.getOrNull()
-                    val fallbackExtractor = YoutubeStreamExtractor("https://www.youtube.com/watch?v=$videoId", playerResponse)
+                    Log.d("SoundPod-Download", "Innertube resolution failed, falling back to pure NewPipe extraction")
+                    val fallbackExtractor = YoutubeStreamExtractor("https://www.youtube.com/watch?v=$videoId", null)
                     fallbackExtractor.fetchPage()
                     fallbackExtractor.audioStreams.maxByOrNull { it.averageBitrate }
                 }
@@ -121,35 +112,30 @@ class DownloadManager(
                     }
                     return@launch
                 }
-                
-                // 2. Fetch Thumbnail for Offline
-                val localThumbnailUrl = downloadThumbnail(videoId, mediaItem.mediaMetadata.artworkUri?.toString())
 
-                // 3. Persist Metadata
                 Log.d("SoundPod-Download", "Persisting metadata for $videoId")
-                persistMetadata(mediaItem, resolvedStream, localThumbnailUrl)
+                persistMetadata(mediaItem, resolvedStream, null)
 
-                // 4. Download Full Content
-                Log.d("SoundPod-Download", "Starting CacheWriter for $videoId")
-                val length = resolvedStream.contentLength ?: -1L
-                val dataSpec = DataSpec.Builder()
-                    .setUri(uri)
-                    .setKey(videoId)
-                    .setPosition(0L)
-                    .setLength(length)
-                    .build()
-
-                val upstreamDataSource = OkHttpDataSource.Factory(mediaSourceProvider.okHttpClient)
-                    .setUserAgent(Innertube.USER_AGENT)
-                    .createDataSource()
-
-                val cacheDataSource = CacheDataSource.Factory()
-                    .setCache(cacheManager.downloadCache)
-                    .setUpstreamDataSourceFactory { upstreamDataSource }
-                    .createDataSource()
-
-                CacheWriter(cacheDataSource, dataSpec, null, null).cache()
+                val songsDir = context.filesDir.resolve("songs").also { if (!it.exists()) it.mkdirs() }
+                val songFile = songsDir.resolve(videoId)
                 
+                // Background thumbnail download
+                scope.launch {
+                    val localThumbnailUrl = downloadThumbnail(videoId, mediaItem.mediaMetadata.artworkUri?.toString())
+                    if (localThumbnailUrl != null) {
+                        db.song(videoId).first()?.let { song ->
+                            db.upsert(song.copy(thumbnailUrl = localThumbnailUrl))
+                        }
+                    }
+                }
+
+                Log.d("SoundPod-Download", "Starting download call for $videoId from $uri")
+                NewPipeDownloader.getInstance().downloadFile(
+                    url = uri.toString(),
+                    targetFile = songFile
+                )
+                
+                Log.d("SoundPod-Download", "Download call finished for $videoId, file size: ${songFile.length()}")
                 db.insert(DownloadedSong(videoId))
                 updateDownloadedSize()
                 Log.i("SoundPod-Download", "Successfully downloaded and persisted $videoId")
@@ -175,7 +161,6 @@ class DownloadManager(
 
         val existingSong = db.song(videoId).first()
 
-        // Upsert Song - ensure we don't overwrite likedAt or totalPlayTimeMs
         db.upsert(
             Song(
                 id = videoId,
@@ -188,7 +173,6 @@ class DownloadManager(
             )
         )
 
-        // Insert/Replace Format
         db.insert(
             Format(
                 songId = videoId,
@@ -200,7 +184,6 @@ class DownloadManager(
             )
         )
 
-        // Insert Artist if available
         val artistIds = metadata.extras?.getStringArrayList("artistIds")
         val artistNames = metadata.extras?.getStringArrayList("artistNames")
         if (artistIds != null && artistNames != null) {
@@ -213,7 +196,6 @@ class DownloadManager(
             db.insert(artists, maps)
         }
 
-        // Upsert Album if available
         val albumId = metadata.extras?.getString("albumId")
         val albumTitle = metadata.albumTitle?.toString()
         if (albumId != null && albumTitle != null) {

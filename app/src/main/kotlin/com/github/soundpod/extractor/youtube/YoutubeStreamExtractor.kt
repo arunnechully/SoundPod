@@ -2,6 +2,8 @@ package com.github.soundpod.extractor.youtube
 
 import com.github.innertube.models.PlayerResponse
 import com.github.soundpod.extractor.NewPipeHelper
+import com.github.soundpod.service.YouTubeDecipherer
+import kotlinx.coroutines.runBlocking
 import org.schabi.newpipe.extractor.ServiceList
 import org.schabi.newpipe.extractor.stream.Stream as NewPipeStream
 
@@ -11,6 +13,9 @@ class YoutubeStreamExtractor(
 ) {
     private var realExtractor: org.schabi.newpipe.extractor.services.youtube.extractors.YoutubeStreamExtractor? = null
     private var playerResponse: PlayerResponse? = playerResult
+    
+    private var cachedAudioStreams: List<Stream>? = null
+    private var cachedVideoStreams: List<Stream>? = null
 
     fun fetchPage() {
         if (playerResponse != null) {
@@ -54,62 +59,79 @@ class YoutubeStreamExtractor(
 
     val lowestQualityAudioStream: Stream?
         get() {
-            realExtractor?.let { ext ->
-                val audioOnly = ext.audioStreams.map { RealStreamWrapper(it) }
-                if (audioOnly.isNotEmpty()) return audioOnly.minByOrNull { it.averageBitrate }
-                return ext.videoStreams.map { RealStreamWrapper(it) }.minByOrNull { it.averageBitrate }
-            }
-            
-            val streamingData = playerResponse?.streamingData ?: return null
-            val combined = (streamingData.adaptiveFormats.orEmpty() + streamingData.formats.orEmpty())
-                .filter { it.url != null }
-            
-            val audioOnly = combined.filter { it.mimeType.startsWith("audio/") }
-            if (audioOnly.isNotEmpty()) return audioOnly.minByOrNull { it.averageBitrate ?: it.bitrate ?: Long.MAX_VALUE }?.let { AudioStream(it) }
-
-            return combined
-                .filter { it.mimeType.contains("audio", ignoreCase = true) || it.audioQuality != null || it.mimeType.contains("mp4a") }
-                .minByOrNull { it.averageBitrate ?: it.bitrate ?: Long.MAX_VALUE }
-                ?.let { AudioStream(it) }
+            return audioStreams.minByOrNull { it.averageBitrate }
         }
 
     val audioStreams: List<Stream>
         get() {
-            realExtractor?.let { ext ->
+            cachedAudioStreams?.let { return it }
+            
+            val streams = if (realExtractor != null) {
+                val ext = realExtractor!!
                 val audioOnly = ext.audioStreams.map { RealStreamWrapper(it) }
-                if (audioOnly.isNotEmpty()) return audioOnly
-                
-                // Fallback to video streams (muxed) if audio-only is missing
-                return ext.videoStreams.map { RealStreamWrapper(it) }
+                if (audioOnly.isNotEmpty()) audioOnly else ext.videoStreams.map { RealStreamWrapper(it) }
+            } else if (playerResponse?.streamingData != null) {
+                val streamingData = playerResponse!!.streamingData!!
+                val combined = (streamingData.adaptiveFormats.orEmpty() + streamingData.formats.orEmpty())
+                    .filter { it.mimeType.contains("audio", ignoreCase = true) || it.audioQuality != null || it.mimeType.contains("mp4a") }
+                decipherStreams(combined).map { AudioStream(it) }.filter { it.content.isNotBlank() }
+            } else {
+                emptyList()
             }
             
-            val streamingData = playerResponse?.streamingData ?: return emptyList()
-            val combined = streamingData.adaptiveFormats.orEmpty() + streamingData.formats.orEmpty()
-            
-            // Prioritize streams that actually have a URL
-            val allAudio = combined
-                .filter { it.mimeType.contains("audio", ignoreCase = true) || it.audioQuality != null || it.mimeType.contains("mp4a") }
-            
-            val withUrl = allAudio.filter { it.url != null }
-            if (withUrl.isNotEmpty()) return withUrl.map { AudioStream(it) }
-
-            // If none have URLs, return all (might be encrypted)
-            return allAudio.map { AudioStream(it) }
+            cachedAudioStreams = streams
+            return streams
         }
 
     val videoStreams: List<Stream>
         get() {
-            realExtractor?.let { ext ->
-                return ext.videoStreams.map { RealStreamWrapper(it) }
+            cachedVideoStreams?.let { return it }
+            
+            val streams = if (realExtractor != null) {
+                realExtractor!!.videoStreams.map { RealStreamWrapper(it) }
+            } else if (playerResponse?.streamingData != null) {
+                val streamingData = playerResponse!!.streamingData!!
+                val combined = (streamingData.adaptiveFormats.orEmpty() + streamingData.formats.orEmpty())
+                    .filter { it.mimeType.startsWith("video/") }
+                decipherStreams(combined).map { VideoStream(it) }.filter { it.content.isNotBlank() }
+            } else {
+                emptyList()
             }
             
-            val streamingData = playerResponse?.streamingData ?: return emptyList()
-            val combined = streamingData.adaptiveFormats.orEmpty() + streamingData.formats.orEmpty()
-            
-            return combined
-                .filter { it.mimeType.startsWith("video/") }
-                .map { VideoStream(it) }
+            cachedVideoStreams = streams
+            return streams
         }
+
+    private fun decipherStreams(formats: List<PlayerResponse.StreamingData.AdaptiveFormat>): List<PlayerResponse.StreamingData.AdaptiveFormat> {
+        val cipherFormats = formats.filter { it.url == null && it.signatureCipher != null }
+        if (cipherFormats.isEmpty()) return formats
+        
+        val cipherData = cipherFormats.map { format ->
+            format.signatureCipher!!.split("&").associate {
+                val pair = it.split("=")
+                pair[0] to java.net.URLDecoder.decode(pair.getOrNull(1) ?: "", "UTF-8")
+            }
+        }
+        
+        val sList = cipherData.map { it["s"] ?: "" }
+        val decipheredSList = runBlocking { YouTubeDecipherer.signatureDecipher(sList) }
+        
+        val decipheredMap = cipherFormats.mapIndexed { index, format ->
+            val data = cipherData[index]
+            val baseUrl = data["url"] ?: ""
+            val s = decipheredSList[index]
+            val sp = data["sp"] ?: "sig"
+            
+            if (baseUrl.isNotBlank() && s.isNotBlank()) {
+                val finalUrl = if (baseUrl.contains("?")) "$baseUrl&$sp=$s" else "$baseUrl?$sp=$s"
+                format.copy(url = finalUrl)
+            } else format
+        }.associateBy { it.itag }
+
+        return formats.map { format ->
+            if (format.url != null) format else decipheredMap[format.itag] ?: format
+        }
+    }
 
     interface Stream {
         val content: String

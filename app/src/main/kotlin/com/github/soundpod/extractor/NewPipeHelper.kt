@@ -1,5 +1,6 @@
 package com.github.soundpod.extractor
 
+import com.github.soundpod.NewPipeDownloader
 import java.util.concurrent.atomic.AtomicBoolean
 
 object NewPipeHelper {

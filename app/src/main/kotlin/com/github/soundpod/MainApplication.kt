@@ -13,7 +13,6 @@ import coil3.request.CachePolicy
 import coil3.request.ImageResult
 import coil3.request.crossfade
 import com.github.innertube.Innertube
-import com.github.soundpod.extractor.NewPipeDownloader
 import com.github.soundpod.extractor.NewPipeHelper
 import com.github.soundpod.enums.CoilDiskCacheMaxSize
 import com.github.soundpod.utils.coilDiskCacheMaxSizeKey
@@ -30,7 +29,6 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
         instance = this
         
         Locale.setDefault(Locale.US)
-        NewPipeDownloader.init(cacheDir)
         NewPipeHelper.init()
 
         Thread {

@@ -125,6 +125,12 @@ class PlayerMediaSourceProvider(
             return videoId.toUri() to null
         }
 
+        // Check for local file first (NewPipeDownloader's direct save)
+        val localFile = context.filesDir.resolve("songs").resolve(videoId)
+        if (localFile.exists()) {
+            return localFile.toUri() to null
+        }
+
         urlCache[videoId]?.let { entry ->
             if (!entry.isLowQuality && System.currentTimeMillis() - entry.timestamp < CACHE_EXPIRATION_MS) {
                 return entry.uri to entry.userAgent
