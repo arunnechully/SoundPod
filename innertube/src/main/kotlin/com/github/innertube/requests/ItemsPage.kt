@@ -29,7 +29,7 @@ suspend fun <T : Innertube.Item> Innertube.itemsPage(
         )
     }.body<BrowseResponse>()
 
-    val sectionListRendererContent = response
+    val contents = response
         .contents
         ?.singleColumnBrowseResultsRenderer
         ?.tabs
@@ -38,11 +38,18 @@ suspend fun <T : Innertube.Item> Innertube.itemsPage(
         ?.content
         ?.sectionListRenderer
         ?.contents
-        ?.firstOrNull()
+        ?: response.contents?.sectionListRenderer?.contents
+        ?: response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer?.contents
+        ?: response.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents
+
+    val sectionListRendererContent = contents
+        ?.find { it.musicShelfRenderer != null || it.gridRenderer != null || it.musicPlaylistShelfRenderer != null }
 
     itemsPageFromMusicShelRendererOrGridRenderer(
         musicShelfRenderer = sectionListRendererContent
             ?.musicShelfRenderer,
+        musicPlaylistShelfRenderer = sectionListRendererContent
+            ?.musicPlaylistShelfRenderer,
         gridRenderer = sectionListRendererContent
             ?.gridRenderer,
         fromMusicResponsiveListItemRenderer = fromMusicResponsiveListItemRenderer,
@@ -63,6 +70,7 @@ suspend fun <T : Innertube.Item> Innertube.itemsPageContinuation(
         musicShelfRenderer = response
             .continuationContents
             ?.musicShelfContinuation,
+        musicPlaylistShelfRenderer = null,
         gridRenderer = null,
         fromMusicResponsiveListItemRenderer = fromMusicResponsiveListItemRenderer,
         fromMusicTwoRowItemRenderer = fromMusicTwoRowItemRenderer,
@@ -71,6 +79,7 @@ suspend fun <T : Innertube.Item> Innertube.itemsPageContinuation(
 
 private fun <T : Innertube.Item> itemsPageFromMusicShelRendererOrGridRenderer(
     musicShelfRenderer: MusicShelfRenderer?,
+    musicPlaylistShelfRenderer: com.github.innertube.models.MusicPlaylistShelfRenderer? = null,
     gridRenderer: GridRenderer?,
     fromMusicResponsiveListItemRenderer: (MusicResponsiveListItemRenderer) -> T?,
     fromMusicTwoRowItemRenderer: (MusicTwoRowItemRenderer) -> T?,
@@ -85,6 +94,18 @@ private fun <T : Innertube.Item> itemsPageFromMusicShelRendererOrGridRenderer(
             items = musicShelfRenderer
                 .contents
                 ?.mapNotNull(MusicShelfRenderer.Content::musicResponsiveListItemRenderer)
+                ?.mapNotNull(fromMusicResponsiveListItemRenderer)
+        )
+    } else if (musicPlaylistShelfRenderer != null) {
+        Innertube.ItemsPage(
+            continuation = musicPlaylistShelfRenderer
+                .continuations
+                ?.firstOrNull()
+                ?.nextContinuationData
+                ?.continuation,
+            items = musicPlaylistShelfRenderer
+                .contents
+                ?.mapNotNull { it.musicResponsiveListItemRenderer }
                 ?.mapNotNull(fromMusicResponsiveListItemRenderer)
         )
     } else if (gridRenderer != null) {

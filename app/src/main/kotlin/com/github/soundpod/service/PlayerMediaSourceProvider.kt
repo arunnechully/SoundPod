@@ -3,15 +3,14 @@ package com.github.soundpod.service
 import android.content.Context
 import android.net.Uri
 import androidx.core.net.toUri
-import androidx.media3.common.C
 import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.ResolvingDataSource
-import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.datasource.cache.CacheDataSink
 import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy
@@ -19,12 +18,10 @@ import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.extractor.DefaultExtractorsFactory
 import com.github.innertube.Innertube
 import com.github.innertube.requests.player
-import com.github.soundpod.extractor.ServiceList
 import com.github.soundpod.extractor.youtube.YoutubeStreamExtractor
 import com.github.soundpod.utils.pauseSongCacheKey
 import com.github.soundpod.utils.preferences
 import kotlinx.coroutines.runBlocking
-import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -64,7 +61,7 @@ class PlayerMediaSourceProvider(
 
     private fun createDataSourceFactory(): DataSource.Factory {
         val httpDataSourceFactory = OkHttpDataSource.Factory(okHttpClient)
-            .setUserAgent(null)
+            .setUserAgent(Innertube.USER_AGENT)
 
         val upstreamFactory = androidx.media3.datasource.DefaultDataSource.Factory(context, httpDataSourceFactory)
 
@@ -92,19 +89,34 @@ class PlayerMediaSourceProvider(
         return DataSource.Factory {
             val pauseSongCache = context.preferences.getBoolean(pauseSongCacheKey, false)
 
-            val cacheDataSource = CacheDataSource.Factory()
+            val transientCacheDataSource = CacheDataSource.Factory()
                 .setCache(cacheManager.cache)
                 .setUpstreamDataSourceFactory(resolvingUpstreamFactory)
+                .setCacheWriteDataSinkFactory { // This fallback is needed if the dataSpec isn't available yet or for default creation
+                    CacheDataSink.Factory().setCache(cacheManager.cache).createDataSink()
+                }
+
+                // Note: In Media3 1.1+, setCacheWriteDataSinkFactory can sometimes be bypassed or
+                // replaced by logic that checks for specific videoId.
+                // Since CacheDataSource.Factory doesn't easily provide DataSpec to the Factory's createDataSink(),
+                // we'll use this approach and assume the caller might be using a more complex setup.
+                // However, to keep it simple and buffer-safe, we'll implement a custom DataSource if needed.
+                // For now, we'll try to use the pauseSongCache flag globally within the factory.
+
                 .apply {
                     if (pauseSongCache) {
                         setCacheWriteDataSinkFactory(null)
-                    } else {
-                        setCacheWriteDataSinkFactory(CacheDataSink.Factory().setCache(cacheManager.cache))
                     }
                 }
                 .createDataSource()
 
-            cacheDataSource
+            val downloadCacheDataSource = CacheDataSource.Factory()
+                .setCache(cacheManager.downloadCache)
+                .setUpstreamDataSourceFactory { transientCacheDataSource }
+                .setCacheWriteDataSinkFactory(null)
+                .createDataSource()
+
+            downloadCacheDataSource
         }
     }
 
@@ -120,58 +132,34 @@ class PlayerMediaSourceProvider(
         }
 
         val lock = resolutionLocks.getOrPut(videoId) { ReentrantLock() }
-        
         lock.withLock {
             urlCache[videoId]?.let { entry ->
                 if (!entry.isLowQuality && System.currentTimeMillis() - entry.timestamp < CACHE_EXPIRATION_MS) {
                     return entry.uri to entry.userAgent
                 }
-                
-                if (entry.isLowQuality) {
-                    Log.d("SoundPod", "Upgrading quality for $videoId (was using ${entry.playbackSource})...")
-                }
             }
 
-            Log.d("SoundPod", "Resolving URL for $videoId...")
-            val fastResult = runCatching {
-                runBlocking { Innertube.player(videoId)?.getOrNull() }
-            }.getOrNull()
+            Log.d("SoundPod", "Resolving URL for $videoId")
 
-            if (fastResult != null) {
-                Log.d("SoundPod", "InnerTube player response status: ${fastResult.playabilityStatus?.status}")
-            } else {
-                Log.w("SoundPod", "InnerTube player request failed for $videoId")
-            }
+            val playerResponse = runBlocking { Innertube.player(videoId)?.getOrNull() }
 
-            val rawUrl = runCatching<String> {
-                val streamExtractor = ServiceList.YouTube.getStreamExtractor("https://www.youtube.com/watch?v=$videoId", fastResult)
-                streamExtractor.fetchPage()
+            val streamExtractor = YoutubeStreamExtractor("https://www.youtube.com/watch?v=$videoId", playerResponse)
+            streamExtractor.fetchPage()
 
-                val audioStreams = streamExtractor.audioStreams
-                Log.d("SoundPod", "Found ${audioStreams.size} audio streams for $videoId")
+            val audioStreams = streamExtractor.audioStreams
+            if (audioStreams.isEmpty()) throw Exception("No audio streams found for $videoId")
 
-                val bestAudio: YoutubeStreamExtractor.Stream = audioStreams
-                    .filter { it.codec?.lowercase(Locale.ROOT) == "opus" }
-                    .maxByOrNull { it.averageBitrate }
-                    ?: (audioStreams.maxByOrNull { it.averageBitrate }
-                        ?: streamExtractor.videoStreams.maxByOrNull { it.bitrate }
-                        ?: throw Exception("No playable streams found"))
+            val bestAudio: YoutubeStreamExtractor.Stream = audioStreams
+                .filter { it.content.isNotBlank() }
+                .maxByOrNull { it.averageBitrate }
+                ?: throw Exception("No playable audio streams found for $videoId")
 
-                if (bestAudio.content.isBlank()) throw Exception("Empty stream content for $videoId")
-                Log.d("SoundPod", "Selected stream for $videoId: ${bestAudio.codec} (${bestAudio.averageBitrate / 1000}kbps)")
-                bestAudio.content
-            }.getOrElse { e ->
-                Log.e("SoundPod", "Resolution failed for $videoId", e)
-                throw e
-            }
+            if (bestAudio.content.isBlank()) throw Exception("Empty stream content for $videoId")
+            Log.d("SoundPod", "Selected stream for $videoId: ${bestAudio.codec} (${bestAudio.averageBitrate / 1000}kbps)")
+            val uri = bestAudio.content.toUri()
 
-            val newUri = rawUrl.toUri()
-            val playbackSource = if (fastResult != null) {
-                "InnerTube (${fastResult.clientName ?: "Unknown Client"})"
-            } else "NewPipe Extractor"
-            urlCache[videoId] = CacheEntry(newUri, null, System.currentTimeMillis(), isLowQuality = false, playbackSource = playbackSource)
-            
-            return newUri to null
+            urlCache[videoId] = CacheEntry(uri, null, System.currentTimeMillis(), playbackSource = "SoundPod Resolver")
+            return uri to null
         }
     }
 
@@ -183,55 +171,20 @@ private class YouTubeErrorPolicy(
     private val urlCache: ConcurrentHashMap<String, PlayerMediaSourceProvider.CacheEntry>
 ) : DefaultLoadErrorHandlingPolicy() {
 
-    private fun isTransient(exception: Throwable): Boolean {
-        var cause: Throwable? = exception
-        while (cause != null) {
-            if (cause is java.net.SocketException ||
-                cause is java.net.SocketTimeoutException ||
-                cause is java.net.UnknownHostException ||
-                cause is java.net.ConnectException ||
-                cause is java.io.InterruptedIOException ||
-                cause is javax.net.ssl.SSLException) {
-                return true
-            }
-            if (cause is HttpDataSource.InvalidResponseCodeException) {
-                val code = cause.responseCode
-                return code == 403 || code == 410 || code == 429
-            }
-            cause = cause.cause
-        }
-        return false
-    }
-
     override fun getRetryDelayMsFor(loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo): Long {
-        val exception = loadErrorInfo.exception
-        val videoId = loadErrorInfo.loadEventInfo.dataSpec.key
-        val retryCount = loadErrorInfo.errorCount
-
-        if (isTransient(exception) && videoId != null) {
-            Log.w("SoundPod", "Retrying $videoId (attempt $retryCount, transient error: $exception)")
-
-            var cause: Throwable? = exception
-            while (cause != null) {
-                if (cause is HttpDataSource.InvalidResponseCodeException &&
-                    (cause.responseCode == 403 || cause.responseCode == 410)) {
-                    
-                    Innertube.visitorData = null
-                    urlCache.remove(videoId)
-                    return if (retryCount <= 1) 0 else (1000L * retryCount).coerceAtMost(10000L)
-                }
-                cause = cause.cause
+        val throwable = loadErrorInfo.exception
+        if (throwable is HttpDataSource.InvalidResponseCodeException &&
+            (throwable.responseCode == 403 || throwable.responseCode == 404)
+        ) {
+            val videoId = loadErrorInfo.loadEventInfo.dataSpec.key
+            if (videoId != null) {
+                Log.w("SoundPod", "Forbidden or Not Found for $videoId, clearing cache and retrying")
+                urlCache.remove(videoId)
             }
-            
-            return (1000L * retryCount).coerceAtMost(10000L)
+            return 0
         }
 
-        if (videoId != null) {
-            Log.e("SoundPod", "Fatal error for $videoId (count $retryCount): $exception")
-            urlCache.remove(videoId)
-        }
-
-        return C.TIME_UNSET
+        return super.getRetryDelayMsFor(loadErrorInfo)
     }
 
     override fun getMinimumLoadableRetryCount(dataType: Int): Int {

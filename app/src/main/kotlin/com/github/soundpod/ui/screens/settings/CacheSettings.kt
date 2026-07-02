@@ -36,15 +36,21 @@ import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.enums.CoilDiskCacheMaxSize
+import com.github.soundpod.enums.DownloadDiskCacheMaxSize
 import com.github.soundpod.enums.ExoPlayerDiskCacheMaxSize
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SwitchSetting
 import com.github.soundpod.utils.coilDiskCacheMaxSizeKey
+import com.github.soundpod.utils.downloadDiskCacheMaxSizeKey
 import com.github.soundpod.utils.exoPlayerDiskCacheMaxSizeKey
 import com.github.soundpod.utils.pauseImageCacheKey
 import com.github.soundpod.utils.pauseSongCacheKey
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.showCachedSongsInOfflineKey
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -62,6 +68,10 @@ fun CacheSettingsContent() {
         exoPlayerDiskCacheMaxSizeKey,
         ExoPlayerDiskCacheMaxSize.`2GB`
     )
+    var downloadDiskCacheMaxSize by rememberPreference(
+        downloadDiskCacheMaxSizeKey,
+        DownloadDiskCacheMaxSize.`2GB`
+    )
 
     var pauseSongCache by rememberPreference(pauseSongCacheKey, false)
     var pauseImageCache by rememberPreference(pauseImageCacheKey, false)
@@ -72,6 +82,9 @@ fun CacheSettingsContent() {
     var showClearSongCacheDialog by remember { mutableStateOf(false) }
 
     var refreshTrigger by remember { mutableIntStateOf(0) }
+
+    val downloadedSize by (binder?.downloadManager?.downloadedSize
+        ?: kotlinx.coroutines.flow.MutableStateFlow(0L)).collectAsState()
 
     Column {
         SettingsGroup(
@@ -139,6 +152,35 @@ fun CacheSettingsContent() {
                 onSwitchChange = { showCachedSongsInOffline = it }
             )
 
+        }
+
+        SettingsGroup(
+            title = stringResource(id = R.string.download)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                SettingsProgress(
+                    modifier = Modifier.weight(1f),
+                    text = Formatter.formatShortFileSize(
+                        context,
+                        downloadedSize
+                    ),
+                    progress = when (downloadDiskCacheMaxSize) {
+                        DownloadDiskCacheMaxSize.Unlimited -> 0F
+                        else -> (downloadedSize.toFloat() / downloadDiskCacheMaxSize.bytes.toFloat())
+                    }
+                )
+            }
+            EnumValueSelectorSettingsEntry(
+                title = stringResource(id = R.string.max_size),
+                selectedValue = downloadDiskCacheMaxSize,
+                onValueSelected = { downloadDiskCacheMaxSize = it },
+                icon = IconSource.Vector(Icons.Outlined.MusicNote)
+            )
         }
 
         if (showClearSongCacheDialog) {

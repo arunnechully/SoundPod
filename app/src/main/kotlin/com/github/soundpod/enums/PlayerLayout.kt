@@ -7,7 +7,7 @@ enum class PlayerLayout(
     @get:StringRes val resourceId: Int
 ) {
     Default(
-        resourceId = R.string.defualt,
+        resourceId = R.string.default_source,
     ),
     New(
         resourceId = R.string.new_layout,

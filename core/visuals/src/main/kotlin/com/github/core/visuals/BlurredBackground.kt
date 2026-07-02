@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -31,13 +32,17 @@ fun BlurredBackground(
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(targetUrl)
-                .size(128)
+                .size(64)
                 .crossfade(true)
                 .build(),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxSize()
-                .blur(80.dp)
+                .graphicsLayer {
+                    renderEffect = null // This helps avoid some edge cases on older versions
+                    clip = true
+                }
+                .blur(70.dp)
                 .alpha(0.45f),
             contentScale = ContentScale.Crop
         )

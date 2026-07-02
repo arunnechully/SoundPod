@@ -6,14 +6,8 @@ import com.github.soundpod.R
 enum class QuickPicksSource(
     @StringRes val resourceId: Int
 ) {
-    Trending(
-        resourceId = R.string.trending,
-    ),
-    LastPlayed(
-        resourceId = R.string.last_played,
-    ),
-    Recommended(
-        resourceId = R.string.recommended,
+    Default(
+        resourceId = R.string.default_source,
     ),
     Custom(
         resourceId = R.string.custom,

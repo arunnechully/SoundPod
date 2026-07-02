@@ -26,7 +26,7 @@ suspend fun <T : Innertube.Item> Innertube.searchPage(
         mask("contents.tabbedSearchResultsRenderer.tabs.tabRenderer.content.sectionListRenderer.contents.musicShelfRenderer(continuations,contents.$MUSIC_RESPONSIVE_LIST_ITEM_RENDERER_MASK)")
     }.body<SearchResponse>()
 
-    response
+    val contents = response
         .contents
         ?.tabbedSearchResultsRenderer
         ?.tabs
@@ -35,7 +35,9 @@ suspend fun <T : Innertube.Item> Innertube.searchPage(
         ?.content
         ?.sectionListRenderer
         ?.contents
-        ?.lastOrNull()
+
+    contents
+        ?.find { it.musicShelfRenderer != null }
         ?.musicShelfRenderer
         ?.toItemsPage(fromMusicShelfRendererContent)
 }

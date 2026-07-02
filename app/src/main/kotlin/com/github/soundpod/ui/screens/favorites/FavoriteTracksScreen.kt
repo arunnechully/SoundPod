@@ -18,10 +18,12 @@ import com.github.soundpod.models.Song
 import com.github.soundpod.ui.components.InHistoryMediaItemMenu
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
+import com.github.soundpod.ui.components.SortingHeader
 import com.github.soundpod.ui.items.LocalSongItem
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlayAtIndex
 import com.github.soundpod.viewmodels.favorites.FavoritesViewModel
+import com.github.soundpod.enums.SongSortBy
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -47,6 +49,25 @@ fun FavoriteTracksScreen(
                 contentPadding = PaddingValues(bottom = playerPadding + 16.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
+                item(key = "header") {
+                    SortingHeader(
+                        sortBy = viewModel.sortBy,
+                        changeSortBy = { viewModel.sortBy = it },
+                        sortByEntries = SongSortBy.entries.toList(),
+                        sortOrder = viewModel.sortOrder,
+                        toggleSortOrder = { viewModel.sortOrder = it },
+                        size = songs.size,
+                        onPlayClick = {
+                            binder?.stopRadio()
+                            binder?.player?.forcePlayAtIndex(songs.map(Song::asMediaItem), 0)
+                        },
+                        onShuffleClick = {
+                            binder?.stopRadio()
+                            binder?.player?.forcePlayAtIndex(songs.shuffled().map(Song::asMediaItem), 0)
+                        }
+                    )
+                }
+
                 itemsIndexed(
                     items = songs,
                     key = { _, song -> song.id }

@@ -151,9 +151,9 @@
     <string name="app_language">Lingua dell\'app</string>
     <string name="configure_app_language">Configura la lingua dell\'app</string>
     <string name="most_played">Più riprodotti</string>
-    <string name="trending">Di tendenza</string>
-    <string name="last_played">Ultima riproduzione</string>
-    <string name="recommended">Recommended</string>
+    <!-- <string name="trending">Di tendenza</string> -->
+    <!-- <string name="last_played">Ultima riproduzione</string> -->
+    <!-- <string name="recommended">Recommended</string> -->
     <string name="general">Generale</string>
     <string name="history">Cronologia</string>
     <string name="quick_picks_source">Fonte delle scelte rapide</string>
@@ -221,7 +221,7 @@
     <string name="autocheck_description">Automatically check for new versions in background</string>
     <string name="update_alert">Show update alert</string>
     <string name="update_alert_desription">Get a notification new version is available</string>
-    <string name="defualt">Default</string>
+    <string name="default_source">Predefinito</string>
     <string name="dynamic">Dynamic</string>
     <string name="material_you">MaterialYou</string>
     <string name="progress_bar_style">Progress Bar Style</string>

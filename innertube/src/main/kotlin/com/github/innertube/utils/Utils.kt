@@ -17,8 +17,8 @@ internal fun SectionListRenderer.findSectionByTitle(text: String): SectionListRe
 
         title
             ?.runs
-            ?.firstOrNull()
-            ?.text == text
+            ?.joinToString("") { it.text ?: "" }
+            ?.equals(text, ignoreCase = true) == true
     }
 }
 

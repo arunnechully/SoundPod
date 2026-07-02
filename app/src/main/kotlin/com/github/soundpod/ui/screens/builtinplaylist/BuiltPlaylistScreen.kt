@@ -25,24 +25,29 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
+import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.db
 import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.enums.SongSortBy
 import com.github.soundpod.enums.SortOrder
 import com.github.soundpod.models.Song
-import com.github.soundpod.query
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.songSortByKey
 import com.github.soundpod.utils.songSortOrderKey
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
@@ -56,6 +61,8 @@ fun BuiltInPlaylistScreen(
     onSettingsClick: () -> Unit
 ) {
     val (colorPalette) = LocalAppearance.current
+    val binder = LocalPlayerServiceBinder.current
+    val scope = rememberCoroutineScope()
 
     var isEditMode by remember { mutableStateOf(false) }
     var selectedUids by remember { mutableStateOf(emptySet<String>()) }
@@ -100,6 +107,11 @@ fun BuiltInPlaylistScreen(
                     )
                 }
             }
+            else {
+                Text(
+                    text = "Offline"
+                )
+            }
         },
         onBackClick = {
             if (isSearching) {
@@ -131,7 +143,7 @@ fun BuiltInPlaylistScreen(
                 AlertDialog(
                     onDismissRequest = { removeSongDialog = false },
                     title = {
-                        Text(text = stringResource(id = if (isEditMode) R.string.remove_from_favorites else R.string.clear_playlist))
+                        Text(text = stringResource(R.string.clear_playlist))
                     },
                     text = {
                         val dialogText = if (isEditMode) {
@@ -147,17 +159,27 @@ fun BuiltInPlaylistScreen(
                     confirmButton = {
                         TextButton(
                             onClick = {
-                                if (isEditMode) {
-                                    val uidsToDelete = selectedUids.toList()
-                                    query {
+                                scope.launch(Dispatchers.IO) {
+                                    if (isEditMode) {
+                                        val uidsToDelete = selectedUids.toList()
+                                        if (builtInPlaylist == BuiltInPlaylist.Offline) {
+                                            uidsToDelete.forEach { binder?.removeCache(it) }
+                                        }
                                         db.removeSongsFromPlaylist(builtInPlaylist, uidsToDelete)
+                                        withContext(Dispatchers.Main) {
+                                            isEditMode = false
+                                            selectedUids = emptySet()
+                                        }
+                                    } else {
+                                        if (builtInPlaylist == BuiltInPlaylist.Offline) {
+                                            currentSongs.forEach { binder?.removeCache(it.id) }
+                                        }
+                                        db.clearPlaylist(builtInPlaylist)
                                     }
-                                    isEditMode = false
-                                    selectedUids = emptySet()
-                                } else {
-                                    query { db.clearPlaylist(builtInPlaylist) }
+                                    withContext(Dispatchers.Main) {
+                                        removeSongDialog = false
+                                    }
                                 }
-                                removeSongDialog = false
                             }
                         ) {
                             Text(text = stringResource(android.R.string.ok))

@@ -41,6 +41,7 @@ const val selectedSleepTimerPresetKey = "selectedSleepTimerPreset"
 const val pauseSongCacheKey = "pauseSongCache"
 const val pauseImageCacheKey = "pauseImageCache"
 const val showCachedSongsInOfflineKey = "showCachedSongsInOffline"
+const val downloadDiskCacheMaxSizeKey = "downloadDiskCacheMaxSize"
 const val quickPicksSourceKey = "quickPicksSource"
 const val quickPicksCustomGenreKey = "quickPicksCustomGenre"
 

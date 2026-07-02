@@ -12,10 +12,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import com.github.core.ui.LocalAppearance
 import com.github.core.visuals.ColorClusters
@@ -60,8 +60,8 @@ fun PlayerBackground(
     }
 
     val isDark = colorPalette.isDark
-    val baseBackground = if (isDark) Color(0xFF05050A) else Color(0xFFFAFAFF)
-    val targetBackgroundColorRaw = remember(clusters, isDark) {
+    val baseBackground = remember(isDark) { if (isDark) Color(0xFF05050A) else Color(0xFFFAFAFF) }
+    val targetBackgroundColorRaw = remember(clusters, baseBackground, isDark) {
         val adapted = clusters.surface.adaptToTheme(isDark)
         adapted.copy(alpha = if (isDark) 0.35f else 0.25f).compositeOver(baseBackground)
     }
@@ -76,7 +76,11 @@ fun PlayerBackground(
             .fillMaxSize()
             .background(targetBackgroundColor)
     ) {
-        Box(modifier = Modifier.fillMaxSize().alpha(expandProgress)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer { alpha = expandProgress }
+        ) {
             when (currentStyle) {
                 BackgroundStyles.OFF -> {
                     Box(Modifier.fillMaxSize().background(baseBackground))

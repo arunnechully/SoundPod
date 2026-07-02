@@ -153,12 +153,12 @@
     <string name="most_played">Más reproducido</string>
     <string name="trending">Tendencias</string>
     <string name="last_played">Más reciente</string>
-    <string name="recommended">Recomendado</string>
+    <string name="recommended">Recommended</string>
     <string name="general">General</string>
     <string name="history">Historial</string>
     <string name="quick_picks_source">Fuente de las selecciones rápidas</string>
-    <string name="quick_picks_custom_genre">Género personalizado</string>
-    <string name="quick_picks_custom_genre_description">Introduce tu género preferido para Quick Picks</string>
+    <string name="quick_picks_custom_genre">Custom genre</string>
+    <string name="quick_picks_custom_genre_description">Enter your preferred genre for Quick Picks</string>
     <string name="stop">Detener</string>
     <string name="share">Compartir</string>
     <string name="add_bookmark">Añadir marcador</string>
@@ -230,8 +230,8 @@
     <string name="wave">Onda</string>
     <string name="pause_song_cache">Pausar caché de canciones</string>
     <string name="pause_song_cache_description">Pausar el almacenamiento en caché de canciones</string>
-    <string name="pause_image_cache">Pausar la caché de imágenes</string>
-    <string name="pause_image_cache_description">Pausar el proceso de almacenamiento en caché de imágenes</string>
+    <string name="pause_image_cache">Pause image cache</string>
+    <string name="pause_image_cache_description">Pause the image caching process</string>
     <string name="suggest_an_idea">Sugiere una idea</string>
     <string name="report_a_bug">Generar informe de errores</string>
     <string name="stop_and_share_report">Informe de Stop and Share</string>
@@ -343,5 +343,5 @@
     <string name="favorite_albums">Álbumes favoritos</string>
     <string name="favorite_artists">Artistas favoritos</string>
     <string name="no_favorites">Sin favoritos</string>
-    <string name="no_favorites_description">Toca el icono del corazón en canciones, álbumes o artistas para añadirlos a tus favoritos.</string>
+    <string name="no_favorites_description">Tap the heart icon on songs, albums, or artists to add them to your favorites.</string>
 </resources>

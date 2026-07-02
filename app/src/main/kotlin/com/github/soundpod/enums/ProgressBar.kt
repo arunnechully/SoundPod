@@ -7,7 +7,7 @@ enum class ProgressBar(
     @get:StringRes val resourceId: Int
 ) {
     Default(
-        resourceId = R.string.defualt,
+        resourceId = R.string.default_source,
     ),
     Wave(
         resourceId = R.string.wave,

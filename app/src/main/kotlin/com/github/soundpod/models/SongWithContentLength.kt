@@ -6,5 +6,6 @@ import androidx.room.Embedded
 @Immutable
 data class SongWithContentLength(
     @Embedded val song: Song,
-    val contentLength: Long?
+    val contentLength: Long?,
+    val isDownloaded: Boolean
 )

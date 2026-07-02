@@ -340,7 +340,7 @@ fun MiniPlayerControl(
 
     val isBuffering = playbackState == Player.STATE_BUFFERING &&
             (player.currentMediaItem?.mediaId?.let {
-                binder.cache.isCached(
+                binder.isCached(
                     it,
                     player.currentPosition,
                     1024L
@@ -531,7 +531,7 @@ fun PlayerControlBottom(
 
     val isBuffering = playbackState == Player.STATE_BUFFERING &&
             (player.currentMediaItem?.mediaId?.let {
-                binder.cache.isCached(
+                binder.isCached(
                     it,
                     player.currentPosition,
                     1024L
@@ -677,9 +677,16 @@ fun PlayerTopControl(
 ) {
     val (colorPalette) = LocalAppearance.current
     val binder = LocalPlayerServiceBinder.current
-    binder?.player ?: return
+    val player = binder?.player ?: return
 
     val context = LocalContext.current
+    
+    val mediaId = player.currentMediaItem?.mediaId ?: ""
+    val isDownloaded by (if (mediaId.isNotEmpty()) {
+        binder.downloadManager.isDownloaded(mediaId)
+    } else {
+        kotlinx.coroutines.flow.flowOf(false)
+    }).collectAsState(initial = false)
 
     val activityResultLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { }
@@ -826,6 +833,23 @@ fun PlayerTopControl(
                         }
                     )
                 }
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = stringResource(id = if (isDownloaded) R.string.remove_download else R.string.download),
+                            color = colorPalette.text,
+                            style = typography.bodyLarge
+                        )
+                    },
+                    onClick = {
+                        showDropDown = false
+                        if (isDownloaded) {
+                            binder.removeDownload(mediaId)
+                        } else {
+                            player.currentMediaItem?.let { binder.downloadManager.download(it) }
+                        }
+                    }
+                )
                 DropdownMenuItem(
                     text = {
                         Text(

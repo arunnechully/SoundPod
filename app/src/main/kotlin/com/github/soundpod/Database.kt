@@ -39,6 +39,7 @@ import com.github.soundpod.enums.SongSortBy
 import com.github.soundpod.enums.SortOrder
 import com.github.soundpod.models.Album
 import com.github.soundpod.models.Artist
+import com.github.soundpod.models.DownloadedSong
 import com.github.soundpod.models.Event
 import com.github.soundpod.models.Format
 import com.github.soundpod.models.Info
@@ -409,7 +410,7 @@ interface Database {
         }
     }
 
-    @Query("SELECT thumbnailUrl FROM Song JOIN SongPlaylistMap ON id = songId WHERE playlistId = :id ORDER BY position LIMIT 4")
+    @Query("SELECT thumbnailUrl FROM Song JOIN SongPlaylistMap ON Song.id = songId WHERE playlistId = :id ORDER BY position LIMIT 4")
     fun playlistThumbnailUrls(id: Long): Flow<List<String>>
 
     @Transaction
@@ -421,8 +422,12 @@ interface Database {
     fun format(songId: String): Flow<Format?>
 
     @Transaction
-    @Query("SELECT Song.*, contentLength FROM Song LEFT JOIN Format ON id = songId ORDER BY Song.ROWID DESC")
+    @Query("SELECT Song.*, contentLength, (DownloadedSong.id IS NOT NULL) AS isDownloaded FROM Song LEFT JOIN Format ON Song.id = songId LEFT JOIN DownloadedSong ON Song.id = DownloadedSong.id ORDER BY Song.ROWID DESC")
     fun songsWithContentLength(): Flow<List<SongWithContentLength>>
+
+    @Transaction
+    @Query("SELECT Song.*, contentLength, 1 AS isDownloaded FROM Song JOIN DownloadedSong ON Song.id = DownloadedSong.id LEFT JOIN Format ON Song.id = songId ORDER BY DownloadedSong.timestamp DESC")
+    fun downloadedSongsWithContentLength(): Flow<List<SongWithContentLength>>
 
     @Query("""
         UPDATE SongPlaylistMap SET position = 
@@ -447,37 +452,19 @@ interface Database {
     @Query("SELECT * FROM Song WHERE title LIKE :query OR artistsText LIKE :query")
     fun search(query: String): Flow<List<Song>>
 
-    @Query("SELECT albumId AS id, title AS name FROM Album JOIN SongAlbumMap ON id = albumId WHERE songId = :songId")
+    @Query("SELECT albumId AS id, title AS name FROM Album JOIN SongAlbumMap ON Album.id = albumId WHERE songId = :songId")
     fun songAlbumInfo(songId: String): Info?
 
-    @Query("SELECT id, name FROM Artist LEFT JOIN SongArtistMap ON id = artistId WHERE songId = :songId")
+    @Query("SELECT Artist.id, name FROM Artist LEFT JOIN SongArtistMap ON Artist.id = artistId WHERE songId = :songId")
     fun songArtistInfo(songId: String): List<Info>
 
     @Transaction
-    @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId GROUP BY songId ORDER BY SUM(CAST(playTime AS REAL) / (((:now - timestamp) / 86400000) + 1)) DESC LIMIT :limit")
-    @RewriteQueriesToDropUnusedColumns
-    fun trending(limit: Int, now: Long = System.currentTimeMillis()): Flow<List<Song>>
-
-    @Transaction
-    @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId GROUP BY songId ORDER BY SUM(CAST(playTime AS REAL) / (((:now - timestamp) / 86400000) + 1)) DESC LIMIT 1")
-    @RewriteQueriesToDropUnusedColumns
-    fun trending(now: Long = System.currentTimeMillis()): Flow<Song?>
-
-    @Transaction
-    @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId GROUP BY songId ORDER BY timestamp DESC LIMIT :limit")
-    fun lastPlayed(limit: Int): Flow<List<Song>>
-
-    @Transaction
-    @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId GROUP BY songId ORDER BY timestamp DESC LIMIT 1")
-    fun lastPlayed(): Flow<Song?>
+    @Query("SELECT * FROM Song WHERE likedAt IS NOT NULL OR totalPlayTimeMs > 0 ORDER BY likedAt DESC, totalPlayTimeMs DESC LIMIT :limit")
+    fun seedSongs(limit: Int): Flow<List<Song>>
 
     @Transaction
     @Query("SELECT * FROM Song ORDER BY RANDOM() LIMIT :limit")
     fun randomSongs(limit: Int): Flow<List<Song>>
-
-    @Transaction
-    @Query("SELECT * FROM Song ORDER BY RANDOM() LIMIT 1")
-    fun randomSong(): Flow<Song?>
 
     @Query("SELECT COUNT (*) FROM Event")
     fun eventsCount(): Flow<Int>
@@ -494,7 +481,7 @@ interface Database {
     @Query("DELETE FROM PrecachedSong WHERE id = :id")
     fun deletePrecachedSong(id: String)
 
-    @Query("SELECT * FROM PrecachedSong WHERE timestamp < :threshold")
+    @Query("SELECT * FROM PrecachedSong WHERE timestamp < :threshold AND id NOT IN (SELECT id FROM DownloadedSong)")
     fun oldPrecachedSongs(threshold: Long): List<PrecachedSong>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
@@ -518,6 +505,9 @@ interface Database {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insert(song: Song): Long
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun insert(songAlbumMap: SongAlbumMap): Long
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     fun insert(queuedMediaItems: List<QueuedMediaItem>)
@@ -574,7 +564,10 @@ interface Database {
     fun removeSongsFromPlaylist(playlist: BuiltInPlaylist, songIds: List<String>) {
         when (playlist) {
             BuiltInPlaylist.Favorites -> removeFavorites(songIds)
-            BuiltInPlaylist.Offline -> removeOffline(songIds)
+            BuiltInPlaylist.Offline -> {
+                removeOffline(songIds)
+                deleteDownloadedSongs(songIds)
+            }
         }
     }
 
@@ -582,7 +575,10 @@ interface Database {
     fun clearPlaylist(playlist: BuiltInPlaylist) {
         when (playlist) {
             BuiltInPlaylist.Favorites -> clearFavorites()
-            BuiltInPlaylist.Offline -> clearOfflineAll()
+            BuiltInPlaylist.Offline -> {
+                clearOfflineAll()
+                clearDownloadedAll()
+            }
         }
     }
 
@@ -600,9 +596,39 @@ interface Database {
     @Query("DELETE FROM Format")
     fun clearOfflineAll()
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insert(downloadedSong: DownloadedSong)
+
+    @Query("DELETE FROM DownloadedSong WHERE id = :id")
+    fun deleteDownloadedSong(id: String)
+
+    @Query("DELETE FROM DownloadedSong WHERE id IN (:songIds)")
+    fun deleteDownloadedSongs(songIds: List<String>)
+
+    @Query("DELETE FROM DownloadedSong")
+    fun clearDownloadedAll()
+
+    @Query("SELECT * FROM DownloadedSong WHERE id = :id")
+    fun downloadedSong(id: String): Flow<DownloadedSong?>
+
+    @Query("SELECT * FROM DownloadedSong")
+    fun downloadedSongs(): Flow<List<DownloadedSong>>
+
+    @Query("DELETE FROM PrecachedSong WHERE id IN (:songIds)")
+    fun deletePrecachedSongs(songIds: List<String>)
+
+    @Query("DELETE FROM PrecachedSong")
+    fun clearPrecachedAll()
+
+
+    @Upsert
+    fun upsert(song: Song)
 
     @Update
     fun update(artist: Artist)
+
+    @Upsert
+    fun upsert(album: Album)
 
     @Update
     fun update(album: Album)
@@ -647,10 +673,10 @@ interface Database {
         Song::class, SongPlaylistMap::class, Playlist::class, Artist::class,
         SongArtistMap::class, Album::class, SongAlbumMap::class, SearchQuery::class,
         QueuedMediaItem::class, Format::class, Event::class, Lyrics::class,
-        PrecachedSong::class
+        PrecachedSong::class, DownloadedSong::class
     ],
     views = [SortedSongPlaylistMap::class],
-    version = 26,
+    version = 27,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -673,6 +699,7 @@ interface Database {
         AutoMigration(from = 21, to = 22, spec = DatabaseInitializer.From21To22Migration::class),
         AutoMigration(from = 24, to = 25),
         AutoMigration(from = 25, to = 26),
+        AutoMigration(from = 26, to = 27),
     ],
 )
 @TypeConverters(Converters::class)

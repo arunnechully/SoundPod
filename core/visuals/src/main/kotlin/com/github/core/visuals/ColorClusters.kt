@@ -29,6 +29,7 @@ suspend fun extractColorClusters(
 
     val request = ImageRequest.Builder(context)
         .data(thumbnailUrl)
+        .size(64, 64)
         .allowHardware(false)
         .build()
 

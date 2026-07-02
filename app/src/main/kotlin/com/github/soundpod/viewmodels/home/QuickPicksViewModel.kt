@@ -39,9 +39,7 @@ class QuickPicksViewModel : ViewModel() {
 
     @Suppress("SameParameterValue")
     private fun getSeedSongsFlow(source: QuickPicksSource, limit: Int): Flow<List<Song>> = when (source) {
-        QuickPicksSource.Trending -> db.trending(limit)
-        QuickPicksSource.LastPlayed -> db.lastPlayed(limit)
-        QuickPicksSource.Recommended -> db.lastPlayed(limit)
+        QuickPicksSource.Default -> db.seedSongs(limit)
         QuickPicksSource.Custom -> db.randomSongs(limit)
     }
 
@@ -66,7 +64,7 @@ class QuickPicksViewModel : ViewModel() {
         return result
     }
 
-    fun loadQuickPicks(quickPicksSource: QuickPicksSource, forceRefresh: Boolean = false) {
+    fun loadQuickPicks(quickPicksSource: QuickPicksSource) {
         job?.cancel()
         job = viewModelScope.launch(Dispatchers.IO) {
             Log.d("SoundPod", "Loading Quick Picks for source: $quickPicksSource")
@@ -91,31 +89,32 @@ class QuickPicksViewModel : ViewModel() {
                             )
                         } ?: emptyList()
                     }
-                    QuickPicksSource.Trending -> {
-                        Innertube.charts()?.getOrNull()?.take(3)?.map { item ->
-                            val mediaItem = item.asMediaItem
-                            Song(
-                                id = mediaItem.mediaId,
-                                title = mediaItem.mediaMetadata.title.toString(),
-                                artistsText = mediaItem.mediaMetadata.artist.toString(),
-                                durationText = null,
-                                thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString()
-                            )
-                        } ?: getSeedSongsFlow(quickPicksSource, 3).first()
+                    QuickPicksSource.Default -> {
+                        val seeds = getSeedSongsFlow(quickPicksSource, 3).first()
+                        if (seeds.isNotEmpty()) {
+                            seeds
+                        } else {
+                            Innertube.recommendations()?.getOrNull()?.take(3)?.map { item ->
+                                val mediaItem = item.asMediaItem
+                                Song(
+                                    id = mediaItem.mediaId,
+                                    title = mediaItem.mediaMetadata.title.toString(),
+                                    artistsText = mediaItem.mediaMetadata.artist.toString(),
+                                    durationText = null,
+                                    thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString()
+                                )
+                            } ?: Innertube.charts()?.getOrNull()?.take(3)?.map { item ->
+                                val mediaItem = item.asMediaItem
+                                Song(
+                                    id = mediaItem.mediaId,
+                                    title = mediaItem.mediaMetadata.title.toString(),
+                                    artistsText = mediaItem.mediaMetadata.artist.toString(),
+                                    durationText = null,
+                                    thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString()
+                                )
+                            } ?: emptyList()
+                        }
                     }
-                    QuickPicksSource.Recommended -> {
-                        Innertube.recommendations()?.getOrNull()?.take(3)?.map { item ->
-                            val mediaItem = item.asMediaItem
-                            Song(
-                                id = mediaItem.mediaId,
-                                title = mediaItem.mediaMetadata.title.toString(),
-                                artistsText = mediaItem.mediaMetadata.artist.toString(),
-                                durationText = null,
-                                thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString()
-                            )
-                        } ?: getSeedSongsFlow(quickPicksSource, 3).first()
-                    }
-                    else -> getSeedSongsFlow(quickPicksSource, 3).first()
                 }
             }.getOrElse { e ->
                 Log.e("SoundPod", "Failed to load seed songs for $quickPicksSource", e)

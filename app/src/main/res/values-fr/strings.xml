@@ -151,9 +151,9 @@
     <string name="app_language">Langue de l\'application</string>
     <string name="configure_app_language">Configurer la langue de l\'application</string>
     <string name="most_played">Les plus joués</string>
-    <string name="trending">Tendances</string>
-    <string name="last_played">Joués dernièrement</string>
-    <string name="recommended">Recommandé</string>
+    <!-- <string name="trending">Tendances</string> -->
+    <!-- <string name="last_played">Joués dernièrement</string> -->
+    <!-- <string name="recommended">Recommandé</string> -->
     <string name="general">Général</string>
     <string name="history">Historique</string>
     <string name="quick_picks_source">Source de Sélection Rapide</string>
@@ -221,7 +221,7 @@
     <string name="autocheck_description">Vérifier automatiquement les nouvelles versions en arrière-plan</string>
     <string name="update_alert">Afficher l\'alerte de mise à jour</string>
     <string name="update_alert_desription">Recevez une notification lorsqu\'une nouvelle version est disponible</string>
-    <string name="defualt">Défaut</string>
+    <string name="default_source">Défaut</string>
     <string name="dynamic">Dynamique</string>
     <string name="material_you">Material You</string>
     <string name="progress_bar_style">Style de la barre de progression</string>

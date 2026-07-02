@@ -26,15 +26,19 @@ suspend fun Innertube.artistPage(browseId: String): Result<Innertube.ArtistPage>
         }.body<BrowseResponse>()
 
         fun findSectionByTitle(text: String): SectionListRenderer.Content? {
-            return response
+            val sectionListRenderer = response
                 .contents
                 ?.singleColumnBrowseResultsRenderer
                 ?.tabs
-                ?.get(0)
+                ?.getOrNull(0)
                 ?.tabRenderer
                 ?.content
                 ?.sectionListRenderer
-                ?.findSectionByTitle(text)
+                ?: response.contents?.sectionListRenderer
+                ?: response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer
+                ?: response.contents?.twoColumnBrowseResultsRenderer?.tabs?.getOrNull(0)?.tabRenderer?.content?.sectionListRenderer
+
+            return sectionListRenderer?.findSectionByTitle(text)
         }
 
         val artistName = response
@@ -43,7 +47,7 @@ suspend fun Innertube.artistPage(browseId: String): Result<Innertube.ArtistPage>
             ?.title
             ?.text
 
-        val songsSection = findSectionByTitle("Top songs")?.musicShelfRenderer
+        val songsSection = (findSectionByTitle("Top songs") ?: findSectionByTitle("Songs"))?.musicShelfRenderer
         val albumsSection = findSectionByTitle("Albums")?.musicCarouselShelfRenderer
         val singlesSection = findSectionByTitle("Singles & EPs")?.musicCarouselShelfRenderer
         val playlistsSection =

@@ -9,8 +9,6 @@ import android.os.Bundle
 import android.os.IBinder
 import android.os.Process
 import android.service.media.MediaBrowserService
-import android.os.Build
-import java.util.Locale
 import androidx.annotation.DrawableRes
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
@@ -34,6 +32,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.util.Locale
 import android.media.MediaDescription as BrowserMediaDescription
 import android.media.browse.MediaBrowser.MediaItem as BrowserMediaItem
 
@@ -255,9 +254,8 @@ class PlayerMediaBrowserService : MediaBrowserService(), ServiceConnection {
                         .songsWithContentLength()
                         .first()
                         .filter { song ->
-                            song.contentLength?.let {
-                                cache.isCached(song.song.id, 0, it)
-                            } == true
+                            val length = song.contentLength ?: -1L
+                            song.isDownloaded || (length > 0 && cache.isCached(song.song.id, 0, length))
                         }
                         .map(SongWithContentLength::song)
                         .shuffled()

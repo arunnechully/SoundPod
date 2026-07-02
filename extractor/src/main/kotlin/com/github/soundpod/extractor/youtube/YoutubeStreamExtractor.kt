@@ -143,9 +143,16 @@ class YoutubeStreamExtractor(
         override val averageBitrate: Long get() = when (val stream = realStream) {
             is org.schabi.newpipe.extractor.stream.AudioStream -> {
                 val avg = stream.averageBitrate.toLong()
-                if (avg > 0) avg else stream.bitrate.toLong()
+                val bit = stream.bitrate.toLong()
+                // NewPipe bitrates can sometimes be in kbps or bps depending on extractor version
+                // For YouTube it's usually bps, but we normalize here.
+                val base = if (avg > 0) avg else bit
+                if (base in 1..<1000) base * 1000 else base
             }
-            is org.schabi.newpipe.extractor.stream.VideoStream -> stream.bitrate.toLong()
+            is org.schabi.newpipe.extractor.stream.VideoStream -> {
+                val bit = stream.bitrate.toLong()
+                if (bit in 1..<1000) bit * 1000 else bit
+            }
             else -> 0L
         }
         override val contentLength: Long? get() = null // NewPipe doesn't always provide this upfront

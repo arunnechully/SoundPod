@@ -14,7 +14,6 @@ import android.media.AudioManager
 import android.os.Build
 import android.os.Handler
 import android.support.v4.media.session.MediaSessionCompat
-import android.util.Log
 import androidx.core.content.ContextCompat.startForegroundService
 import androidx.core.content.edit
 import androidx.media3.common.AudioAttributes
@@ -74,6 +73,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import kotlin.math.roundToInt
 import kotlin.system.exitProcess
 import android.os.Binder as AndroidBinder
@@ -101,6 +101,7 @@ class PlayerService : InvincibleService(), Player.Listener,
     private lateinit var bitmapProvider: BitmapProvider
     private lateinit var mediaSourceProvider: PlayerMediaSourceProvider
     private lateinit var preCacheManager: PreCacheManager
+    private lateinit var downloadManager: DownloadManager
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO) + SupervisorJob()
 
@@ -165,6 +166,7 @@ class PlayerService : InvincibleService(), Player.Listener,
 
         mediaSourceProvider = PlayerMediaSourceProvider(this, cacheManager)
         preCacheManager = PreCacheManager(cacheManager, mediaSourceProvider)
+        downloadManager = DownloadManager(this, cacheManager, mediaSourceProvider)
 
         val loadControl = DefaultLoadControl.Builder()
             .setBufferDurationsMs(
@@ -348,7 +350,7 @@ class PlayerService : InvincibleService(), Player.Listener,
         }
 
         if (videoIdsToPrefetch.isNotEmpty()) {
-            Log.d("SoundPod-Prefetch", "Triggering prefetch for: $videoIdsToPrefetch")
+            Timber.tag("SoundPod-Prefetch").d("Triggering prefetch for: $videoIdsToPrefetch")
             preCacheManager.preCache(videoIdsToPrefetch)
             
             // Also pre-fetch lyrics and artwork for the very next track
@@ -616,6 +618,7 @@ class PlayerService : InvincibleService(), Player.Listener,
         val player get() = this@PlayerService.player
         val cache get() = this@PlayerService.cacheManager.cache
         val preCacheManager get() = this@PlayerService.preCacheManager
+        val downloadManager get() = this@PlayerService.downloadManager
         val mediaSession get() = this@PlayerService.mediaSessionManager.mediaSession
         val mediaSourceProvider get() = this@PlayerService.mediaSourceProvider
 
@@ -623,6 +626,20 @@ class PlayerService : InvincibleService(), Player.Listener,
 
         fun startSleepTimer(delay: Long) = sleepTimerManager.startTimer(delay)
         fun cancelSleepTimer() = sleepTimerManager.cancelTimer()
+
+        fun isCached(videoId: String, position: Long, length: Long): Boolean =
+            this@PlayerService.cacheManager.isCached(videoId, position, length)
+
+        fun removeCache(videoId: String) = cacheManager.removeCache(videoId)
+
+        fun removeDownload(videoId: String) {
+            downloadManager.cancelDownload(videoId)
+            cacheManager.removeCache(videoId)
+            query {
+                db.removeSongsFromPlaylist(com.github.soundpod.enums.BuiltInPlaylist.Offline, listOf(videoId))
+                downloadManager.updateDownloadedSize()
+            }
+        }
 
         fun setupRadio(endpoint: NavigationEndpoint.Endpoint.Watch?) = radioManager.setupRadio(endpoint)
         fun playRadio(endpoint: NavigationEndpoint.Endpoint.Watch?) = radioManager.playRadio(endpoint)

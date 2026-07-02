@@ -38,7 +38,7 @@ fun DatabaseSettingsContent(
         db.eventsCount().distinctUntilChanged()
     }.collectAsState(initial = 0)
 
-    var quickPicksSource by rememberPreference(quickPicksSourceKey, QuickPicksSource.Trending)
+    var quickPicksSource by rememberPreference(quickPicksSourceKey, QuickPicksSource.Default)
     var showClearQuickPicksDialog by remember { mutableStateOf(false) }
 
     Column {

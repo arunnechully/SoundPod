@@ -33,9 +33,9 @@ import com.github.soundpod.utils.thumbnail
 @Composable
 fun FavoritesCard(
     title: String,
-    icon: ImageVector,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
     thumbnailUrls: List<String> = emptyList(),
     label: String? = null,
     subtitle: String? = null,
@@ -84,7 +84,7 @@ fun FavoritesCard(
                         .background(Color.Black.copy(alpha = 0.4f))
                 )
             }
-        } else {
+        } else if (icon != null) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
