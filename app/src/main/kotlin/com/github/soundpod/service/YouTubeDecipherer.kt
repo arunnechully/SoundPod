@@ -45,25 +45,32 @@ object YouTubeDecipherer {
     }
 
     suspend fun signatureDecipher(s: String): String {
+        return signatureDecipher(listOf(s)).firstOrNull() ?: s
+    }
+
+    suspend fun signatureDecipher(list: List<String>): List<String> {
+        if (list.isEmpty()) return emptyList()
         val script = sigScriptCache.get()
         val funcName = sigFunctionName.get()
-        
+
         if (script == null || funcName == null) {
-            Log.w(TAG, "Sig-Decipherer not initialized, returning original s")
-            return s
+            Log.w(TAG, "Sig-Decipherer not initialized, returning original list")
+            return list
         }
-        
+
         return withContext(Dispatchers.Default) {
             val rhino = Context.enter()
             try {
                 rhino.optimizationLevel = -1
                 val scope = rhino.initSafeStandardObjects()
                 rhino.evaluateString(scope, script, "JavaScript", 1, null)
-                val result = rhino.evaluateString(scope, "$funcName('$s')", "JavaScript", 1, null)
-                Context.toString(result)
+                list.map { s ->
+                    val result = rhino.evaluateString(scope, "$funcName('$s')", "JavaScript", 1, null)
+                    Context.toString(result)
+                }
             } catch (e: Exception) {
-                Log.e(TAG, "Failed to decipher signature with Rhino", e)
-                s
+                Log.e(TAG, "Failed to decipher signatures with Rhino", e)
+                list
             } finally {
                 Context.exit()
             }
