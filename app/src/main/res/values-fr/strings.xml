@@ -8,6 +8,7 @@
     <string name="related_albums">Albums Associés</string>
     <string name="similar_artists">Artistes Similaires</string>
     <string name="recommended_playlists">Playlists que vous pourriez aimer</string>
+    <string name="create_new_playlist">Create\n New playlist</string>
     <string name="new_playlist">Nouvelle Playlist</string>
     <string name="favorites">Favoris</string>
     <string name="offline">Hors Ligne</string>
@@ -151,9 +152,6 @@
     <string name="app_language">Langue de l\'application</string>
     <string name="configure_app_language">Configurer la langue de l\'application</string>
     <string name="most_played">Les plus joués</string>
-    <!-- <string name="trending">Tendances</string> -->
-    <!-- <string name="last_played">Joués dernièrement</string> -->
-    <!-- <string name="recommended">Recommandé</string> -->
     <string name="general">Général</string>
     <string name="history">Historique</string>
     <string name="quick_picks_source">Source de Sélection Rapide</string>
@@ -230,8 +228,8 @@
     <string name="wave">Vague</string>
     <string name="pause_song_cache">Mettre en pause le cache des titres</string>
     <string name="pause_song_cache_description">Mettre en pause la mise en cache des titres</string>
-    <string name="pause_image_cache">Pause image cache</string>
-    <string name="pause_image_cache_description">Pause the image caching process</string>
+    <string name="pause_image_cache">Mettre en pause le cache d\'images</string>
+    <string name="pause_image_cache_description">Mettre en pause le processus de mise en cache des images</string>
     <string name="suggest_an_idea">Proposer une idée</string>
     <string name="report_a_bug">Créer un rapport de bogue</string>
     <string name="stop_and_share_report">Arrêter et partager le rapport</string>
@@ -343,5 +341,7 @@
     <string name="favorite_albums">Albums Favoris</string>
     <string name="favorite_artists">Artistes Favoris</string>
     <string name="no_favorites">Aucun favori</string>
+    <string name="download">Download</string>
+    <string name="remove_download">Remove download</string>
     <string name="no_favorites_description">Appuyez sur l\'icône en forme de cœur à côté des titres, des albums ou des artistes pour les ajouter à vos favoris.</string>
 </resources>
