@@ -259,9 +259,10 @@ fun TrackDetails() {
 
                 val bitrate = formatFromDb?.bitrate ?: audioFormat?.bitrate?.toLong()
                 if (bitrate != null && bitrate > 0) {
+                    val bitrateValue = if (bitrate < 1000) bitrate * 1000 else bitrate
                     DetailItem(
                         label = stringResource(id = R.string.bitrate),
-                        value = stringResource(id = R.string.kbps, bitrate / 1000)
+                        value = stringResource(id = R.string.kbps, bitrateValue / 1000)
                     )
 
                     HorizontalDivider(
