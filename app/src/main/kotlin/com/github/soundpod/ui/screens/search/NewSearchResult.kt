@@ -28,6 +28,7 @@ import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.components.SwipeToActionBox
 import com.github.soundpod.ui.items.AlbumItem
+import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.ui.items.ArtistItem
 import com.github.soundpod.ui.items.ItemPlaceholder
 import com.github.soundpod.ui.items.ListItemPlaceholder
@@ -51,9 +52,9 @@ fun NewSearchResult(
     val menuState = LocalMenuState.current
     val emptyItemsText = stringResource(id = R.string.no_results_found)
 
-    val onAlbumClick: (String) -> Unit = { albumId -> navController.navigate("album/$albumId") }
-    val onArtistClick: (String) -> Unit = { artistId -> navController.navigate("artist/$artistId") }
-    val onPlaylistClick: (String) -> Unit = { playlistId -> navController.navigate("playlist/$playlistId") }
+    val onAlbumClick: (String) -> Unit = { albumId -> navController.navigate(Routes.Album(id = albumId)) }
+    val onArtistClick: (String) -> Unit = { artistId -> navController.navigate(Routes.Artist(id = artistId)) }
+    val onPlaylistClick: (String) -> Unit = { playlistId -> navController.navigate(Routes.Playlist(id = playlistId)) }
 
     SettingsScreenLayout(
         title = resultType ?: "Results",
