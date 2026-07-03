@@ -8,6 +8,7 @@
     <string name="related_albums">İlgili albümler</string>
     <string name="similar_artists">Benzer sanatçılar</string>
     <string name="recommended_playlists">Beğenebileceğiniz oynatma listeleri</string>
+    <string name="create_new_playlist">Create\n New playlist</string>
     <string name="new_playlist">Yeni oynatma listesi</string>
     <string name="favorites">Favoriler</string>
     <string name="offline">Çevrim dışı</string>
@@ -151,9 +152,6 @@
     <string name="app_language">App language</string>
     <string name="configure_app_language">Configure app language</string>
     <string name="most_played">Most played</string>
-    <!-- <string name="trending">Trending</string> -->
-    <!-- <string name="last_played">Last played</string> -->
-    <!-- <string name="recommended">Recommended</string> -->
     <string name="general">General</string>
     <string name="history">History</string>
     <string name="quick_picks_source">Quick picks source</string>
@@ -343,5 +341,7 @@
     <string name="favorite_albums">Favorite Albums</string>
     <string name="favorite_artists">Favorite Artists</string>
     <string name="no_favorites">No favorites</string>
+    <string name="download">Download</string>
+    <string name="remove_download">Remove download</string>
     <string name="no_favorites_description">Tap the heart icon on songs, albums, or artists to add them to your favorites.</string>
 </resources>
