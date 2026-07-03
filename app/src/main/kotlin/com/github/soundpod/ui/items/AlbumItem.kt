@@ -29,8 +29,10 @@ fun AlbumItem(
     ItemContainer(
         modifier = modifier,
         title = album.info?.name ?: "",
-        subtitle = if (album.authors.isNullOrEmpty()) album.year
-        else "${album.authors?.joinToString(separator = "") { it.name ?: "" }} • ${album.year}",
+        subtitle = listOfNotNull(
+            album.authors?.joinToString(separator = ", ") { it.name ?: "" },
+            album.year
+        ).joinToString(separator = " • "),
         onClick = onClick
     ) {
         BoxWithConstraints(

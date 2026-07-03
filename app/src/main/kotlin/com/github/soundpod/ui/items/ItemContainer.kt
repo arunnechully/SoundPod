@@ -61,7 +61,6 @@ fun ItemContainer(
 ) {
     Column(
         modifier = modifier
-            .widthIn(max = 200.dp)
             .clip(MaterialTheme.shapes.large)
             .clickable(
                 enabled = onClick != null,
@@ -90,12 +89,13 @@ fun ItemContainer(
                 modifier = Modifier.fillMaxWidth(),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = textAlign,
-                maxLines = 1,
+                maxLines = 2,
+                minLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(2.dp))
 
         if (isPlaceholder) {
             TextPlaceholder()

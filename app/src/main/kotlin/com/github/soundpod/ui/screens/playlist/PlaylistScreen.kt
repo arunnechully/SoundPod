@@ -136,19 +136,19 @@ fun PlaylistScreen(
                     dismissMenu()
                 }
             )
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        text = stringResource(id = R.string.settings),
-                        color = colorPalette.text,
-                        style = typography.bodyLarge
-                    )
-                },
-                onClick = {
+//            DropdownMenuItem(
+//                text = {
+//                    Text(
+//                        text = stringResource(id = R.string.settings),
+//                        color = colorPalette.text,
+//                        style = typography.bodyLarge
+//                    )
+//                },
+//                onClick = {
 //                    onSettingsClick()
-                    dismissMenu()
-                }
-            )
+//                    dismissMenu()
+//                }
+//            )
         },
         headerContent = {
             Column(

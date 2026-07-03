@@ -56,8 +56,8 @@ fun ArtistItem(
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .size(maxWidth)
-                    .clip(MaterialTheme.shapes.large)
+                    .fillMaxSize()
+                    .clip(CircleShape)
             )
         }
     }
@@ -90,7 +90,9 @@ fun LocalArtistItem(
                 model = artist.thumbnailUrl.thumbnail(maxWidth.px),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.clip(MaterialTheme.shapes.large)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(CircleShape)
             )
         }
     }

@@ -14,8 +14,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.github.soundpod.R
 import com.github.soundpod.db
 import com.github.soundpod.utils.thumbnail
 import kotlinx.coroutines.Dispatchers
@@ -24,9 +26,13 @@ import kotlinx.coroutines.flow.map
 
 @Composable
 fun PlaylistThumbnail(
-    playlistId: Long
+    playlistId: Long,
+    modifier: Modifier = Modifier
 ) {
-    BoxWithConstraints(contentAlignment = Alignment.Center) {
+    BoxWithConstraints(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+    ) {
         val thumbnailSizeDp = maxWidth - 64.dp
 
         val thumbnails by remember {
@@ -41,19 +47,32 @@ fun PlaylistThumbnail(
             .padding(16.dp)
             .clip(MaterialTheme.shapes.large)
             .size(thumbnailSizeDp)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
 
-        if (thumbnails.toSet().size == 1) {
+        if (thumbnails.isEmpty()) {
+            Box(
+                modifier = modifier,
+                contentAlignment = Alignment.Center
+            ) {
+                androidx.compose.material3.Icon(
+                    painter = painterResource(id = R.drawable.app_icon),
+                    contentDescription = null,
+                    modifier = Modifier.size(thumbnailSizeDp / 2),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
+            }
+        } else if (thumbnails.toSet().size == 1) {
             AsyncImage(
                 model = thumbnails.first().thumbnail(1024),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
+                fallback = painterResource(id = R.drawable.app_icon),
+                error = painterResource(id = R.drawable.app_icon),
                 modifier = modifier
             )
         } else {
             Box(
                 modifier = modifier
-                    .clip(MaterialTheme.shapes.large)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 listOf(
                     Alignment.TopStart,
@@ -65,6 +84,8 @@ fun PlaylistThumbnail(
                         model = thumbnails.getOrNull(index),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
+                        fallback = painterResource(id = R.drawable.app_icon),
+                        error = painterResource(id = R.drawable.app_icon),
                         modifier = Modifier
                             .align(alignment)
                             .size(thumbnailSizeDp / 2)

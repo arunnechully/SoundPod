@@ -3,11 +3,10 @@ package com.github.soundpod.ui.screens.localplaylist
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenuItem
@@ -26,11 +25,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
@@ -39,6 +37,7 @@ import com.github.soundpod.db
 import com.github.soundpod.models.Playlist
 import com.github.soundpod.query
 import com.github.soundpod.ui.components.ConfirmationDialog
+import com.github.soundpod.ui.components.PlaylistThumbnail
 import com.github.soundpod.ui.components.PlaylistScreenLayout
 import com.github.soundpod.ui.components.TextFieldDialog
 import kotlinx.coroutines.flow.filterNotNull
@@ -167,18 +166,23 @@ fun LocalPlaylistScreen(
             )
         },
         headerContent = {
-            Box(
-                modifier = Modifier
-                    .size(160.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(colorPalette.text.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.app_icon),
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp),
-                    tint = colorPalette.text.copy(alpha = 0.4f)
+                Spacer(modifier = Modifier.height(12.dp))
+                PlaylistThumbnail(
+                    playlistId = playlistId,
+                    modifier = Modifier.fillMaxWidth(0.55f)
+                )
+                Text(
+                    text = playlist?.name ?: "",
+                    style = typography.headlineMedium.copy(fontWeight = FontWeight.Normal),
+                    color = colorPalette.accent,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth(0.5f)
                 )
             }
         },

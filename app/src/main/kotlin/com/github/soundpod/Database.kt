@@ -366,6 +366,10 @@ interface Database {
     fun playlistWithSongs(id: Long): Flow<PlaylistWithSongs?>
 
     @Transaction
+    @Query("SELECT id, name, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount, IFNULL((SELECT GROUP_CONCAT(thumbnailUrl) FROM (SELECT thumbnailUrl FROM Song JOIN SongPlaylistMap ON Song.id = SongPlaylistMap.songId WHERE playlistId = Playlist.id ORDER BY position LIMIT 4)), '') as thumbnails FROM Playlist WHERE id = :id")
+    fun playlistPreview(id: Long): Flow<PlaylistPreview?>
+
+    @Transaction
     @Query("SELECT id, name, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount, IFNULL((SELECT GROUP_CONCAT(thumbnailUrl) FROM (SELECT thumbnailUrl FROM Song JOIN SongPlaylistMap ON Song.id = SongPlaylistMap.songId WHERE playlistId = Playlist.id ORDER BY position LIMIT 4)), '') as thumbnails FROM Playlist ORDER BY name ASC")
     fun playlistPreviewsByNameAsc(): Flow<List<PlaylistPreview>>
 
@@ -524,6 +528,18 @@ interface Database {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertSongPlaylistMaps(songPlaylistMaps: List<SongPlaylistMap>)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun insertAlbums(albums: List<Album>)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun insertArtists(artists: List<Artist>)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun insertSongAlbumMaps(songAlbumMaps: List<SongAlbumMap>)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun insertSongArtistMaps(songArtistMaps: List<SongArtistMap>)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insert(album: Album, songAlbumMap: SongAlbumMap)

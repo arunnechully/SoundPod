@@ -42,7 +42,12 @@ fun PlaylistItem(
     ItemContainer(
         modifier = modifier,
         title = playlist.info?.name ?: "",
-        subtitle = playlist.channel?.name,
+        subtitle = listOfNotNull(
+            playlist.channel?.name,
+            playlist.songCount?.let {
+                pluralStringResource(id = R.plurals.number_of_songs, count = it, it)
+            }
+        ).joinToString(separator = " • "),
         onClick = onClick
     ) {
         BoxWithConstraints(

@@ -8,11 +8,14 @@ import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.disk.DiskCache
 import coil3.disk.directory
+import coil3.intercept.Interceptor
+import coil3.request.CachePolicy
 import coil3.request.crossfade
 import com.github.innertube.Innertube
 import com.github.soundpod.enums.CoilDiskCacheMaxSize
 import com.github.soundpod.utils.coilDiskCacheMaxSizeKey
 import com.github.soundpod.utils.getEnum
+import com.github.soundpod.utils.pauseImageCacheKey
 import com.github.soundpod.utils.preferences
 import java.util.Locale
 import org.schabi.newpipe.extractor.NewPipe
@@ -40,6 +43,18 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
     override fun newImageLoader(context: PlatformContext): ImageLoader {
         return ImageLoader.Builder(this)
             .crossfade(true)
+            .components {
+                add(Interceptor { chain ->
+                    val request = if (preferences.getBoolean(pauseImageCacheKey, false)) {
+                        chain.request.newBuilder()
+                            .diskCachePolicy(CachePolicy.READ_ONLY)
+                            .build()
+                    } else {
+                        chain.request
+                    }
+                    chain.withRequest(request).proceed()
+                })
+            }
             .diskCache(
                 DiskCache.Builder()
                     .directory(cacheDir.resolve("coil"))

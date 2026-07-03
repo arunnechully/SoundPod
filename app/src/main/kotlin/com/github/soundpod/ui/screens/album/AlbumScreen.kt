@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -25,6 +26,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -33,12 +36,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.media3.common.util.UnstableApi
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
 import com.github.soundpod.ui.components.AdaptiveThumbnail
 import com.github.soundpod.ui.components.PlaylistScreenLayout
+import com.github.soundpod.ui.modifier.fadingEdge
 import com.github.soundpod.viewmodels.AlbumViewModel
 
+@UnstableApi
 @OptIn(ExperimentalAnimationApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun AlbumScreen(
@@ -58,6 +64,14 @@ fun AlbumScreen(
     val uiState by viewModel.uiState.collectAsState()
     val album = uiState.album
     val (colorPalette) = LocalAppearance.current
+
+
+    val fadingEdge = Brush.horizontalGradient(
+        0f to Color.Transparent,
+        0.1f to Color.Black,
+        0.9f to Color.Black,
+        1f to Color.Transparent
+    )
 
     PlaylistScreenLayout(
         onBackClick = onBack,
@@ -115,48 +129,50 @@ fun AlbumScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Spacer(modifier = Modifier.height(12.dp))
                 AdaptiveThumbnail(
                     isLoading = uiState.isLoading,
                     url = album?.thumbnailUrl,
                     modifier = Modifier.fillMaxWidth(0.55f)
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+//                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = album?.title.orEmpty(),
                     style = typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
-                    color = colorPalette.accent,
+                    color = colorPalette.text,
                     textAlign = TextAlign.Center,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.fillMaxWidth(0.5f)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = album?.authorsText.orEmpty(),
                     style = typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = colorPalette.text,
+                    color = colorPalette.accent,
                     textAlign = TextAlign.Center,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
-                        .fillMaxWidth(0.8f)
-                        .basicMarquee()
                         .clickable(
                             enabled = album?.artistId != null,
                             onClick = {
                                 album?.artistId?.let { onGoToArtist(it) }
                             }
                         )
+                        .fadingEdge(fadingEdge)
+                        .basicMarquee()
+                        .padding(horizontal = 8.dp, vertical = 2.dp)
+
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                album?.year?.let {
-                    Text(
-                        text = it,
-                        style = typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = colorPalette.text,
-                        textAlign = TextAlign.Center
-                    )
-                }
+//                Spacer(modifier = Modifier.height(8.dp))
+//                album?.year?.let {
+//                    Text(
+//                        text = it,
+//                        style = typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+//                        color = colorPalette.text,
+//                        textAlign = TextAlign.Center
+//                    )
+//                }
             }
         },
         content = {

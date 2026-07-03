@@ -89,7 +89,7 @@ fun PlayerMediaItem(
                 )
                 .fadingEdge(fadingEdge)
                 .basicMarquee()
-                .padding(horizontal = 8.dp, vertical = 4.dp) // bigger hitbox
+                .padding(horizontal = 8.dp, vertical = 4.dp)
         ) {
             Text(
                 text = mediaItem.mediaMetadata.artist?.toString().orEmpty(),

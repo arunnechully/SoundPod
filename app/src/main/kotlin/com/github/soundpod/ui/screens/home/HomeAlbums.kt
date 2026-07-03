@@ -48,7 +48,7 @@ fun HomeAlbums(
         )
     }
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 150.dp),
+        columns = GridCells.Adaptive(minSize = 120.dp),
         contentPadding = PaddingValues(
             start = 8.dp,
             end = 8.dp,

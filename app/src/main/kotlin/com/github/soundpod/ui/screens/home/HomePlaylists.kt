@@ -71,7 +71,7 @@ fun HomePlaylists(
         db.songsWithContentLength()
             .map { songsWithLength ->
                 val binderCache = binder?.cache
-                songsWithLength
+                val cachedSongs = songsWithLength
                     .filterNot {
                         it.song.id.startsWith("content://") || it.song.id.startsWith("file://")
                     }.filter { item ->
@@ -81,11 +81,13 @@ fun HomePlaylists(
                         } else {
                             (binderCache?.getCachedBytes(item.song.id, 0, -1) ?: 0L) > 0L
                         }
-                    }.shuffled().firstOrNull()?.song?.thumbnailUrl
+                    }
+                cachedSongs.size to cachedSongs.shuffled().firstOrNull()?.song?.thumbnailUrl
             }
             .flowOn(Dispatchers.IO)
-            .collect {
-                viewModel.offlineThumbnail = it
+            .collect { (count, thumbnail) ->
+                viewModel.offlineCount = count
+                viewModel.offlineThumbnail = thumbnail
             }
     }
 
@@ -123,6 +125,11 @@ fun HomePlaylists(
         item(key = "offline") {
             FavoritesCard(
                 title = stringResource(id = R.string.offline),
+                subtitle = pluralStringResource(
+                    id = R.plurals.number_of_songs,
+                    count = viewModel.offlineCount,
+                    viewModel.offlineCount
+                ),
                 icon = IconSource.Icon(painterResource(id = R.drawable.offline_music)),
                 thumbnailUrls = listOfNotNull(viewModel.offlineThumbnail),
                 onClick = { onBuiltInPlaylist(BuiltInPlaylist.Offline.ordinal) }
@@ -130,7 +137,7 @@ fun HomePlaylists(
         }
         item(key = "new") {
             FavoritesCard(
-//                title = stringResource(id = R.string.create_new_playlist),
+                title = stringResource(id = R.string.new_playlist),
                 icon = IconSource.Icon( painterResource(id = R.drawable.add)),
                 onClick = { isCreatingANewPlaylist = true }
             )

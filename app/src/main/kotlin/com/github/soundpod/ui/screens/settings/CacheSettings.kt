@@ -42,6 +42,7 @@ import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SwitchSetting
 import com.github.soundpod.utils.coilDiskCacheMaxSizeKey
 import com.github.soundpod.utils.exoPlayerDiskCacheMaxSizeKey
+import com.github.soundpod.utils.pauseImageCacheKey
 import com.github.soundpod.utils.pauseSongCacheKey
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.showCachedSongsInOfflineKey
@@ -65,6 +66,7 @@ fun CacheSettingsContent() {
     )
 
     var pauseSongCache by rememberPreference(pauseSongCacheKey, false)
+    var pauseImageCache by rememberPreference(pauseImageCacheKey, false)
     var showCachedSongsInOffline by rememberPreference(showCachedSongsInOfflineKey, true)
     var showClearImageCacheDialog by remember { mutableStateOf(false) }
     var showClearSongCacheDialog by remember { mutableStateOf(false) }
@@ -158,6 +160,15 @@ fun CacheSettingsContent() {
         SettingsGroup(
             title = stringResource(id = R.string.image_cache)
         ) {
+            SwitchSetting(
+                icon = IconSource.Icon(painterResource(id = R.drawable.image_file)),
+                title = stringResource(id = R.string.pause_image_cache),
+                description = stringResource(id = R.string.pause_image_cache_description),
+                switchState = pauseImageCache,
+                onSwitchChange = { pauseImageCache = it }
+            )
+        }
+        SettingsGroup {
             val (colorPalette) = LocalAppearance.current
             context.imageLoader.diskCache?.let { diskCache ->
                 val diskCacheSize = remember(diskCache, refreshTrigger) {
