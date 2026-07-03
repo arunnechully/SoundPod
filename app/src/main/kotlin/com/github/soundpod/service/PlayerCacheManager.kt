@@ -3,6 +3,9 @@ package com.github.soundpod.service
 import android.content.Context
 import androidx.core.text.isDigitsOnly
 import androidx.media3.database.StandaloneDatabaseProvider
+import androidx.media3.datasource.cache.Cache
+import androidx.media3.datasource.cache.CacheEvictor
+import androidx.media3.datasource.cache.CacheSpan
 import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
 import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
@@ -10,19 +13,40 @@ import com.github.soundpod.enums.ExoPlayerDiskCacheMaxSize
 import com.github.soundpod.utils.exoPlayerDiskCacheMaxSizeKey
 import com.github.soundpod.utils.getEnum
 import com.github.soundpod.utils.preferences
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class PlayerCacheManager(private val context: Context) {
 
     val cache: SimpleCache
+    private val _cacheChanges = MutableSharedFlow<Unit>(extraBufferCapacity = 64)
+    val cacheChanges = _cacheChanges.asSharedFlow()
+
+    private inner class GlobalCacheListenerEvictor(
+        private val delegate: CacheEvictor
+    ) : CacheEvictor by delegate {
+
+        override fun onSpanAdded(cache: Cache, span: CacheSpan) {
+            delegate.onSpanAdded(cache, span)
+            _cacheChanges.tryEmit(Unit)
+        }
+
+        override fun onSpanRemoved(cache: Cache, span: CacheSpan) {
+            delegate.onSpanRemoved(cache, span)
+            _cacheChanges.tryEmit(Unit)
+        }
+    }
 
     init {
         val preferences = context.preferences
-        val cacheEvictor = when (val size =
+        val baseEvictor = when (val size =
             preferences.getEnum(exoPlayerDiskCacheMaxSizeKey, ExoPlayerDiskCacheMaxSize.`2GB`)) {
             ExoPlayerDiskCacheMaxSize.Unlimited -> NoOpCacheEvictor()
             else -> LeastRecentlyUsedCacheEvictor(size.bytes)
         }
+        
+        val globalEvictor = GlobalCacheListenerEvictor(baseEvictor)
 
         // TODO: Remove in a future release
         val directory = context.cacheDir.resolve("exoplayer").also { directory ->
@@ -41,7 +65,7 @@ class PlayerCacheManager(private val context: Context) {
             }
         }
         
-        cache = SimpleCache(directory, cacheEvictor, StandaloneDatabaseProvider(context))
+        cache = SimpleCache(directory, globalEvictor, StandaloneDatabaseProvider(context))
     }
 
     fun release() {

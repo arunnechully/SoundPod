@@ -30,7 +30,7 @@ class FavoritesViewModel : ViewModel() {
         private set
 
     var sortBy by mutableStateOf(SongSortBy.DateAdded)
-    var sortOrder by mutableStateOf(SortOrder.Descending)
+    var sortOrder by mutableStateOf(SortOrder.Ascending)
 
     init {
         viewModelScope.launch {

@@ -51,11 +51,11 @@ class AlbumViewModel : ViewModel() {
                     it.copy(
                         album = localAlbum,
                         isLoved = localAlbum?.bookmarkedAt != null,
-                        isLoading = localAlbum?.timestamp == null 
+                        isLoading = localAlbum?.timestamp == null && !browseId.startsWith("local_album:")
                     ) 
                 }
 
-                if (localAlbum?.timestamp == null) {
+                if (localAlbum?.timestamp == null && !browseId.startsWith("local_album:")) {
                     fetchAlbumData(browseId)
                 }
             }
@@ -66,7 +66,7 @@ class AlbumViewModel : ViewModel() {
         val browseId = currentBrowseId ?: return
         val currentState = _uiState.value
 
-        if (currentState.albumPage == null && tabIndex >= 1) {
+        if (currentState.albumPage == null && tabIndex >= 1 && !browseId.startsWith("local_album:")) {
             fetchAlbumData(browseId)
         }
     }

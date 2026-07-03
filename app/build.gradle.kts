@@ -23,8 +23,8 @@ extensions.configure<ApplicationExtension>("android") {
         applicationId = "com.github.soundpod"
         minSdk = 23
         targetSdk = 37
-        versionCode = 28
-        versionName = "1.3.3"
+        versionCode = 29
+        versionName = "1.3.4"
     }
 
     flavorDimensions += "store"

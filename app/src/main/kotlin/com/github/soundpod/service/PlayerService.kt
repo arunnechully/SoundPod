@@ -598,11 +598,25 @@ class PlayerService : InvincibleService(), Player.Listener,
 
         val sleepTimerMillisLeft get() = this@PlayerService.sleepTimerManager.millisLeft
 
+        val cacheChanges get() = this@PlayerService.cacheManager.cacheChanges
+
         fun startSleepTimer(delay: Long) = sleepTimerManager.startTimer(delay)
         fun cancelSleepTimer() = sleepTimerManager.cancelTimer()
 
         fun setupRadio(endpoint: NavigationEndpoint.Endpoint.Watch?) = radioManager.setupRadio(endpoint)
         fun stopRadio() = radioManager.stop()
+
+        fun removeFromCache(songIds: List<String>) {
+            songIds.forEach { id ->
+                cacheManager.removeCache(id)
+            }
+        }
+
+        fun clearCache() {
+            cache.keys.forEach { id ->
+                cacheManager.removeCache(id)
+            }
+        }
     }
 
     private fun likeAction() = mediaItemState.value?.let { mediaItem ->

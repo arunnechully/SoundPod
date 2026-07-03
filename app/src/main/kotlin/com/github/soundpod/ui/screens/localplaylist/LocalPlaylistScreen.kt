@@ -177,12 +177,11 @@ fun LocalPlaylistScreen(
                 )
                 Text(
                     text = playlist?.name ?: "",
-                    style = typography.headlineMedium.copy(fontWeight = FontWeight.Normal),
+                    style = typography.titleMedium.copy(fontWeight = FontWeight.Normal),
                     color = colorPalette.accent,
                     textAlign = TextAlign.Center,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth(0.5f)
                 )
             }
         },

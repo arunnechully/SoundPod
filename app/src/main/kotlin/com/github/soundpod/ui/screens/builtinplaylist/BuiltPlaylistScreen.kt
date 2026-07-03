@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
+import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.db
 import com.github.soundpod.enums.BuiltInPlaylist
@@ -56,6 +57,7 @@ fun BuiltInPlaylistScreen(
     onSettingsClick: () -> Unit
 ) {
     val (colorPalette) = LocalAppearance.current
+    val binder = LocalPlayerServiceBinder.current
 
     var isEditMode by remember { mutableStateOf(false) }
     var selectedUids by remember { mutableStateOf(emptySet<String>()) }
@@ -152,10 +154,16 @@ fun BuiltInPlaylistScreen(
                                     query {
                                         db.removeSongsFromPlaylist(builtInPlaylist, uidsToDelete)
                                     }
+                                    if (builtInPlaylist == BuiltInPlaylist.Offline) {
+                                        binder?.removeFromCache(uidsToDelete)
+                                    }
                                     isEditMode = false
                                     selectedUids = emptySet()
                                 } else {
                                     query { db.clearPlaylist(builtInPlaylist) }
+                                    if (builtInPlaylist == BuiltInPlaylist.Offline) {
+                                        binder?.clearCache()
+                                    }
                                 }
                                 removeSongDialog = false
                             }
