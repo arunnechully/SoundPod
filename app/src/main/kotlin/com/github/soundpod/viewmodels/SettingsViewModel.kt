@@ -7,7 +7,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Storage
@@ -16,9 +15,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.soundpod.R
 import com.github.soundpod.ui.common.newSearchLayoutEnabled
-import com.github.soundpod.ui.common.setNewSearchLayoutEnabled
-import com.github.soundpod.ui.common.loginExperimentalEnabled
 import com.github.soundpod.ui.common.setLoginExperimentalEnabled
+import com.github.soundpod.ui.common.setNewSearchLayoutEnabled
 import com.github.soundpod.ui.navigation.SettingsDestinations
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,9 +41,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val _newSearchEnabled = MutableStateFlow(false)
     val newSearchEnabled = _newSearchEnabled.asStateFlow()
 
-    private val _loginExperimentalEnabled = MutableStateFlow(false)
-    val loginExperimentalEnabled = _loginExperimentalEnabled.asStateFlow()
-
     init {
         loadSettings()
         observePreferences()
@@ -55,12 +50,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             newSearchLayoutEnabled(getApplication()).collect { isEnabled ->
                 _newSearchEnabled.value = isEnabled
-            }
-        }
-        viewModelScope.launch {
-            loginExperimentalEnabled(getApplication()).collect { isEnabled ->
-                _loginExperimentalEnabled.value = isEnabled
-                loadSettings()
             }
         }
     }
@@ -79,16 +68,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     private fun loadSettings() {
         val menuStructure = mutableListOf<SettingsSection>()
-
-        if (_loginExperimentalEnabled.value) {
-            menuStructure.add(
-                SettingsSection(
-                    listOf(
-                        SettingOption(title = R.string.account, icon = Icons.Default.Person, screenId = SettingsDestinations.ACCOUNT)
-                    )
-                )
-            )
-        }
 
         menuStructure.addAll(
             listOf(
