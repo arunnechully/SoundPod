@@ -8,7 +8,7 @@
     <string name="related_albums">Albums Associés</string>
     <string name="similar_artists">Artistes Similaires</string>
     <string name="recommended_playlists">Playlists que vous pourriez aimer</string>
-    <string name="create_new_playlist">Create\n New playlist</string>
+    <string name="create_new_playlist">Créer\n Nouvelle playlist</string>
     <string name="new_playlist">Nouvelle Playlist</string>
     <string name="favorites">Favoris</string>
     <string name="offline">Hors Ligne</string>
@@ -341,7 +341,7 @@
     <string name="favorite_albums">Albums Favoris</string>
     <string name="favorite_artists">Artistes Favoris</string>
     <string name="no_favorites">Aucun favori</string>
-    <string name="download">Download</string>
-    <string name="remove_download">Remove download</string>
+    <string name="download">Télécharger</string>
+    <string name="remove_download">Supprimer le téléchargement</string>
     <string name="no_favorites_description">Appuyez sur l\'icône en forme de cœur à côté des titres, des albums ou des artistes pour les ajouter à vos favoris.</string>
 </resources>
