@@ -47,40 +47,40 @@ fun HomeAlbums(
             sortOrder = sortOrder
         )
     }
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = 150.dp),
-            contentPadding = PaddingValues(
-                start = 8.dp,
-                end = 8.dp,
-                bottom = 16.dp + playerPadding
-            ),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.fillMaxSize()
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = 150.dp),
+        contentPadding = PaddingValues(
+            start = 8.dp,
+            end = 8.dp,
+            bottom = 16.dp + playerPadding
+        ),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier.fillMaxSize()
+    ) {
+        item(
+            key = "header",
+            span = { GridItemSpan(maxCurrentLineSpan) }
         ) {
-            item(
-                key = "header",
-                span = { GridItemSpan(maxCurrentLineSpan) }
-            ) {
-                SortingHeader(
-                    sortBy = sortBy,
-                    changeSortBy = { sortBy = it },
-                    sortByEntries = AlbumSortBy.entries.toList(),
-                    sortOrder = sortOrder,
-                    toggleSortOrder = { sortOrder = !sortOrder },
-                    size = viewModel.items.size,
-                    itemCountText = R.plurals.number_of_albums
-                )
-            }
+            SortingHeader(
+                sortBy = sortBy,
+                changeSortBy = { sortBy = it },
+                sortByEntries = AlbumSortBy.entries.toList(),
+                sortOrder = sortOrder,
+                toggleSortOrder = { sortOrder = !sortOrder },
+                size = viewModel.items.size,
+                itemCountText = R.plurals.number_of_albums
+            )
+        }
 
-            items(
-                items = viewModel.items,
-                key = Album::id
-            ) { album ->
-                LocalAlbumItem(
-                    modifier = Modifier.animateItem(),
-                    album = album,
-                    onClick = { onAlbumClick(album) }
-                )
-            }
+        items(
+            items = viewModel.items,
+            key = Album::id
+        ) { album ->
+            LocalAlbumItem(
+                modifier = Modifier.animateItem(),
+                album = album,
+                onClick = { onAlbumClick(album) }
+            )
         }
     }
+}

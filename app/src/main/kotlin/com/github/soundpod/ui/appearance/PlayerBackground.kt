@@ -29,7 +29,7 @@ const val PLAYER_BACKGROUND_STYLE_KEY = "player_background_style"
 
 object BackgroundStyles {
     const val OFF = -1
-    const val STATIC = 0
+    const val CROSS_FADE = 0
     const val ABSTRACT_1 = 1
     const val ABSTRACT_2 = 2
     const val ABSTRACT_3 = 3
@@ -81,7 +81,7 @@ fun PlayerBackground(
                 BackgroundStyles.OFF -> {
                     Box(Modifier.fillMaxSize().background(baseBackground))
                 }
-                BackgroundStyles.STATIC -> {
+                BackgroundStyles.CROSS_FADE -> {
                     val staticColor by animateColorAsState(
                         targetValue = clusters.c1,
                         animationSpec = tween(1000),

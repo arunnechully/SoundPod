@@ -64,8 +64,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
 import kotlin.math.abs
+import kotlin.time.Duration.Companion.milliseconds
 
-@Suppress("AssignedValueIsNeverRead")
 @Composable
 fun SleepTimerSettingsContent() {
     val binder = LocalPlayerServiceBinder.current
@@ -228,7 +228,7 @@ fun CustomSleepTimerDialog(
     fun animateAndClose(onFinished: () -> Unit) {
         isVisible = false
         scope.launch {
-            delay(200)
+            delay(200.milliseconds)
             onFinished()
         }
     }

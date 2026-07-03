@@ -45,7 +45,7 @@ fun ArtistTracksPage(
     val menuState = LocalMenuState.current
     val emptyItemsText = stringResource(id = R.string.no_results_found)
 
-    var sortBy by rememberSaveable { mutableStateOf(SongSortBy.Title) }
+    var sortBy by rememberSaveable { mutableStateOf(SongSortBy.Artist) }
     var sortOrder by rememberSaveable { mutableStateOf(SortOrder.Ascending) }
 
     val tag = "artistSongs/$browseId/${params ?: ""}/list"
@@ -56,17 +56,17 @@ fun ArtistTracksPage(
             viewModel.setItems(tag, Innertube.ItemsPage(items = initialItems, continuation = null))
         }
     }
-    
+
     Box(modifier = Modifier.fillMaxSize()) {
         androidx.compose.runtime.key(sortBy, sortOrder) {
-            ItemsPage<Innertube.SongItem>(
+            ItemsPage(
                 tag = tag,
                 enableScrollbar = true,
                 sortKeys = listOf(sortBy, sortOrder),
                 sortTransform = { items ->
                     val comparator = when (sortBy) {
-                        SongSortBy.Title -> compareBy<Innertube.SongItem> { it.info?.name?.lowercase() ?: "" }
-                        SongSortBy.Artist -> compareBy<Innertube.SongItem> { it.authors?.mapNotNull { it.name }?.joinToString(" • ")?.lowercase() ?: "" }
+                        SongSortBy.Title -> compareBy { it.info?.name?.lowercase() ?: "" }
+                        SongSortBy.Artist -> compareBy<Innertube.SongItem> { it -> it.authors?.mapNotNull { it.name }?.joinToString(" • ")?.lowercase() ?: "" }
                         else -> null
                     }
                     val sorted = if (comparator != null) items.sortedWith(comparator) else items

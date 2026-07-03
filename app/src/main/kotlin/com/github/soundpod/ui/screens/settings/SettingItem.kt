@@ -60,8 +60,6 @@ inline fun <reified T : Enum<T>> EnumValueSelectorSettingsEntry(
         trailingContent = trailingContent,
     )
 }
-
-@Suppress("AssignedValueIsNeverRead")
 @Composable
 inline fun <T> ValueSelectorSettingsEntry(
     title: String,

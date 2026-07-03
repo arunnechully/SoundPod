@@ -93,14 +93,6 @@
     <string name="year">Année</string>
     <string name="song_count">Nombre de titres</string>
     <string name="artist">Artiste</string>
-    <string name="edit_lyrics">Modifier les paroles</string>
-    <string name="youtube_account">Compte YouTube</string>
-    <string name="youtube_account_description">Connecté à YouTube</string>
-    <string name="sign_in">Se connecter</string>
-    <string name="sign_in_description">Connectez-vous pour accéder à votre bibliothèque</string>
-    <string name="sign_out">Se déconnecter</string>
-    <string name="sign_out_description">Effacer la session et les cookies</string>
-    <string name="account">Compte</string>
     <string name="search_lyrics_online">Rechercher des paroles en ligne</string>
     <plurals name="number_of_songs">
         <item quantity="one">%d titre</item>
@@ -118,6 +110,7 @@
         <item quantity="one">%d playlist</item>
         <item quantity="other">%d playlists</item>
     </plurals>
+    <string name="edit_lyrics">Modifier les paroles</string>
     <string name="hide_from_quick_picks">Masquer de la Sélection Rapide</string>
     <string name="more_from">Plus de</string>
     <string name="stop_sleep_timer_dialog">Arrêter la minuterie de sommeil ?</string>
@@ -158,9 +151,9 @@
     <string name="app_language">Langue de l\'application</string>
     <string name="configure_app_language">Configurer la langue de l\'application</string>
     <string name="most_played">Les plus joués</string>
-    <string name="trending">Tendances</string>
-    <string name="last_played">Joués dernièrement</string>
-    <string name="recommended">Recommandé</string>
+    <!-- <string name="trending">Tendances</string> -->
+    <!-- <string name="last_played">Joués dernièrement</string> -->
+    <!-- <string name="recommended">Recommandé</string> -->
     <string name="general">Général</string>
     <string name="history">Historique</string>
     <string name="quick_picks_source">Source de Sélection Rapide</string>
@@ -216,7 +209,6 @@
     <string name="backup_restore">Sauvegarde et Restauration</string>
     <string name="storage_and_cache">Stockage et Mémoire Cache</string>
     <string name="more_settings">Autres Paramètres</string>
-    <string name="experimental">Expérimental</string>
     <string name="theme">Thème</string>
     <string name="app_theme">Thème de l\'application</string>
     <string name="app_theme_description">Sélectionnez un thème pour l\'application</string>
@@ -229,7 +221,7 @@
     <string name="autocheck_description">Vérifier automatiquement les nouvelles versions en arrière-plan</string>
     <string name="update_alert">Afficher l\'alerte de mise à jour</string>
     <string name="update_alert_desription">Recevez une notification lorsqu\'une nouvelle version est disponible</string>
-    <string name="defualt">Défaut</string>
+    <string name="default_source">Défaut</string>
     <string name="dynamic">Dynamique</string>
     <string name="material_you">Material You</string>
     <string name="progress_bar_style">Style de la barre de progression</string>
@@ -238,6 +230,8 @@
     <string name="wave">Vague</string>
     <string name="pause_song_cache">Mettre en pause le cache des titres</string>
     <string name="pause_song_cache_description">Mettre en pause la mise en cache des titres</string>
+    <string name="pause_image_cache">Pause image cache</string>
+    <string name="pause_image_cache_description">Pause the image caching process</string>
     <string name="suggest_an_idea">Proposer une idée</string>
     <string name="report_a_bug">Créer un rapport de bogue</string>
     <string name="stop_and_share_report">Arrêter et partager le rapport</string>
@@ -259,8 +253,6 @@
     <string name="install">Installer</string>
     <string name="search_placeholder">Aucun historique de recherche trouvé</string>
     <string name="search_history">Recherches récentes</string>
-    <string name="new_search_screen">Nouvel écran de recherche</string>
-    <string name="new_search_screen_description">Essayez la nouvelle interface de recherche expérimentale. Certaines fonctionnalités peuvent présenter des instabilités.</string>
     <string name="_search_history">Aucune recherche récente</string>
     <string name="no_search_history">Aucune recherche récente</string>
     <string name="tracks">Titres</string>
@@ -286,8 +278,6 @@
     <string name="new_layout">Nouvelle mise en page</string>
     <string name="loading">Chargement en cours</string>
     <string name="clear">Effacer</string>
-    <string name="new_player">Nouveau lecteur</string>
-    <string name="new_player_description">Essayez le nouveau lecteur expérimental. Certaines fonctionnalités peuvent présenter des instabilités.</string>
     <string name="updates_handled_by_fdroid">Les mises à jour de cette version sont gérées via F-Droid</string>
     <string name="distribution_info">Distribution</string>
     <string name="view_on_f_droid">Voir sur F-Droid</string>
@@ -342,15 +332,13 @@
     <string name="clear_audio_cache">Êtes-vous sûr de vouloir vider le cache audio ? Cette action est irréversible.</string>
     <string name="show_cached_songs">Afficher les morceaux mis en cache</string>
     <string name="show_cached_songs_description">Afficher les morceaux mis en cache dans la playlist hors ligne</string>
-    <string name="screen_cache">Cache d\'écran</string>
-    <string name="screen_cache_description">Enregistrez les pages web pour les charger plus rapidement la prochaine fois</string>
-    <string name="clear_screen_cache">Êtes-vous sûr de vouloir vider le cache de l\'écran ? Cette action ne peut pas être annulée.</string>
     <string name="copy_to_clipboard">Copié dans le presse-papiers</string>
     <string name="track_length">Durée du titre</string>
     <string name="format">Format</string>
     <string name="path_id">Chemin / ID</string>
     <string name="kbps">%d kbps</string>
     <string name="decibel">%s dB</string>
+    <string name="playback_source">Source de lecture</string>
     <string name="favorite_tracks">Titres Favoris</string>
     <string name="favorite_albums">Albums Favoris</string>
     <string name="favorite_artists">Artistes Favoris</string>

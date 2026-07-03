@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.innertube.Innertube
 import com.github.innertube.requests.charts
-import com.github.innertube.requests.recommendations
 import com.github.innertube.requests.relatedPage
 import com.github.innertube.requests.searchPage
 import com.github.innertube.utils.from
@@ -38,9 +37,7 @@ class QuickPicksViewModel : ViewModel() {
     }
 
     private fun getSeedSongsFlow(source: QuickPicksSource, limit: Int): Flow<List<Song>> = when (source) {
-        QuickPicksSource.Trending -> db.trending(limit)
-        QuickPicksSource.LastPlayed -> db.lastPlayed(limit)
-        QuickPicksSource.Recommended -> db.lastPlayed(limit)
+        QuickPicksSource.Default -> db.trending(limit)
         QuickPicksSource.Custom -> db.randomSongs(limit)
     }
 
@@ -88,7 +85,7 @@ class QuickPicksViewModel : ViewModel() {
         job = viewModelScope.launch(Dispatchers.IO) {
             val seedSongs = when (quickPicksSource) {
                 QuickPicksSource.Custom -> {
-                    val customGenre = appContext.preferences.getString(quickPicksCustomGenreKey, "Psaltic music") ?: "Psaltic music"
+                    val customGenre = appContext.preferences.getString(quickPicksCustomGenreKey, "ROCK") ?: "ROCK"
                     val searchResult = Innertube.searchPage(
                         query = customGenre,
                         params = Innertube.SearchFilter.Song.value,
@@ -106,7 +103,7 @@ class QuickPicksViewModel : ViewModel() {
                         )
                     } ?: emptyList()
                 }
-                QuickPicksSource.Trending -> {
+                QuickPicksSource.Default -> {
                     Innertube.charts()?.getOrNull()?.take(3)?.map { item ->
                         val mediaItem = item.asMediaItem
                         Song(
@@ -118,19 +115,6 @@ class QuickPicksViewModel : ViewModel() {
                         )
                     } ?: getSeedSongsFlow(quickPicksSource, 3).first()
                 }
-                QuickPicksSource.Recommended -> {
-                    Innertube.recommendations()?.getOrNull()?.take(3)?.map { item ->
-                        val mediaItem = item.asMediaItem
-                        Song(
-                            id = mediaItem.mediaId,
-                            title = mediaItem.mediaMetadata.title.toString(),
-                            artistsText = mediaItem.mediaMetadata.artist.toString(),
-                            durationText = null,
-                            thumbnailUrl = mediaItem.mediaMetadata.artworkUri.toString()
-                        )
-                    } ?: getSeedSongsFlow(QuickPicksSource.LastPlayed, 3).first()
-                }
-                else -> getSeedSongsFlow(quickPicksSource, 3).first()
             }
 
             coroutineScope {

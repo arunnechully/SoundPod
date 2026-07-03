@@ -54,7 +54,7 @@ fun BackgroundSettingsContent() {
     val prefs = context.preferences
 
     // State
-    val currentStyle by rememberPreference(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.BLURRED)
+    val currentStyle by rememberPreference(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.CROSS_FADE)
 
     val presetBaseName = stringResource(id = R.string.preset)
 
@@ -79,8 +79,8 @@ fun BackgroundSettingsContent() {
             BackgroundOptionItem(
                 title = stringResource(id = R.string.static_colors),
                 description = stringResource(id = R.string.static_colors_description),
-                selected = currentStyle == BackgroundStyles.STATIC,
-                onClick = { prefs.edit { putInt(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.STATIC) } }
+                selected = currentStyle == BackgroundStyles.CROSS_FADE,
+                onClick = { prefs.edit { putInt(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.CROSS_FADE) } }
             )
             BackgroundOptionItem(
                 title = stringResource(id = R.string.blurred_cover),

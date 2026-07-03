@@ -291,6 +291,66 @@ interface Database {
         }
     }
 
+    @Query("SELECT Artist.* FROM Artist JOIN SongArtistMap ON Artist.id = SongArtistMap.artistId JOIN Song ON SongArtistMap.songId = Song.id WHERE Song.id LIKE 'content://%' GROUP BY Artist.id ORDER BY Artist.name ASC")
+    fun localArtistsByNameAsc(): Flow<List<Artist>>
+
+    @Query("SELECT Artist.* FROM Artist JOIN SongArtistMap ON Artist.id = SongArtistMap.artistId JOIN Song ON SongArtistMap.songId = Song.id WHERE Song.id LIKE 'content://%' GROUP BY Artist.id ORDER BY Artist.name DESC")
+    fun localArtistsByNameDesc(): Flow<List<Artist>>
+
+    @Query("SELECT Artist.* FROM Artist JOIN SongArtistMap ON Artist.id = SongArtistMap.artistId JOIN Song ON SongArtistMap.songId = Song.id WHERE Song.id LIKE 'content://%' GROUP BY Artist.id ORDER BY Artist.bookmarkedAt ASC")
+    fun localArtistsByRowIdAsc(): Flow<List<Artist>>
+
+    @Query("SELECT Artist.* FROM Artist JOIN SongArtistMap ON Artist.id = SongArtistMap.artistId JOIN Song ON SongArtistMap.songId = Song.id WHERE Song.id LIKE 'content://%' GROUP BY Artist.id ORDER BY Artist.bookmarkedAt DESC")
+    fun localArtistsByRowIdDesc(): Flow<List<Artist>>
+
+    fun localArtists(sortBy: ArtistSortBy, sortOrder: SortOrder): Flow<List<Artist>> {
+        return when (sortBy) {
+            ArtistSortBy.Name -> when (sortOrder) {
+                SortOrder.Ascending -> localArtistsByNameAsc()
+                SortOrder.Descending -> localArtistsByNameDesc()
+            }
+            ArtistSortBy.DateAdded -> when (sortOrder) {
+                SortOrder.Ascending -> localArtistsByRowIdAsc()
+                SortOrder.Descending -> localArtistsByRowIdDesc()
+            }
+        }
+    }
+
+    @Query("SELECT Album.* FROM Album JOIN SongAlbumMap ON Album.id = SongAlbumMap.albumId JOIN Song ON SongAlbumMap.songId = Song.id WHERE Song.id LIKE 'content://%' GROUP BY Album.id ORDER BY Album.title ASC")
+    fun localAlbumsByTitleAsc(): Flow<List<Album>>
+
+    @Query("SELECT Album.* FROM Album JOIN SongAlbumMap ON Album.id = SongAlbumMap.albumId JOIN Song ON SongAlbumMap.songId = Song.id WHERE Song.id LIKE 'content://%' GROUP BY Album.id ORDER BY Album.title DESC")
+    fun localAlbumsByTitleDesc(): Flow<List<Album>>
+
+    @Query("SELECT Album.* FROM Album JOIN SongAlbumMap ON Album.id = SongAlbumMap.albumId JOIN Song ON SongAlbumMap.songId = Song.id WHERE Song.id LIKE 'content://%' GROUP BY Album.id ORDER BY Album.year ASC")
+    fun localAlbumsByYearAsc(): Flow<List<Album>>
+
+    @Query("SELECT Album.* FROM Album JOIN SongAlbumMap ON Album.id = SongAlbumMap.albumId JOIN Song ON SongAlbumMap.songId = Song.id WHERE Song.id LIKE 'content://%' GROUP BY Album.id ORDER BY Album.year DESC")
+    fun localAlbumsByYearDesc(): Flow<List<Album>>
+
+    @Query("SELECT Album.* FROM Album JOIN SongAlbumMap ON Album.id = SongAlbumMap.albumId JOIN Song ON SongAlbumMap.songId = Song.id WHERE Song.id LIKE 'content://%' GROUP BY Album.id ORDER BY Album.bookmarkedAt ASC")
+    fun localAlbumsByRowIdAsc(): Flow<List<Album>>
+
+    @Query("SELECT Album.* FROM Album JOIN SongAlbumMap ON Album.id = SongAlbumMap.albumId JOIN Song ON SongAlbumMap.songId = Song.id WHERE Song.id LIKE 'content://%' GROUP BY Album.id ORDER BY Album.bookmarkedAt DESC")
+    fun localAlbumsByRowIdDesc(): Flow<List<Album>>
+
+    fun localAlbums(sortBy: AlbumSortBy, sortOrder: SortOrder): Flow<List<Album>> {
+        return when (sortBy) {
+            AlbumSortBy.Title -> when (sortOrder) {
+                SortOrder.Ascending -> localAlbumsByTitleAsc()
+                SortOrder.Descending -> localAlbumsByTitleDesc()
+            }
+            AlbumSortBy.Year -> when (sortOrder) {
+                SortOrder.Ascending -> localAlbumsByYearAsc()
+                SortOrder.Descending -> localAlbumsByYearDesc()
+            }
+            AlbumSortBy.DateAdded -> when (sortOrder) {
+                SortOrder.Ascending -> localAlbumsByRowIdAsc()
+                SortOrder.Descending -> localAlbumsByRowIdDesc()
+            }
+        }
+    }
+
     @Query("UPDATE Song SET totalPlayTimeMs = totalPlayTimeMs + :addition WHERE id = :id")
     fun incrementTotalPlayTimeMs(id: String, addition: Long)
 

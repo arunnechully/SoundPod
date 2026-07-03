@@ -41,8 +41,8 @@ import com.github.soundpod.utils.rememberPreference
 
 @Composable
 fun QuickPicksSettingsContent() {
-    var quickPicksSource by rememberPreference(quickPicksSourceKey, QuickPicksSource.Trending)
-    var customGenre by rememberPreference(quickPicksCustomGenreKey, "Psaltic music")
+    var quickPicksSource by rememberPreference(quickPicksSourceKey, QuickPicksSource.Default)
+    var customGenre by rememberPreference(quickPicksCustomGenreKey, "ROCK")
     val focusManager = LocalFocusManager.current
     val (colorPalette) = LocalAppearance.current
 

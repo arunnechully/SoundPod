@@ -187,7 +187,7 @@ fun SharedThumbnail(
                 PlaybackError(
                     error = playerError,
                     onDismiss = { player.prepare() },
-                    modifier = Modifier.matchParentSize()
+                    modifier = Modifier.fillMaxSize()
                 )
             }
         }
