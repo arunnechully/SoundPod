@@ -164,7 +164,7 @@ class PlayerService : InvincibleService(), Player.Listener,
         cacheManager = PlayerCacheManager(this)
 
         mediaSourceProvider = PlayerMediaSourceProvider(this, cacheManager)
-        preCacheManager = PreCacheManager(cacheManager, mediaSourceProvider)
+        preCacheManager = PreCacheManager(this, cacheManager, mediaSourceProvider)
 
         val loadControl = DefaultLoadControl.Builder()
             .setBufferDurationsMs(
@@ -301,10 +301,10 @@ class PlayerService : InvincibleService(), Player.Listener,
         audioEffectManager.maybeNormalizeVolume()
         maybeProcessRadio()
         maybeFetchLyrics(mediaItem)
-        
+
         // Trigger prefetch here
         prefetchNextTrack()
-        
+
         mediaItem?.mediaId?.let { videoId ->
             coroutineScope.launch {
                 db.deletePrecachedSong(videoId)
@@ -343,14 +343,14 @@ class PlayerService : InvincibleService(), Player.Listener,
             val videoId = nextMediaItem.mediaId
 
             if (videoId.isBlank() || videoId.startsWith("http") || videoId.startsWith("content://") || videoId.startsWith("file://")) continue
-            
+
             videoIdsToPrefetch.add(videoId)
         }
 
         if (videoIdsToPrefetch.isNotEmpty()) {
             Log.d("SoundPod-Prefetch", "Triggering prefetch for: $videoIdsToPrefetch")
             preCacheManager.preCache(videoIdsToPrefetch)
-            
+
             // Also pre-fetch lyrics and artwork for the very next track
             coroutineScope.launch {
                 val nextTrack = videoIdsToPrefetch.first()
@@ -602,7 +602,6 @@ class PlayerService : InvincibleService(), Player.Listener,
         fun cancelSleepTimer() = sleepTimerManager.cancelTimer()
 
         fun setupRadio(endpoint: NavigationEndpoint.Endpoint.Watch?) = radioManager.setupRadio(endpoint)
-        fun playRadio(endpoint: NavigationEndpoint.Endpoint.Watch?) = radioManager.playRadio(endpoint)
         fun stopRadio() = radioManager.stop()
     }
 

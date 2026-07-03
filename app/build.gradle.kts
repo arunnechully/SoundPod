@@ -145,8 +145,6 @@ dependencies {
     implementation(libs.datastore.preferences)
     implementation(libs.ui.geometry)
     implementation(libs.duktape)
-
-    implementation(project(":extractor"))
     implementation(libs.kotlin.coroutines)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)

@@ -50,6 +50,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.compose.rememberNavController
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
@@ -102,6 +103,7 @@ class MainActivity : ComponentActivity() {
         bindService(intent<PlayerService>(), serviceConnection, BIND_AUTO_CREATE)
     }
 
+    @UnstableApi
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -130,12 +132,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val context = LocalContext.current
-            
+
             LaunchedEffect(Unit) {
                 withContext(Dispatchers.IO) {
-                    val isNewPipeAvailable = com.github.soundpod.extractor.NewPipeHelper.isLibraryAvailable
-                    android.util.Log.d("SoundPod-Init", "NewPipe Extractor available: ${isNewPipeAvailable}")
-
                     val updateFile = File(externalCacheDir, "update.apk")
                     if (updateFile.exists()) {
                         updateFile.delete()

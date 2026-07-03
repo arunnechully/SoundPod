@@ -26,10 +26,10 @@ suspend fun Innertube.artistPage(browseId: String): Result<Innertube.ArtistPage>
             mask("contents,header")
         }.body<BrowseResponse>()
 
-        val tabs = (response.contents?.singleColumnBrowseResultsRenderer?.tabs
-            ?: response.contents?.twoColumnBrowseResultsRenderer?.tabs)
-
         fun findSectionByTitle(text: String): SectionListRenderer.Content? {
+            val tabs = (response.contents?.singleColumnBrowseResultsRenderer?.tabs
+                ?: response.contents?.twoColumnBrowseResultsRenderer?.tabs)
+
             tabs?.forEach { tab ->
                 tab.tabRenderer?.content?.sectionListRenderer?.findSectionByTitle(text)?.let { return it }
             }
@@ -57,19 +57,6 @@ suspend fun Innertube.artistPage(browseId: String): Result<Innertube.ArtistPage>
         val featuredPlaylistsSection = findSectionByTitle("Featured on")?.musicCarouselShelfRenderer
         val relatedArtistsSection =
             findSectionByTitle("Fans might also like")?.musicCarouselShelfRenderer
-
-        val songsEndpoint = (songsShelf?.bottomEndpoint?.browseEndpoint
-            ?: songsPlaylistShelf?.playlistId?.let { com.github.innertube.models.NavigationEndpoint.Endpoint.Browse(browseId = "VL$it") }
-            ?: tabs?.mapNotNull { it.tabRenderer }
-                ?.find { it.title?.equals("Songs", ignoreCase = true) == true || it.tabIdentifier == "FEmusic_library_songs" }
-                ?.content
-                ?.sectionListRenderer
-                ?.contents
-                ?.firstOrNull { it.musicShelfRenderer != null }
-                ?.musicShelfRenderer
-                ?.bottomEndpoint
-                ?.browseEndpoint
-        )
 
         Innertube.ArtistPage(
             name = artistName,
@@ -112,7 +99,9 @@ suspend fun Innertube.artistPage(browseId: String): Result<Innertube.ArtistPage>
                     ?.contents
                     ?.mapNotNull(MusicPlaylistShelfRenderer.Content::musicResponsiveListItemRenderer)
                     ?.mapNotNull { Innertube.SongItem.from(it) },
-            songsEndpoint = songsEndpoint,
+            songsEndpoint = songsShelf
+                ?.bottomEndpoint
+                ?.browseEndpoint,
             albums = albumsSection
                 ?.contents
                 ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicTwoRowItemRenderer)

@@ -11,9 +11,8 @@ data class ContinuationResponse(
 ) {
     @Serializable
     data class ContinuationContents(
-        @JsonNames("musicPlaylistShelfContinuation", "musicShelfContinuation")
+        @JsonNames("musicPlaylistShelfContinuation")
         val musicShelfContinuation: MusicShelfRenderer?,
-        val sectionListContinuation: SectionListRenderer?,
         val playlistPanelContinuation: NextResponse.MusicQueueRenderer.Content.PlaylistPanelRenderer?,
     )
 }

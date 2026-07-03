@@ -14,39 +14,25 @@ import com.github.soundpod.enums.CoilDiskCacheMaxSize
 import com.github.soundpod.utils.coilDiskCacheMaxSizeKey
 import com.github.soundpod.utils.getEnum
 import com.github.soundpod.utils.preferences
-import com.github.soundpod.service.YouTubeBootstrap
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import java.util.Locale
+import org.schabi.newpipe.extractor.NewPipe
 
 
 class MainApplication : Application(), SingletonImageLoader.Factory {
-    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     override fun onCreate() {
         super.onCreate()
         instance = this
-        
+
         Locale.setDefault(Locale.US)
 
         Thread {
             DatabaseInitializer.get(this)
+            NewPipe.init(NewPipeDownloader.getInstance())
 
             Innertube.visitorData = preferences.getString("visitor_data", null)
             Innertube.onVisitorDataChanged = { visitorData: String? ->
                 preferences.edit { putString("visitor_data", visitorData) }
-            }
-
-            Innertube.cookies = preferences.getString("cookies", null)
-            Innertube.onCookiesChanged = { cookies: String? ->
-                preferences.edit { putString("cookies", cookies) }
-            }
-            
-            // Trigger dynamic session bootstrap
-            applicationScope.launch {
-                YouTubeBootstrap.initialize()
             }
         }.start()
     }

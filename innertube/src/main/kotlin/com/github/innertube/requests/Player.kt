@@ -1,106 +1,116 @@
 package com.github.innertube.requests
 
 import com.github.innertube.Innertube
+import com.github.innertube.models.Context
 import com.github.innertube.models.PlayerResponse
 import com.github.innertube.models.YouTubeClient
 import com.github.innertube.models.bodies.PlayerBody
 import com.github.innertube.models.bodies.ServiceIntegrityDimensions
 import com.github.innertube.utils.runCatchingNonCancellable
 import io.ktor.client.call.body
-import io.ktor.client.request.header
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import kotlinx.serialization.Serializable
 
-data class PlayerResult(
-    val response: PlayerResponse,
-    val userAgent: String
+@Serializable
+private data class AudioStream(
+    val url: String,
+    val bitrate: Long
 )
 
-suspend fun Innertube.player(videoId: String): Result<PlayerResult>? = runCatchingNonCancellable {
-    waitForSession(5000)
-    val vrResponse = tryPlayer(videoId, YouTubeClient.ANDROID_VR, useCookies = false)
-    if (vrResponse?.playabilityStatus?.status == "OK") {
-        return@runCatchingNonCancellable PlayerResult(
-            response = vrResponse.applyDecipher(decipher, signatureDecipher),
-            userAgent = YouTubeClient.ANDROID_VR.userAgent
-        )
-    }
-    val tvResponse = tryPlayer(videoId, YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER, useCookies = false)
-    if (tvResponse?.playabilityStatus?.status == "OK") {
-        return@runCatchingNonCancellable PlayerResult(
-            response = tvResponse.applyDecipher(decipher, signatureDecipher),
-            userAgent = YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER.userAgent
-        )
-    }
+@Serializable
+private data class PipedResponse(
+    val audioStreams: List<AudioStream>
+)
 
-    throw Exception("All Innertube player clients failed for $videoId")
-}
-
-private suspend fun Innertube.tryPlayer(
-    videoId: String, 
-    clientType: YouTubeClient, 
-    useCookies: Boolean,
-    extraHeaders: Map<String, String> = emptyMap(),
-    includeThirdParty: Boolean = false,
-    host: String = "www.youtube.com"
-): PlayerResponse? = runCatching {
-    client.post("https://$host/youtubei/v1/player") {
-        header("User-Agent", clientType.userAgent)
-        attributes.put(Innertube.Attributes.UseCookies, useCookies)
-        extraHeaders.forEach { (key, value) -> header(key, value) }
-        
+suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
+    val response = client.post(PLAYER) {
         setBody(
             PlayerBody(
-                context = clientType.toContext(visitorData = visitorData, includeThirdParty = includeThirdParty),
+                context = YouTubeClient.ANDROID_VR.toContext(visitorData = visitorData),
                 videoId = videoId,
                 serviceIntegrityDimensions = poToken?.let { ServiceIntegrityDimensions(poToken = it) }
             )
         )
-        mask("playabilityStatus(status,reason,messages),playerConfig.audioConfig,streamingData.adaptiveFormats,streamingData.formats,videoDetails.videoId")
+        mask("playabilityStatus.status,playerConfig.audioConfig,streamingData.adaptiveFormats,streamingData.formats,videoDetails.videoId")
     }.body<PlayerResponse>()
-}.getOrNull()
 
-private suspend fun PlayerResponse.applyDecipher(
-    decipherN: (suspend (String) -> String)?,
-    decipherSig: (suspend (String) -> String)?
-): PlayerResponse {
-    if (streamingData == null) return this
+    if (response.playabilityStatus?.status == "OK") {
+        return@runCatchingNonCancellable response.applyDecipher(decipher)
+    }
+    else {
+        val safePlayerResponse = client.post(PLAYER) {
+            setBody(
+                PlayerBody(
+                    context = YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER.toContext(visitorData = visitorData).copy(
+                        thirdParty = Context.ThirdParty(
+                            embedUrl = "https://www.youtube.com/watch?v=$videoId"
+                        )
+                    ),
+                    videoId = videoId
+                )
+            )
+            mask("playabilityStatus.status,playerConfig.audioConfig,streamingData.adaptiveFormats,streamingData.formats,videoDetails.videoId")
+        }.body<PlayerResponse>()
+
+        if (safePlayerResponse.playabilityStatus?.status != "OK") {
+            return@runCatchingNonCancellable response.applyDecipher(decipher)
+        }
+
+        val audioStreams = runCatching {
+            client.get("https://pipedapi.adminforge.de/streams/$videoId") {
+                contentType(ContentType.Application.Json)
+            }.body<PipedResponse>().audioStreams
+        }.getOrNull() ?: emptyList()
+
+        if (audioStreams.isEmpty()) {
+            return@runCatchingNonCancellable safePlayerResponse.applyDecipher(decipher)
+        }
+
+        safePlayerResponse.copy(
+            streamingData = safePlayerResponse.streamingData?.copy(
+                adaptiveFormats = safePlayerResponse.streamingData.adaptiveFormats?.map { adaptiveFormat ->
+                    adaptiveFormat.copy(
+                        url = audioStreams.minByOrNull {
+                            val bitrate = adaptiveFormat.bitrate ?: 0L
+                            if (bitrate == 0L) Long.MAX_VALUE
+                            else kotlin.math.abs(it.bitrate - bitrate)
+                        }?.url
+                    )
+                },
+                formats = safePlayerResponse.streamingData.formats?.map { format ->
+                    format.copy(
+                        url = audioStreams.minByOrNull {
+                            val bitrate = format.bitrate ?: 0L
+                            if (bitrate == 0L) Long.MAX_VALUE
+                            else kotlin.math.abs(it.bitrate - bitrate)
+                        }?.url
+                    )
+                }
+            )
+        ).applyDecipher(decipher)
+    }
+}
+
+private suspend fun PlayerResponse.applyDecipher(decipher: (suspend (String) -> String)?): PlayerResponse {
+    if (decipher == null || streamingData == null) return this
     
     return copy(
         streamingData = streamingData.copy(
             adaptiveFormats = streamingData.adaptiveFormats?.map { format ->
-                val url = format.url ?: format.signatureCipher?.let { parseSignatureCipher(it, decipherSig) }
-                format.copy(url = url?.let { decipherUrl(it, decipherN) })
+                format.copy(url = format.url?.let { decipherUrl(it, decipher) })
             },
             formats = streamingData.formats?.map { format ->
-                val url = format.url ?: format.signatureCipher?.let { parseSignatureCipher(it, decipherSig) }
-                format.copy(url = url?.let { decipherUrl(it, decipherN) })
+                format.copy(url = format.url?.let { decipherUrl(it, decipher) })
             }
         )
     )
 }
 
-private suspend fun parseSignatureCipher(cipher: String, decipher: (suspend (String) -> String)?): String? {
-    val params = cipher.split("&").associate { 
-        val parts = it.split("=")
-        parts[0] to java.net.URLDecoder.decode(parts[1], "UTF-8")
-    }
-    
-    val baseUrl = params["url"] ?: return null
-    val signature = params["s"] ?: return baseUrl
-    val sp = params["sp"] ?: "sig"
-    
-    val decipheredSig = if (decipher != null) decipher(signature) else signature
-    
-    return if (baseUrl.contains("?")) {
-        "$baseUrl&$sp=$decipheredSig"
-    } else {
-        "$baseUrl?$sp=$decipheredSig"
-    }
-}
-
-private suspend fun decipherUrl(url: String, decipher: (suspend (String) -> String)?): String {
-    if (decipher == null) return url
+private suspend fun decipherUrl(url: String, decipher: suspend (String) -> String): String {
     val nParam = url.substringAfter("&n=", "").substringBefore("&")
     if (nParam.isEmpty()) return url
     

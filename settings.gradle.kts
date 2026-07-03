@@ -24,7 +24,7 @@ rootProject.name = "SoundPod"
 // Modules
 include(":app")
 include(":innertube")
-include(":extractor")
+//include(":extractor")
 include(":core:ui")
 include(":core:visuals")
 include(":ktor-client-brotli")
