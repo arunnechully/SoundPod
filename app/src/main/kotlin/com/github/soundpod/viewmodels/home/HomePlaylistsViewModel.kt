@@ -11,8 +11,9 @@ import com.github.soundpod.models.PlaylistPreview
 
 class HomePlaylistsViewModel : ViewModel() {
     var items: List<PlaylistPreview> by mutableStateOf(emptyList())
+    var offlineThumbnail: String? by mutableStateOf(null)
 
-    suspend fun loadArtists(
+    suspend fun loadPlaylists(
         sortBy: PlaylistSortBy,
         sortOrder: SortOrder
     ) {

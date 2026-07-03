@@ -164,7 +164,7 @@ class PlayerService : InvincibleService(), Player.Listener,
         cacheManager = PlayerCacheManager(this)
 
         mediaSourceProvider = PlayerMediaSourceProvider(this, cacheManager)
-        preCacheManager = PreCacheManager(this, cacheManager, mediaSourceProvider)
+        preCacheManager = PreCacheManager(cacheManager, mediaSourceProvider)
 
         val loadControl = DefaultLoadControl.Builder()
             .setBufferDurationsMs(

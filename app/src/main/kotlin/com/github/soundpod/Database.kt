@@ -366,27 +366,27 @@ interface Database {
     fun playlistWithSongs(id: Long): Flow<PlaylistWithSongs?>
 
     @Transaction
-    @Query("SELECT id, name, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount FROM Playlist ORDER BY name ASC")
+    @Query("SELECT id, name, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount, IFNULL((SELECT GROUP_CONCAT(thumbnailUrl) FROM (SELECT thumbnailUrl FROM Song JOIN SongPlaylistMap ON Song.id = SongPlaylistMap.songId WHERE playlistId = Playlist.id ORDER BY position LIMIT 4)), '') as thumbnails FROM Playlist ORDER BY name ASC")
     fun playlistPreviewsByNameAsc(): Flow<List<PlaylistPreview>>
 
     @Transaction
-    @Query("SELECT id, name, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount FROM Playlist ORDER BY ROWID ASC")
+    @Query("SELECT id, name, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount, IFNULL((SELECT GROUP_CONCAT(thumbnailUrl) FROM (SELECT thumbnailUrl FROM Song JOIN SongPlaylistMap ON Song.id = SongPlaylistMap.songId WHERE playlistId = Playlist.id ORDER BY position LIMIT 4)), '') as thumbnails FROM Playlist ORDER BY ROWID ASC")
     fun playlistPreviewsByDateAddedAsc(): Flow<List<PlaylistPreview>>
 
     @Transaction
-    @Query("SELECT id, name, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount FROM Playlist ORDER BY songCount ASC")
+    @Query("SELECT id, name, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount, IFNULL((SELECT GROUP_CONCAT(thumbnailUrl) FROM (SELECT thumbnailUrl FROM Song JOIN SongPlaylistMap ON Song.id = SongPlaylistMap.songId WHERE playlistId = Playlist.id ORDER BY position LIMIT 4)), '') as thumbnails FROM Playlist ORDER BY songCount ASC")
     fun playlistPreviewsByDateSongCountAsc(): Flow<List<PlaylistPreview>>
 
     @Transaction
-    @Query("SELECT id, name, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount FROM Playlist ORDER BY name DESC")
+    @Query("SELECT id, name, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount, IFNULL((SELECT GROUP_CONCAT(thumbnailUrl) FROM (SELECT thumbnailUrl FROM Song JOIN SongPlaylistMap ON Song.id = SongPlaylistMap.songId WHERE playlistId = Playlist.id ORDER BY position LIMIT 4)), '') as thumbnails FROM Playlist ORDER BY name DESC")
     fun playlistPreviewsByNameDesc(): Flow<List<PlaylistPreview>>
 
     @Transaction
-    @Query("SELECT id, name, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount FROM Playlist ORDER BY ROWID DESC")
+    @Query("SELECT id, name, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount, IFNULL((SELECT GROUP_CONCAT(thumbnailUrl) FROM (SELECT thumbnailUrl FROM Song JOIN SongPlaylistMap ON Song.id = SongPlaylistMap.songId WHERE playlistId = Playlist.id ORDER BY position LIMIT 4)), '') as thumbnails FROM Playlist ORDER BY ROWID DESC")
     fun playlistPreviewsByDateAddedDesc(): Flow<List<PlaylistPreview>>
 
     @Transaction
-    @Query("SELECT id, name, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount FROM Playlist ORDER BY songCount DESC")
+    @Query("SELECT id, name, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount, IFNULL((SELECT GROUP_CONCAT(thumbnailUrl) FROM (SELECT thumbnailUrl FROM Song JOIN SongPlaylistMap ON Song.id = SongPlaylistMap.songId WHERE playlistId = Playlist.id ORDER BY position LIMIT 4)), '') as thumbnails FROM Playlist ORDER BY songCount DESC")
     fun playlistPreviewsByDateSongCountDesc(): Flow<List<PlaylistPreview>>
 
     fun playlistPreviews(
@@ -839,6 +839,16 @@ abstract class DatabaseInitializer : RoomDatabase() {
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @TypeConverters
 object Converters {
+
+    @TypeConverter
+    fun stringListFromText(value: String?): List<String> {
+        return value?.split(",")?.filter { it.isNotEmpty() } ?: emptyList()
+    }
+
+    @TypeConverter
+    fun stringListToText(list: List<String>?): String? {
+        return list?.joinToString(",")
+    }
 
     @TypeConverter
     fun mediaItemFromByteArray(value: ByteArray?): MediaItem? {

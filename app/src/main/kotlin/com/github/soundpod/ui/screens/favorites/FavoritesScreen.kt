@@ -29,6 +29,8 @@ import coil3.compose.AsyncImage
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
+import com.github.soundpod.ui.common.IconSource
+import com.github.soundpod.ui.components.FavoritesCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlayFromBeginning
@@ -134,9 +136,15 @@ fun FavoritesMainContent(
                     val songCount = viewModel.favoriteSongs.size
                     FavoritesCard(
                         title = stringResource(R.string.favorite_tracks),
-                        subtitle = pluralStringResource(id = R.plurals.number_of_songs, count = songCount, songCount),
-                        icon = Icons.Default.MusicNote,
-                        thumbnailUrls = viewModel.favoriteSongs.mapNotNull { it.thumbnailUrl }.take(1),
+                        subtitle = pluralStringResource(
+                            id = R.plurals.number_of_songs,
+                            count = songCount,
+
+                            songCount
+                        ),
+                        icon = IconSource.Vector(imageVector = Icons.Default.MusicNote),
+                        thumbnailUrls = viewModel.favoriteSongs.mapNotNull { it.thumbnailUrl }
+                            .take(1),
                         onClick = onFavoriteTracksClick,
                         onPlayClick = onPlayTracks
                     )
@@ -150,7 +158,7 @@ fun FavoritesMainContent(
                 FavoritesCard(
                     title = album.title ?: "",
                     label = stringResource(R.string.album),
-                    icon = Icons.Default.MusicNote, // Fallback if no thumbnail
+                    icon = IconSource.Vector(imageVector = Icons.Default.MusicNote),
                     thumbnailUrls = listOfNotNull(album.thumbnailUrl),
                     onClick = { onGoToAlbum(album.id) }
                 )
@@ -163,7 +171,7 @@ fun FavoritesMainContent(
                 FavoritesCard(
                     title = artist.name ?: "",
                     label = stringResource(R.string.artist),
-                    icon = Icons.Default.MusicNote, // Fallback
+                    icon = IconSource.Vector(imageVector = Icons.Default.MusicNote),
                     thumbnailUrls = listOfNotNull(artist.thumbnailUrl),
                     onClick = { onGoToArtist(artist.id) }
                 )

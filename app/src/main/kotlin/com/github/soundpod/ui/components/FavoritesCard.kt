@@ -1,8 +1,9 @@
-package com.github.soundpod.ui.screens.favorites
+package com.github.soundpod.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -19,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -28,14 +28,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.github.core.ui.LocalAppearance
+import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.utils.thumbnail
 
 @Composable
 fun FavoritesCard(
-    title: String,
-    icon: ImageVector,
-    onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    title: String? = null,
+    icon: IconSource? = null,
+    onClick: () -> Unit,
     thumbnailUrls: List<String> = emptyList(),
     label: String? = null,
     subtitle: String? = null,
@@ -73,25 +74,33 @@ fun FavoritesCard(
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .align(alignment)
-                                .fillMaxSize(0.51f) // Slight overlap to avoid gaps
+                                .fillMaxSize(0.51f)
                         )
                     }
                 }
-                // Overlay to ensure text readability
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color.Black.copy(alpha = 0.4f))
                 )
             }
-        } else {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize(0.6f),
-                tint = colorPalette.accent.copy(alpha = 0.25f)
-            )
+        } else if (icon != null) {
+            when (icon) {
+                is IconSource.Vector -> Icon(
+                    imageVector = icon.imageVector,
+                    contentDescription = title,
+                    tint = colorPalette.accent.copy(alpha = 0.25f),
+                    modifier = Modifier
+                        .fillMaxSize(0.6f)
+                )
+                is IconSource.Icon -> Icon(
+                    painter = icon.painter,
+                    contentDescription = title,
+                    tint = colorPalette.accent.copy(alpha = 0.25f),
+                    modifier = Modifier
+                        .fillMaxSize(0.6f)
+                )
+            }
         }
 
         if (onPlayClick != null) {
@@ -113,7 +122,7 @@ fun FavoritesCard(
             }
         }
 
-        androidx.compose.foundation.layout.Column(
+        Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(horizontal = 8.dp)
         ) {
@@ -126,16 +135,18 @@ fun FavoritesCard(
                     textAlign = TextAlign.Center
                 )
             }
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                color = Color.White,
-                textAlign = TextAlign.Center,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
+            if (title !=null) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
             if (subtitle != null) {
                 Text(
                     text = subtitle,
