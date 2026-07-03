@@ -47,11 +47,20 @@
 ## Installation
 
 ### Stable Releases
-Download the latest stable APK directly from GitHub, or get it on F-Droid to receive automatic updates.
+Get the latest stable version from F-Droid to receive automatic updates, or download the stable APK directly from GitHub.
 
-<p align="center">
-  <a href="https://github.com/arunnechully/SoundPod/releases/latest" style="text-decoration:none;"><img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" alt="Get it on GitHub" height="60"></a>
+<p align="left">
   <a href="https://f-droid.org/packages/com.github.soundpod/" style="text-decoration:none;"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="60"></a>
+  <a href="https://github.com/arunnechully/SoundPod/releases/latest" style="text-decoration:none;"><img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" alt="Get it on GitHub" height="60"></a>
+</p>
+
+### Beta Releases
+Want to test new features before they are officially released? Beta builds (pre-releases) are available exclusively on GitHub.
+
+<p align="left">
+  <a href="https://github.com/arunnechully/SoundPod/releases" style="text-decoration:none;">
+    <img src="https://img.shields.io/badge/Download_Beta-GitHub-orange?style=for-the-badge&logo=github&logoColor=white" alt="Get Beta on GitHub" height="60">
+  </a>
 </p>
 
 ---
@@ -60,9 +69,10 @@ Download the latest stable APK directly from GitHub, or get it on F-Droid to rec
 
 Localization is managed using [Crowdin](https://crowdin.com/project/soundpod). If you wish to contribute and help translate SoundPod into your language, your help is greatly appreciated!
 
-A special thanks to our translators:
-* **French:** [Mickael81](https://github.com/Mickael81)
+**Don't see your language?** 
+If you would like to translate SoundPod into a language that isn't listed yet, you can request the new language directly on the Crowdin page or [open an issue](https://github.com/arunnechully/SoundPod/issues) here on GitHub.
 
+A massive thank you to **all our volunteer translators** over on Crowdin for helping make SoundPod accessible to more people around the world!
 ---
 
 ## Credits & Inspiration
