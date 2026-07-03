@@ -56,6 +56,7 @@ fun <T : Innertube.Item> ItemsPage(
     initialPlaceholderCount: Int = 8,
     continuationPlaceholderCount: Int = 3,
     emptyItemsText: String = stringResource(id = R.string.no_items_found),
+    errorItemsText: String = stringResource(id = R.string.network_error),
     itemsPageProvider: (suspend (String?) -> Result<Innertube.ItemsPage<T>?>?)? = null,
     enablePreCache: Boolean = false,
 ) {
@@ -81,9 +82,9 @@ fun <T : Innertube.Item> ItemsPage(
         }
     }
 
-    val listLayout = tag.contains("songs", ignoreCase = true) || 
-                     tag.contains("videos", ignoreCase = true) || 
-                     tag.contains("list", ignoreCase = true)
+    val listLayout = tag.endsWith("/songs", ignoreCase = true) || 
+                     tag.endsWith("/videos", ignoreCase = true) || 
+                     tag.endsWith("/list", ignoreCase = true)
     val artistsLayout = tag.contains("artists")
 
     val shouldLoadMore by remember {
@@ -124,6 +125,13 @@ fun <T : Innertube.Item> ItemsPage(
                     items = itemsPage + it
                 )
             }
+        }?.onFailure {
+            if (itemsPage == null) {
+                viewModel.setItems(
+                    tag = tag,
+                    items = Innertube.ItemsPage(items = emptyList(), continuation = null)
+                )
+            }
         }
     }
 
@@ -136,7 +144,7 @@ fun <T : Innertube.Item> ItemsPage(
         LazyVerticalGrid(
             state = lazyGridState,
             columns = GridCells.Adaptive(
-                minSize = if (listLayout) 400.dp else if (artistsLayout) 100.dp else 120.dp
+                minSize = if (listLayout) 400.dp else if (artistsLayout) 100.dp else 110.dp
             ),
             contentPadding = PaddingValues(
                 start = if (listLayout) 0.dp else 8.dp,
@@ -177,7 +185,7 @@ fun <T : Innertube.Item> ItemsPage(
                     span = { GridItemSpan(maxCurrentLineSpan) }
                 ) {
                     Text(
-                        text = emptyItemsText,
+                        text = if (itemsPage.items == null) emptyItemsText else errorItemsText,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
                             .padding(horizontal = 16.dp, vertical = 32.dp)

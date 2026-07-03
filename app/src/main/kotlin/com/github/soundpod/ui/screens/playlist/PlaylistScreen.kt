@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.util.UnstableApi
 import com.github.core.ui.LocalAppearance
 import com.github.innertube.Innertube
 import com.github.innertube.requests.playlistPage
@@ -52,6 +53,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+@UnstableApi
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @Composable
 fun PlaylistScreen(
@@ -136,31 +138,18 @@ fun PlaylistScreen(
                     dismissMenu()
                 }
             )
-//            DropdownMenuItem(
-//                text = {
-//                    Text(
-//                        text = stringResource(id = R.string.settings),
-//                        color = colorPalette.text,
-//                        style = typography.bodyLarge
-//                    )
-//                },
-//                onClick = {
-//                    onSettingsClick()
-//                    dismissMenu()
-//                }
-//            )
         },
         headerContent = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Spacer(modifier = Modifier.height(12.dp))
                 AdaptiveThumbnail(
                     isLoading = playlistPage == null,
                     url = playlistPage?.thumbnail?.url,
-                    modifier = Modifier.fillMaxWidth(0.55f)
+                    modifier = Modifier.fillMaxWidth(0.60f)
                 )
-                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = playlistPage?.title.orEmpty(),
                     style = typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
@@ -170,24 +159,6 @@ fun PlaylistScreen(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.fillMaxWidth(0.5f)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = playlistPage?.authors?.joinToString("") { it.name ?: "" }.orEmpty(),
-                    style = typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = colorPalette.text,
-                    textAlign = TextAlign.Center,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth(0.8f)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                playlistPage?.year?.let {
-                    Text(
-                        text = it,
-                        style = typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = colorPalette.text,
-                        textAlign = TextAlign.Center
-                    )
-                }
             }
         },
         content = {

@@ -135,7 +135,6 @@ fun AlbumScreen(
                     url = album?.thumbnailUrl,
                     modifier = Modifier.fillMaxWidth(0.55f)
                 )
-//                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = album?.title.orEmpty(),
                     style = typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
@@ -164,15 +163,6 @@ fun AlbumScreen(
                         .padding(horizontal = 8.dp, vertical = 2.dp)
 
                 )
-//                Spacer(modifier = Modifier.height(8.dp))
-//                album?.year?.let {
-//                    Text(
-//                        text = it,
-//                        style = typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-//                        color = colorPalette.text,
-//                        textAlign = TextAlign.Center
-//                    )
-//                }
             }
         },
         content = {
