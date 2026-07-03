@@ -1,0 +1,5 @@
+• Improved the app experience
+• Better playback performance
+• Enhanced local playback
+• New Search screen
+• Bug fixes and performance improvements

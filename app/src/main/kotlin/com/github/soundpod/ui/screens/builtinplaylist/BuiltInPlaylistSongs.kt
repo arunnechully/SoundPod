@@ -35,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -95,6 +96,7 @@ fun BuiltInPlaylistSongs(
     val showCachedSongsInOffline by rememberPreference(showCachedSongsInOfflineKey, true)
 
     var songs: List<Song> by remember { mutableStateOf(emptyList()) }
+    var refreshTrigger by remember { mutableIntStateOf(0) }
 
     val lazyListState = rememberLazyListState()
 
@@ -105,7 +107,13 @@ fun BuiltInPlaylistSongs(
         songs = mutableSongs
     }
 
-    LaunchedEffect(builtInPlaylist, sortBy, sortOrder, showCachedSongsInOffline, binder) {
+    LaunchedEffect(binder) {
+        binder?.cacheChanges?.collect {
+            refreshTrigger++
+        }
+    }
+
+    LaunchedEffect(builtInPlaylist, sortBy, sortOrder, showCachedSongsInOffline, binder, refreshTrigger) {
         when (builtInPlaylist) {
             BuiltInPlaylist.Favorites -> {
                 db.favorites()

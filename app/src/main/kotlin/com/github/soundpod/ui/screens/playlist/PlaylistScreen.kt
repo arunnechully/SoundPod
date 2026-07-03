@@ -65,9 +65,14 @@ fun PlaylistScreen(
     val context = LocalContext.current
     val (colorPalette) = LocalAppearance.current
     var playlistPage: Innertube.PlaylistOrAlbumPage? by remember(browseId) { mutableStateOf(null) }
+    var localPlaylist: Playlist? by remember { mutableStateOf(null) }
     var isImportingPlaylist by rememberSaveable { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(browseId) {
+        db.playlist(browseId).collect { localPlaylist = it }
+    }
 
     LaunchedEffect(browseId) {
         val isScreenCacheEnabled = context.preferences.getBoolean(isScreenCacheEnabledKey, true)
@@ -107,11 +112,24 @@ fun PlaylistScreen(
         },
         actions = {
             if (playlistPage != null) {
-                IconButton(onClick = { isImportingPlaylist = true }) {
+                val isBookmarked = localPlaylist != null
+                IconButton(
+                    onClick = {
+                        if (isBookmarked) {
+                            query { localPlaylist?.let(db::delete) }
+                        } else {
+                            isImportingPlaylist = true
+                        }
+                    }
+                ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.heart_outline),
-                        contentDescription = stringResource(R.string.add_to_playlist),
-                        tint = colorPalette.text,
+                        painter = painterResource(
+                            id = if (isBookmarked) R.drawable.heart else R.drawable.heart_outline
+                        ),
+                        contentDescription = stringResource(
+                            if (isBookmarked) R.string.remove_from_favorites else R.string.add_to_playlist
+                        ),
+                        tint = if (isBookmarked) colorPalette.accent else colorPalette.text,
                         modifier = Modifier.size(24.dp)
                     )
                 }

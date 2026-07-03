@@ -252,7 +252,7 @@ interface Database {
     fun albumTimestamp(id: String): Long?
 
     @Transaction
-    @Query("SELECT * FROM Song JOIN SongAlbumMap ON Song.id = SongAlbumMap.songId WHERE SongAlbumMap.albumId = :albumId AND position IS NOT NULL ORDER BY position")
+    @Query("SELECT * FROM Song JOIN SongAlbumMap ON Song.id = SongAlbumMap.songId WHERE SongAlbumMap.albumId = :albumId ORDER BY position")
     @RewriteQueriesToDropUnusedColumns
     fun albumSongs(albumId: String): Flow<List<Song>>
 
@@ -354,6 +354,9 @@ interface Database {
     @Query("UPDATE Song SET totalPlayTimeMs = totalPlayTimeMs + :addition WHERE id = :id")
     fun incrementTotalPlayTimeMs(id: String, addition: Long)
 
+    @Query("SELECT * FROM Playlist WHERE browseId = :browseId")
+    fun playlist(browseId: String): Flow<Playlist?>
+
     @Query("SELECT * FROM Playlist WHERE id = :id")
     fun playlist(id: Long): Flow<Playlist?>
 
@@ -417,9 +420,13 @@ interface Database {
     fun playlistThumbnailUrls(id: Long): Flow<List<String>>
 
     @Transaction
-    @Query("SELECT * FROM Song JOIN SongArtistMap ON Song.id = SongArtistMap.songId WHERE SongArtistMap.artistId = :artistId AND totalPlayTimeMs > 0 ORDER BY Song.ROWID DESC")
+    @Query("SELECT * FROM Song JOIN SongArtistMap ON Song.id = SongArtistMap.songId WHERE SongArtistMap.artistId = :artistId ORDER BY Song.ROWID DESC")
     @RewriteQueriesToDropUnusedColumns
     fun artistSongs(artistId: String): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT Album.* FROM Album JOIN SongAlbumMap ON Album.id = SongAlbumMap.albumId JOIN SongArtistMap ON SongAlbumMap.songId = SongArtistMap.songId WHERE SongArtistMap.artistId = :artistId GROUP BY Album.id")
+    fun artistAlbums(artistId: String): Flow<List<Album>>
 
     @Query("SELECT * FROM Format WHERE songId = :songId")
     fun format(songId: String): Flow<Format?>
@@ -606,11 +613,29 @@ interface Database {
     fun clearFavorites()
 
     //Offline Database Logic
+    @Transaction
+    fun removeOffline(songIds: List<String>) {
+        removeOfflineFormats(songIds)
+        removePrecachedSongs(songIds)
+    }
+
+    @Transaction
+    fun clearOfflineAll() {
+        clearOfflineAllFormats()
+        clearPrecachedSongs()
+    }
+
     @Query("DELETE FROM Format WHERE songId IN (:songIds)")
-    fun removeOffline(songIds: List<String>)
+    fun removeOfflineFormats(songIds: List<String>)
 
     @Query("DELETE FROM Format")
-    fun clearOfflineAll()
+    fun clearOfflineAllFormats()
+
+    @Query("DELETE FROM PrecachedSong WHERE id IN (:songIds)")
+    fun removePrecachedSongs(songIds: List<String>)
+
+    @Query("DELETE FROM PrecachedSong")
+    fun clearPrecachedSongs()
 
 
     @Update

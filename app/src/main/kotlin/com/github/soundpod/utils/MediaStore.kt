@@ -48,7 +48,8 @@ fun Context.queryMediaStoreSongs(): MediaStoreResult {
         MediaStore.Audio.Media.ALBUM,
         MediaStore.Audio.Media.DURATION,
         MediaStore.Audio.Media.ALBUM_ID,
-        MediaStore.Audio.Media.ARTIST_ID
+        MediaStore.Audio.Media.ARTIST_ID,
+        MediaStore.Audio.Media.TRACK
     )
 
     val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
@@ -68,6 +69,7 @@ fun Context.queryMediaStoreSongs(): MediaStoreResult {
         val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
         val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
         val artistIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST_ID)
+        val trackColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK)
 
         while (cursor.moveToNext()) {
             val id = cursor.getLong(idColumn)
@@ -77,6 +79,7 @@ fun Context.queryMediaStoreSongs(): MediaStoreResult {
             val duration = cursor.getLong(durationColumn)
             val albumId = cursor.getLong(albumIdColumn)
             val artistId = cursor.getLong(artistIdColumn)
+            val trackNumber = cursor.getInt(trackColumn)
 
             val contentUri = ContentUris.withAppendedId(
                 MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -116,10 +119,18 @@ fun Context.queryMediaStoreSongs(): MediaStoreResult {
                     id = localAlbumId,
                     title = albumName,
                     thumbnailUrl = artworkUri.toString(),
-                    authorsText = artistName
+                    authorsText = artistName,
+                    artistId = localArtistId,
+                    timestamp = System.currentTimeMillis()
                 )
             }
-            songAlbumMaps.add(SongAlbumMap(songId = songId, albumId = localAlbumId, position = null))
+            songAlbumMaps.add(
+                SongAlbumMap(
+                    songId = songId,
+                    albumId = localAlbumId,
+                    position = trackNumber
+                )
+            )
         }
     }
     return MediaStoreResult(songs, albums.values.toList(), artists.values.toList(), songAlbumMaps, songArtistMaps)
