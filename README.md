@@ -73,6 +73,7 @@ Localization is managed using [Crowdin](https://crowdin.com/project/soundpod). I
 If you would like to translate SoundPod into a language that isn't listed yet, you can request the new language directly on the Crowdin page or [open an issue](https://github.com/arunnechully/SoundPod/issues) here on GitHub.
 
 A massive thank you to **all our volunteer translators** over on Crowdin for helping make SoundPod accessible to more people around the world!
+
 ---
 
 ## Credits & Inspiration
