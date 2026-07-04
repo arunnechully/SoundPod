@@ -35,6 +35,7 @@
 
 ## Features
 
+* **Local Playback:** Mix local music and streaming content without switching apps.
 * **Background Playback:** Keep the music going while using other apps or with the screen off.
 * **Smart Cache:** Automatically cache songs for seamless offline playback.
 * **Powerful Search:** Find songs, albums, artists, videos, and playlists directly from YouTube Music.
