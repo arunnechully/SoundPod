@@ -1,13 +1,16 @@
-package io.ktor.client.plugins.compression
+package com.github.innertube.utils
 
 import io.ktor.util.ContentEncoder
 import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.jvm.javaio.toByteReadChannel
 import io.ktor.utils.io.jvm.javaio.toInputStream
+import kotlinx.coroutines.Job
 import org.brotli.dec.BrotliInputStream
 import kotlin.coroutines.CoroutineContext
 
+@OptIn(InternalAPI::class)
 internal object BrotliEncoder : ContentEncoder {
     override val name: String = "br"
 
@@ -28,5 +31,5 @@ internal object BrotliEncoder : ContentEncoder {
     override fun decode(
         source: ByteReadChannel,
         coroutineContext: CoroutineContext
-    ): ByteReadChannel = BrotliInputStream(source.toInputStream()).toByteReadChannel()
+    ): ByteReadChannel = BrotliInputStream(source.toInputStream(coroutineContext[Job])).toByteReadChannel(coroutineContext)
 }

@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    implementation(projects.ktorClientBrotli)
+    implementation(libs.brotli)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.content.negotiation)
