@@ -344,4 +344,6 @@
     <string name="download">Download</string>
     <string name="remove_download">Remove download</string>
     <string name="no_favorites_description">Toca el icono del corazón en canciones, álbumes o artistas para añadirlos a tus favoritos.</string>
+    <string name="defualt">Default</string>
+    <string name="view_artist">View Artist</string>
 </resources>
