@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuItemColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,6 +46,8 @@ fun <T : SortBy> SortingHeader(
     onShuffleClick: (() -> Unit)? = null
 ) {
     var isSorting by rememberSaveable { mutableStateOf(false) }
+    val colorPalette = LocalAppearance.current.colorPalette
+
     Row(
         modifier = Modifier.padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -86,10 +89,19 @@ fun <T : SortBy> SortingHeader(
             topPadding = 0.dp
         ) {
             sortByEntries.forEach { entry ->
+                val isSelected = sortBy == entry
                 DropdownMenuItem(
                     text = {
                         Text(text = stringResource(id = entry.text))
                     },
+                    colors = MenuItemColors(
+                        textColor = if (isSelected) colorPalette.accent else colorPalette.text,
+                        leadingIconColor = if (isSelected) colorPalette.accent else colorPalette.text,
+                        trailingIconColor = if (isSelected) colorPalette.accent else colorPalette.text ,
+                        disabledTextColor = colorPalette.text.copy(alpha = 0.38f),
+                        disabledLeadingIconColor = colorPalette.text.copy(alpha = 0.38f),
+                        disabledTrailingIconColor = colorPalette.text.copy(alpha = 0.38f),
+                    ),
                     onClick = {
                         isSorting = false
                         changeSortBy(entry)

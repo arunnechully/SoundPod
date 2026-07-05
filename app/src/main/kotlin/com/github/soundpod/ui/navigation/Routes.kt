@@ -55,4 +55,5 @@ object SettingsDestinations {
     const val SLEEP_TIMER = "settings_sleep_timer"
     const val QUICK_PICKS = "settings_quick_picks"
     const val TRACK_DETAILS = "settings_track_details"
+    const val ADD_TO_LIST = "settings_add_to_list"
 }

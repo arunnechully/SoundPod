@@ -259,6 +259,12 @@ fun SharedPlayer(
                                         }
                                         context.startActivity(intent)
                                     },
+                                    onAddToPlaylist = {
+                                        val intent = Intent(context, SettingsActivity::class.java).apply {
+                                            putExtra("SCREEN_ID", SettingsDestinations.ADD_TO_LIST)
+                                        }
+                                        context.startActivity(intent)
+                                    },
                                     onBack = {
                                         if (showLyrics) {
                                             showLyrics = false

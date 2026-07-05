@@ -36,24 +36,18 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.QueueMusic
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Timer
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -74,7 +68,6 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -89,16 +82,10 @@ import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.db
 import com.github.soundpod.enums.PlayerLayout
-import com.github.soundpod.enums.PlaylistSortBy
 import com.github.soundpod.enums.ProgressBar
-import com.github.soundpod.enums.SortOrder
-import com.github.soundpod.models.Playlist
 import com.github.soundpod.models.Song
-import com.github.soundpod.models.SongPlaylistMap
 import com.github.soundpod.query
-import com.github.soundpod.transaction
 import com.github.soundpod.ui.components.CustomDropdownMenu
-import com.github.soundpod.ui.components.TextFieldDialog
 import com.github.soundpod.ui.screens.player.seekbar.PaperBoatAnimation
 import com.github.soundpod.ui.screens.player.seekbar.SeekBar
 import com.github.soundpod.ui.screens.player.seekbar.SimpleWave
@@ -107,14 +94,11 @@ import com.github.soundpod.utils.forceSeekToNext
 import com.github.soundpod.utils.forceSeekToPrevious
 import com.github.soundpod.utils.formatAsDuration
 import com.github.soundpod.utils.playerlayout
-import com.github.soundpod.utils.playlistSortByKey
-import com.github.soundpod.utils.playlistSortOrderKey
 import com.github.soundpod.utils.queueLoopEnabledKey
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.shuffleQueue
 import com.github.soundpod.utils.toast
 import com.github.soundpod.utils.trackLoopEnabledKey
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlin.math.PI
@@ -446,117 +430,15 @@ fun MiniPlayerControl(
 fun PlayerMiddleControl(
     showPlaylist: Boolean,
     onTogglePlaylist: (Boolean) -> Unit,
+    onAddToPlaylist : () -> Unit,
     mediaId: String
 ) {
     val binder = LocalPlayerServiceBinder.current
     val (colorPalette) = LocalAppearance.current
     var likedAt by rememberSaveable { mutableStateOf<Long?>(null) }
 
-    var isViewingPlaylists by rememberSaveable { mutableStateOf(false) }
-    var isCreatingNewPlaylist by rememberSaveable { mutableStateOf(false) }
-
-    val sortBy by rememberPreference(playlistSortByKey, PlaylistSortBy.DateAdded)
-    val sortOrder by rememberPreference(playlistSortOrderKey, SortOrder.Descending)
-
-    val playlistPreviews by remember {
-        db.playlistPreviews(sortBy, sortOrder)
-    }.collectAsState(initial = emptyList(), context = Dispatchers.IO)
-
-    val onAddToPlaylist = { playlist: Playlist, position: Int ->
-        transaction {
-            binder?.player?.currentMediaItem?.let { mediaItem ->
-                db.insert(mediaItem)
-                db.insert(
-                    SongPlaylistMap(
-                        songId = mediaItem.mediaId,
-                        playlistId = db.insert(playlist).takeIf { it != -1L } ?: playlist.id,
-                        position = position
-                    )
-                )
-            }
-        }
-    }
-
     LaunchedEffect(mediaId) {
         db.likedAt(mediaId).distinctUntilChanged().collect { likedAt = it }
-    }
-
-    if (isViewingPlaylists) {
-        if (playlistPreviews.isEmpty()) {
-            isViewingPlaylists = false
-            isCreatingNewPlaylist = true
-        } else {
-            AlertDialog(
-                onDismissRequest = { isViewingPlaylists = false },
-                title = {
-                    Text(
-                        text = stringResource(R.string.add_to_playlist),
-                        style = typography.titleLarge
-                    )
-                },
-                text = {
-                    LazyColumn {
-                        items(playlistPreviews) { playlistPreview ->
-                            ListItem(
-                                headlineContent = {
-                                    Text(
-                                        text = playlistPreview.playlist.name,
-                                        style = typography.bodyLarge
-                                    )
-                                },
-                                supportingContent = {
-                                    Text(
-                                        text = pluralStringResource(
-                                            id = R.plurals.number_of_songs,
-                                            count = playlistPreview.songCount,
-                                            playlistPreview.songCount
-                                        ),
-                                        style = typography.bodyMedium
-                                    )
-                                },
-                                leadingContent = {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Outlined.QueueMusic,
-                                        contentDescription = null
-                                    )
-                                },
-                                modifier = Modifier.clickable {
-                                    onAddToPlaylist(playlistPreview.playlist, playlistPreview.songCount)
-                                    isViewingPlaylists = false
-                                }
-                            )
-                        }
-                    }
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            isViewingPlaylists = false
-                            isCreatingNewPlaylist = true
-                        }
-                    ) {
-                        Text(text = stringResource(id = R.string.new_playlist))
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { isViewingPlaylists = false }) {
-                        Text(text = stringResource(id = R.string.cancel))
-                    }
-                }
-            )
-        }
-    }
-
-    if (isCreatingNewPlaylist) {
-        TextFieldDialog(
-            title = stringResource(id = R.string.new_playlist),
-            hintText = stringResource(id = R.string.playlist_name_hint),
-            onDismiss = { isCreatingNewPlaylist = false },
-            onDone = { text ->
-                isCreatingNewPlaylist = false
-                onAddToPlaylist(Playlist(name = text), 0)
-            }
-        )
     }
 
     Row(
@@ -604,7 +486,9 @@ fun PlayerMiddleControl(
         }
 
         AnimatedIconButton(
-            onClick = { isViewingPlaylists = true },
+            onClick = {
+                onAddToPlaylist()
+            },
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.add),

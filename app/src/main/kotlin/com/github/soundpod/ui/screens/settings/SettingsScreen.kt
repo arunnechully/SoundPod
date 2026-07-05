@@ -19,6 +19,7 @@ import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.navigation.SettingsDestinations
+import com.github.soundpod.ui.screens.player.AddToListScreen
 import com.github.soundpod.ui.screens.player.TrackDetails
 import com.github.soundpod.viewmodels.SettingsViewModel
 
@@ -42,6 +43,7 @@ fun SettingsScreen(
         SettingsDestinations.SLEEP_TIMER -> stringResource(R.string.sleep_timer)
         SettingsDestinations.QUICK_PICKS -> stringResource(R.string.quick_picks)
         SettingsDestinations.TRACK_DETAILS -> stringResource(R.string.track_details)
+        SettingsDestinations.ADD_TO_LIST -> stringResource(R.string.add_to_playlist)
         else -> stringResource(R.string.settings)
     }
 
@@ -49,16 +51,19 @@ fun SettingsScreen(
         title = title,
         shape = MaterialTheme.shapes.extraLarge,
         onBackClick = onBackClick,
+        horizontalPadding = if (screenId == SettingsDestinations.ADD_TO_LIST) 0.dp else 14.dp,
         content = {
             when (screenId) {
                 SettingsDestinations.MAIN -> SettingsMainContent(onOptionClick)
                 SettingsDestinations.APPEARANCE -> AppearanceSettingsContent(
                     onBackgroundClick = { onOptionClick(SettingsDestinations.BACKGROUND) }
                 )
+
                 SettingsDestinations.BACKGROUND -> BackgroundSettingsContent()
                 SettingsDestinations.PLAYER -> PlayerSettingsContent(
                     onSleepTimerClick = { onOptionClick(SettingsDestinations.SLEEP_TIMER) }
                 )
+
                 SettingsDestinations.SLEEP_TIMER -> SleepTimerSettingsContent()
                 SettingsDestinations.PRIVACY -> PrivacySettingsContent()
                 SettingsDestinations.BACKUP -> BackupSettingsContent()
@@ -68,6 +73,7 @@ fun SettingsScreen(
                 SettingsDestinations.ABOUT -> AboutSettingsContent()
                 SettingsDestinations.QUICK_PICKS -> QuickPicksSettingsContent()
                 SettingsDestinations.TRACK_DETAILS -> TrackDetails()
+                SettingsDestinations.ADD_TO_LIST -> AddToListScreen()
             }
         }
     )
@@ -76,11 +82,12 @@ fun SettingsScreen(
 @Composable
 fun SettingsMainContent(
     onOptionClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = viewModel()
 ) {
     val sections by viewModel.sections.collectAsStateWithLifecycle()
 
-    Spacer(modifier = Modifier.height(8.dp))
+    Spacer(modifier = modifier.height(8.dp))
 
     sections.forEach { section ->
         SettingsCard {

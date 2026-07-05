@@ -169,10 +169,10 @@ fun SettingRow(
     verticalAlignment: Alignment.Vertical = Alignment.CenterVertically,
     title: String,
     icon: IconSource? = null,
+    iconColor: Color = LocalAppearance.current.colorPalette.text,
+    titleColor: Color = LocalAppearance.current.colorPalette.text,
     onClick: () -> Unit,
 ) {
-    val (colorPalette) = LocalAppearance.current
-
     Row(
         modifier = modifier
             .then(if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier)
@@ -186,14 +186,14 @@ fun SettingRow(
             is IconSource.Vector -> Icon(
                 imageVector = icon.imageVector,
                 contentDescription = title,
-                tint = colorPalette.text,
+                tint = iconColor,
                 modifier = Modifier.size(28.dp)
             )
 
             is IconSource.Icon -> Icon(
                 painter = icon.painter,
                 contentDescription = title,
-                tint = colorPalette.text,
+                tint = iconColor,
                 modifier = Modifier.size(28.dp),
             )
 
@@ -204,7 +204,7 @@ fun SettingRow(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
-                color = colorPalette.text
+                color = titleColor
             )
         }
     }

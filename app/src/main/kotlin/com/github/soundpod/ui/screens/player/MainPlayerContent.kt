@@ -65,6 +65,7 @@ fun MainPlayerContent(
     onSettingsClick: () -> Unit = {},
     onSleepTimerClick: () -> Unit = {},
     onLyricsClick: () -> Unit = {},
+    onAddToPlaylist: () -> Unit = {},
     onTogglePlaylist: (Boolean) -> Unit,
     showLyrics: Boolean
 ) {
@@ -193,7 +194,8 @@ fun MainPlayerContent(
                                 PlayerMiddleControl(
                                     showPlaylist = false,
                                     onTogglePlaylist = onTogglePlaylist,
-                                    mediaId = mediaItem.mediaId
+                                    mediaId = mediaItem.mediaId,
+                                    onAddToPlaylist = onAddToPlaylist
                                 )
                             } else {
                                 PlayerControlBottom(
@@ -224,7 +226,8 @@ fun MainPlayerContent(
                         PlayerMiddleControl(
                             showPlaylist = false,
                             onTogglePlaylist = onTogglePlaylist,
-                            mediaId = mediaItem.mediaId
+                            mediaId = mediaItem.mediaId,
+                            onAddToPlaylist = onAddToPlaylist
                         )
                     }
 
@@ -322,7 +325,8 @@ fun MainPlayerContent(
                                     PlayerMiddleControl(
                                         showPlaylist = false,
                                         onTogglePlaylist = onTogglePlaylist,
-                                        mediaId = mediaItem.mediaId
+                                        mediaId = mediaItem.mediaId,
+                                        onAddToPlaylist = onAddToPlaylist
                                     )
                                 } else {
                                     PlayerControlBottom(
@@ -357,7 +361,8 @@ fun MainPlayerContent(
                     PlayerMiddleControl(
                         showPlaylist = false,
                         onTogglePlaylist = onTogglePlaylist,
-                        mediaId = mediaItem.mediaId
+                        mediaId = mediaItem.mediaId,
+                        onAddToPlaylist = onAddToPlaylist
                     )
                 }
             }

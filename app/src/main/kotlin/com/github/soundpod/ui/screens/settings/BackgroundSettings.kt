@@ -54,7 +54,7 @@ fun BackgroundSettingsContent() {
     val prefs = context.preferences
 
     // State
-    val currentStyle by rememberPreference(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.CROSS_FADE)
+    val currentStyle by rememberPreference(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.OFF)
 
     val presetBaseName = stringResource(id = R.string.preset)
 

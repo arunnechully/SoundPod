@@ -44,7 +44,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
@@ -62,7 +61,6 @@ import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.R
-import com.github.soundpod.ui.modifier.fadingEdge
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -200,12 +198,6 @@ fun PlaylistScreenLayout(
                 }
             }
 
-            val fadingEdge = Brush.horizontalGradient(
-                0f to Color.Transparent,
-                0.1f to Color.Black,
-                0.9f to Color.Black,
-                1f to Color.Transparent
-            )
 
 
             // Header Content
@@ -246,7 +238,6 @@ fun PlaylistScreenLayout(
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier
                                 .fillMaxWidth(0.50f)
-                                .fadingEdge(fadingEdge)
                         )
                     }
                 }
