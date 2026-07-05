@@ -3,6 +3,7 @@ package com.github.soundpod.ui.screens.settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -161,19 +162,24 @@ fun SettingsProgress(
 
 @Composable
 fun SettingRow(
+    modifier: Modifier = Modifier,
+    fillMaxWidth: Boolean = true,
+    padding: PaddingValues = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.spacedBy(12.dp),
+    verticalAlignment: Alignment.Vertical = Alignment.CenterVertically,
     title: String,
     icon: IconSource? = null,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val (colorPalette) = LocalAppearance.current
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
+            .then(if (fillMaxWidth) Modifier.fillMaxWidth() else Modifier)
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(padding),
+        horizontalArrangement = horizontalArrangement,
+        verticalAlignment = verticalAlignment
     ) {
 
         when (icon) {

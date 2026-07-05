@@ -1,11 +1,7 @@
 package com.github.soundpod.ui.screens.album
 
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,7 +19,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.github.core.ui.LocalAppearance
-import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.db
 import com.github.soundpod.enums.SongSortBy
@@ -31,8 +26,7 @@ import com.github.soundpod.enums.SortOrder
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.models.Song
 import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
-import com.github.soundpod.ui.components.SortingHeader // Added for SortingHeader
-import com.github.soundpod.ui.items.LocalSongItem
+import com.github.soundpod.ui.components.SongListContent
 import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlayAtIndex
@@ -46,7 +40,6 @@ fun AlbumSongs(
 ) {
     val binder = LocalPlayerServiceBinder.current
     val menuState = LocalMenuState.current
-    val playerPadding = LocalPlayerPadding.current
 
     val (colorPalette) = LocalAppearance.current
 
@@ -85,79 +78,54 @@ fun AlbumSongs(
             player?.removeListener(listener)
         }
     }
-
-    LazyColumn(
-        contentPadding = PaddingValues(top = 0.dp, bottom = 16.dp + playerPadding),
-        modifier = Modifier.fillMaxSize()
-    ) {
-        item(key = "header") {
-            SortingHeader(
-                sortBy = sortBy,
-                changeSortBy = { sortBy = it },
-                sortByEntries = SongSortBy.entries.toList(),
-                sortOrder = sortOrder,
-                toggleSortOrder = {
-                    sortOrder = if (sortOrder.name == "Ascending") SortOrder.Descending else SortOrder.Ascending
-                },
-                size = songs.size,
-                onPlayClick = {
-                    binder?.stopRadio()
-                    binder?.player?.forcePlayAtIndex(songs.map(Song::asMediaItem), 0)
-                },
-                onShuffleClick = {
-                    binder?.stopRadio()
-                    val shuffledSongs = songs.shuffled()
-                    binder?.player?.forcePlayAtIndex(shuffledSongs.map(Song::asMediaItem), 0)
-                }
-            )
-        }
-        itemsIndexed(
-            items = songs,
-            key = { _, song -> song.id }
-        ) { index, song ->
-
-            val isPlaying = song.id == currentPlayingId
-
+    SongListContent(
+        songs = songs,
+        showThumbnail = false,
+        showMoreVert = false,
+        currentPlayingId = currentPlayingId,
+        leadingContent = { index, isPlaying ->
             val highlightColor = if (isPlaying) {
                 colorPalette.accent
             } else {
                 colorPalette.text
             }
-
-            LocalSongItem(
-                song = song,
-                showThumbnail = false,
-                titleColor = highlightColor,
-                showMoreVert = false,
-                leadingContent = {
-                    Text(
-                        text = "${index + 1}",
-                        style = MaterialTheme.typography.titleMedium,
-                        textAlign = TextAlign.Center,
-                        color = highlightColor,
-                        modifier = Modifier
-                            .width(28.dp)
-                            .alpha(if (isPlaying) 1f else Dimensions.MEDIUMOPACITY)
-                    )
-                },
-                onClick = {
-                    binder?.stopRadio()
-                    binder?.player?.forcePlayAtIndex(
-                        songs.map(Song::asMediaItem),
-                        index
-                    )
-                },
-                onLongClick = {
-                    menuState.display {
-                        NonQueuedMediaItemMenu(
-                            onDismiss = menuState::hide,
-                            mediaItem = song.asMediaItem,
-                            onGoToArtist = onGoToArtist
-                        )
-                    }
-                }
-
+            Text(
+                text = "${index + 1}",
+                style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Center,
+                color = highlightColor,
+                modifier = Modifier
+                    .width(28.dp)
+                    .alpha(if (isPlaying) 1f else Dimensions.MEDIUMOPACITY)
             )
+        },
+        sortBy = sortBy,
+        onSortByChange = { sortBy = it },
+        sortByEntries = SongSortBy.entries.toList(),
+        onSongClick = {index ->
+            binder?.stopRadio()
+            binder?.player?.forcePlayAtIndex(
+                songs.map(Song::asMediaItem),
+                index
+            )
+        },
+        onSongLongClick = {song ->
+            menuState.display {
+                NonQueuedMediaItemMenu(
+                    onDismiss = menuState::hide,
+                    mediaItem = song.asMediaItem,
+                    onGoToArtist = onGoToArtist
+                )
+            }
+        },
+        onPlayAll = {
+            binder?.stopRadio()
+            binder?.player?.forcePlayAtIndex(songs.map(Song::asMediaItem), 0)
+        },
+        onShuffleAll = {
+            binder?.stopRadio()
+            val shuffledSongs = songs.shuffled()
+            binder?.player?.forcePlayAtIndex(shuffledSongs.map(Song::asMediaItem), 0)
         }
-    }
+    )
 }

@@ -13,6 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.db
@@ -58,19 +59,13 @@ fun LocalPlaylistSongs(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize(),
-        contentPadding = PaddingValues(bottom = playerPadding)
+        contentPadding = PaddingValues(top = 12.dp, bottom = playerPadding)
     ) {
         item {
             SortingHeader(
                 sortBy = sortBy,
                 changeSortBy = { sortBy = it },
                 sortByEntries = SongSortBy.entries.toList(),
-                sortOrder = sortOrder,
-                toggleSortOrder = {
-                    sortOrder =
-                        if (sortOrder.name == "Ascending") SortOrder.Descending else SortOrder.Ascending
-                },
-                size = playlistSongs.size,
                 onPlayClick = {
                     binder?.stopRadio()
                     binder?.player?.forcePlayAtIndex(playlistSongs.map(Song::asMediaItem), 0)

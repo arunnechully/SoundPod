@@ -77,8 +77,6 @@ fun ArtistTracksPage(
                         sortBy = sortBy,
                         changeSortBy = { sortBy = it },
                         sortByEntries = SongSortBy.entries.toList(),
-                        sortOrder = sortOrder,
-                        toggleSortOrder = { sortOrder = it },
                         onPlayClick = {
                             binder?.stopRadio()
                             binder?.player?.forcePlayAtIndex(sortedItems.map { it.asMediaItem }, 0)

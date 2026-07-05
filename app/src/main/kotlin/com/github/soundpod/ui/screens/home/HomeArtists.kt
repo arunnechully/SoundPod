@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.soundpod.LocalPlayerPadding
-import com.github.soundpod.R
 import com.github.soundpod.enums.ArtistSortBy
 import com.github.soundpod.enums.SortOrder
 import com.github.soundpod.models.Artist
@@ -50,6 +49,7 @@ fun HomeArtistList(
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 100.dp),
         contentPadding = PaddingValues(
+            top = 12.dp,
             start = 8.dp,
             end = 8.dp,
             bottom = 16.dp + playerPadding
@@ -64,11 +64,7 @@ fun HomeArtistList(
             SortingHeader(
                 sortBy = sortBy,
                 changeSortBy = { sortBy = it },
-                sortByEntries = ArtistSortBy.entries.toList(),
-                sortOrder = sortOrder,
-                toggleSortOrder = { sortOrder = !sortOrder },
-                size = viewModel.items.size,
-                itemCountText = R.plurals.number_of_artists
+                sortByEntries = ArtistSortBy.entries.toList()
             )
         }
 

@@ -38,9 +38,6 @@ import com.github.soundpod.utils.playlistSortByKey
 import com.github.soundpod.utils.playlistSortOrderKey
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.viewmodels.home.HomePlaylistsViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 
 @OptIn(UnstableApi::class)
 @ExperimentalAnimationApi
@@ -68,27 +65,7 @@ fun HomePlaylists(
     }
 
     LaunchedEffect(binder) {
-        db.songsWithContentLength()
-            .map { songsWithLength ->
-                val binderCache = binder?.cache
-                val cachedSongs = songsWithLength
-                    .filterNot {
-                        it.song.id.startsWith("content://") || it.song.id.startsWith("file://")
-                    }.filter { item ->
-                        val length = item.contentLength
-                        if (length != null) {
-                            binderCache?.isCached(item.song.id, 0, length) == true
-                        } else {
-                            (binderCache?.getCachedBytes(item.song.id, 0, -1) ?: 0L) > 0L
-                        }
-                    }
-                cachedSongs.size to cachedSongs.shuffled().firstOrNull()?.song?.thumbnailUrl
-            }
-            .flowOn(Dispatchers.IO)
-            .collect { (count, thumbnail) ->
-                viewModel.offlineCount = count
-                viewModel.offlineThumbnail = thumbnail
-            }
+        viewModel.observeOfflineSongs(binder?.cache)
     }
 
     val playlistName = stringResource(R.string.playlist)

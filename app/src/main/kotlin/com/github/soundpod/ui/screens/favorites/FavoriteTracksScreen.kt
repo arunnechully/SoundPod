@@ -46,7 +46,7 @@ fun FavoriteTracksScreen(
     ) {
         SettingsCard {
             LazyColumn(
-                contentPadding = PaddingValues(bottom = playerPadding + 16.dp),
+                contentPadding = PaddingValues(top = 12.dp, bottom = playerPadding + 16.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
                 item(key = "header") {
@@ -54,9 +54,6 @@ fun FavoriteTracksScreen(
                         sortBy = viewModel.sortBy,
                         changeSortBy = { viewModel.sortBy = it },
                         sortByEntries = SongSortBy.entries.toList(),
-                        sortOrder = viewModel.sortOrder,
-                        toggleSortOrder = { viewModel.sortOrder = it },
-                        size = songs.size,
                         onPlayClick = {
                             binder?.stopRadio()
                             binder?.player?.forcePlayAtIndex(songs.map(Song::asMediaItem), 0)

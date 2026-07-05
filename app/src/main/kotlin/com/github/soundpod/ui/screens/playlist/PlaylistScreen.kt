@@ -4,10 +4,6 @@ import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -22,13 +18,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
@@ -41,7 +34,6 @@ import com.github.soundpod.models.Playlist
 import com.github.soundpod.models.SongPlaylistMap
 import com.github.soundpod.query
 import com.github.soundpod.transaction
-import com.github.soundpod.ui.components.AdaptiveThumbnail
 import com.github.soundpod.ui.components.PlaylistScreenLayout
 import com.github.soundpod.ui.components.TextFieldDialog
 import com.github.soundpod.utils.ScreenCache
@@ -100,7 +92,6 @@ fun PlaylistScreen(
     BackHandler(onBack = onBack)
 
     PlaylistScreenLayout(
-        onBackClick = onBack,
         title = {
             Text(
                 text = playlistPage?.title.orEmpty(),
@@ -157,35 +148,17 @@ fun PlaylistScreen(
                 }
             )
         },
-        headerContent = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Spacer(modifier = Modifier.height(12.dp))
-                AdaptiveThumbnail(
-                    isLoading = playlistPage == null,
-                    url = playlistPage?.thumbnail?.url,
-                    modifier = Modifier.fillMaxWidth(0.60f)
-                )
-                Text(
-                    text = playlistPage?.title.orEmpty(),
-                    style = typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
-                    color = colorPalette.accent,
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth(0.5f)
-                )
-            }
-        },
+        isLoading = playlistPage == null,
+        thumbnailUrl = playlistPage?.thumbnail?.url,
+        headerTitle = playlistPage?.title.orEmpty(),
         content = {
             PlaylistSongs(
                 playlistPage = playlistPage,
                 onGoToAlbum = onGoToAlbum,
                 onGoToArtist = onGoToArtist
             )
-        }
+        },
+        onBackClick = onBack,
     )
 
     if (isImportingPlaylist) {

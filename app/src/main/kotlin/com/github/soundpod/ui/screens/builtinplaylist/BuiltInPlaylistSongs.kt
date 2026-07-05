@@ -85,7 +85,6 @@ fun BuiltInPlaylistSongs(
     sortBy: SongSortBy,
     onSortByChange: (SongSortBy) -> Unit,
     sortOrder: SortOrder,
-    onSortOrderChange: (SortOrder) -> Unit,
     onSongsChange: (List<Song>) -> Unit
 ) {
     val binder = LocalPlayerServiceBinder.current
@@ -166,7 +165,7 @@ fun BuiltInPlaylistSongs(
 
         LazyColumn(
             state = lazyListState,
-            contentPadding = PaddingValues(top = 0.dp, bottom = 16.dp + playerPadding),
+            contentPadding = PaddingValues(top = 12.dp, bottom = 16.dp + playerPadding),
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -175,9 +174,6 @@ fun BuiltInPlaylistSongs(
                     sortBy = sortBy,
                     changeSortBy = onSortByChange,
                     sortByEntries = SongSortBy.entries.toList(),
-                    sortOrder = sortOrder,
-                    toggleSortOrder = { onSortOrderChange(!sortOrder) },
-                    size = songs.size,
                     onPlayClick = {
                         binder?.stopRadio()
                         binder?.player?.forcePlayAtIndex(songs.map(Song::asMediaItem), 0)

@@ -8,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,7 +35,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -44,7 +42,6 @@ import androidx.media3.common.util.UnstableApi
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.R
-import com.github.soundpod.ui.components.AdaptiveThumbnail
 import com.github.soundpod.ui.components.PlaylistScreenLayout
 import com.github.soundpod.viewmodels.ArtistViewModel
 import kotlinx.coroutines.launch
@@ -104,7 +101,6 @@ fun ArtistScreen(
                 overflow = TextOverflow.Ellipsis
             )
         },
-        onBackClick = onBack,
         actions = {
             IconButton(onClick = { viewModel.toggleBookmark() }) {
                 Icon(
@@ -140,29 +136,9 @@ fun ArtistScreen(
                 }
             )
         },
-        headerContent = {
-            Column(
-                modifier = Modifier
-                    .padding(top = 22.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                AdaptiveThumbnail(
-                    isLoading = artist?.timestamp == null,
-                    url = artist?.thumbnailUrl,
-                    modifier = Modifier.fillMaxWidth(0.60f)
-                )
-                Text(
-                    text = artist?.name.orEmpty(),
-                    style = typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold),
-                    color = colorPalette.text,
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth(0.8f)
-                )
-            }
-        },
+        isLoading = artist?.timestamp == null,
+        thumbnailUrl = artist?.thumbnailUrl,
+        headerTitle = artist?.name.orEmpty(),
         footerHeaderContent = {
             if (tabs.isNotEmpty()) {
                 Row(
@@ -205,7 +181,7 @@ fun ArtistScreen(
                     verticalAlignment = Alignment.Top
                 ) { pageIndex ->
                     val tab = tabs[pageIndex].first
-                    
+
                     when (tab) {
                         ArtistTab.Overview -> ArtistOverviewContent(
                             youtubeArtistPage = artistPage,
@@ -251,6 +227,7 @@ fun ArtistScreen(
                     }
                 }
             }
-        }
+        },
+        onBackClick = onBack,
     )
 }

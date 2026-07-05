@@ -39,10 +39,13 @@ data class ColorPalette(
     val background4: Color get() = if (isDark) Color.Black else Color(0xFFF6F6F8)
 
     @IgnoredOnParcel
+    val mainBackground: Color get() = if (isDark) background0 else Color.White
+
+    @IgnoredOnParcel
     val cardColor: Color get() = if (isDark) Color(0xFF2E2E30) else Color(0xFF9C9C9C)
 
     @IgnoredOnParcel
-    val boxColor: Color get() = if (isDark) Color(0xFF1E1E1E) else Color.White
+    val boxColor: Color get() = if (isDark) Color(0xFF2E2E30) else Color.White
 
     @IgnoredOnParcel
     val glass: Color get() = if (isDark) Color.White.copy(alpha = 0.07f) else Color.Black.copy(alpha = 0.04f)
@@ -222,7 +225,7 @@ fun colorPaletteOf(
     return if (isDark) {
         darkColorPalette(accentColor, darkness).copy(isDefault = isDefaultAccent)
     } else {
-        lightColorPalette(accentColor).copy(isDefault = isDefaultAccent)
+        lightColorPalette(accentColor).copy(isDefault = false)
     }
 }
 

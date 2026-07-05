@@ -102,7 +102,6 @@ fun HomeScreen(
             pagerState = pagerState,
             tabs = homeViewModel.tabs
         )
-
         SettingsCard(
             modifier = Modifier.weight(1f)
         ) {

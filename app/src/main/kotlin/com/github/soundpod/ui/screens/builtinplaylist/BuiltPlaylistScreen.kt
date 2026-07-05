@@ -64,7 +64,6 @@ fun BuiltInPlaylistScreen(
     var isSearching by remember { mutableStateOf(false) }
 
     var currentSongs by remember { mutableStateOf<List<Song>>(emptyList()) }
-    val songCount = currentSongs.size
 
     var sortBy by rememberPreference(songSortByKey, SongSortBy.Title)
     var sortOrder by rememberPreference(songSortOrderKey, SortOrder.Ascending)
@@ -84,7 +83,6 @@ fun BuiltInPlaylistScreen(
         scrollable = false,
         horizontalPadding = 0.dp,
         title = {
-
             if (isEditMode) {
                 val isAllSelected = selectedUids.size == currentSongs.size && currentSongs.isNotEmpty()
 
@@ -101,6 +99,10 @@ fun BuiltInPlaylistScreen(
                         text = if (isAllSelected) stringResource(R.string.deselect_all) else stringResource(R.string.select_all)
                     )
                 }
+            } else {
+                Text(
+                    text = stringResource(R.string.offline)
+                )
             }
         },
         onBackClick = {
@@ -133,18 +135,10 @@ fun BuiltInPlaylistScreen(
                 AlertDialog(
                     onDismissRequest = { removeSongDialog = false },
                     title = {
-                        Text(text = stringResource(id = if (isEditMode) R.string.remove_from_favorites else R.string.clear_playlist))
+                        Text(text = stringResource(R.string.clear_playlist))
                     },
                     text = {
-                        val dialogText = if (isEditMode) {
-                            stringResource(id =R.string.remove_songs_confirmation)
-                        }
-
-                        else {
-                            stringResource(id = R.string.clear_playlist_confirmation)
-                        }
-
-                        Text(text = dialogText)
+                        Text(text = stringResource(id =R.string.remove_songs_confirmation))
                     },
                     confirmButton = {
                         TextButton(
@@ -226,7 +220,6 @@ fun BuiltInPlaylistScreen(
                     sortBy = sortBy,
                     onSortByChange = { sortBy = it },
                     sortOrder = sortOrder,
-                    onSortOrderChange = { sortOrder = it },
                     onSongsChange = { currentSongs = it }
                 )
             }

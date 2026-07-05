@@ -183,11 +183,7 @@ fun HomeSongs(
                 SortingHeader(
                     sortBy = sortBy,
                     changeSortBy = { sortBy = it },
-                    sortByEntries = SongSortBy.entries.toList(),
-                    sortOrder = sortOrder,
-                    toggleSortOrder = { sortOrder = !sortOrder },
-                    size = viewModel.items.size,
-                    itemCountText = R.plurals.number_of_songs
+                    sortByEntries = SongSortBy.entries.toList()
                 )
             }
 

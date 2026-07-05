@@ -48,7 +48,7 @@ fun PlaylistSongs(
     }
 
     LazyColumn(
-        contentPadding = PaddingValues(top = 0.dp, bottom = 16.dp + playerPadding),
+        contentPadding = PaddingValues(top = 12.dp, bottom = 16.dp + playerPadding),
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

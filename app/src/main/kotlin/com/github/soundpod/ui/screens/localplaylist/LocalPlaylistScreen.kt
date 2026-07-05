@@ -4,9 +4,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenuItem
@@ -23,21 +20,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
 import com.github.soundpod.db
 import com.github.soundpod.models.Playlist
 import com.github.soundpod.query
 import com.github.soundpod.ui.components.ConfirmationDialog
-import com.github.soundpod.ui.components.PlaylistThumbnail
 import com.github.soundpod.ui.components.PlaylistScreenLayout
 import com.github.soundpod.ui.components.TextFieldDialog
 import kotlinx.coroutines.flow.filterNotNull
@@ -65,6 +57,7 @@ fun LocalPlaylistScreen(
     var isSearching by remember { mutableStateOf(false) }
 
     var songCount by remember { mutableIntStateOf(0) }
+    var thumbnailUrl: String? by remember { mutableStateOf(null) }
 
     LaunchedEffect(Unit) {
         db.playlist(playlistId).filterNotNull().collect { playlist = it }
@@ -73,6 +66,12 @@ fun LocalPlaylistScreen(
     LaunchedEffect(Unit) {
         db.playlistSongs(playlistId).collect { songs ->
             songCount = songs.size
+        }
+    }
+
+    LaunchedEffect(playlistId) {
+        db.playlistThumbnailUrls(playlistId).collect { urls ->
+            thumbnailUrl = urls.shuffled().firstOrNull()
         }
     }
 
@@ -101,16 +100,6 @@ fun LocalPlaylistScreen(
                     style = typography.bodySmall,
                     color = colorPalette.text.copy(alpha = 0.7f)
                 )
-            }
-        },
-        onBackClick = {
-            if (isSearching) {
-                isSearching = false
-            } else if (isEditMode) {
-                isEditMode = false
-                selectedUids = emptySet()
-            } else {
-                pop()
             }
         },
         actions = {
@@ -165,33 +154,26 @@ fun LocalPlaylistScreen(
                 }
             )
         },
-        headerContent = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Spacer(modifier = Modifier.height(12.dp))
-                PlaylistThumbnail(
-                    playlistId = playlistId,
-                    modifier = Modifier.fillMaxWidth(0.55f)
-                )
-                Text(
-                    text = playlist?.name ?: "",
-                    style = typography.titleMedium.copy(fontWeight = FontWeight.Normal),
-                    color = colorPalette.accent,
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        },
+        isLoading = playlist == null,
+        thumbnailUrl = thumbnailUrl,
+        headerTitle = playlist?.name ?: "",
         content = {
             LocalPlaylistSongs(
                 playlistId = playlistId,
                 onGoToAlbum = onGoToAlbum,
                 onGoToArtist = onGoToArtist
             )
-        }
+        },
+        onBackClick = {
+            if (isSearching) {
+                isSearching = false
+            } else if (isEditMode) {
+                isEditMode = false
+                selectedUids = emptySet()
+            } else {
+                pop()
+            }
+        },
     )
 
     if (isRenaming) {

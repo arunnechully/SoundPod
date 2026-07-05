@@ -6,6 +6,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -26,8 +27,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -41,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
@@ -49,12 +53,16 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.R
+import com.github.soundpod.ui.modifier.fadingEdge
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -65,13 +73,16 @@ fun PlaylistScreenLayout(
     title: @Composable (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     dropDownMenuContent: @Composable (ColumnScope.(dismissMenu: () -> Unit) -> Unit)? = null,
-    headerContent: @Composable () -> Unit,
+    isLoading: Boolean = false,
+    thumbnailUrl: String? = null,
     footerHeaderContent: @Composable (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
     onBackClick: (() -> Unit)? = null,
     backIcon: Int = R.drawable.arrow_back,
     shape: Shape = MaterialTheme.shapes.extraLarge,
-) {
+    headerTitle: String? = null,
+
+    ) {
     val (colorPalette) = LocalAppearance.current
     val density = LocalDensity.current
 
@@ -113,7 +124,7 @@ fun PlaylistScreenLayout(
                         source: NestedScrollSource
                     ): Offset {
                         val delta = available.y
-                        
+
                         if (source == NestedScrollSource.UserInput) {
                             scope.launch { offsetAnimatable.stop() }
                         }
@@ -158,7 +169,7 @@ fun PlaylistScreenLayout(
                                 peekHeightPx
                             }
                         }
-                        
+
                         if (sheetOffset != target) {
                             offsetAnimatable.snapTo(sheetOffset)
                             offsetAnimatable.animateTo(
@@ -189,6 +200,14 @@ fun PlaylistScreenLayout(
                 }
             }
 
+            val fadingEdge = Brush.horizontalGradient(
+                0f to Color.Transparent,
+                0.1f to Color.Black,
+                0.9f to Color.Black,
+                1f to Color.Transparent
+            )
+
+
             // Header Content
             Box(
                 modifier = Modifier
@@ -201,17 +220,34 @@ fun PlaylistScreenLayout(
                     modifier = Modifier
                         .padding(top = statusBarHeight)
                 ) {
-                    Box(
-                        modifier = Modifier.graphicsLayer {
+                    Column(
+                        verticalArrangement = Arrangement.SpaceEvenly,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .graphicsLayer {
                             alpha = progress
                             val scale = 0.85f + (progress * 0.15f)
                             scaleX = scale
                             scaleY = scale
                             translationY = (sheetOffset - peekHeightPx) * 0.5f
-                        },
-                        contentAlignment = Alignment.Center
+                        }
                     ) {
-                        headerContent()
+                        AdaptiveThumbnail(
+                            isLoading = isLoading,
+                            url = thumbnailUrl,
+                            modifier = Modifier.fillMaxWidth(0.55f)
+                        )
+                        Text(
+                            text = headerTitle ?: "",
+                            style = typography.titleMedium.copy(fontWeight = FontWeight.Normal),
+                            color = colorPalette.text,
+                            textAlign = TextAlign.Center,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .fillMaxWidth(0.50f)
+                                .fadingEdge(fadingEdge)
+                        )
                     }
                 }
             }
@@ -226,7 +262,7 @@ fun PlaylistScreenLayout(
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     shape = shape,
-                    color = colorPalette.boxColor,
+                    color = colorPalette.mainBackground,
                     shadowElevation = ((1f - progress) * 8).dp
                 ) {
                     Column(
@@ -280,10 +316,6 @@ fun PlaylistScreenLayout(
                             CustomDropdownMenu(
                                 expanded = showDropDown,
                                 onDismissRequest = { showDropDown = false },
-                                offset = IntOffset(
-                                    x = with(density) { 12.dp.roundToPx() },
-                                    y = with(density) { -20.dp.roundToPx() }
-                                )
                             ) {
                                 dropDownMenuContent { showDropDown = false }
                             }

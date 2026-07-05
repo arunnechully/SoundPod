@@ -351,4 +351,5 @@
     <string name="remove_download">Remove download</string>
     <string name="no_favorites_description">Tap the heart icon on songs, albums, or artists to add them to your favorites.</string>
     <string name="defualt">Default</string>
+    <string name="view_artist">View Artist</string>
 </resources>
