@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
@@ -15,16 +16,15 @@ import com.github.core.ui.LocalAppearance
 fun SettingsCard(
     modifier: Modifier = Modifier,
     shape: Shape = MaterialTheme.shapes.extraLarge,
+    color: Color = LocalAppearance.current.colorPalette.mainBackground,
     elevation: androidx.compose.ui.unit.Dp = 1.dp,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val (colorPalette) = LocalAppearance.current
-
     Surface(
         modifier = modifier
             .fillMaxWidth(),
         shape = shape,
-        color = colorPalette.mainBackground,
+        color = color,
         shadowElevation = elevation
     ) {
         Column(

@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -47,6 +48,7 @@ import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun Overlay(
@@ -75,7 +77,7 @@ fun Overlay(
             if (isScrolling || isDragging) {
                 showScrollbarState = true
             } else {
-                delay(1200)
+                delay(1200.milliseconds)
                 showScrollbarState = false
             }
         }
@@ -120,6 +122,9 @@ fun Overlay(
         modifier = modifier
             .clip(RoundedCornerShape(24.dp))
             .background(colors.glass)
+            .pointerInput(Unit) {
+                detectTapGestures {}
+            }
     ) {
         Column(Modifier.fillMaxSize()) {
             headerContent()

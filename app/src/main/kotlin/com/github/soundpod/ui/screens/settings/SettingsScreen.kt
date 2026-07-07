@@ -19,7 +19,6 @@ import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.navigation.SettingsDestinations
-import com.github.soundpod.ui.screens.player.AddToListScreen
 import com.github.soundpod.ui.screens.player.TrackDetails
 import com.github.soundpod.viewmodels.SettingsViewModel
 
@@ -43,7 +42,6 @@ fun SettingsScreen(
         SettingsDestinations.SLEEP_TIMER -> stringResource(R.string.sleep_timer)
         SettingsDestinations.QUICK_PICKS -> stringResource(R.string.quick_picks)
         SettingsDestinations.TRACK_DETAILS -> stringResource(R.string.track_details)
-        SettingsDestinations.ADD_TO_LIST -> stringResource(R.string.add_to_playlist)
         else -> stringResource(R.string.settings)
     }
 
@@ -51,7 +49,6 @@ fun SettingsScreen(
         title = title,
         shape = MaterialTheme.shapes.extraLarge,
         onBackClick = onBackClick,
-        horizontalPadding = if (screenId == SettingsDestinations.ADD_TO_LIST) 0.dp else 14.dp,
         content = {
             when (screenId) {
                 SettingsDestinations.MAIN -> SettingsMainContent(onOptionClick)
@@ -73,7 +70,6 @@ fun SettingsScreen(
                 SettingsDestinations.ABOUT -> AboutSettingsContent()
                 SettingsDestinations.QUICK_PICKS -> QuickPicksSettingsContent()
                 SettingsDestinations.TRACK_DETAILS -> TrackDetails()
-                SettingsDestinations.ADD_TO_LIST -> AddToListScreen()
             }
         }
     )

@@ -246,13 +246,18 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                var lastMediaItem: MediaItem? = player.currentMediaItem
+
                 val listener = object : Player.Listener {
                     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                         if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED && mediaItem != null) {
-                            if (mediaItem.mediaMetadata.extras?.getBoolean("isFromPersistentQueue") != true) {
-                                scope.launch { playerState.expand() }
+                            if (lastMediaItem == null) {
+                                if (mediaItem.mediaMetadata.extras?.getBoolean("isFromPersistentQueue") != true) {
+                                    scope.launch { playerState.expand() }
+                                }
                             }
                         }
+                        lastMediaItem = mediaItem
                     }
                 }
 

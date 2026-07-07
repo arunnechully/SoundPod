@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -86,6 +87,10 @@ fun SharedPlayer(
         ),
         label = "expandAnimation"
     )
+
+    LaunchedEffect(sheetState.targetValue) {
+        targetExpandProgress = if (sheetState.targetValue == SheetValue.Expanded) 1f else 0f
+    }
 
     val binder = LocalPlayerServiceBinder.current
     val player = binder?.player
@@ -260,10 +265,11 @@ fun SharedPlayer(
                                         context.startActivity(intent)
                                     },
                                     onAddToPlaylist = {
-                                        val intent = Intent(context, SettingsActivity::class.java).apply {
-                                            putExtra("SCREEN_ID", SettingsDestinations.ADD_TO_LIST)
+                                        scope.launch { sheetState.partialExpand() }
+                                        navController.navigate(route = Routes.AddToPlaylist){
+                                            launchSingleTop = true
+                                            restoreState = true
                                         }
-                                        context.startActivity(intent)
                                     },
                                     onBack = {
                                         if (showLyrics) {
@@ -306,11 +312,6 @@ fun SharedPlayer(
                                         )
 
                                         layout(constraints.maxWidth, currentH) {
-                                            // Pin it relative to screen bottom:
-                                            // The parent Box bottom is at screenH - pad.
-                                            // We want mini player bottom at screenH - sysPad.
-                                            // Offset from parent bottom = sysPad - pad.
-                                            // Offset from parent top = currentH - miniH - (sysPad - pad)
                                             val yOffset = currentH - miniH - (sysPad - pad)
                                             placeable.placeRelative(0, yOffset)
                                         }

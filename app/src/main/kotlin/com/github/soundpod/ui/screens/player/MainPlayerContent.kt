@@ -263,24 +263,24 @@ fun MainPlayerContent(
 
                 Box(Modifier.weight(1f)) {
                     if (showPlaylist) {
-                        Column {
+//                        Column {
                             PlaylistOverlay(
                                 viewModel = playlistViewModel,
-                                modifier = Modifier.weight(1f),
+//                                modifier = Modifier.weight(1f),
                                 onGoToAlbum = handleGoToAlbum,
                                 onGoToArtist = handleGoToArtist
                             )
-                            Spacer(modifier = Modifier.height(26.dp))
-                        }
+//                            Spacer(modifier = Modifier.height(26.dp))
+//                        }
                     } else if (showLyrics) {
-                        Column {
+//                        Column {
                             LyricsOverlay(
-                                modifier = Modifier.weight(1f),
+//                                modifier = Modifier.weight(1f),
                                 mediaId = mediaItem.mediaId,
                                 mediaMetadata = mediaItem.mediaMetadata
                             )
                             Spacer(modifier = Modifier.height(26.dp))
-                        }
+//                        }
                     } else {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -298,9 +298,7 @@ fun MainPlayerContent(
                                 modifier = Modifier
                                     .graphicsLayer {
                                         alpha = expandProgress.coerceIn(0f, 1f)
-                                        
-                                        // Move text UP only when the thumbnail shrinks (Paused)
-                                        // We use playingScale directly so it doesn't move during expand/collapse
+
                                         val visualGap = (thumbnailSize.toPx() * (1f - playingScale)) / 2f
                                         translationY = -visualGap
                                     }
