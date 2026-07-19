@@ -138,7 +138,9 @@ fun HorizontalTabs(
                     text = stringResource(id = tabs[index]),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Normal,
-                    color = transformation.color
+                    color = transformation.color,
+                    maxLines = 1,
+                    softWrap = false
                 )
             }
         }

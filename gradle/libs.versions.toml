@@ -4,13 +4,13 @@ agp = "9.3.0"
 brotli = "0.1.2"
 coil = "3.5.0"
 compose-bom = "2026.06.01"
-compose-shimmer = "1.4.0"
+compose-shimmer = "1.5.0"
 datastore-preferences = "1.3.0-alpha09"
 desugaring = "2.1.5"
 
 glance-appwidget = "1.1.1"
 glance-material3 = "1.1.1"
-kotlin = "2.4.0"
+kotlin = "2.4.10"
 kotlin-coroutines = "1.11.0"
 kotlin-ksp = "2.3.6"
 lifecycle = "2.11.0"
@@ -80,7 +80,7 @@ core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
-detekt_compose = { module = "io.nlopez.compose.rules:detekt", version = "0.6.2" }
+detekt_compose = { module = "io.nlopez.compose.rules:detekt", version = "0.6.3" }
 detekt_formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 palette = { module = "androidx.palette:palette", version = "1.0.0" }
 compose_lottie = { module = "com.airbnb.android:lottie-compose", version = "6.7.1" }

@@ -173,7 +173,12 @@ fun HomeSongs(
     } else {
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 400.dp),
-            contentPadding = PaddingValues(bottom = 16.dp + 72.dp + playerPadding),
+            contentPadding = PaddingValues(
+                top = 12.dp,
+                start = 8.dp,
+                end = 8.dp,
+                bottom = 16.dp + playerPadding
+            ),
             modifier = Modifier.fillMaxSize()
         ) {
             item(
