@@ -1,0 +1,3 @@
+• New dedicated screen for adding songs to playlists
+• Refreshed sorting header with active selection highlighting
+• General UI refinements and performance improvements
