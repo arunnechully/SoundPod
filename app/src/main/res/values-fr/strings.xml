@@ -219,7 +219,7 @@
     <string name="autocheck_description">Vérifier automatiquement les nouvelles versions en arrière-plan</string>
     <string name="update_alert">Afficher l\'alerte de mise à jour</string>
     <string name="update_alert_desription">Recevez une notification lorsqu\'une nouvelle version est disponible</string>
-    <string name="default_source">Défaut</string>
+    <string name="default_source">Par défaut</string>
     <string name="dynamic">Dynamique</string>
     <string name="material_you">Material You</string>
     <string name="progress_bar_style">Style de la barre de progression</string>
