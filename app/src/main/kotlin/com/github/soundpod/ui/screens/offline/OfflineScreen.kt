@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.screens.builtinplaylist
+package com.github.soundpod.ui.screens.offline
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -48,7 +48,7 @@ import com.github.soundpod.utils.songSortOrderKey
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
 @Composable
-fun BuiltInPlaylistScreen(
+fun OfflineScreen(
     builtInPlaylist: BuiltInPlaylist,
     pop: () -> Unit,
     onGoToAlbum: (String) -> Unit,
@@ -209,7 +209,7 @@ fun BuiltInPlaylistScreen(
                     topEnd = 25.dp
                 )
             ) {
-                BuiltInPlaylistSongs(
+                OfflineSongs(
                     builtInPlaylist = builtInPlaylist,
                     isEditMode = isEditMode,
                     onEditModeChange = { isEditMode = it },

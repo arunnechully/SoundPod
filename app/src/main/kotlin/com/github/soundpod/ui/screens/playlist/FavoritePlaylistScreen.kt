@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.screens.localplaylist
+package com.github.soundpod.ui.screens.playlist
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -38,7 +38,7 @@ import kotlinx.coroutines.flow.filterNotNull
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
 @Composable
-fun LocalPlaylistScreen(
+fun FavoritePlaylistScreen(
     playlistId: Long,
     pop: () -> Unit,
     onGoToAlbum: (String) -> Unit,
@@ -158,7 +158,7 @@ fun LocalPlaylistScreen(
         thumbnailUrl = thumbnailUrl,
         headerTitle = playlist?.name ?: "",
         content = {
-            LocalPlaylistSongs(
+            FavoritePlaylistSongs(
                 playlistId = playlistId,
                 onGoToAlbum = onGoToAlbum,
                 onGoToArtist = onGoToArtist

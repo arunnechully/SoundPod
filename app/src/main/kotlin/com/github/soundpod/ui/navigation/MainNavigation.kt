@@ -27,12 +27,12 @@ import androidx.navigation.toRoute
 import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.ui.screens.album.AlbumScreen
 import com.github.soundpod.ui.screens.artist.ArtistScreen
-import com.github.soundpod.ui.screens.builtinplaylist.BuiltInPlaylistScreen
+import com.github.soundpod.ui.screens.offline.OfflineScreen
 import com.github.soundpod.ui.screens.favorites.FavoriteTracksScreen
 import com.github.soundpod.ui.screens.favorites.FavoritesScreen
 import com.github.soundpod.ui.screens.home.HomeScreen
-import com.github.soundpod.ui.screens.localplaylist.LocalPlaylistScreen
-import com.github.soundpod.ui.screens.playlist.PlaylistScreen
+import com.github.soundpod.ui.screens.playlist.FavoritePlaylistScreen
+import com.github.soundpod.ui.screens.playlist.OnlinePlaylistScreen
 import com.github.soundpod.ui.screens.search.NewSearchLayout
 import com.github.soundpod.ui.screens.search.NewSearchResult
 import kotlinx.coroutines.launch
@@ -142,7 +142,7 @@ fun MainNavigation(
         playerComposable(route = Routes.Playlist::class) { navBackStackEntry ->
             val route: Routes.Playlist = navBackStackEntry.toRoute()
 
-            PlaylistScreen(
+            OnlinePlaylistScreen(
                 browseId = route.id,
                 onBack = popDestination,
                 onGoToAlbum = navigateToAlbum,
@@ -165,7 +165,7 @@ fun MainNavigation(
         composable(route = Routes.BuiltInPlaylist::class) { navBackStackEntry ->
             val route: Routes.BuiltInPlaylist = navBackStackEntry.toRoute()
 
-            BuiltInPlaylistScreen(
+            OfflineScreen(
                 builtInPlaylist = BuiltInPlaylist.entries[route.index],
                 pop = popDestination,
                 onGoToAlbum = navigateToAlbum,
@@ -178,7 +178,7 @@ fun MainNavigation(
         composable(route = Routes.LocalPlaylist::class) { navBackStackEntry ->
             val route: Routes.LocalPlaylist = navBackStackEntry.toRoute()
 
-            LocalPlaylistScreen(
+            FavoritePlaylistScreen(
                 playlistId = route.id,
                 pop = popDestination,
                 onGoToAlbum = navigateToAlbum,

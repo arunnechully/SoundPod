@@ -48,7 +48,7 @@ import kotlinx.coroutines.withContext
 @UnstableApi
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @Composable
-fun PlaylistScreen(
+fun OnlinePlaylistScreen(
     browseId: String,
     onBack: () -> Unit,
     onGoToAlbum: (String) -> Unit,
@@ -152,7 +152,7 @@ fun PlaylistScreen(
         thumbnailUrl = playlistPage?.thumbnail?.url,
         headerTitle = playlistPage?.title.orEmpty(),
         content = {
-            PlaylistSongs(
+            OnlinePlaylistSongs(
                 playlistPage = playlistPage,
                 onGoToAlbum = onGoToAlbum,
                 onGoToArtist = onGoToArtist

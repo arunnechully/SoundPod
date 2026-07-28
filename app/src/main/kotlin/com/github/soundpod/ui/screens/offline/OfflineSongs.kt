@@ -1,5 +1,6 @@
-package com.github.soundpod.ui.screens.builtinplaylist
+package com.github.soundpod.ui.screens.offline
 
+import androidx.annotation.OptIn
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.EnterTransition
@@ -45,6 +46,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.util.UnstableApi
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
@@ -72,9 +74,9 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 import java.util.Collections
 
 @ExperimentalAnimationApi
-@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+@OptIn(UnstableApi::class)
 @Composable
-fun BuiltInPlaylistSongs(
+fun OfflineSongs(
     builtInPlaylist: BuiltInPlaylist,
     isEditMode: Boolean,
     onEditModeChange: (Boolean) -> Unit,

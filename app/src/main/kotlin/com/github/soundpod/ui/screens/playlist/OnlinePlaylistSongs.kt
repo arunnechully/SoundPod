@@ -1,7 +1,6 @@
 package com.github.soundpod.ui.screens.playlist
 
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,11 +27,11 @@ import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.enqueue
 import com.github.soundpod.utils.forcePlayAtIndex
 
-@ExperimentalFoundationApi
+
 @ExperimentalAnimationApi
 @UnstableApi
 @Composable
-fun PlaylistSongs(
+fun OnlinePlaylistSongs(
     playlistPage: Innertube.PlaylistOrAlbumPage?,
     onGoToAlbum: (String) -> Unit,
     onGoToArtist: (String) -> Unit,
