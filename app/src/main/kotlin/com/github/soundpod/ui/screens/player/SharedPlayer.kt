@@ -265,11 +265,10 @@ fun SharedPlayer(
                                         context.startActivity(intent)
                                     },
                                     onAddToPlaylist = {
-                                        scope.launch { sheetState.partialExpand() }
-                                        navController.navigate(route = Routes.AddToPlaylist){
-                                            launchSingleTop = true
-                                            restoreState = true
+                                        val intent = Intent(context, SettingsActivity::class.java).apply {
+                                            putExtra("SCREEN_ID", SettingsDestinations.ADD_TO_PLAYLIST)
                                         }
+                                        context.startActivity(intent)
                                     },
                                     onBack = {
                                         if (showLyrics) {

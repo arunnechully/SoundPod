@@ -19,5 +19,6 @@ local.properties
 
 # Ignore build artifacts and generated properties
 *.dm
+.artifacts
 output-metadata.json
 gradle-daemon-jvm.properties

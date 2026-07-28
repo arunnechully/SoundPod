@@ -45,7 +45,7 @@ fun PlayerBackground(
     expandProgress: Float = 0f,
     content: @Composable () -> Unit
 ) {
-    val currentStyle by rememberPreference(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.BLURRED)
+    val currentStyle by rememberPreference(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.OFF)
     val (colorPalette) = LocalAppearance.current
     val context = LocalContext.current
 
@@ -60,10 +60,14 @@ fun PlayerBackground(
     }
 
     val isDark = colorPalette.isDark
-    val baseBackground = if (isDark) Color(0xFF05050A) else Color(0xFFFAFAFF)
-    val targetBackgroundColorRaw = remember(clusters, isDark) {
-        val adapted = clusters.surface.adaptToTheme(isDark)
-        adapted.copy(alpha = if (isDark) 0.35f else 0.25f).compositeOver(baseBackground)
+    val baseBackground = colorPalette.background0
+    val targetBackgroundColorRaw = remember(clusters, isDark, currentStyle) {
+        if (currentStyle == BackgroundStyles.OFF) {
+            baseBackground
+        } else {
+            val adapted = clusters.surface.adaptToTheme(isDark)
+            adapted.copy(alpha = if (isDark) 0.35f else 0.25f).compositeOver(baseBackground)
+        }
     }
     val targetBackgroundColor by animateColorAsState(
         targetValue = targetBackgroundColorRaw,
@@ -79,7 +83,7 @@ fun PlayerBackground(
         Box(modifier = Modifier.fillMaxSize().alpha(expandProgress)) {
             when (currentStyle) {
                 BackgroundStyles.OFF -> {
-                    Box(Modifier.fillMaxSize().background(baseBackground))
+                    // Already handled by targetBackgroundColor
                 }
                 BackgroundStyles.CROSS_FADE -> {
                     val staticColor by animateColorAsState(

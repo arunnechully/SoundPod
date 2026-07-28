@@ -221,6 +221,7 @@ fun SettingsColumn(
     isEnabled: Boolean = true,
     trailingContent: @Composable (() -> Unit)? = null,
     showDivider: Boolean = false,
+    verticalPadding: androidx.compose.ui.unit.Dp = 0.dp,
     descriptionColor: Color = LocalAppearance.current.colorPalette.text.copy(alpha = 0.7f)
 ) {
     val (colorPalette) = LocalAppearance.current
@@ -233,12 +234,12 @@ fun SettingsColumn(
     } else {
         Modifier
     }
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .then(clickModifier)
             .padding(start = 12.dp, end = 12.dp)
+            .padding(vertical = verticalPadding)
             .graphicsLayer { alpha = if (isEnabled) 1f else 0.5f },
         verticalAlignment = Alignment.CenterVertically
     ) {

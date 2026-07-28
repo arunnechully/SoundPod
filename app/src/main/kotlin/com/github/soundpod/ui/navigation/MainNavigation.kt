@@ -32,7 +32,6 @@ import com.github.soundpod.ui.screens.favorites.FavoriteTracksScreen
 import com.github.soundpod.ui.screens.favorites.FavoritesScreen
 import com.github.soundpod.ui.screens.home.HomeScreen
 import com.github.soundpod.ui.screens.localplaylist.LocalPlaylistScreen
-import com.github.soundpod.ui.screens.player.AddToListScreen
 import com.github.soundpod.ui.screens.playlist.PlaylistScreen
 import com.github.soundpod.ui.screens.search.NewSearchLayout
 import com.github.soundpod.ui.screens.search.NewSearchResult
@@ -203,12 +202,6 @@ fun MainNavigation(
                 onBackClick = { navController.popBackStack() },
                 onGoToAlbum = navigateToAlbum,
                 onGoToArtist = navigateToArtist
-            )
-        }
-
-        playerComposable(route = Routes.AddToPlaylist::class) {
-            AddToListScreen(
-                onBackClick = { navController.popBackStack() }
             )
         }
     }
