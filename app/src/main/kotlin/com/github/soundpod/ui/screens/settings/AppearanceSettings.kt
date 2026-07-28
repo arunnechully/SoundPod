@@ -12,10 +12,13 @@ import com.github.soundpod.enums.AppThemeColor
 import com.github.soundpod.enums.PlayerLayout
 import com.github.soundpod.enums.ProgressBar
 import com.github.soundpod.ui.common.IconSource
+import com.github.soundpod.utils.HomeTab
+import com.github.soundpod.utils.TabStyle
 import com.github.soundpod.utils.appTheme
 import com.github.soundpod.utils.playerlayout
 import com.github.soundpod.utils.progressBarStyle
 import com.github.soundpod.utils.rememberPreference
+import com.github.soundpod.utils.tabStyleKey
 
 @Composable
 fun AppearanceSettingsContent(
@@ -24,6 +27,11 @@ fun AppearanceSettingsContent(
     var appThemeColor by rememberPreference(appTheme, AppThemeColor.System)
     var progressBarStyle by rememberPreference(progressBarStyle, ProgressBar.Default )
     var playerlayout by rememberPreference(playerlayout, PlayerLayout.Default )
+    var tabStyle by rememberPreference(tabStyleKey, TabStyle.Modern)
+
+    val homeTabsVisibility = HomeTab.entries.associateWith { tab ->
+        rememberPreference(tab.key, true)
+    }
 
     SettingsGroup(
         title = stringResource(id = R.string.theme),
@@ -64,4 +72,29 @@ fun AppearanceSettingsContent(
             onClick = onBackgroundClick,
         )
     }
+
+    SettingsGroup(
+        title = stringResource(id = R.string.home_screen_tabs),
+    ) {
+        EnumValueSelectorSettingsEntry(
+            title = stringResource(id = R.string.tab_style),
+            selectedValue = tabStyle,
+            onValueSelected = { tabStyle = it },
+            icon = IconSource.Icon(painterResource(id = R.drawable.interface_ui_tabs)),
+            valueText = { stringResource(it.resourceId) }
+        )
+        MultiSelectorSettingsEntry(
+            title = stringResource(id = R.string.home_screen_tabs),
+            selectedValues = homeTabsVisibility.filter { it.value.value }.keys.toSet(),
+            values = HomeTab.entries,
+            onConfirm = { newSelected ->
+                HomeTab.entries.forEach { tab ->
+                    homeTabsVisibility[tab]?.value = newSelected.contains(tab)
+                }
+            },
+            icon = IconSource.Icon(painterResource(id = R.drawable.tabs)),
+            valueText = { stringResource(id = it.title) }
+        )
+    }
+
 }

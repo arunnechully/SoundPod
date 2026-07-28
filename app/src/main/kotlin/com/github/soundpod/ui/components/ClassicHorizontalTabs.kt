@@ -11,6 +11,7 @@ import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,13 +55,13 @@ fun ClassicHorizontalTabs(
                         .background(backgroundColor)
                         .height(32.dp),
                     text = {
-//                        Text(
-//                            text = title,
-//                            color = if (isSelected)
-//                                MaterialTheme.colorScheme.primary
-//                            else
-//                                MaterialTheme.colorScheme.onSurfaceVariant
-//                        )
+                        Text(
+                            text = stringResource(id = title),
+                            color = if (isSelected)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 )
             }

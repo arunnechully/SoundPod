@@ -101,6 +101,50 @@ inline fun <T> ValueSelectorSettingsEntry(
 }
 
 @Composable
+inline fun <T> MultiSelectorSettingsEntry(
+    title: String,
+    selectedValues: Set<T>,
+    values: List<T>,
+    crossinline onConfirm: (Set<T>) -> Unit,
+    icon: IconSource? = null,
+    isEnabled: Boolean = true,
+    crossinline valueText: @Composable (T) -> String = { it.toString() },
+    noinline trailingContent: @Composable (() -> Unit)? = null,
+    descriptionColor: Color = LocalAppearance.current.colorPalette.accent
+) {
+    var isShowingDialog by remember { mutableStateOf(false) }
+
+    if (isShowingDialog) {
+        com.github.soundpod.ui.components.MultiSelectorDialog(
+            title = title,
+            selectedValues = selectedValues,
+            values = values,
+            onConfirm = {
+                onConfirm(it)
+            },
+            onDismiss = { isShowingDialog = false },
+            valueText = valueText
+        )
+    }
+
+    val description = StringBuilder()
+    selectedValues.forEachIndexed { index, it ->
+        description.append(valueText(it))
+        if (index < selectedValues.size - 1) description.append(", ")
+    }
+
+    SettingsColumn(
+        icon = icon,
+        title = title,
+        description = description.toString(),
+        descriptionColor = descriptionColor,
+        onClick = { isShowingDialog = true },
+        isEnabled = isEnabled,
+        trailingContent = trailingContent,
+    )
+}
+
+@Composable
 fun SettingsInformation(
     text: String,
 ) {

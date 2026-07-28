@@ -3,6 +3,7 @@ package com.github.soundpod.utils
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.compose.runtime.Composable
+import com.github.soundpod.R
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -51,10 +52,24 @@ const val progressBarStyle = "progressBarStyle"
 
 const val playerlayout = "playerlayout"
 
+const val tabStyleKey = "tabStyle"
+
+const val showHomeTabKey = "showHomeTab"
+const val showFavoritesTabKey = "showFavoritesTab"
+const val showSongsTabKey = "showSongsTab"
+const val showArtistsTabKey = "showArtistsTab"
+const val showAlbumsTabKey = "showAlbumsTab"
+const val showPlaylistsTabKey = "showPlaylistsTab"
+
 const val autoBackup = "autoBackup"
 
 const val autoBackupUriPrefKey = "autoBackupUri"
 const val listGesturesEnabledKey = "listGesturesEnabled"
+
+enum class TabStyle(val resourceId: Int) {
+    Modern(R.string.modern),
+    Classic(R.string.classic)
+}
 
 inline fun <reified T : Enum<T>> SharedPreferences.getEnum(
     key: String,

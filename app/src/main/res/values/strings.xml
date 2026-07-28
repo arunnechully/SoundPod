@@ -330,6 +330,10 @@
     <string name="beta_updates">Early access (Beta)</string>
     <string name="beta_updates_description">Enable to receive preview builds.</string>
     <string name="player_style">Player Style</string>
+    <string name="tab_style">Tab Style</string>
+    <string name="modern">Modern</string>
+    <string name="classic">Classic</string>
+    <string name="home_screen_tabs">Home Screen Tabs</string>
     <string name="track_details">Track details</string>
     <string name="album">Album</string>
     <string name="clear_image_cache">Are you sure you want to clear the image cache? This action cannot be undone.</string>

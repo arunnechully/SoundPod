@@ -20,6 +20,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -30,12 +32,17 @@ import androidx.navigation.NavController
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.soundpod.ui.components.ClassicHorizontalTabs
 import com.github.soundpod.ui.components.HorizontalTabs
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.ui.screens.favorites.FavoritesScreen
+import com.github.soundpod.utils.HomeTab
+import com.github.soundpod.utils.TabStyle
+import com.github.soundpod.utils.rememberPreference
+import com.github.soundpod.utils.tabStyleKey
 import com.github.soundpod.viewmodels.home.HomeViewModel
 
 @Composable
@@ -43,8 +50,13 @@ fun HomeScreen(
     navController: NavController,
     onSettingsClick: () -> Unit,
 ) {
-    val homeViewModel: HomeViewModel = viewModel()
-    val pagerState = rememberPagerState(initialPage = 0) { homeViewModel.tabs.size }
+    val tabStyle by rememberPreference(tabStyleKey, TabStyle.Modern)
+
+    val activeTabs = HomeTab.entries.filter { tab ->
+        rememberPreference(tab.key, true).value
+    }.ifEmpty { listOf(HomeTab.Home) }
+
+    val pagerState = rememberPagerState(initialPage = 0) { activeTabs.size }
     val navigateToAlbum = { browseId: String ->
         navController.navigate(route = Routes.Album(id = browseId))
     }
@@ -98,10 +110,20 @@ fun HomeScreen(
             }
         }
     ) {
-        HorizontalTabs(
-            pagerState = pagerState,
-            tabs = homeViewModel.tabs
-        )
+        val tabTitles = activeTabs.map { it.title }
+
+        if (tabStyle == TabStyle.Modern) {
+            HorizontalTabs(
+                pagerState = pagerState,
+                tabs = tabTitles
+            )
+        } else {
+            ClassicHorizontalTabs(
+                pagerState = pagerState,
+                tabs = tabTitles
+            )
+        }
+
         SettingsCard(
             modifier = Modifier.weight(1f)
         ) {
@@ -111,8 +133,8 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxSize()
             ) { page ->
-                when (page) {
-                    0 -> QuickPicks(
+                when (activeTabs[page]) {
+                    HomeTab.Home -> QuickPicks(
                         onAlbumClick = navigateToAlbum,
                         onArtistClick = navigateToArtist,
                         onPlaylistClick = { browseId ->
@@ -123,27 +145,27 @@ fun HomeScreen(
                         }
                     )
 
-                    1 -> FavoritesScreen(
+                    HomeTab.Favorites -> FavoritesScreen(
                         onFavoriteTracksClick = { navController.navigate(route = Routes.FavoriteTracks) },
                         onGoToAlbum = navigateToAlbum,
                         onGoToArtist = navigateToArtist,
                         isEmbedded = true
                     )
 
-                    2 -> HomeSongs(
+                    HomeTab.Songs -> HomeSongs(
                         onGoToAlbum = navigateToAlbum,
                         onGoToArtist = navigateToArtist
                     )
 
-                    3 -> HomeArtistList(
+                    HomeTab.Artists -> HomeArtistList(
                         onArtistClick = { artist -> navigateToArtist(artist.id) }
                     )
 
-                    4 -> HomeAlbums(
+                    HomeTab.Albums -> HomeAlbums(
                         onAlbumClick = { album -> navigateToAlbum(album.id) }
                     )
 
-                    5 -> HomePlaylists(
+                    HomeTab.Playlists -> HomePlaylists(
                         onBuiltInPlaylist = { playlistIndex ->
                             if (playlistIndex == BuiltInPlaylist.Favorites.ordinal) {
                                 navController.navigate(route = Routes.Favorites)

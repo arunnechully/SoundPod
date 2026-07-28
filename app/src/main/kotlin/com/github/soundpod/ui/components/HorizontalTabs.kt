@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -49,99 +50,101 @@ fun HorizontalTabs(
     accentColor: Color = MaterialTheme.colorScheme.primary,
     secondaryColor: Color = MaterialTheme.colorScheme.onSurfaceVariant
 ) {
-    val scope = rememberCoroutineScope()
+    key(tabs) {
+        val scope = rememberCoroutineScope()
 
-    val tabPagerState = rememberPagerState(
-        initialPage = pagerState.currentPage,
-        pageCount = { tabs.size }
-    )
+        val tabPagerState = rememberPagerState(
+            initialPage = pagerState.currentPage.coerceIn(0, (tabs.size - 1).coerceAtLeast(0)),
+            pageCount = { tabs.size }
+        )
 
-    val isTabsDragged by tabPagerState.interactionSource.collectIsDraggedAsState()
-    val isContentDragged by pagerState.interactionSource.collectIsDraggedAsState()
-    var isContentCatchingUp by remember { mutableStateOf(false) }
+        val isTabsDragged by tabPagerState.interactionSource.collectIsDraggedAsState()
+        val isContentDragged by pagerState.interactionSource.collectIsDraggedAsState()
+        var isContentCatchingUp by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        snapshotFlow { pagerState.currentPage + pagerState.currentPageOffsetFraction }
-            .collect { position ->
-                if (!isTabsDragged && !isContentCatchingUp) {
-                    val page = position.roundToInt().coerceIn(0, tabs.size - 1)
-                    val offset = (position - page).coerceIn(-0.5f, 0.5f)
-                    tabPagerState.scrollToPage(page, offset)
-                }
-            }
-    }
-
-    LaunchedEffect(isTabsDragged) {
-        if (!isTabsDragged) {
-            snapshotFlow { tabPagerState.isScrollInProgress }
-                .filter { !it }
-                .collectLatest {
-                    if (!isContentDragged && !pagerState.isScrollInProgress) {
-                        val targetPage = tabPagerState.currentPage
-                        if (targetPage != pagerState.currentPage) {
-                            isContentCatchingUp = true
-                            pagerState.animateScrollToPage(targetPage)
-                            isContentCatchingUp = false
-                        }
+        LaunchedEffect(tabs, pagerState, tabPagerState) {
+            snapshotFlow { pagerState.currentPage + pagerState.currentPageOffsetFraction }
+                .collect { position ->
+                    if (!isTabsDragged && !isContentCatchingUp) {
+                        val page = position.roundToInt().coerceIn(0, (tabs.size - 1).coerceAtLeast(0))
+                        val offset = (position - page).coerceIn(-0.5f, 0.5f)
+                        tabPagerState.scrollToPage(page, offset)
                     }
                 }
         }
-    }
 
-    BoxWithConstraints(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(itemHeight),
-        contentAlignment = Alignment.Center
-    ) {
-        val centerPadding = (maxWidth - itemWidth) / 2
-
-        HorizontalPager(
-            state = tabPagerState,
-            pageSize = PageSize.Fixed(itemWidth),
-            contentPadding = PaddingValues(horizontal = centerPadding),
-            modifier = Modifier.fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically,
-            beyondViewportPageCount = 4
-        ) { index ->
-            val transformation = calculateTabTransformation(
-                index = index,
-                pagerState = tabPagerState,
-                accentColor = accentColor,
-                secondaryColor = secondaryColor
-            )
-
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        role = Role.Tab
-                    ) {
-                        scope.launch {
-                            isContentCatchingUp = true
-                            try {
-                                launch { tabPagerState.animateScrollToPage(index) }
-                                pagerState.animateScrollToPage(index)
-                            } finally { isContentCatchingUp = false }
+        LaunchedEffect(isTabsDragged) {
+            if (!isTabsDragged) {
+                snapshotFlow { tabPagerState.isScrollInProgress }
+                    .filter { !it }
+                    .collectLatest {
+                        if (!isContentDragged && !pagerState.isScrollInProgress) {
+                            val targetPage = tabPagerState.currentPage
+                            if (targetPage != pagerState.currentPage) {
+                                isContentCatchingUp = true
+                                pagerState.animateScrollToPage(targetPage)
+                                isContentCatchingUp = false
+                            }
                         }
                     }
-                    .graphicsLayer {
-                        scaleX = transformation.scale
-                        scaleY = transformation.scale
-                        alpha = transformation.alpha
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = stringResource(id = tabs[index]),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Normal,
-                    color = transformation.color,
-                    maxLines = 1,
-                    softWrap = false
+            }
+        }
+
+        BoxWithConstraints(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(itemHeight),
+            contentAlignment = Alignment.Center
+        ) {
+            val centerPadding = (maxWidth - itemWidth) / 2
+
+            HorizontalPager(
+                state = tabPagerState,
+                pageSize = PageSize.Fixed(itemWidth),
+                contentPadding = PaddingValues(horizontal = centerPadding),
+                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically,
+                beyondViewportPageCount = 4
+            ) { index ->
+                val transformation = calculateTabTransformation(
+                    index = index,
+                    pagerState = tabPagerState,
+                    accentColor = accentColor,
+                    secondaryColor = secondaryColor
                 )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            role = Role.Tab
+                        ) {
+                            scope.launch {
+                                isContentCatchingUp = true
+                                try {
+                                    launch { tabPagerState.animateScrollToPage(index) }
+                                    pagerState.animateScrollToPage(index)
+                                } finally { isContentCatchingUp = false }
+                            }
+                        }
+                        .graphicsLayer {
+                            scaleX = transformation.scale
+                            scaleY = transformation.scale
+                            alpha = transformation.alpha
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(id = tabs[index]),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Normal,
+                        color = transformation.color,
+                        maxLines = 1,
+                        softWrap = false
+                    )
+                }
             }
         }
     }

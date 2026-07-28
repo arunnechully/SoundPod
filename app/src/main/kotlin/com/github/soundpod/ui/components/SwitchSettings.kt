@@ -23,8 +23,8 @@ import com.github.soundpod.ui.common.IconSource
 @Composable
 fun SwitchSetting(
     title: String,
-    description: String,
-    icon: IconSource,
+    description: String? = null,
+    icon: IconSource? = null,
     switchState: Boolean,
     onSwitchChange: (Boolean) -> Unit
 ) {
@@ -38,21 +38,22 @@ fun SwitchSetting(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        when (icon) {
-            is IconSource.Vector -> Icon(
-                imageVector = icon.imageVector,
-                contentDescription = title,
-                tint = colorPalette.text,
-                modifier = Modifier.size(28.dp)
-            )
+        if (icon != null) {
+            when (icon) {
+                is IconSource.Vector -> Icon(
+                    imageVector = icon.imageVector,
+                    contentDescription = title,
+                    tint = colorPalette.text,
+                    modifier = Modifier.size(28.dp)
+                )
 
-            is IconSource.Icon -> Icon(
-                painter = icon.painter,
-                contentDescription = title,
-                tint = colorPalette.text,
-                modifier = Modifier.size(28.dp),
-            )
-
+                is IconSource.Icon -> Icon(
+                    painter = icon.painter,
+                    contentDescription = title,
+                    tint = colorPalette.text,
+                    modifier = Modifier.size(28.dp),
+                )
+            }
         }
 
         Column(
@@ -63,11 +64,13 @@ fun SwitchSetting(
                 style = MaterialTheme.typography.bodyLarge,
                 color = colorPalette.text
             )
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = colorPalette.text.copy(alpha = 0.7f)
-            )
+            if (description != null) {
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colorPalette.text.copy(alpha = 0.7f)
+                )
+            }
         }
 
         Switch(

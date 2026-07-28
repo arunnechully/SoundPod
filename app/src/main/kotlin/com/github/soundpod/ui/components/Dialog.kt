@@ -26,6 +26,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -421,6 +423,125 @@ inline fun <T> ThemeSelectorDialog(
                     TextButton(
                         onClick = {
                             onValueSelected(tempSelected)
+                            onDismiss()
+                        }
+                    ) {
+                        Text(stringResource(R.string.ok))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+inline fun <T> MultiSelectorDialog(
+    title: String,
+    selectedValues: Set<T>,
+    values: List<T>,
+    noinline onDismiss: () -> Unit,
+    crossinline onConfirm: (Set<T>) -> Unit,
+    crossinline valueText: @Composable (T) -> String = { it.toString() }
+) {
+    var tempSelected by remember { mutableStateOf(selectedValues) }
+
+    val haptic = LocalHapticFeedback.current
+    val colorPalette = LocalAppearance.current.colorPalette
+    BasicAlertDialog(
+        onDismissRequest = onDismiss,
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        Surface(
+            shape = RoundedCornerShape(28.dp),
+            tonalElevation = 6.dp,
+            color = MaterialTheme.colorScheme.surface,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column {
+
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier
+                        .padding(horizontal = 24.dp, 18.dp)
+                )
+
+                Column(
+                    modifier = Modifier
+                        .padding(vertical = 3.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    values.forEach { value ->
+
+                        val interactionSource = remember { MutableInteractionSource() }
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }
+                                ) {
+                                    tempSelected = if (tempSelected.contains(value)) {
+                                        tempSelected - value
+                                    } else {
+                                        tempSelected + value
+                                    }
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+
+                                    val press = PressInteraction.Press(Offset.Zero)
+                                    interactionSource.tryEmit(press)
+                                    interactionSource.tryEmit(PressInteraction.Release(press))
+                                }
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = tempSelected.contains(value),
+                                colors = CheckboxDefaults.colors(
+                                    checkedColor = colorPalette.accent,
+                                    uncheckedColor = colorPalette.text.copy(alpha = 0.6f),
+                                    checkmarkColor = colorPalette.onAccent
+                                ),
+                                onCheckedChange = { checked ->
+                                    tempSelected = if (checked) {
+                                        tempSelected + value
+                                    } else {
+                                        tempSelected - value
+                                    }
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+
+                                    val press = PressInteraction.Press(Offset.Zero)
+                                    interactionSource.tryEmit(press)
+                                    interactionSource.tryEmit(PressInteraction.Release(press))
+                                },
+                                interactionSource = interactionSource
+                            )
+
+                            Spacer(Modifier.width(16.dp))
+
+                            Text(
+                                text = valueText(value),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                    TextButton(
+                        onClick = {
+                            onConfirm(tempSelected)
                             onDismiss()
                         }
                     ) {
