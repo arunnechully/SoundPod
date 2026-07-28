@@ -1,0 +1,6 @@
+• Implemented the Add to Playlist screen.
+• Added an option to switch back to classic horizontal tabs.
+• You can now choose which tabs to display and hide the rest
+• Refreshed sorting header with active selection highlighting
+• Restored the Video filter in the search layout.
+• General UI refinements and performance improvements
