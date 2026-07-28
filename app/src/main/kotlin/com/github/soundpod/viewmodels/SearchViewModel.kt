@@ -19,6 +19,8 @@ class SearchViewModel : ViewModel() {
         private set
     var artistResults by mutableStateOf<List<Innertube.ArtistItem>?>(null)
         private set
+    var videoResults by mutableStateOf<List<Innertube.VideoItem>?>(null)
+        private set
     var playlistResults by mutableStateOf<List<Innertube.PlaylistItem>?>(null)
         private set
 
@@ -36,6 +38,7 @@ class SearchViewModel : ViewModel() {
             songResults = null
             albumResults = null
             artistResults = null
+            videoResults = null
             playlistResults = null
             isLoading = false
             return
@@ -66,6 +69,13 @@ class SearchViewModel : ViewModel() {
                         fromMusicShelfRendererContent = Innertube.ArtistItem::from
                     )
                 }
+                val videosDeferred = async {
+                    Innertube.searchPage(
+                        query = query,
+                        params = Innertube.SearchFilter.Video.value,
+                        fromMusicShelfRendererContent = Innertube.VideoItem::from
+                    )
+                }
                 val playlistsDeferred = async {
                     Innertube.searchPage(
                         query = query,
@@ -77,6 +87,7 @@ class SearchViewModel : ViewModel() {
                 songResults = songsDeferred.await()?.getOrNull()?.items?.take(3)
                 albumResults = albumsDeferred.await()?.getOrNull()?.items?.take(8)
                 artistResults = artistsDeferred.await()?.getOrNull()?.items?.take(8)
+                videoResults = videosDeferred.await()?.getOrNull()?.items?.take(6)
                 playlistResults = playlistsDeferred.await()?.getOrNull()?.items?.take(8)
             } catch (e: Exception) {
                 e.printStackTrace()

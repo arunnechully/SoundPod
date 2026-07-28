@@ -34,6 +34,7 @@ import com.github.soundpod.ui.items.ItemPlaceholder
 import com.github.soundpod.ui.items.ListItemPlaceholder
 import com.github.soundpod.ui.items.PlaylistItem
 import com.github.soundpod.ui.items.SongItem
+import com.github.soundpod.ui.items.VideoItem
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.enqueue
 import com.github.soundpod.utils.forcePlay
@@ -108,6 +109,57 @@ fun NewSearchResult(
                                             NonQueuedMediaItemMenu(
                                                 onDismiss = menuState::hide,
                                                 mediaItem = song.asMediaItem,
+                                                onGoToAlbum = onAlbumClick,
+                                                onGoToArtist = onArtistClick
+                                            )
+                                        }
+                                    }
+                                )
+                            }
+                        },
+                        itemPlaceholderContent = { ListItemPlaceholder() }
+                    )
+                }
+
+                stringResource(R.string.videos) -> {
+                    ItemsPage(
+                        tag = "searchResults/$query/videos",
+                        itemsPageProvider = { continuation ->
+                            if (continuation == null) {
+                                Innertube.searchPage(
+                                    query = query,
+                                    params = Innertube.SearchFilter.Video.value,
+                                    fromMusicShelfRendererContent = Innertube.VideoItem::from
+                                )
+                            } else {
+                                Innertube.searchPage(
+                                    continuation = continuation,
+                                    fromMusicShelfRendererContent = Innertube.VideoItem::from
+                                )
+                            }
+                        },
+                        emptyItemsText = emptyItemsText,
+                        itemContent = { video, _, _ ->
+                            SwipeToActionBox(
+                                modifier = Modifier.animateItem(),
+                                primaryAction = ActionInfo(
+                                    onClick = { binder?.player?.enqueue(video.asMediaItem) },
+                                    icon = Icons.AutoMirrored.Outlined.PlaylistPlay,
+                                    description = R.string.enqueue
+                                )
+                            ) {
+                                VideoItem(
+                                    video = video,
+                                    onClick = {
+                                        binder?.stopRadio()
+                                        binder?.player?.forcePlay(video.asMediaItem)
+                                        binder?.setupRadio(video.info?.endpoint)
+                                    },
+                                    onLongClick = {
+                                        menuState.display {
+                                            NonQueuedMediaItemMenu(
+                                                onDismiss = menuState::hide,
+                                                mediaItem = video.asMediaItem,
                                                 onGoToAlbum = onAlbumClick,
                                                 onGoToArtist = onArtistClick
                                             )

@@ -24,11 +24,13 @@ import com.github.soundpod.ui.styling.overlay
 
 @Composable
 fun VideoItem(
+    modifier: Modifier = Modifier,
     video: Innertube.VideoItem,
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
     ListItemContainer(
+        modifier = modifier,
         title = video.info?.name ?: "",
         subtitle = if (video.authors.isNullOrEmpty()) {
             video.viewsText ?: ""
@@ -37,8 +39,7 @@ fun VideoItem(
         },
         onClick = onClick,
         onLongClick = onLongClick,
-        maxLines = 2,
-        thumbnail = {
+        thumbnail = { size ->
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -46,7 +47,7 @@ fun VideoItem(
                 Icon(
                     painter = painterResource(R.drawable.app_icon),
                     contentDescription = null,
-                    modifier = Modifier.size(32.dp),
+                    modifier = Modifier.size(size / 2),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                 )
                 AsyncImage(
@@ -77,7 +78,7 @@ fun VideoItem(
                 }
             }
         },
-        thumbnailHeight = 64.dp,
-        thumbnailAspectRatio = 16F / 9F
+        thumbnailHeight = 56.dp,
+        thumbnailAspectRatio = 1F
     )
 }

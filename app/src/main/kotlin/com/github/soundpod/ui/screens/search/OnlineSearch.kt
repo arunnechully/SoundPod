@@ -39,6 +39,7 @@ import com.github.soundpod.ui.items.AlbumItem
 import com.github.soundpod.ui.items.ArtistItem
 import com.github.soundpod.ui.items.PlaylistItem
 import com.github.soundpod.ui.items.SongItem
+import com.github.soundpod.ui.items.VideoItem
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlay
 
@@ -49,6 +50,7 @@ fun OnlineSearch(
     songResults: List<Innertube.SongItem>?,
     albumResults: List<Innertube.AlbumItem>?,
     artistResults: List<Innertube.ArtistItem>?,
+    videoResults: List<Innertube.VideoItem>?,
     playlistResults: List<Innertube.PlaylistItem>?,
     isLoading: Boolean,
     onAlbumClick: (String) -> Unit,
@@ -113,6 +115,43 @@ fun OnlineSearch(
                                             NonQueuedMediaItemMenu(
                                                 onDismiss = menuState::hide,
                                                 mediaItem = song.asMediaItem,
+                                                onGoToAlbum = onAlbumClick,
+                                                onGoToArtist = onArtistClick
+                                            )
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Videos Section
+            if (videoResults?.isNotEmpty() == true) {
+                item(span = { GridItemSpan(maxCurrentLineSpan) }) {
+                    SearchSectionHeader(
+                        title = stringResource(R.string.videos),
+                        onViewAllClick = onViewAllClick,
+                        colorPalette = colorPalette
+                    )
+                }
+                item(span = { GridItemSpan(maxCurrentLineSpan) }) {
+                    SettingsCard {
+                        Column {
+                            videoResults.forEach { video ->
+                                VideoItem(
+                                    video = video,
+                                    onClick = {
+                                        binder?.stopRadio()
+                                        binder?.player?.forcePlay(video.asMediaItem)
+                                        binder?.setupRadio(video.info?.endpoint)
+                                    },
+                                    onLongClick = {
+                                        menuState.display {
+                                            NonQueuedMediaItemMenu(
+                                                onDismiss = menuState::hide,
+                                                mediaItem = video.asMediaItem,
                                                 onGoToAlbum = onAlbumClick,
                                                 onGoToArtist = onArtistClick
                                             )

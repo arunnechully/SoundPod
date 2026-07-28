@@ -2,7 +2,6 @@ package com.github.innertube.models
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonNames
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
@@ -11,8 +10,9 @@ data class ContinuationResponse(
 ) {
     @Serializable
     data class ContinuationContents(
-        @JsonNames("musicPlaylistShelfContinuation")
-        val musicShelfContinuation: MusicShelfRenderer?,
-        val playlistPanelContinuation: NextResponse.MusicQueueRenderer.Content.PlaylistPanelRenderer?,
+        val musicShelfContinuation: MusicShelfRenderer? = null,
+        val musicPlaylistShelfContinuation: MusicPlaylistShelfRenderer? = null,
+        val sectionListContinuation: SectionListRenderer? = null,
+        val playlistPanelContinuation: NextResponse.MusicQueueRenderer.Content.PlaylistPanelRenderer? = null,
     )
 }

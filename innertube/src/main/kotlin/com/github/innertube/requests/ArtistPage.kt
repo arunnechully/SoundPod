@@ -8,6 +8,7 @@ import com.github.innertube.models.BrowseResponse
 import com.github.innertube.models.MusicCarouselShelfRenderer
 import com.github.innertube.models.MusicPlaylistShelfRenderer
 import com.github.innertube.models.MusicShelfRenderer
+import com.github.innertube.models.NavigationEndpoint
 import com.github.innertube.models.SectionListRenderer
 import com.github.innertube.models.bodies.BrowseBody
 import com.github.innertube.utils.findSectionByTitle
@@ -41,6 +42,13 @@ suspend fun Innertube.artistPage(browseId: String): Result<Innertube.ArtistPage>
             ?.musicImmersiveHeaderRenderer
             ?.title
             ?.text)
+
+        val tabs = (response.contents?.singleColumnBrowseResultsRenderer?.tabs
+            ?: response.contents?.twoColumnBrowseResultsRenderer?.tabs)
+
+        fun findTabEndpoint(text: String): NavigationEndpoint? {
+            return tabs?.find { it.tabRenderer?.title?.equals(text, ignoreCase = true) == true }?.tabRenderer?.navigationEndpoint
+        }
 
         val songsSection = (findSectionByTitle("Top songs")
             ?: findSectionByTitle("Songs"))
@@ -99,31 +107,33 @@ suspend fun Innertube.artistPage(browseId: String): Result<Innertube.ArtistPage>
                     ?.contents
                     ?.mapNotNull(MusicPlaylistShelfRenderer.Content::musicResponsiveListItemRenderer)
                     ?.mapNotNull { Innertube.SongItem.from(it) },
-            songsEndpoint = songsShelf
-                ?.bottomEndpoint
-                ?.browseEndpoint,
+            songsEndpoint = findTabEndpoint("Songs")?.browseEndpoint
+                ?: findTabEndpoint("Tracks")?.browseEndpoint
+                ?: songsShelf?.bottomEndpoint?.browseEndpoint,
             albums = albumsSection
                 ?.contents
                 ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicTwoRowItemRenderer)
                 ?.mapNotNull(Innertube.AlbumItem::from),
-            albumsEndpoint = albumsSection
-                ?.header
-                ?.musicCarouselShelfBasicHeaderRenderer
-                ?.moreContentButton
-                ?.buttonRenderer
-                ?.navigationEndpoint
-                ?.browseEndpoint,
+            albumsEndpoint = findTabEndpoint("Albums")?.browseEndpoint
+                ?: albumsSection
+                    ?.header
+                    ?.musicCarouselShelfBasicHeaderRenderer
+                    ?.moreContentButton
+                    ?.buttonRenderer
+                    ?.navigationEndpoint
+                    ?.browseEndpoint,
             singles = singlesSection
                 ?.contents
                 ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicTwoRowItemRenderer)
                 ?.mapNotNull(Innertube.AlbumItem::from),
-            singlesEndpoint = singlesSection
-                ?.header
-                ?.musicCarouselShelfBasicHeaderRenderer
-                ?.moreContentButton
-                ?.buttonRenderer
-                ?.navigationEndpoint
-                ?.browseEndpoint,
+            singlesEndpoint = findTabEndpoint("Singles")?.browseEndpoint
+                ?: singlesSection
+                    ?.header
+                    ?.musicCarouselShelfBasicHeaderRenderer
+                    ?.moreContentButton
+                    ?.buttonRenderer
+                    ?.navigationEndpoint
+                    ?.browseEndpoint,
             playlists = playlistsSection
                 ?.contents
                 ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicTwoRowItemRenderer)

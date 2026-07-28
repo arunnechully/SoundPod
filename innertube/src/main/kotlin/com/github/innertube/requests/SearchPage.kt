@@ -26,7 +26,7 @@ suspend fun <T : Innertube.Item> Innertube.searchPage(
         mask("contents.tabbedSearchResultsRenderer.tabs.tabRenderer.content.sectionListRenderer.contents.musicShelfRenderer(continuations,contents.$MUSIC_RESPONSIVE_LIST_ITEM_RENDERER_MASK)")
     }.body<SearchResponse>()
 
-    response
+    val sectionListRenderer = response
         .contents
         ?.tabbedSearchResultsRenderer
         ?.tabs
@@ -34,10 +34,21 @@ suspend fun <T : Innertube.Item> Innertube.searchPage(
         ?.tabRenderer
         ?.content
         ?.sectionListRenderer
-        ?.contents
-        ?.lastOrNull()
-        ?.musicShelfRenderer
-        ?.toItemsPage(fromMusicShelfRendererContent)
+
+    val allItems = mutableListOf<T>()
+    var continuation: String? = sectionListRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
+
+    sectionListRenderer?.contents?.forEach { content ->
+        content.musicShelfRenderer?.toItemsPage(fromMusicShelfRendererContent)?.let { page ->
+            page.items?.let { allItems.addAll(it) }
+            if (continuation == null) continuation = page.continuation
+        }
+    }
+
+    Innertube.ItemsPage(
+        items = allItems.takeIf { it.isNotEmpty() },
+        continuation = continuation
+    )
 }
 
 suspend fun <T : Innertube.Item> Innertube.searchPage(
@@ -46,13 +57,28 @@ suspend fun <T : Innertube.Item> Innertube.searchPage(
 ) = runCatchingNonCancellable {
     val response = client.post(SEARCH) {
         setBody(ContinuationBody(continuation = continuation))
-        mask("continuationContents.musicShelfContinuation(continuations,contents.$MUSIC_RESPONSIVE_LIST_ITEM_RENDERER_MASK)")
+        mask("continuationContents.musicShelfContinuation(continuations,contents.$MUSIC_RESPONSIVE_LIST_ITEM_RENDERER_MASK),continuationContents.sectionListContinuation")
     }.body<ContinuationResponse>()
 
-    response
-        .continuationContents
-        ?.musicShelfContinuation
-        ?.toItemsPage(fromMusicShelfRendererContent)
+    if (response.continuationContents?.musicShelfContinuation != null) {
+        return@runCatchingNonCancellable response.continuationContents.musicShelfContinuation.toItemsPage(fromMusicShelfRendererContent)
+    }
+
+    val sectionListRenderer = response.continuationContents?.sectionListContinuation
+    val allItems = mutableListOf<T>()
+    var nextContinuation: String? = sectionListRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
+
+    sectionListRenderer?.contents?.forEach { content ->
+        content.musicShelfRenderer?.toItemsPage(fromMusicShelfRendererContent)?.let { page ->
+            page.items?.let { allItems.addAll(it) }
+            if (nextContinuation == null) nextContinuation = page.continuation
+        }
+    }
+
+    Innertube.ItemsPage(
+        items = allItems.takeIf { it.isNotEmpty() },
+        continuation = nextContinuation
+    )
 }
 
 private fun <T : Innertube.Item> MusicShelfRenderer?.toItemsPage(mapper: (MusicShelfRenderer.Content) -> T?) =

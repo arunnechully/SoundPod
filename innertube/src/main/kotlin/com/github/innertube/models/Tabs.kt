@@ -12,9 +12,10 @@ data class Tabs(
     ) {
         @Serializable
         data class TabRenderer(
-            val content: Content?,
+            val content: Content? = null,
             val title: String?,
-            val tabIdentifier: String?
+            val tabIdentifier: String? = null,
+            val navigationEndpoint: NavigationEndpoint? = null
         ) {
             @Serializable
             data class Content(
