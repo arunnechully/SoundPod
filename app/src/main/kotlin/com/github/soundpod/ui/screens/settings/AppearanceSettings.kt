@@ -14,11 +14,13 @@ import com.github.soundpod.enums.ProgressBar
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.utils.HomeTab
 import com.github.soundpod.utils.TabStyle
+import com.github.soundpod.utils.appearanceUpdatedKey
 import com.github.soundpod.utils.appTheme
 import com.github.soundpod.utils.playerlayout
 import com.github.soundpod.utils.progressBarStyle
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.tabStyleKey
+import androidx.compose.runtime.LaunchedEffect
 
 @Composable
 fun AppearanceSettingsContent(
@@ -28,6 +30,12 @@ fun AppearanceSettingsContent(
     var progressBarStyle by rememberPreference(progressBarStyle, ProgressBar.Default )
     var playerlayout by rememberPreference(playerlayout, PlayerLayout.Default )
     var tabStyle by rememberPreference(tabStyleKey, TabStyle.Modern)
+
+    var isAppearanceUpdated by rememberPreference(appearanceUpdatedKey, false)
+
+    LaunchedEffect(Unit) {
+        isAppearanceUpdated = false
+    }
 
     val homeTabsVisibility = HomeTab.entries.associateWith { tab ->
         rememberPreference(tab.key, true)

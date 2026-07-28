@@ -16,9 +16,13 @@ import androidx.work.WorkerParameters
 import com.github.api.GitHub
 import com.github.soundpod.R
 import com.github.soundpod.SettingsActivity
+import com.github.soundpod.ui.common.UpdateStatus
 import com.github.soundpod.ui.common.showUpdateAlert
 import com.github.soundpod.ui.navigation.SettingsDestinations
+import com.github.soundpod.utils.preferences
+import com.github.soundpod.utils.updateAvailableKey
 import kotlinx.coroutines.flow.first
+import androidx.core.content.edit
 
 class UpdateCheckWorker(
     private val context: Context,
@@ -50,6 +54,7 @@ class UpdateCheckWorker(
             val currentVersion = packageInfo.versionName ?: "0"
 
             if (VersionUtils.isNewerVersion(latestVersion, currentVersion)) {
+                context.preferences.edit { putBoolean(updateAvailableKey, true) }
                 sendNotification(latestVersion)
             }
 

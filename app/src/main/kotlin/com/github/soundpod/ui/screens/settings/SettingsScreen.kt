@@ -21,6 +21,8 @@ import com.github.soundpod.ui.components.SettingsScreenLayout
 import com.github.soundpod.ui.navigation.SettingsDestinations
 import com.github.soundpod.ui.screens.player.AddToListScreen
 import com.github.soundpod.ui.screens.player.TrackDetails
+import com.github.soundpod.utils.appearanceUpdatedKey
+import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.viewmodels.SettingsViewModel
 
 @Composable
@@ -87,16 +89,19 @@ fun SettingsMainContent(
     viewModel: SettingsViewModel = viewModel()
 ) {
     val sections by viewModel.sections.collectAsStateWithLifecycle()
+    val isAppearanceUpdated by rememberPreference(appearanceUpdatedKey, false)
 
     Spacer(modifier = modifier.height(8.dp))
 
     sections.forEach { section ->
         SettingsCard {
             section.options.forEach { option ->
+                val showBadge = option.screenId == SettingsDestinations.APPEARANCE && isAppearanceUpdated
                 if (option.icon != null) {
                     SettingRow(
                         title = stringResource(id = option.title),
                         icon = IconSource.Vector(option.icon),
+                        showBadge = showBadge,
                         onClick = { onOptionClick(option.screenId) }
                     )
                 } else {
@@ -104,6 +109,7 @@ fun SettingsMainContent(
                         SettingRow(
                             title = stringResource(id = option.title),
                             icon = IconSource.Icon(painterResource(iconResId)),
+                            showBadge = showBadge,
                             onClick = { onOptionClick(option.screenId) }
                         )
                     }

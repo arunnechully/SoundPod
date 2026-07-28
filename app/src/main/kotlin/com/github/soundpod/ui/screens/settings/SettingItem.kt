@@ -2,6 +2,7 @@ package com.github.soundpod.ui.screens.settings
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -15,6 +16,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -29,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
@@ -215,6 +219,7 @@ fun SettingRow(
     icon: IconSource? = null,
     iconColor: Color = LocalAppearance.current.colorPalette.text,
     titleColor: Color = LocalAppearance.current.colorPalette.text,
+    showBadge: Boolean = false,
     onClick: () -> Unit,
 ) {
     Row(
@@ -226,22 +231,29 @@ fun SettingRow(
         verticalAlignment = verticalAlignment
     ) {
 
-        when (icon) {
-            is IconSource.Vector -> Icon(
-                imageVector = icon.imageVector,
-                contentDescription = title,
-                tint = iconColor,
-                modifier = Modifier.size(28.dp)
-            )
+        Box(contentAlignment = Alignment.TopEnd) {
+            when (icon) {
+                is IconSource.Vector -> Icon(
+                    imageVector = icon.imageVector,
+                    contentDescription = title,
+                    tint = iconColor,
+                    modifier = Modifier.size(28.dp)
+                )
 
-            is IconSource.Icon -> Icon(
-                painter = icon.painter,
-                contentDescription = title,
-                tint = iconColor,
-                modifier = Modifier.size(28.dp),
-            )
+                is IconSource.Icon -> Icon(
+                    painter = icon.painter,
+                    contentDescription = title,
+                    tint = iconColor,
+                    modifier = Modifier.size(28.dp),
+                )
 
-            null -> {}
+                null -> {}
+            }
+            if (showBadge) {
+                androidx.compose.foundation.Canvas(modifier = Modifier.size(8.dp)) {
+                    drawCircle(color = Color.Red)
+                }
+            }
         }
 
         Column {

@@ -35,6 +35,8 @@ import com.github.soundpod.ui.common.UpdateStatus
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SwitchSetting
 import com.github.soundpod.ui.styling.Dimensions
+import com.github.soundpod.utils.rememberPreference
+import com.github.soundpod.utils.updateAvailableKey
 import com.github.soundpod.viewmodels.AboutViewModel
 
 @Composable
@@ -43,6 +45,12 @@ fun AboutSettingsContent(
 ) {
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
+
+    var updateAvailable by rememberPreference(updateAvailableKey, false)
+
+    LaunchedEffect(Unit) {
+        updateAvailable = false
+    }
 
     // Collect States from ViewModel
     val updateStatus by viewModel.updateStatus.collectAsState()

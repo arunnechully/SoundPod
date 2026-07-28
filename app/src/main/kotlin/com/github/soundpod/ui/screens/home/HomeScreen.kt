@@ -5,15 +5,19 @@ package com.github.soundpod.ui.screens.home
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.OutlinedButton
@@ -41,8 +45,10 @@ import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.ui.screens.favorites.FavoritesScreen
 import com.github.soundpod.utils.HomeTab
 import com.github.soundpod.utils.TabStyle
+import com.github.soundpod.utils.appearanceUpdatedKey
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.tabStyleKey
+import com.github.soundpod.utils.updateAvailableKey
 import com.github.soundpod.viewmodels.home.HomeViewModel
 
 @Composable
@@ -51,6 +57,10 @@ fun HomeScreen(
     onSettingsClick: () -> Unit,
 ) {
     val tabStyle by rememberPreference(tabStyleKey, TabStyle.Modern)
+    val updateAvailable by rememberPreference(updateAvailableKey, false)
+    val appearanceUpdated by rememberPreference(appearanceUpdatedKey, false)
+
+    val showSettingsBadge = updateAvailable || appearanceUpdated
 
     val activeTabs = HomeTab.entries.filter { tab ->
         rememberPreference(tab.key, true).value
@@ -102,11 +112,22 @@ fun HomeScreen(
                 onClick = onSettingsClick,
                 border = BorderStroke(1.dp, Color.Gray)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = "Settings",
-                    tint = colorPalette.text
-                )
+                BadgedBox(
+                    badge = {
+                        if (showSettingsBadge) {
+                            Badge(
+                                modifier = Modifier.size(8.dp),
+                                containerColor = Color.Red
+                            )
+                        }
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Settings",
+                        tint = colorPalette.text
+                    )
+                }
             }
         }
     ) {
