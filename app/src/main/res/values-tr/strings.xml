@@ -324,6 +324,10 @@
     <string name="beta_updates">Early access (Beta)</string>
     <string name="beta_updates_description">Enable to receive preview builds.</string>
     <string name="player_style">Player Style</string>
+    <string name="tab_style">Tab Style</string>
+    <string name="modern">Modern</string>
+    <string name="classic">Classic</string>
+    <string name="home_screen_tabs">Home Screen Tabs</string>
     <string name="track_details">Track details</string>
     <string name="album">Album</string>
     <string name="clear_image_cache">Are you sure you want to clear the image cache? This action cannot be undone.</string>
@@ -346,4 +350,7 @@
     <string name="no_favorites_description">Tap the heart icon on songs, albums, or artists to add them to your favorites.</string>
     <string name="defualt">Default</string>
     <string name="view_artist">View Artist</string>
+    <string name="added_to_playlist">Added to playlist</string>
+    <string name="playlist_place_holder">You don\'t have any playlists yet \nCreate one to get started</string>
+    <string name="no_song_playing">No song playing</string>
 </resources>
