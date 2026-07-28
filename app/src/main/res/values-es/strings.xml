@@ -324,6 +324,10 @@
     <string name="beta_updates">Acceso anticipado (Beta)</string>
     <string name="beta_updates_description">Habilitar para recibir versiones preliminares.</string>
     <string name="player_style">Estilo del reproductor</string>
+    <string name="tab_style">Tab Style</string>
+    <string name="modern">Modern</string>
+    <string name="classic">Classic</string>
+    <string name="home_screen_tabs">Home Screen Tabs</string>
     <string name="track_details">Detalles de la pista</string>
     <string name="album">Álbum</string>
     <string name="clear_image_cache">¿Está seguro de que desea borrar la caché de imágenes? Esta acción no se puede deshacer.</string>
@@ -346,4 +350,7 @@
     <string name="no_favorites_description">Toca el icono del corazón en canciones, álbumes o artistas para añadirlos a tus favoritos.</string>
     <string name="defualt">Por defecto</string>
     <string name="view_artist">Ver artista</string>
+    <string name="added_to_playlist">Added to playlist</string>
+    <string name="playlist_place_holder">You don\'t have any playlists yet \nCreate one to get started</string>
+    <string name="no_song_playing">No song playing</string>
 </resources>
