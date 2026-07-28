@@ -324,10 +324,10 @@
     <string name="beta_updates">Accès anticipé (Bêta)</string>
     <string name="beta_updates_description">Activer la réception des versions préliminaires.</string>
     <string name="player_style">Style de lecteur</string>
-    <string name="tab_style">Tab Style</string>
-    <string name="modern">Modern</string>
-    <string name="classic">Classic</string>
-    <string name="home_screen_tabs">Home Screen Tabs</string>
+    <string name="tab_style">Style d\'onglet</string>
+    <string name="modern">Moderne</string>
+    <string name="classic">Classique</string>
+    <string name="home_screen_tabs">Onglets de l\'écran d\'accueil</string>
     <string name="track_details">Détails du morceau</string>
     <string name="album">Album</string>
     <string name="clear_image_cache">Êtes-vous sûr de vouloir vider le cache des images ? Cette action ne peut pas être annulée.</string>
@@ -350,7 +350,7 @@
     <string name="no_favorites_description">Appuyez sur l\'icône en forme de cœur à côté des titres, des albums ou des artistes pour les ajouter à vos favoris.</string>
     <string name="defualt">Par défaut</string>
     <string name="view_artist">Voir l\'Artiste</string>
-    <string name="added_to_playlist">Added to playlist</string>
-    <string name="playlist_place_holder">You don\'t have any playlists yet \nCreate one to get started</string>
-    <string name="no_song_playing">No song playing</string>
+    <string name="added_to_playlist">Ajouté à la playlist</string>
+    <string name="playlist_place_holder">Vous n\'avez pas encore de playlist. \nCréez-en une pour commencer</string>
+    <string name="no_song_playing">Aucun titre n\'est en cours de lecture</string>
 </resources>
