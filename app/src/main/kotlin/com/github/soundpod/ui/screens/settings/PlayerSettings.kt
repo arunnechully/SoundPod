@@ -11,6 +11,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.painterResource
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.ui.res.stringResource
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerServiceBinder
@@ -27,6 +28,7 @@ import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.resumePlaybackWhenDeviceConnectedKey
 import com.github.soundpod.utils.skipSilenceKey
 import com.github.soundpod.utils.stopAfterCurrentKey
+import com.github.soundpod.utils.toast
 import com.github.soundpod.utils.volumeNormalizationKey
 import java.util.Locale
 
@@ -34,6 +36,7 @@ import java.util.Locale
 fun PlayerSettingsContent(
     onSleepTimerClick: () -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val binder = LocalPlayerServiceBinder.current
     val sleepTimerMillisLeft by (binder?.sleepTimerMillisLeft
         ?: kotlinx.coroutines.flow.flowOf(null)).collectAsState(initial = null)
@@ -49,6 +52,8 @@ fun PlayerSettingsContent(
     var playSpeed by rememberPreference(playbackSpeedKey, 1f)
     var playPitch by rememberPreference(playbackPitchKey, 1f)
     var pauseOnAppClose by rememberPreference(pauseOnAppCloseKey, false)
+
+    val clearQueueString = stringResource(R.string.clear_queue)
 
     SettingsGroup(
         title = stringResource(R.string.play_back)
@@ -82,6 +87,16 @@ fun PlayerSettingsContent(
                 persistentQueue = it
             }
         )
+//        AnimatedVisibility(visible = persistentQueue) {
+//            SettingsColumn(
+//                icon = IconSource.Vector(Icons.Default.MusicOff),
+//                title = stringResource(R.string.clear_queue),
+//                onClick = {
+//                    binder?.clearPersistentQueue()
+//                    context.toast(clearQueueString)
+//                }
+//            )
+//        }
 
         SwitchSetting(
             icon = IconSource.Vector(Icons.Default.MusicOff),

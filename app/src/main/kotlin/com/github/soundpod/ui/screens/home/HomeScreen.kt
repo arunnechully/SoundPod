@@ -5,7 +5,6 @@ package com.github.soundpod.ui.screens.home
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -25,7 +24,6 @@ import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -35,12 +33,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.ui.components.ClassicHorizontalTabs
 import com.github.soundpod.ui.components.HorizontalTabs
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SettingsScreenLayout
-import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.ui.screens.favorites.FavoritesScreen
 import com.github.soundpod.utils.HomeTab
@@ -49,7 +46,6 @@ import com.github.soundpod.utils.appearanceUpdatedKey
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.tabStyleKey
 import com.github.soundpod.utils.updateAvailableKey
-import com.github.soundpod.viewmodels.home.HomeViewModel
 
 @Composable
 fun HomeScreen(

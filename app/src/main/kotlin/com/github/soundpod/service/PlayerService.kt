@@ -52,6 +52,7 @@ import com.github.soundpod.utils.preferences
 import com.github.soundpod.utils.queueLoopEnabledKey
 import com.github.soundpod.utils.resumePlaybackWhenDeviceConnectedKey
 import com.github.soundpod.utils.shouldBePlaying
+import com.github.soundpod.utils.shuffleModeEnabledKey
 import com.github.soundpod.utils.skipSilenceKey
 import com.github.soundpod.utils.stopAfterCurrentKey
 import com.github.soundpod.utils.trackLoopEnabledKey
@@ -194,6 +195,7 @@ class PlayerService : InvincibleService(), Player.Listener,
             else -> Player.REPEAT_MODE_OFF
         }
 
+        player.shuffleModeEnabled = preferences.getBoolean(shuffleModeEnabledKey, false)
         player.skipSilenceEnabled = preferences.getBoolean(skipSilenceKey, false)
         player.pauseAtEndOfMediaItems = preferences.getBoolean(stopAfterCurrentKey, false)
         player.playbackParameters = androidx.media3.common.PlaybackParameters(
@@ -296,6 +298,7 @@ class PlayerService : InvincibleService(), Player.Listener,
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         mediaItemState.update { mediaItem }
+        queueManager.saveQueue(isPersistentQueueEnabled)
 
         maybeRecoverPlaybackError()
         audioEffectManager.maybeNormalizeVolume()
@@ -443,6 +446,10 @@ class PlayerService : InvincibleService(), Player.Listener,
             updatePlaybackState()
         }
 
+        if (events.contains(Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED)) {
+            preferences.edit { putBoolean(shuffleModeEnabledKey, player.shuffleModeEnabled) }
+        }
+
         //Widget updates
         if (events.containsAny(
                 Player.EVENT_PLAYBACK_STATE_CHANGED,
@@ -461,6 +468,9 @@ class PlayerService : InvincibleService(), Player.Listener,
                 Player.EVENT_POSITION_DISCONTINUITY
             )
         ) {
+            if (events.contains(Player.EVENT_PLAY_WHEN_READY_CHANGED) && !player.playWhenReady) {
+                queueManager.saveQueue(isPersistentQueueEnabled)
+            }
             val notification = notification()
 
             if (notification == null) {
@@ -517,6 +527,13 @@ class PlayerService : InvincibleService(), Player.Listener,
             persistentQueueKey -> if (sharedPreferences != null) {
                 isPersistentQueueEnabled =
                     sharedPreferences.getBoolean(key, isPersistentQueueEnabled)
+                if (isPersistentQueueEnabled) {
+                    queueManager.saveQueue(true)
+                }
+            }
+
+            shuffleModeEnabledKey -> if (sharedPreferences != null) {
+                player.shuffleModeEnabled = sharedPreferences.getBoolean(key, false)
             }
 
             volumeNormalizationKey -> audioEffectManager.maybeNormalizeVolume()
@@ -599,6 +616,8 @@ class PlayerService : InvincibleService(), Player.Listener,
         val sleepTimerMillisLeft get() = this@PlayerService.sleepTimerManager.millisLeft
 
         val cacheChanges get() = this@PlayerService.cacheManager.cacheChanges
+
+        fun clearPersistentQueue() = this@PlayerService.queueManager.clearQueue()
 
         fun startSleepTimer(delay: Long) = sleepTimerManager.startTimer(delay)
         fun cancelSleepTimer() = sleepTimerManager.cancelTimer()

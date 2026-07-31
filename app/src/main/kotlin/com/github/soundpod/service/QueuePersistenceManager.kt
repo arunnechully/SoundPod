@@ -38,6 +38,12 @@ class QueuePersistenceManager(
         }
     }
 
+    fun clearQueue() {
+        query {
+            db.clearQueue()
+        }
+    }
+
     @OptIn(UnstableApi::class)
     fun restoreQueue(isEnabled: Boolean) {
         if (!isEnabled) return
