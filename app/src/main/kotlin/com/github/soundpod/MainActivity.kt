@@ -142,7 +142,9 @@ class MainActivity : ComponentActivity() {
                     externalCacheDir?.listFiles()?.forEach {
                         if (it.name.startsWith("update_") && it.name.endsWith(".apk")) it.delete()
                     }
-                    setupUpdateWorker()
+                    if (BuildConfig.ENABLE_UPDATER) {
+                        setupUpdateWorker()
+                    }
                 }
                 reportFullyDrawn()
             }

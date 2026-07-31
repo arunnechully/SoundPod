@@ -11,18 +11,18 @@ import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.edit
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.github.api.GitHub
+import com.github.soundpod.BuildConfig
 import com.github.soundpod.R
 import com.github.soundpod.SettingsActivity
-import com.github.soundpod.ui.common.UpdateStatus
 import com.github.soundpod.ui.common.showUpdateAlert
 import com.github.soundpod.ui.navigation.SettingsDestinations
 import com.github.soundpod.utils.preferences
 import com.github.soundpod.utils.updateAvailableKey
 import kotlinx.coroutines.flow.first
-import androidx.core.content.edit
 
 class UpdateCheckWorker(
     private val context: Context,
@@ -30,6 +30,9 @@ class UpdateCheckWorker(
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
+        if (!BuildConfig.ENABLE_UPDATER) {
+            return Result.success()
+        }
 
         val isShowAlertEnabled = showUpdateAlert(context).first()
 
