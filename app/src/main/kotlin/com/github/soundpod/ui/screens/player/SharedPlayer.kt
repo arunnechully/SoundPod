@@ -144,6 +144,13 @@ fun SharedPlayer(
         }
     }
 
+    LaunchedEffect(player) {
+        if (player == null && targetExpandProgress > 0f) {
+            targetExpandProgress = 0f
+            scope.launch { sheetState.partialExpand() }
+        }
+    }
+
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val density = LocalDensity.current
         val exactScreenHeight = maxHeight
@@ -183,7 +190,7 @@ fun SharedPlayer(
                     .alpha(if (expandProgress > 0f) 0f else 1f)
             )
 
-            val dragGestureModifier = if (showPlaylist || showLyrics || !hasMediaItems) {
+            val dragGestureModifier = if ((showPlaylist || showLyrics) || (!hasMediaItems && expandProgress == 0f)) {
                 Modifier
             } else {
                 Modifier.pointerInput(screenHeightPx) {

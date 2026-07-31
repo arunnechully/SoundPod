@@ -70,21 +70,20 @@ fun MainPlayerContent(
     showLyrics: Boolean
 ) {
     val binder = LocalPlayerServiceBinder.current
-    val player = binder?.player ?: return
+    val player = binder?.player
 
-    val playlistViewModel = remember(player) { PlaylistViewModel(player) }
+    val playlistViewModel = remember(player) { player?.let { PlaylistViewModel(it) } }
+    val playerViewModel = remember(player) { player?.let { PlayerViewModel(it) } }
 
-    val playerViewModel = remember(player) { PlayerViewModel(player) }
+    val uiState by playerViewModel?.uiState?.collectAsState() ?: remember { mutableStateOf(null) }
 
-    val uiState by playerViewModel.uiState.collectAsState()
-
-    val mediaItem = uiState.mediaItem ?: return
-    val artistId = uiState.artistId
-    val isSingleArtist = uiState.isSingleArtist
-    val albumId = uiState.albumId
-    val shouldBePlaying = uiState.playWhenReady && uiState.playbackState != Player.STATE_ENDED
-    val currentPositionMs = uiState.currentPositionMs
-    val durationMs = uiState.durationMs
+    val mediaItem = uiState?.mediaItem
+    val artistId = uiState?.artistId
+    val isSingleArtist = uiState?.isSingleArtist ?: false
+    val albumId = uiState?.albumId
+    val shouldBePlaying = (uiState?.playWhenReady ?: false) && uiState?.playbackState != Player.STATE_ENDED
+    val currentPositionMs = uiState?.currentPositionMs ?: 0L
+    val durationMs = uiState?.durationMs ?: 0L
 
     val handleGoToAlbum: (String) -> Unit = remember(onGoToAlbum, onBack) {
         { id -> onBack(); onGoToAlbum(id) }
@@ -130,7 +129,7 @@ fun MainPlayerContent(
                         .weight(1f)
                         .fillMaxHeight()
                 ) {
-                    if (showPlaylist) {
+                    if (showPlaylist && playlistViewModel != null) {
                         PlaylistOverlay(
                             viewModel = playlistViewModel,
                             modifier = Modifier
@@ -139,7 +138,7 @@ fun MainPlayerContent(
                             onGoToAlbum = handleGoToAlbum,
                             onGoToArtist = handleGoToArtist
                         )
-                    } else if (showLyrics) {
+                    } else if (showLyrics && mediaItem != null) {
                         LyricsOverlay(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -194,20 +193,20 @@ fun MainPlayerContent(
                                 PlayerMiddleControl(
                                     showPlaylist = false,
                                     onTogglePlaylist = onTogglePlaylist,
-                                    mediaId = mediaItem.mediaId,
+                                    mediaId = mediaItem?.mediaId ?: "",
                                     onAddToPlaylist = onAddToPlaylist
                                 )
                             } else {
                                 PlayerControlBottom(
                                     shouldBePlaying = shouldBePlaying,
-                                    onPlayPauseClick = { playerViewModel.togglePlayPause() }
+                                    onPlayPauseClick = { playerViewModel?.togglePlayPause() }
                                 )
                             }
                         }
                     }
 
                     PlayerSeekBar(
-                        mediaId = mediaItem.mediaId,
+                        mediaId = mediaItem?.mediaId ?: "",
                         position = currentPositionMs,
                         duration = durationMs,
                         progressBarStyle = currentProgressStyle,
@@ -220,13 +219,13 @@ fun MainPlayerContent(
                     if (layoutMode == PlayerLayout.Default) {
                         PlayerControlBottom(
                             shouldBePlaying = shouldBePlaying,
-                            onPlayPauseClick = { playerViewModel.togglePlayPause() }
+                            onPlayPauseClick = { playerViewModel?.togglePlayPause() }
                         )
                     } else {
                         PlayerMiddleControl(
                             showPlaylist = false,
                             onTogglePlaylist = onTogglePlaylist,
-                            mediaId = mediaItem.mediaId,
+                            mediaId = mediaItem?.mediaId ?: "",
                             onAddToPlaylist = onAddToPlaylist
                         )
                     }
@@ -262,7 +261,7 @@ fun MainPlayerContent(
                 )
 
                 Box(Modifier.weight(1f)) {
-                    if (showPlaylist) {
+                    if (showPlaylist && playlistViewModel != null) {
 //                        Column {
                             PlaylistOverlay(
                                 viewModel = playlistViewModel,
@@ -272,7 +271,7 @@ fun MainPlayerContent(
                             )
 //                            Spacer(modifier = Modifier.height(26.dp))
 //                        }
-                    } else if (showLyrics) {
+                    } else if (showLyrics && mediaItem != null) {
 //                        Column {
                             LyricsOverlay(
 //                                modifier = Modifier.weight(1f),
@@ -323,13 +322,13 @@ fun MainPlayerContent(
                                     PlayerMiddleControl(
                                         showPlaylist = false,
                                         onTogglePlaylist = onTogglePlaylist,
-                                        mediaId = mediaItem.mediaId,
+                                        mediaId = mediaItem?.mediaId ?: "",
                                         onAddToPlaylist = onAddToPlaylist
                                     )
                                 } else {
                                     PlayerControlBottom(
                                         shouldBePlaying = shouldBePlaying,
-                                        onPlayPauseClick = { playerViewModel.togglePlayPause() }
+                                        onPlayPauseClick = { playerViewModel?.togglePlayPause() }
                                     )
                                 }
                             }
@@ -340,7 +339,7 @@ fun MainPlayerContent(
                 Spacer(modifier = Modifier.height(Dimensions.spacer))
 
                 PlayerSeekBar(
-                    mediaId = mediaItem.mediaId,
+                    mediaId = mediaItem?.mediaId ?: "",
                     position = currentPositionMs,
                     duration = durationMs,
                     progressBarStyle = currentProgressStyle,
@@ -353,13 +352,13 @@ fun MainPlayerContent(
                 if (layoutMode == PlayerLayout.Default) {
                     PlayerControlBottom(
                         shouldBePlaying = shouldBePlaying,
-                        onPlayPauseClick = { playerViewModel.togglePlayPause() }
+                        onPlayPauseClick = { playerViewModel?.togglePlayPause() }
                     )
                 } else {
                     PlayerMiddleControl(
                         showPlaylist = false,
                         onTogglePlaylist = onTogglePlaylist,
-                        mediaId = mediaItem.mediaId,
+                        mediaId = mediaItem?.mediaId ?: "",
                         onAddToPlaylist = onAddToPlaylist
                     )
                 }

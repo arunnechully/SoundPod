@@ -677,14 +677,13 @@ fun PlayerTopControl(
 ) {
     val (colorPalette) = LocalAppearance.current
     val binder = LocalPlayerServiceBinder.current
-    binder?.player ?: return
 
     val context = LocalContext.current
 
     val activityResultLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { }
 
-    val sleepTimerMillisLeft by binder.sleepTimerMillisLeft.collectAsState(initial = null)
+    val sleepTimerMillisLeft by binder?.sleepTimerMillisLeft?.collectAsState(initial = null) ?: remember { mutableStateOf(null) }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -756,16 +755,18 @@ fun PlayerTopControl(
 
         IconButton(
             onClick = {
-                val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
-                    putExtra(AudioEffect.EXTRA_AUDIO_SESSION, binder.player.audioSessionId)
-                    putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
-                    putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
-                }
+                binder?.player?.audioSessionId?.let { sessionId ->
+                    val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
+                        putExtra(AudioEffect.EXTRA_AUDIO_SESSION, sessionId)
+                        putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
+                        putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
+                    }
 
-                try {
-                    activityResultLauncher.launch(intent)
-                } catch (_: ActivityNotFoundException) {
-                    context.toast("Couldn't find an application to equalize audio")
+                    try {
+                        activityResultLauncher.launch(intent)
+                    } catch (_: ActivityNotFoundException) {
+                        context.toast("Couldn't find an application to equalize audio")
+                    }
                 }
             }
         ) {

@@ -75,7 +75,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
-import kotlin.system.exitProcess
 import android.os.Binder as AndroidBinder
 
 @androidx.annotation.OptIn(UnstableApi::class)
@@ -226,8 +225,9 @@ class PlayerService : InvincibleService(), Player.Listener,
         )
 
         sleepTimerManager = SleepTimerManager(this, coroutineScope, playerNotificationManager.notificationManager) {
+            player.pause()
+            stopForeground(true)
             stopSelf()
-            exitProcess(0)
         }
 
         queueManager = QueuePersistenceManager(player, coroutineScope) {

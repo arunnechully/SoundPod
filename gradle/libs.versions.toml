@@ -5,7 +5,7 @@ brotli = "0.1.2"
 coil = "3.5.0"
 compose-bom = "2026.06.01"
 compose-shimmer = "1.5.0"
-datastore-preferences = "1.3.0-alpha09"
+datastore-preferences = "1.3.0-alpha10"
 desugaring = "2.1.5"
 
 glance-appwidget = "1.1.1"

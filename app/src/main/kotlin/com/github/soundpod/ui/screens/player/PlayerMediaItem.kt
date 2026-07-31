@@ -36,14 +36,14 @@ fun PlayerMediaItem(
     onGoToArtist: (() -> Unit)?,
 ) {
     val binder = LocalPlayerServiceBinder.current
-    val player = binder?.player ?: return
+    val player = binder?.player
 
-    var currentItem by remember {
-        mutableStateOf(player.currentMediaItem, neverEqualPolicy())
+    var currentItem by remember(player) {
+        mutableStateOf(player?.currentMediaItem, neverEqualPolicy())
     }
 
     // Update when player changes
-    player.DisposableListener {
+    player?.DisposableListener {
         object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 currentItem = mediaItem
@@ -58,8 +58,6 @@ fun PlayerMediaItem(
         1f to Color.Transparent
     )
 
-    val mediaItem = currentItem ?: return
-
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -68,7 +66,7 @@ fun PlayerMediaItem(
     ) {
         // TITLE
         Text(
-            text = mediaItem.mediaMetadata.title?.toString().orEmpty(),
+            text = currentItem?.mediaMetadata?.title?.toString() ?: "No song playing",
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.basicMarquee(),
             style = MaterialTheme.typography.titleMedium.copy(
@@ -84,7 +82,7 @@ fun PlayerMediaItem(
             modifier = Modifier
                 .clip(RoundedCornerShape(12.dp))
                 .clickable(
-                    enabled = onGoToArtist != null,
+                    enabled = onGoToArtist != null && currentItem != null,
                     onClick = onGoToArtist ?: {}
                 )
                 .fadingEdge(fadingEdge)
@@ -92,7 +90,7 @@ fun PlayerMediaItem(
                 .padding(horizontal = 8.dp, vertical = 4.dp)
         ) {
             Text(
-                text = mediaItem.mediaMetadata.artist?.toString().orEmpty(),
+                text = currentItem?.mediaMetadata?.artist?.toString().orEmpty(),
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.bodyLarge,
                 maxLines = 1,

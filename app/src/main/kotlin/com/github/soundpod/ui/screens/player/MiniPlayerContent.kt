@@ -45,20 +45,20 @@ fun MiniPlayerContent(
     openPlayer: () -> Unit
 ) {
     val binder = LocalPlayerServiceBinder.current
-    val player = binder?.player ?: return
+    val player = binder?.player
     val (colorPalette) = LocalAppearance.current
 
-    var shouldBePlaying by remember { mutableStateOf(player.shouldBePlaying) }
+    var shouldBePlaying by remember(player) { mutableStateOf(player?.shouldBePlaying ?: false) }
 
-    var nullableMediaItem by remember {
-        mutableStateOf(player.currentMediaItem, neverEqualPolicy())
+    var nullableMediaItem by remember(player) {
+        mutableStateOf(player?.currentMediaItem, neverEqualPolicy())
     }
 
-    var position by remember { mutableLongStateOf(player.currentPosition) }
-    var duration by remember { mutableLongStateOf(player.duration) }
+    var position by remember(player) { mutableLongStateOf(player?.currentPosition ?: 0L) }
+    var duration by remember(player) { mutableLongStateOf(player?.duration ?: 0L) }
 
     LaunchedEffect(player, shouldBePlaying) {
-        if (shouldBePlaying) {
+        if (shouldBePlaying && player != null) {
             while (isActive) {
                 position = player.currentPosition
                 duration = player.duration
@@ -67,7 +67,7 @@ fun MiniPlayerContent(
         }
     }
 
-    player.DisposableListener {
+    player?.DisposableListener {
         object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 nullableMediaItem = mediaItem
@@ -133,7 +133,7 @@ fun MiniPlayerContent(
                 MiniPlayerControl(
                     playing = shouldBePlaying,
                     onClick = {
-                        if (nullableMediaItem != null) {
+                        if (player != null && nullableMediaItem != null) {
                             if (shouldBePlaying) {
                                 player.pause()
                             } else {
