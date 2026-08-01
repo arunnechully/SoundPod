@@ -6,16 +6,16 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -46,14 +46,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -62,11 +60,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.R
-import com.github.soundpod.utils.thumbnail
+import com.github.soundpod.utils.isLandscape
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -79,8 +76,6 @@ fun ParallaxScreenLayout(
     dropDownMenuContent: @Composable (ColumnScope.(dismissMenu: () -> Unit) -> Unit)? = null,
     isLoading: Boolean = false,
     thumbnailUrl: String? = null,
-    showThumbnail: Boolean = true,
-    headerCustomContent: @Composable (ColumnScope.() -> Unit)? = null,
     footerHeaderContent: @Composable (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
     onBackClick: (() -> Unit)? = null,
@@ -91,33 +86,70 @@ fun ParallaxScreenLayout(
     ) {
     val (colorPalette) = LocalAppearance.current
     val density = LocalDensity.current
+    val landscape = isLandscape
+
+    val statusBarHeight = with(density) { WindowInsets.statusBars.getTop(this).toDp() }
+    val topBarHeight = remember(statusBarHeight) { 64.dp + statusBarHeight }
+    val topBarHeightPx = with(density) { remember(topBarHeight) { topBarHeight.toPx() } }
 
     Scaffold(
         containerColor = colorPalette.background4,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         val playerPadding = LocalPlayerPadding.current
-        val statusBarHeight = WindowInsets.statusBars.asPaddingValues(density).calculateTopPadding()
-        val topBarHeight = 64.dp + statusBarHeight
-        val topBarHeightPx = with(density) { topBarHeight.toPx() }
 
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = innerPadding.calculateBottomPadding() + playerPadding)
+                .padding(bottom = innerPadding.calculateBottomPadding() + playerPadding),
         ) {
             val fullHeightPx = constraints.maxHeight.toFloat()
             // Dynamic peek height: approximately 45% of screen height, but with sensible bounds
-            val peekHeightPx = remember(fullHeightPx) {
-                (fullHeightPx * 0.42f).coerceIn(
-                    with(density) { 320.dp.toPx() },
-                    with(density) { 480.dp.toPx() }
-                )
+            val peekHeightPx = remember(fullHeightPx, landscape) {
+                if (landscape) {
+                    (fullHeightPx * 0.45f).coerceIn(
+                        with(density) { 160.dp.toPx() },
+                        with(density) { 240.dp.toPx() }
+                    )
+                } else {
+                    (fullHeightPx * 0.42f).coerceIn(
+                        with(density) { 320.dp.toPx() },
+                        with(density) { 480.dp.toPx() }
+                    )
+                }
             }
 
             var sheetOffset by remember(peekHeightPx) { mutableFloatStateOf(peekHeightPx) }
             val offsetAnimatable = remember { Animatable(sheetOffset) }
             val scope = rememberCoroutineScope()
+
+            val snapToTarget: suspend (velocity: Float) -> Unit = remember(peekHeightPx, topBarHeightPx) {
+                { velocityY ->
+                    val target = if (abs(velocityY) > 1000f) {
+                        if (velocityY < 0) topBarHeightPx else peekHeightPx
+                    } else {
+                        if (sheetOffset < ((peekHeightPx + topBarHeightPx) / 2)) {
+                            topBarHeightPx
+                        } else {
+                            peekHeightPx
+                        }
+                    }
+
+                    if (sheetOffset != target) {
+                        offsetAnimatable.snapTo(sheetOffset)
+                        offsetAnimatable.animateTo(
+                            targetValue = target,
+                            initialVelocity = velocityY,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioNoBouncy,
+                                stiffness = Spring.StiffnessLow
+                            )
+                        ) {
+                            sheetOffset = this.value
+                        }
+                    }
+                }
+            }
 
             val isAtTop by remember {
                 derivedStateOf { sheetOffset <= (topBarHeightPx + 2f) }
@@ -135,7 +167,7 @@ fun ParallaxScreenLayout(
                             scope.launch { offsetAnimatable.stop() }
                         }
 
-                        return if (delta < 0 && sheetOffset > topBarHeightPx) {
+                        return if (delta < 0 && (sheetOffset > topBarHeightPx)) {
                             val newOffset = (sheetOffset + delta).coerceAtLeast(topBarHeightPx)
                             val consumed = newOffset - sheetOffset
                             sheetOffset = newOffset
@@ -166,36 +198,13 @@ fun ParallaxScreenLayout(
                         available: Velocity
                     ): Velocity {
                         val velocityY = available.y
-                        val target = if (abs(velocityY) > 1000f) {
-                            if (velocityY < 0) topBarHeightPx else peekHeightPx
-                        } else {
-                            if (sheetOffset < (peekHeightPx + topBarHeightPx) / 2) {
-                                topBarHeightPx
-                            } else {
-                                peekHeightPx
-                            }
-                        }
-
-                        if (sheetOffset != target) {
-                            offsetAnimatable.snapTo(sheetOffset)
-                            offsetAnimatable.animateTo(
-                                targetValue = target,
-                                initialVelocity = velocityY,
-                                animationSpec = spring(
-                                    dampingRatio = Spring.DampingRatioNoBouncy,
-                                    stiffness = Spring.StiffnessLow
-                                )
-                            ) {
-                                sheetOffset = this.value
-                            }
-                            return Velocity(0f, velocityY)
-                        }
-                        return super.onPostFling(consumed, available)
+                        scope.launch { snapToTarget(velocityY) }
+                        return Velocity(0f, velocityY)
                     }
                 }
             }
 
-            var showDropDown by remember { mutableStateOf(false) }
+            var showDropDown by remember { mutableStateOf(value = false) }
 
             val progress by remember {
                 derivedStateOf {
@@ -213,88 +222,70 @@ fun ParallaxScreenLayout(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(with(density) { peekHeightPx.toDp() })
-                    .graphicsLayer {
-                        alpha = progress
-                        translationY = (sheetOffset - peekHeightPx) * 0.4f
-                    },
-                contentAlignment = Alignment.BottomCenter
+                    .draggable(
+                        orientation = Orientation.Vertical,
+                        state = rememberDraggableState { delta ->
+                            scope.launch { offsetAnimatable.stop() }
+                            val newOffset = (sheetOffset + delta).coerceIn(topBarHeightPx, peekHeightPx)
+                            sheetOffset = newOffset
+                        },
+                        onDragStopped = { velocity ->
+                            scope.launch { snapToTarget(velocity) }
+                        }
+                    ),
+                contentAlignment = Alignment.Center,
             ) {
-                // Background Thumbnail (Full Bleed)
-                AsyncImage(
-                    model = thumbnailUrl?.thumbnail(1024),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-
-                // Scrim for readability
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                0f to Color.Black.copy(alpha = 0.7f),
-                                0.2f to Color.Black.copy(alpha = 0.3f),
-                                0.5f to Color.Transparent,
-                                0.75f to colorPalette.background4.copy(alpha = 0.8f),
-                                1f to colorPalette.background4
-                            )
-                        )
-                )
-
                 Column(
+                    verticalArrangement = Arrangement.SpaceEvenly,
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 32.dp)
-                        .padding(horizontal = 24.dp)
+                        .padding(top = statusBarHeight)
+                        .graphicsLayer {
+                            alpha = progress
+                            val scale = 0.85f + (progress * 0.15f)
+                            scaleX = scale
+                            scaleY = scale
+                            translationY = (sheetOffset - peekHeightPx) * 0.5f
+                        }
                 ) {
-                    if (showThumbnail) {
-                        AdaptiveThumbnail(
-                            isLoading = isLoading,
-                            url = thumbnailUrl,
-                            modifier = Modifier.fillMaxWidth(0.55f)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
+                    AdaptiveThumbnail(
+                        isLoading = isLoading,
+                        url = thumbnailUrl,
+                        modifier = Modifier.fillMaxWidth(0.55f)
+                    )
                     Text(
                         text = headerTitle ?: "",
-                        style = typography.headlineSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            shadow = androidx.compose.ui.graphics.Shadow(
-                                color = Color.Black.copy(alpha = 0.3f),
-                                blurRadius = 8f,
-                                offset = Offset(2f, 2f)
-                            )
-                        ),
+                        style = typography.titleMedium.copy(fontWeight = FontWeight.Normal),
                         color = colorPalette.text,
                         textAlign = TextAlign.Center,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(0.50f)
                     )
-
-                    headerCustomContent?.invoke(this)
                 }
             }
 
-            Box(
+            Column(
                 modifier = Modifier
                     .offset { IntOffset(0, sheetOffset.roundToInt()) }
                     .fillMaxSize()
                     .nestedScroll(nestedScrollConnection)
             ) {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    footerHeaderContent?.invoke()
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        shape = shape,
-                        color = colorPalette.mainBackground,
-                        shadowElevation = ((1f - progress) * 12).dp
+                footerHeaderContent?.invoke()
+                Surface(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            shadowElevation = (1f - progress) * 8.dp.toPx()
+                            this.shape = shape
+                            clip = true
+                        },
+                    color = colorPalette.mainBackground,
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        Column(modifier = Modifier.fillMaxSize()) {
-                            content()
-                        }
+                        content()
                     }
                 }
             }
@@ -302,20 +293,17 @@ fun ParallaxScreenLayout(
             TopAppBar(
                 windowInsets = WindowInsets.statusBars,
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = if (isAtTop) colorPalette.background4 else Color.Transparent,
-                    scrolledContainerColor = colorPalette.background4,
-                    navigationIconContentColor = colorPalette.text,
-                    titleContentColor = colorPalette.text,
-                    actionIconContentColor = colorPalette.text
+                    containerColor = Color.Transparent,
+                    scrolledContainerColor = Color.Transparent
                 ),
                 navigationIcon = {
-                    if (onBackClick != null) {
-                        IconButton(onClick = onBackClick) {
+                    onBackClick?.let {
+                        IconButton(onClick = it) {
                             Icon(
                                 painter = painterResource(backIcon),
                                 contentDescription = "Back",
                                 modifier = Modifier.size(18.dp),
-                                tint = colorPalette.text
+                                tint = colorPalette.text,
                             )
                         }
                     }

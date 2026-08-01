@@ -1,20 +1,14 @@
 package com.github.soundpod.ui.screens.artist
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
@@ -53,8 +47,6 @@ import kotlinx.coroutines.launch
 enum class ArtistTab {
     Overview, Songs, Albums, Singles
 }
-
-@OptIn(ExperimentalAnimationApi::class, ExperimentalFoundationApi::class)
 @UnstableApi
 @Composable
 fun ArtistScreen(
@@ -142,31 +134,14 @@ fun ArtistScreen(
         },
         isLoading = artist?.timestamp == null,
         thumbnailUrl = artist?.thumbnailUrl,
-        showThumbnail = false,
         headerTitle = artist?.name.orEmpty(),
-        headerCustomContent = {
-            Spacer(modifier = Modifier.height(12.dp))
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(colorPalette.accent.copy(alpha = 0.15f))
-                    .border(1.dp, colorPalette.accent.copy(alpha = 0.4f), CircleShape)
-                    .padding(horizontal = 16.dp, vertical = 6.dp)
-            ) {
-                Text(
-                    text = "Following",
-                    style = typography.labelLarge.copy(fontWeight = FontWeight.Medium),
-                    color = colorPalette.accent
-                )
-            }
-        },
         footerHeaderContent = {
             if (tabs.isNotEmpty()) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .horizontalScroll(rememberScrollState())
-                        .padding(vertical = 12.dp, horizontal = 16.dp),
+                        .padding(vertical = 12.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
                 ) {
                     tabs.forEachIndexed { index, (_, titleRes) ->
@@ -174,20 +149,17 @@ fun ArtistScreen(
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
-                                .background(
-                                    if (selected) colorPalette.accent
-                                    else colorPalette.boxColor.copy(alpha = 0.6f)
-                                )
+                                .background(if (selected) colorPalette.accent else colorPalette.boxColor.copy(alpha = 0.5f))
                                 .clickable {
                                     coroutineScope.launch {
                                         pagerState.animateScrollToPage(index)
                                     }
                                 }
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
                             Text(
                                 text = stringResource(titleRes),
-                                style = typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                                style = typography.labelMedium,
                                 color = if (selected) colorPalette.background1 else colorPalette.text
                             )
                         }
