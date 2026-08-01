@@ -11,6 +11,11 @@
     <string name="create_new_playlist">Créer\n Nouvelle playlist</string>
     <string name="new_playlist">Nouvelle Playlist</string>
     <string name="favorites">Favoris</string>
+    <string name="following">Following</string>
+    <string name="follow">Follow</string>
+    <string name="unfollow">Unfollow</string>
+    <string name="followed">Followed</string>
+    <string name="followed_artists">Followed Artists</string>
     <string name="offline">Hors Ligne</string>
     <string name="playlist_name_hint">Entrer le nom</string>
     <string name="cancel">Annuler</string>
@@ -200,7 +205,8 @@
     <string name="copy">Copier</string>
     <string name="error_log">Journal des erreurs</string>
     <string name="featured_on">En vedette sur</string>
-    <string name="fans_might_also_like">Les fans pourraient également aimer</string>
+    <string name="you_might_also_like">You might also like this</string>
+    <string name="top_releases">Top Releases</string>
     <string name="no_related_albums">Aucun album correspondant n\'a été trouvé</string>
     <string name="appearance">Apparence</string>
     <string name="privacy">Confidentialité</string>
