@@ -37,6 +37,15 @@ class ArtistViewModel : ViewModel() {
         }
     }
 
+    fun toggleFollow() {
+        val currentArtist = artist ?: return
+        val followedAt = if (currentArtist.followedAt == null) System.currentTimeMillis() else null
+        val updatedArtist = currentArtist.copy(followedAt = followedAt)
+        viewModelScope.launch(Dispatchers.IO) {
+            db.update(updatedArtist)
+        }
+    }
+
     suspend fun loadArtist(browseId: String, tabIndex: Int) {
         val context = com.github.soundpod.appContext
         val isScreenCacheEnabled = context.preferences.getBoolean(isScreenCacheEnabledKey, true)
@@ -70,7 +79,8 @@ class ArtistViewModel : ViewModel() {
                                         name = currentArtistPage.name,
                                         thumbnailUrl = currentArtistPage.thumbnail?.url,
                                         timestamp = System.currentTimeMillis(),
-                                        bookmarkedAt = currentArtist?.bookmarkedAt
+                                        bookmarkedAt = currentArtist?.bookmarkedAt,
+                                        followedAt = currentArtist?.followedAt
                                     )
                                 )
                             }

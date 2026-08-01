@@ -169,6 +169,11 @@ fun HomeScreen(
                         isEmbedded = true
                     )
 
+                    HomeTab.Following -> FollowingScreen(
+                        onArtistClick = navigateToArtist,
+                        onAlbumClick = navigateToAlbum
+                    )
+
                     HomeTab.Songs -> HomeSongs(
                         onGoToAlbum = navigateToAlbum,
                         onGoToArtist = navigateToArtist

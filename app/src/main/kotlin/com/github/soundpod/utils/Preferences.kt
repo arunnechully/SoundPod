@@ -61,6 +61,7 @@ const val showSongsTabKey = "showSongsTab"
 const val showArtistsTabKey = "showArtistsTab"
 const val showAlbumsTabKey = "showAlbumsTab"
 const val showPlaylistsTabKey = "showPlaylistsTab"
+const val showFollowingTabKey = "showFollowingTab"
 
 const val autoBackup = "autoBackup"
 

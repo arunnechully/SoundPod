@@ -48,3 +48,33 @@ suspend fun Innertube.charts(): Result<List<Innertube.SongItem>?>? = runCatching
 
     fetchCharts("FEcharts") ?: fetchCharts("FEmusic_charts") ?: fetchCharts("FEmusic_home") ?: fetchCharts("FEmusic_explore")
 }
+
+suspend fun Innertube.newReleases(): Result<List<Innertube.AlbumItem>?>? = runCatchingNonCancellable {
+    if (!hasRequiredTokens) {
+        waitForSession(timeoutMs = 10000)
+    }
+
+    val response = client.post(BROWSE) {
+        setBody(
+            BrowseBody(
+                browseId = "FEmusic_new_releases",
+                context = YouTubeClient.WEB_REMIX.toContext(
+                    hl = "en",
+                    gl = Locale.getDefault().country.ifBlank { "US" },
+                )
+            )
+        )
+    }.body<BrowseResponse>()
+
+    val sectionListRenderer = response
+        .contents
+        ?.sectionListRenderer
+
+    (sectionListRenderer?.findSectionByTitle("New albums & singles")
+        ?: sectionListRenderer?.contents?.firstOrNull { it.musicCarouselShelfRenderer != null })
+        ?.musicCarouselShelfRenderer
+        ?.contents
+        ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicTwoRowItemRenderer)
+        ?.mapNotNull(Innertube.AlbumItem::from)
+        ?.takeIf { it.isNotEmpty() }
+}

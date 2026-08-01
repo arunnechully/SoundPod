@@ -16,6 +16,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.PersonRemove
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -105,6 +107,15 @@ fun ArtistScreen(
                     ),
                     contentDescription = if (artist?.bookmarkedAt != null) "Unbookmark" else "Bookmark",
                     tint = if (artist?.bookmarkedAt != null) colorPalette.accent else colorPalette.text,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            IconButton(onClick = { viewModel.toggleFollow() }) {
+                Icon(
+                    imageVector = if (artist?.followedAt != null) Icons.Default.PersonRemove else Icons.Default.PersonAdd,
+                    contentDescription = if (artist?.followedAt != null) stringResource(R.string.unfollow) else stringResource(R.string.follow),
+                    tint = if (artist?.followedAt != null) colorPalette.accent else colorPalette.text,
                     modifier = Modifier.size(24.dp)
                 )
             }

@@ -217,6 +217,9 @@ interface Database {
     @Query("SELECT * FROM Lyrics WHERE songId = :songId")
     fun lyrics(songId: String): Flow<Lyrics?>
 
+    @Query("SELECT * FROM Artist WHERE followedAt IS NOT NULL ORDER BY followedAt DESC")
+    fun followedArtists(): Flow<List<Artist>>
+
     @Query("SELECT * FROM Artist WHERE id = :id")
     fun artist(id: String): Flow<Artist?>
 
@@ -684,7 +687,7 @@ interface Database {
         PrecachedSong::class
     ],
     views = [SortedSongPlaylistMap::class],
-    version = 26,
+    version = 27,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -707,6 +710,7 @@ interface Database {
         AutoMigration(from = 21, to = 22, spec = DatabaseInitializer.From21To22Migration::class),
         AutoMigration(from = 24, to = 25),
         AutoMigration(from = 25, to = 26),
+        AutoMigration(from = 26, to = 27),
     ],
 )
 @TypeConverters(Converters::class)
