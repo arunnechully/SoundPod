@@ -25,7 +25,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
-import com.github.soundpod.ui.components.PlaylistScreenLayout
+import com.github.soundpod.ui.components.ParallaxScreenLayout
 import com.github.soundpod.viewmodels.AlbumViewModel
 
 @UnstableApi
@@ -49,7 +49,7 @@ fun AlbumScreen(
     val album = uiState.album
     val (colorPalette) = LocalAppearance.current
 
-    PlaylistScreenLayout(
+    ParallaxScreenLayout(
         title = {
             Text(
                 text = album?.title.orEmpty(),

@@ -30,7 +30,7 @@ import com.github.soundpod.db
 import com.github.soundpod.models.Playlist
 import com.github.soundpod.query
 import com.github.soundpod.ui.components.ConfirmationDialog
-import com.github.soundpod.ui.components.PlaylistScreenLayout
+import com.github.soundpod.ui.components.ParallaxScreenLayout
 import com.github.soundpod.ui.components.TextFieldDialog
 import kotlinx.coroutines.flow.filterNotNull
 
@@ -84,7 +84,7 @@ fun FavoritePlaylistScreen(
         }
     }
 
-    PlaylistScreenLayout(
+    ParallaxScreenLayout(
         title = {
             Column {
                 Text(

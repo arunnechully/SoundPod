@@ -37,7 +37,7 @@ import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.ui.components.ClassicHorizontalTabs
 import com.github.soundpod.ui.components.HorizontalTabs
 import com.github.soundpod.ui.components.SettingsCard
-import com.github.soundpod.ui.components.SettingsScreenLayout
+import com.github.soundpod.ui.components.StaticScreenLayout
 import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.ui.screens.favorites.FavoritesScreen
 import com.github.soundpod.utils.HomeTab
@@ -72,7 +72,7 @@ fun HomeScreen(
 
     val (colorPalette) = LocalAppearance.current
 
-    SettingsScreenLayout(
+    StaticScreenLayout(
         title = {
             Text(
                 text = "SoundPod",

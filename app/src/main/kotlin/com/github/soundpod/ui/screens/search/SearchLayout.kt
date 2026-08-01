@@ -2,8 +2,6 @@ package com.github.soundpod.ui.screens.search
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -67,7 +65,7 @@ import com.github.soundpod.models.SearchQuery
 import com.github.soundpod.query
 import com.github.soundpod.ui.appearance.LoadingAnimation
 import com.github.soundpod.ui.components.SettingsCard
-import com.github.soundpod.ui.components.SettingsScreenLayout
+import com.github.soundpod.ui.components.StaticScreenLayout
 import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.utils.pauseSearchHistoryKey
 import com.github.soundpod.utils.preferences
@@ -79,8 +77,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
 
-@androidx.annotation.OptIn(UnstableApi::class)
-@OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
+@UnstableApi
 @Composable
 fun NewSearchLayout(
     initialTextInput: String = "",
@@ -164,7 +161,7 @@ fun NewSearchLayout(
         }
     }
 
-    SettingsScreenLayout(
+    StaticScreenLayout(
         title = {
             BasicTextField(
                 value = textFieldValue,

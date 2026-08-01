@@ -42,7 +42,7 @@ import androidx.media3.common.util.UnstableApi
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.R
-import com.github.soundpod.ui.components.PlaylistScreenLayout
+import com.github.soundpod.ui.components.ParallaxScreenLayout
 import com.github.soundpod.viewmodels.ArtistViewModel
 import kotlinx.coroutines.launch
 
@@ -91,7 +91,7 @@ fun ArtistScreen(
     val pagerState = rememberPagerState { tabs.size }
     val coroutineScope = rememberCoroutineScope()
 
-    PlaylistScreenLayout(
+    ParallaxScreenLayout(
         title = {
             Text(
                 text = artist?.name.orEmpty(),

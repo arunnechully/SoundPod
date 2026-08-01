@@ -34,7 +34,7 @@ import com.github.soundpod.models.Playlist
 import com.github.soundpod.models.SongPlaylistMap
 import com.github.soundpod.query
 import com.github.soundpod.transaction
-import com.github.soundpod.ui.components.PlaylistScreenLayout
+import com.github.soundpod.ui.components.ParallaxScreenLayout
 import com.github.soundpod.ui.components.TextFieldDialog
 import com.github.soundpod.utils.ScreenCache
 import com.github.soundpod.utils.asMediaItem
@@ -91,7 +91,7 @@ fun OnlinePlaylistScreen(
 
     BackHandler(onBack = onBack)
 
-    PlaylistScreenLayout(
+    ParallaxScreenLayout(
         title = {
             Text(
                 text = playlistPage?.title.orEmpty(),

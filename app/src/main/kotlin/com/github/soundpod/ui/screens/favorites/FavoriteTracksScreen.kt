@@ -17,7 +17,7 @@ import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.models.Song
 import com.github.soundpod.ui.components.InHistoryMediaItemMenu
 import com.github.soundpod.ui.components.SettingsCard
-import com.github.soundpod.ui.components.SettingsScreenLayout
+import com.github.soundpod.ui.components.StaticScreenLayout
 import com.github.soundpod.ui.components.SortingHeader
 import com.github.soundpod.ui.items.LocalSongItem
 import com.github.soundpod.utils.asMediaItem
@@ -38,7 +38,7 @@ fun FavoriteTracksScreen(
     val playerPadding = LocalPlayerPadding.current
     val songs = viewModel.favoriteSongs
 
-    SettingsScreenLayout(
+    StaticScreenLayout(
         title = stringResource(R.string.favorite_tracks),
         onBackClick = onBackClick,
         scrollable = false,

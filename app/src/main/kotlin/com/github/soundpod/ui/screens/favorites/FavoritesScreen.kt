@@ -31,7 +31,7 @@ import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.FavoritesCard
-import com.github.soundpod.ui.components.SettingsScreenLayout
+import com.github.soundpod.ui.components.StaticScreenLayout
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlayFromBeginning
 import com.github.soundpod.viewmodels.favorites.FavoritesViewModel
@@ -63,7 +63,7 @@ fun FavoritesScreen(
     if (isEmbedded) {
         content()
     } else {
-        SettingsScreenLayout(
+        StaticScreenLayout(
             title = stringResource(R.string.favorites),
             onBackClick = onBackClick,
             scrollable = false,

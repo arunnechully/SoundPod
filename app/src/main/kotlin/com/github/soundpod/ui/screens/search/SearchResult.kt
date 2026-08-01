@@ -25,7 +25,7 @@ import com.github.soundpod.models.ActionInfo
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
 import com.github.soundpod.ui.components.SettingsCard
-import com.github.soundpod.ui.components.SettingsScreenLayout
+import com.github.soundpod.ui.components.StaticScreenLayout
 import com.github.soundpod.ui.components.SwipeToActionBox
 import com.github.soundpod.ui.items.AlbumItem
 import com.github.soundpod.ui.navigation.Routes
@@ -57,7 +57,7 @@ fun NewSearchResult(
     val onArtistClick: (String) -> Unit = { artistId -> navController.navigate(Routes.Artist(id = artistId)) }
     val onPlaylistClick: (String) -> Unit = { playlistId -> navController.navigate(Routes.Playlist(id = playlistId)) }
 
-    SettingsScreenLayout(
+    StaticScreenLayout(
         title = resultType ?: "Results",
         onBackClick = { navController.popBackStack() },
         scrollable = false,

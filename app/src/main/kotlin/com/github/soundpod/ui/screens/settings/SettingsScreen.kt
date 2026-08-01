@@ -17,7 +17,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.soundpod.R
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
-import com.github.soundpod.ui.components.SettingsScreenLayout
+import com.github.soundpod.ui.components.StaticScreenLayout
 import com.github.soundpod.ui.navigation.SettingsDestinations
 import com.github.soundpod.ui.screens.player.AddToListScreen
 import com.github.soundpod.ui.screens.player.TrackDetails
@@ -49,7 +49,7 @@ fun SettingsScreen(
         else -> stringResource(R.string.settings)
     }
 
-    SettingsScreenLayout(
+    StaticScreenLayout(
         title = title,
         shape = MaterialTheme.shapes.extraLarge,
         onBackClick = onBackClick,

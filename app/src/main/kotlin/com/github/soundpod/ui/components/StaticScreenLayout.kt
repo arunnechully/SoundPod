@@ -39,7 +39,7 @@ import com.github.soundpod.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreenLayout(
+fun StaticScreenLayout(
     title: String,
     description: String? = null,
     onBackClick: () -> Unit,
@@ -53,7 +53,7 @@ fun SettingsScreenLayout(
 ) {
     val (colorPalette) = LocalAppearance.current
 
-    SettingsScreenLayout(
+    StaticScreenLayout(
         title = {
             Column {
                 Text(
@@ -85,7 +85,7 @@ fun SettingsScreenLayout(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreenLayout(
+fun StaticScreenLayout(
     title: @Composable (() -> Unit)? = null,
     onBackClick: (() -> Unit)? = null,
     scrollable: Boolean = true,

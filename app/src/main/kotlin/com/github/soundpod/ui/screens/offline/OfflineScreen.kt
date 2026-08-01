@@ -39,7 +39,7 @@ import com.github.soundpod.enums.SortOrder
 import com.github.soundpod.models.Song
 import com.github.soundpod.query
 import com.github.soundpod.ui.components.SettingsCard
-import com.github.soundpod.ui.components.SettingsScreenLayout
+import com.github.soundpod.ui.components.StaticScreenLayout
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.songSortByKey
 import com.github.soundpod.utils.songSortOrderKey
@@ -79,7 +79,7 @@ fun OfflineScreen(
         }
     }
 
-    SettingsScreenLayout(
+    StaticScreenLayout(
         scrollable = false,
         horizontalPadding = 0.dp,
         title = {
