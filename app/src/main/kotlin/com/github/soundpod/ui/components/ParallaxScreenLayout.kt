@@ -6,6 +6,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -45,12 +46,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -59,9 +62,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.R
+import com.github.soundpod.utils.thumbnail
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -74,6 +79,8 @@ fun ParallaxScreenLayout(
     dropDownMenuContent: @Composable (ColumnScope.(dismissMenu: () -> Unit) -> Unit)? = null,
     isLoading: Boolean = false,
     thumbnailUrl: String? = null,
+    showThumbnail: Boolean = true,
+    headerCustomContent: @Composable (ColumnScope.() -> Unit)? = null,
     footerHeaderContent: @Composable (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
     onBackClick: (() -> Unit)? = null,
@@ -205,62 +212,89 @@ fun ParallaxScreenLayout(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(with(density) { peekHeightPx.toDp() }),
-                contentAlignment = Alignment.Center
+                    .height(with(density) { peekHeightPx.toDp() })
+                    .graphicsLayer {
+                        alpha = progress
+                        translationY = (sheetOffset - peekHeightPx) * 0.4f
+                    },
+                contentAlignment = Alignment.BottomCenter
             ) {
+                // Background Thumbnail (Full Bleed)
+                AsyncImage(
+                    model = thumbnailUrl?.thumbnail(1024),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+
+                // Scrim for readability
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                0f to Color.Black.copy(alpha = 0.7f),
+                                0.2f to Color.Black.copy(alpha = 0.3f),
+                                0.5f to Color.Transparent,
+                                0.75f to colorPalette.background4.copy(alpha = 0.8f),
+                                1f to colorPalette.background4
+                            )
+                        )
+                )
+
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
-                        .padding(top = statusBarHeight)
+                        .fillMaxWidth()
+                        .padding(bottom = 32.dp)
+                        .padding(horizontal = 24.dp)
                 ) {
-                    Column(
-                        verticalArrangement = Arrangement.SpaceEvenly,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .graphicsLayer {
-                            alpha = progress
-                            val scale = 0.85f + (progress * 0.15f)
-                            scaleX = scale
-                            scaleY = scale
-                            translationY = (sheetOffset - peekHeightPx) * 0.5f
-                        }
-                    ) {
+                    if (showThumbnail) {
                         AdaptiveThumbnail(
                             isLoading = isLoading,
                             url = thumbnailUrl,
                             modifier = Modifier.fillMaxWidth(0.55f)
                         )
-                        Text(
-                            text = headerTitle ?: "",
-                            style = typography.titleMedium.copy(fontWeight = FontWeight.Normal),
-                            color = colorPalette.text,
-                            textAlign = TextAlign.Center,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier
-                                .fillMaxWidth(0.50f)
-                        )
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
+                    Text(
+                        text = headerTitle ?: "",
+                        style = typography.headlineSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            shadow = androidx.compose.ui.graphics.Shadow(
+                                color = Color.Black.copy(alpha = 0.3f),
+                                blurRadius = 8f,
+                                offset = Offset(2f, 2f)
+                            )
+                        ),
+                        color = colorPalette.text,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    headerCustomContent?.invoke(this)
                 }
             }
 
-            Column(
+            Box(
                 modifier = Modifier
                     .offset { IntOffset(0, sheetOffset.roundToInt()) }
                     .fillMaxSize()
                     .nestedScroll(nestedScrollConnection)
             ) {
-                footerHeaderContent?.invoke()
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    shape = shape,
-                    color = colorPalette.mainBackground,
-                    shadowElevation = ((1f - progress) * 8).dp
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxSize()
+                Column(modifier = Modifier.fillMaxSize()) {
+                    footerHeaderContent?.invoke()
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        shape = shape,
+                        color = colorPalette.mainBackground,
+                        shadowElevation = ((1f - progress) * 12).dp
                     ) {
-                        content()
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            content()
+                        }
                     }
                 }
             }
@@ -268,8 +302,11 @@ fun ParallaxScreenLayout(
             TopAppBar(
                 windowInsets = WindowInsets.statusBars,
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    scrolledContainerColor = Color.Transparent
+                    containerColor = if (isAtTop) colorPalette.background4 else Color.Transparent,
+                    scrolledContainerColor = colorPalette.background4,
+                    navigationIconContentColor = colorPalette.text,
+                    titleContentColor = colorPalette.text,
+                    actionIconContentColor = colorPalette.text
                 ),
                 navigationIcon = {
                     if (onBackClick != null) {
