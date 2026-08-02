@@ -37,6 +37,9 @@ sealed class Routes {
 
     @Serializable
     data object FavoriteTracks
+
+    @Serializable
+    data object History
 }
 
 

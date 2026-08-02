@@ -30,6 +30,7 @@ import com.github.soundpod.ui.screens.artist.ArtistScreen
 import com.github.soundpod.ui.screens.offline.OfflineScreen
 import com.github.soundpod.ui.screens.favorites.FavoriteTracksScreen
 import com.github.soundpod.ui.screens.favorites.FavoritesScreen
+import com.github.soundpod.ui.screens.home.HistoryScreen
 import com.github.soundpod.ui.screens.home.HomeScreen
 import com.github.soundpod.ui.screens.playlist.FavoritePlaylistScreen
 import com.github.soundpod.ui.screens.playlist.OnlinePlaylistScreen
@@ -199,6 +200,14 @@ fun MainNavigation(
 
         playerComposable(route = Routes.FavoriteTracks::class) {
             FavoriteTracksScreen(
+                onBackClick = { navController.popBackStack() },
+                onGoToAlbum = navigateToAlbum,
+                onGoToArtist = navigateToArtist
+            )
+        }
+
+        playerComposable(route = Routes.History::class) {
+            HistoryScreen(
                 onBackClick = { navController.popBackStack() },
                 onGoToAlbum = navigateToAlbum,
                 onGoToArtist = navigateToArtist

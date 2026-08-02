@@ -468,6 +468,11 @@ interface Database {
     fun songArtistInfo(songId: String): List<Info>
 
     @Transaction
+    @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId WHERE playTime >= :minPlayTimeMs GROUP BY songId ORDER BY timestamp DESC LIMIT :limit")
+    @RewriteQueriesToDropUnusedColumns
+    fun history(limit: Int, minPlayTimeMs: Long): Flow<List<Song>>
+
+    @Transaction
     @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId GROUP BY songId ORDER BY SUM(CAST(playTime AS REAL) / (((:now - timestamp) / 86400000) + 1)) DESC LIMIT :limit")
     @RewriteQueriesToDropUnusedColumns
     fun trending(limit: Int, now: Long = System.currentTimeMillis()): Flow<List<Song>>

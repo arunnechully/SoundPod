@@ -5,72 +5,82 @@ package com.github.soundpod.ui.screens.home
   import androidx.compose.animation.ExperimentalAnimationApi
   import androidx.compose.foundation.ExperimentalFoundationApi
   import androidx.compose.foundation.layout.Arrangement
-  import androidx.compose.foundation.layout.Column
-  import androidx.compose.foundation.layout.PaddingValues
-  import androidx.compose.foundation.layout.Row
-  import androidx.compose.foundation.layout.Spacer
-  import androidx.compose.foundation.layout.fillMaxSize
-  import androidx.compose.foundation.layout.fillMaxWidth
-  import androidx.compose.foundation.layout.height
-  import androidx.compose.foundation.layout.padding
-  import androidx.compose.foundation.layout.size
-  import androidx.compose.foundation.layout.width
-  import androidx.compose.foundation.layout.widthIn
-  import androidx.compose.foundation.lazy.LazyRow
-  import androidx.compose.foundation.lazy.grid.GridCells
-  import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
-  import androidx.compose.foundation.lazy.grid.items
-  import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-  import androidx.compose.foundation.lazy.items
-  import androidx.compose.foundation.rememberScrollState
-  import androidx.compose.foundation.shape.CircleShape
-  import androidx.compose.foundation.verticalScroll
-  import androidx.compose.material.icons.Icons
-  import androidx.compose.material.icons.outlined.DownloadForOffline
-  import androidx.compose.material.icons.outlined.Refresh
-  import androidx.compose.material3.Button
-  import androidx.compose.material3.ButtonDefaults
-  import androidx.compose.material3.FilledTonalButton
-  import androidx.compose.material3.Icon
-  import androidx.compose.material3.MaterialTheme
-  import androidx.compose.material3.Text
-  import androidx.compose.runtime.Composable
-  import androidx.compose.runtime.LaunchedEffect
-  import androidx.compose.runtime.getValue
-  import androidx.compose.ui.Alignment
-  import androidx.compose.ui.Modifier
-  import androidx.compose.ui.platform.LocalConfiguration
-  import androidx.compose.ui.res.stringResource
-  import androidx.compose.ui.text.style.TextAlign
-  import androidx.compose.ui.unit.dp
-  import androidx.compose.ui.unit.times
-  import androidx.lifecycle.viewmodel.compose.viewModel
-  import coil3.compose.AsyncImage
-  import com.github.innertube.Innertube
-  import com.github.innertube.models.NavigationEndpoint
-  import com.github.soundpod.LocalPlayerPadding
-  import com.github.soundpod.LocalPlayerServiceBinder
-  import com.github.soundpod.R
-  import com.github.soundpod.enums.QuickPicksSource
-  import com.github.soundpod.models.LocalMenuState
-  import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
-  import com.github.soundpod.ui.components.ShimmerHost
-  import com.github.soundpod.ui.components.TextPlaceholder
-  import com.github.soundpod.ui.items.AlbumItem
-  import com.github.soundpod.ui.items.ArtistItem
-  import com.github.soundpod.ui.items.ItemPlaceholder
-  import com.github.soundpod.ui.items.ListItemPlaceholder
-  import com.github.soundpod.ui.items.PlaylistItem
-  import com.github.soundpod.ui.items.SongItem
-  import com.github.soundpod.ui.styling.Dimensions
-  import com.github.soundpod.utils.asMediaItem
-  import com.github.soundpod.utils.forcePlay
-  import com.github.soundpod.utils.isLandscape
-  import com.github.soundpod.utils.quickPicksCustomGenreKey
-  import com.github.soundpod.utils.quickPicksSourceKey
-  import com.github.soundpod.utils.rememberPreference
-  import com.github.soundpod.viewmodels.home.QuickPicksViewModel
-  import java.io.IOException
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.DownloadForOffline
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.times
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
+import com.github.core.ui.LocalAppearance
+import com.github.innertube.Innertube
+import com.github.innertube.models.NavigationEndpoint
+import com.github.soundpod.LocalPlayerPadding
+import com.github.soundpod.LocalPlayerServiceBinder
+import com.github.soundpod.R
+import com.github.soundpod.enums.QuickPicksSource
+import com.github.soundpod.models.LocalMenuState
+import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
+import com.github.soundpod.ui.components.ShimmerHost
+import com.github.soundpod.ui.components.TextPlaceholder
+import com.github.soundpod.ui.items.AlbumItem
+import com.github.soundpod.ui.items.ArtistItem
+import com.github.soundpod.ui.items.ItemContainer
+import com.github.soundpod.ui.items.ItemPlaceholder
+import com.github.soundpod.ui.items.ListItemPlaceholder
+import com.github.soundpod.ui.items.PlaylistItem
+import com.github.soundpod.ui.items.SongItem
+import com.github.soundpod.ui.styling.Dimensions
+import com.github.soundpod.ui.styling.px
+import com.github.soundpod.utils.asMediaItem
+import com.github.soundpod.utils.forcePlay
+import com.github.soundpod.utils.isLandscape
+import com.github.soundpod.utils.quickPicksCustomGenreKey
+import com.github.soundpod.utils.quickPicksSourceKey
+import com.github.soundpod.utils.rememberPreference
+import com.github.soundpod.utils.thumbnail
+import com.github.soundpod.viewmodels.home.QuickPicksViewModel
+import java.io.IOException
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @ExperimentalFoundationApi
@@ -81,11 +91,13 @@ fun QuickPicks(
     onAlbumClick: (String) -> Unit,
     onArtistClick: (String) -> Unit,
     onPlaylistClick: (String) -> Unit,
+    onHistoryViewAllClick: () -> Unit,
     onOfflinePlaylistClick: () -> Unit
 ) {
     val binder = LocalPlayerServiceBinder.current
     val menuState = LocalMenuState.current
     val playerPadding = LocalPlayerPadding.current
+    val (colorPalette) = LocalAppearance.current
 
     val viewModel: QuickPicksViewModel = viewModel()
     val quickPicksSource by rememberPreference(quickPicksSourceKey, QuickPicksSource.Default)
@@ -171,6 +183,67 @@ fun QuickPicks(
                             }
                         }
                     )
+                }
+            }
+
+            if (viewModel.historySongs.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(Dimensions.spacer))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 8.dp)
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.history),
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = sectionTextModifier.weight(1f)
+                    )
+
+                    TextButton(onClick = onHistoryViewAllClick) {
+                        Text(
+                            text = stringResource(id = R.string.view_all),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = colorPalette.accent,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(items = viewModel.historySongs, key = { it.id }) { song ->
+                        ItemContainer(
+                            modifier = Modifier.widthIn(max = itemSize),
+                            title = song.title,
+                            subtitle = song.artistsText,
+                            onClick = {
+                                val mediaItem = song.asMediaItem
+                                binder?.stopRadio()
+                                binder?.player?.forcePlay(mediaItem)
+                            }
+                        ) {
+                            BoxWithConstraints(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.app_icon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(this@BoxWithConstraints.maxWidth / 2),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                )
+                                AsyncImage(
+                                    model = song.thumbnailUrl?.thumbnail(maxWidth.px),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.clip(MaterialTheme.shapes.large)
+                                )
+                            }
+                        }
+                    }
                 }
             }
 

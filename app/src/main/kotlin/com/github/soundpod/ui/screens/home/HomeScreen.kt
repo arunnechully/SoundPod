@@ -157,6 +157,9 @@ fun HomeScreen(
                         onPlaylistClick = { browseId ->
                             navController.navigate(route = Routes.Playlist(id = browseId))
                         },
+                        onHistoryViewAllClick = {
+                            navController.navigate(route = Routes.History)
+                        },
                         onOfflinePlaylistClick = {
                             navController.navigate(route = Routes.BuiltInPlaylist(index = 1))
                         }
