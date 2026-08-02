@@ -11,6 +11,11 @@
     <string name="create_new_playlist">Create\n New playlist</string>
     <string name="new_playlist">Yeni oynatma listesi</string>
     <string name="favorites">Favoriler</string>
+    <string name="following">Following</string>
+    <string name="follow">Follow</string>
+    <string name="unfollow">Unfollow</string>
+    <string name="followed">Followed</string>
+    <string name="followed_artists">Followed Artists</string>
     <string name="offline">Çevrim dışı</string>
     <string name="playlist_name_hint">İsim giriniz</string>
     <string name="cancel">Geri dön</string>
@@ -200,7 +205,8 @@
     <string name="copy">Copy</string>
     <string name="error_log">Error log</string>
     <string name="featured_on">Featured on</string>
-    <string name="fans_might_also_like">Fans might also like</string>
+    <string name="you_might_also_like">You might also like this</string>
+    <string name="top_releases">Top Releases</string>
     <string name="no_related_albums">No related albums were found</string>
     <string name="appearance">Appearance</string>
     <string name="privacy">Privacy</string>
