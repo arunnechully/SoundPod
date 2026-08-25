@@ -66,8 +66,11 @@ import com.github.soundpod.utils.forcePlayAtIndex
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.showCachedSongsInOfflineKey
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.map
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -97,7 +100,6 @@ fun OfflineSongs(
     val showCachedSongsInOffline by rememberPreference(showCachedSongsInOfflineKey, true)
 
     var songs: List<Song> by remember { mutableStateOf(emptyList()) }
-    var refreshTrigger by remember { mutableIntStateOf(0) }
 
     val lazyListState = rememberLazyListState()
 
@@ -108,13 +110,7 @@ fun OfflineSongs(
         songs = mutableSongs
     }
 
-    LaunchedEffect(binder) {
-        binder?.cacheChanges?.collect {
-            refreshTrigger++
-        }
-    }
-
-    LaunchedEffect(builtInPlaylist, sortBy, sortOrder, showCachedSongsInOffline, binder, refreshTrigger) {
+    LaunchedEffect(builtInPlaylist, sortBy, sortOrder, showCachedSongsInOffline, binder) {
         when (builtInPlaylist) {
             BuiltInPlaylist.Favorites -> {
                 db.favorites()
@@ -131,29 +127,26 @@ fun OfflineSongs(
 
             BuiltInPlaylist.Offline -> {
                 if (showCachedSongsInOffline) {
-                    db.songsWithContentLength()
-                        .map { songsWithLength ->
-                            val binderCache = binder?.cache
-                            songsWithLength
-                                .filterNot { it.song.id.startsWith("content://") || it.song.id.startsWith("file://") }
-                                .filter { item ->
-                                    val length = item.contentLength
-                                    if (length != null) {
-                                        binderCache?.isCached(item.song.id, 0, length) == true
-                                    } else {
-                                        (binderCache?.getCachedBytes(item.song.id, 0, -1) ?: 0L) > 0L
-                                    }
-                                }.map { it.song }
-                                .let { songs ->
-                                    when (sortBy) {
-                                        SongSortBy.Title -> if (sortOrder == SortOrder.Ascending) songs.sortedBy { it.title } else songs.sortedByDescending { it.title }
-                                        SongSortBy.PlayTime -> if (sortOrder == SortOrder.Ascending) songs.sortedBy { it.totalPlayTimeMs } else songs.sortedByDescending { it.totalPlayTimeMs }
-                                        SongSortBy.DateAdded -> if (sortOrder == SortOrder.Ascending) songs.reversed() else songs
-                                        SongSortBy.Artist -> if (sortOrder == SortOrder.Ascending) songs.sortedBy { it.artistsText.toString() } else songs.sortedByDescending { it.artistsText.toString() }
-                                    }
+                    combine(
+                        db.downloadedSongs(),
+                        binder?.cacheChanges?.onStart { emit(Unit) } ?: flowOf(Unit)
+                    ) { downloadedSongs, _ ->
+                        val binderCache = binder?.cache
+                        downloadedSongs
+                            .filter { item ->
+                                // Lenient check: trust DB + check for any bytes to avoid minor metadata mismatches
+                                (binderCache?.getCachedBytes(item.song.id, 0, -1) ?: 0L) > 0L
+                            }.map { it.song }
+                            .let { songs ->
+                                when (sortBy) {
+                                    SongSortBy.Title -> if (sortOrder == SortOrder.Ascending) songs.sortedBy { it.title } else songs.sortedByDescending { it.title }
+                                    SongSortBy.PlayTime -> if (sortOrder == SortOrder.Ascending) songs.sortedBy { it.totalPlayTimeMs } else songs.sortedByDescending { it.totalPlayTimeMs }
+                                    SongSortBy.DateAdded -> if (sortOrder == SortOrder.Ascending) songs else songs.reversed()
+                                    SongSortBy.Artist -> if (sortOrder == SortOrder.Ascending) songs.sortedBy { it.artistsText.toString() } else songs.sortedByDescending { it.artistsText.toString() }
                                 }
-                        }
-                        .flowOn(Dispatchers.IO)
+                            }
+                    }
+                    .flowOn(Dispatchers.IO)
                 } else {
                     flowOf(emptyList())
                 }

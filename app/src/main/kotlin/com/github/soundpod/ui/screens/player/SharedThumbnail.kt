@@ -47,7 +47,8 @@ import com.github.soundpod.utils.thumbnail
 @Composable
 fun SharedThumbnail(
     expandProgress: Float,
-    isLandscape: Boolean = false
+    isLandscape: Boolean = false,
+    onNavigateToPlaybackSourceSettings: () -> Unit
 ) {
     val binder = LocalPlayerServiceBinder.current
     val player = binder?.player ?: return
@@ -187,6 +188,7 @@ fun SharedThumbnail(
                 PlaybackError(
                     error = playerError,
                     onDismiss = { player.prepare() },
+                    onNavigateToPlaybackSourceSettings = onNavigateToPlaybackSourceSettings,
                     modifier = Modifier.fillMaxSize()
                 )
             }

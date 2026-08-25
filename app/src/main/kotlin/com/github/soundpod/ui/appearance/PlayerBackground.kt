@@ -45,7 +45,7 @@ fun PlayerBackground(
     expandProgress: Float = 0f,
     content: @Composable () -> Unit
 ) {
-    val currentStyle by rememberPreference(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.OFF)
+    val currentStyle by rememberPreference(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.CROSS_FADE)
     val (colorPalette) = LocalAppearance.current
     val context = LocalContext.current
 

@@ -310,7 +310,7 @@ class PlayerService : InvincibleService(), Player.Listener,
 
         mediaItem?.mediaId?.let { videoId ->
             coroutineScope.launch {
-                db.deletePrecachedSong(videoId)
+                db.updatePrecachedTimestamp(videoId)
             }
         }
 
@@ -336,7 +336,7 @@ class PlayerService : InvincibleService(), Player.Listener,
         val currentIndex = player.currentMediaItemIndex
         val totalItems = player.mediaItemCount
 
-        val videoIdsToPrefetch = mutableListOf<String>()
+        val mediaItemsToPrefetch = mutableListOf<MediaItem>()
 
         for (i in 1..3) { // Prefetch next 3 tracks
             val nextIndex = currentIndex + i
@@ -347,16 +347,16 @@ class PlayerService : InvincibleService(), Player.Listener,
 
             if (videoId.isBlank() || videoId.startsWith("http") || videoId.startsWith("content://") || videoId.startsWith("file://")) continue
 
-            videoIdsToPrefetch.add(videoId)
+            mediaItemsToPrefetch.add(nextMediaItem)
         }
 
-        if (videoIdsToPrefetch.isNotEmpty()) {
-            Log.d("SoundPod-Prefetch", "Triggering prefetch for: $videoIdsToPrefetch")
-            preCacheManager.preCache(videoIdsToPrefetch)
+        if (mediaItemsToPrefetch.isNotEmpty()) {
+            Log.d("SoundPod-Prefetch", "Triggering prefetch for: ${mediaItemsToPrefetch.map { it.mediaId }}")
+            preCacheManager.preCache(mediaItemsToPrefetch)
 
             // Also pre-fetch lyrics and artwork for the very next track
             coroutineScope.launch {
-                val nextTrack = videoIdsToPrefetch.first()
+                val nextTrack = mediaItemsToPrefetch.first().mediaId
                 LyricsFetcher.fetchLyrics(nextTrack)
             }
         }

@@ -52,7 +52,7 @@ fun HomeScreen(
     navController: NavController,
     onSettingsClick: () -> Unit,
 ) {
-    val tabStyle by rememberPreference(tabStyleKey, TabStyle.Modern)
+    val tabStyle by rememberPreference(tabStyleKey, TabStyle.Classic)
     val updateAvailable by rememberPreference(updateAvailableKey, false)
     val appearanceUpdated by rememberPreference(appearanceUpdatedKey, false)
 

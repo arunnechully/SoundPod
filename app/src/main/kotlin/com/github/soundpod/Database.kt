@@ -39,6 +39,7 @@ import com.github.soundpod.enums.SongSortBy
 import com.github.soundpod.enums.SortOrder
 import com.github.soundpod.models.Album
 import com.github.soundpod.models.Artist
+import com.github.soundpod.models.DownloadedSong
 import com.github.soundpod.models.Event
 import com.github.soundpod.models.Format
 import com.github.soundpod.models.Info
@@ -507,14 +508,36 @@ interface Database {
     @Query("DELETE FROM Event WHERE songId = :songId")
     fun clearEventsFor(songId: String)
 
+    @Query("SELECT id FROM PrecachedSong")
+    fun precachedSongIds(): Flow<List<String>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(precachedSong: PrecachedSong)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insert(downloadedSong: DownloadedSong)
+
+    @Query("UPDATE PrecachedSong SET timestamp = :timestamp WHERE id = :id")
+    fun updatePrecachedTimestamp(id: String, timestamp: Long = System.currentTimeMillis())
 
     @Query("DELETE FROM PrecachedSong WHERE id = :id")
     fun deletePrecachedSong(id: String)
 
+    @Query("DELETE FROM DownloadedSong WHERE id = :id")
+    fun deleteDownloadedSong(id: String)
+
     @Query("SELECT * FROM PrecachedSong WHERE timestamp < :threshold")
     fun oldPrecachedSongs(threshold: Long): List<PrecachedSong>
+
+    @Query("SELECT id FROM DownloadedSong")
+    fun downloadedSongIds(): Flow<List<String>>
+
+    @Transaction
+    @Query("SELECT Song.*, contentLength, downloadedAt FROM Song JOIN DownloadedSong ON Song.id = DownloadedSong.id LEFT JOIN Format ON Song.id = Format.songId ORDER BY downloadedAt DESC")
+    fun downloadedSongs(): Flow<List<SongWithContentLength>>
+
+    @Query("SELECT EXISTS(SELECT 1 FROM DownloadedSong WHERE id = :id)")
+    fun isDownloaded(id: String): Flow<Boolean>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     @Throws(SQLException::class)
@@ -625,12 +648,14 @@ interface Database {
     fun removeOffline(songIds: List<String>) {
         removeOfflineFormats(songIds)
         removePrecachedSongs(songIds)
+        removeDownloadedSongs(songIds)
     }
 
     @Transaction
     fun clearOfflineAll() {
         clearOfflineAllFormats()
         clearPrecachedSongs()
+        clearDownloadedSongs()
     }
 
     @Query("DELETE FROM Format WHERE songId IN (:songIds)")
@@ -644,6 +669,12 @@ interface Database {
 
     @Query("DELETE FROM PrecachedSong")
     fun clearPrecachedSongs()
+
+    @Query("DELETE FROM DownloadedSong WHERE id IN (:songIds)")
+    fun removeDownloadedSongs(songIds: List<String>)
+
+    @Query("DELETE FROM DownloadedSong")
+    fun clearDownloadedSongs()
 
 
     @Update
@@ -689,10 +720,10 @@ interface Database {
         Song::class, SongPlaylistMap::class, Playlist::class, Artist::class,
         SongArtistMap::class, Album::class, SongAlbumMap::class, SearchQuery::class,
         QueuedMediaItem::class, Format::class, Event::class, Lyrics::class,
-        PrecachedSong::class
+        PrecachedSong::class, DownloadedSong::class
     ],
     views = [SortedSongPlaylistMap::class],
-    version = 27,
+    version = 28,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -716,6 +747,7 @@ interface Database {
         AutoMigration(from = 24, to = 25),
         AutoMigration(from = 25, to = 26),
         AutoMigration(from = 26, to = 27),
+        AutoMigration(from = 27, to = 28),
     ],
 )
 @TypeConverters(Converters::class)

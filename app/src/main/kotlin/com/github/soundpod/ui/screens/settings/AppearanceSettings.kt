@@ -29,7 +29,7 @@ fun AppearanceSettingsContent(
     var appThemeColor by rememberPreference(appTheme, AppThemeColor.System)
     var progressBarStyle by rememberPreference(progressBarStyle, ProgressBar.Default )
     var playerlayout by rememberPreference(playerlayout, PlayerLayout.Default )
-    var tabStyle by rememberPreference(tabStyleKey, TabStyle.Modern)
+    var tabStyle by rememberPreference(tabStyleKey, TabStyle.Classic)
 
     var isAppearanceUpdated by rememberPreference(appearanceUpdatedKey, false)
 

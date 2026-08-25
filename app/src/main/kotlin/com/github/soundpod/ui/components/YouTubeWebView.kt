@@ -24,6 +24,12 @@ private class SoundPodJsBridge(
     fun onDecipherResult(requestId: String, result: String) {
         decipherRequests.remove(requestId)?.complete(result)
     }
+
+    @JavascriptInterface
+    fun onPoTokenResult(poToken: String) {
+        Log.d("SoundPod-WebView", "Received poToken: $poToken")
+        YouTubeSessionManager.updateSession(poToken = poToken)
+    }
 }
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -93,19 +99,30 @@ fun YouTubeWebView() {
                             }
                         }
                         try {
-                            view.evaluateJavascript(BotGuard.HTML, null)
+                            view.evaluateJavascript(BotGuard.JS, null)
+                            
+                            val generatePoTokenJs = """
+                                (async function() {
+                                    try {
+                                        const challenge = window.yt?.config_?.WEB_PLAYER_CONTEXT_CONFIG_ID_WEB_PLAYER_BOTGUARD_CHALLENGE || 
+                                                        (window.ytcfg && ytcfg.get ? ytcfg.get('WEB_PLAYER_CONTEXT_CONFIG_ID_WEB_PLAYER_BOTGUARD_CHALLENGE') : null);
+                                        
+                                        if (challenge) {
+                                            const result = await runBotGuard(challenge);
+                                            if (result && result.botguardResponse) {
+                                                SoundPodBridge.onPoTokenResult(result.botguardResponse);
+                                            }
+                                        }
+                                    } catch (e) {}
+                                })();
+                            """.trimIndent()
+                            
+                            view.evaluateJavascript(generatePoTokenJs, null)
                         } catch (e: Exception) {
                             Log.e("SoundPod-WebView", "Failed to inject BotGuard script", e)
                         }
 
                         // Try to find the decipher function
-                        val searchDecipherJs = """
-                            if (!window.decipherNParam) {
-                                console.log("SoundPod: Searching for decipher function...");
-                            }
-                        """.trimIndent()
-                        view.evaluateJavascript(searchDecipherJs, null)
-
                         injectDecipherScript(view)
                     }
                 }

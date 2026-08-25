@@ -37,6 +37,7 @@ import com.github.soundpod.R
 import com.github.soundpod.ui.components.GridOverlay
 import com.github.soundpod.ui.components.ShimmerHost
 import com.github.soundpod.ui.styling.Dimensions
+import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.viewmodels.ItemsPageViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -97,9 +98,9 @@ fun <T : Innertube.Item> ItemsPage(
 
     LaunchedEffect(filteredItems, enablePreCache) {
         if (enablePreCache && filteredItems.isNotEmpty()) {
-            val videoIds = filteredItems.take(5).map { it.key }.filter { it.isNotEmpty() }
-            if (videoIds.isNotEmpty()) {
-                binder?.preCacheManager?.preCache(videoIds)
+            val songsToPreCache = filteredItems.filterIsInstance<Innertube.SongItem>().take(5)
+            if (songsToPreCache.isNotEmpty()) {
+                binder?.preCacheManager?.preCache(songsToPreCache.map(Innertube.SongItem::asMediaItem))
             }
         }
     }

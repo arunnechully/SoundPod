@@ -15,6 +15,8 @@ data class BotGuardData(
 }
 
 object BotGuard {
+    val JS = HTML.substringAfter("<script>").substringBeforeLast("</script>")
+    
     const val HTML = """<!DOCTYPE html>
 <html lang="en"><head><title></title><script>
     /**

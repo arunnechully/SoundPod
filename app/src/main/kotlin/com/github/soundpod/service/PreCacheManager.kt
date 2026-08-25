@@ -1,24 +1,36 @@
 package com.github.soundpod.service
 
 import androidx.core.net.toUri
+import androidx.media3.common.MediaItem
 import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSpec
-import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.CacheWriter
+import androidx.media3.datasource.cache.ContentMetadata
+import androidx.media3.datasource.okhttp.OkHttpDataSource
 import com.github.innertube.Innertube
 import com.github.innertube.requests.player
+import com.github.soundpod.MainApplication
 import com.github.soundpod.NewPipeDownloader
 import com.github.soundpod.db
+import com.github.soundpod.models.DownloadedSong
+import com.github.soundpod.models.Format
 import com.github.soundpod.models.PrecachedSong
+import com.github.soundpod.models.Song
+import com.github.soundpod.utils.PlaybackSource
+import com.github.soundpod.utils.toast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.withContext
+import org.schabi.newpipe.extractor.ServiceList
+import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
@@ -31,8 +43,14 @@ class PreCacheManager(
     private val semaphore = Semaphore(1)
     private val activeTasks = ConcurrentHashMap<String, Job>()
 
-    fun preCache(videoIds: List<String>) {
-        videoIds.take(5).forEach { videoId ->
+    private val okHttpClient = okhttp3.OkHttpClient.Builder()
+        .followRedirects(true)
+        .followSslRedirects(true)
+        .build()
+
+    fun preCache(mediaItems: List<MediaItem>) {
+        mediaItems.take(5).forEach { mediaItem ->
+            val videoId = mediaItem.mediaId
             if (videoId.isBlank()) return@forEach
 
             // Avoid duplicate active tasks
@@ -41,7 +59,7 @@ class PreCacheManager(
             val job = scope.launch {
                 try {
                     semaphore.withPermit {
-                        preCacheSong(videoId)
+                        preCacheSong(videoId, 128 * 1024L, mediaItem)
                     }
                 } finally {
                     activeTasks.remove(videoId)
@@ -51,49 +69,159 @@ class PreCacheManager(
         }
     }
 
-    private suspend fun preCacheSong(videoId: String) {
-        if (cacheManager.isCached(videoId, 0, 128 * 1024L)) {
-            Log.i("SoundPod-PreCache", "$videoId is already in cache, skipping.")
-            return
+    fun cacheFull(mediaItem: MediaItem) {
+        val videoId = mediaItem.mediaId
+        if (videoId.isBlank()) return
+        
+        // Cancel existing pre-cache task if any to prioritize full download
+        activeTasks[videoId]?.cancel()
+        
+        val job = scope.launch {
+            try {
+                semaphore.withPermit {
+                    preCacheSong(videoId, -1L, mediaItem)
+                }
+            } finally {
+                activeTasks.remove(videoId)
+            }
+        }
+        activeTasks[videoId] = job
+    }
+
+    private suspend fun preCacheSong(videoId: String, length: Long, mediaItem: MediaItem? = null) {
+        Log.d("SoundPod-PreCache", "Pre-caching $videoId (requested length: $length)...")
+
+        // Ensure song exists in DB to avoid FK constraint crashes
+        mediaItem?.let { item ->
+            val songExists = db.song(videoId).first() != null
+            if (!songExists) {
+                db.insert(
+                    Song(
+                        id = videoId,
+                        title = item.mediaMetadata.title?.toString() ?: videoId,
+                        artistsText = item.mediaMetadata.artist?.toString(),
+                        durationText = item.mediaMetadata.extras?.getString("durationText"),
+                        thumbnailUrl = item.mediaMetadata.artworkUri?.toString()
+                    )
+                )
+            }
         }
 
-        Log.d("SoundPod-PreCache", "Pre-caching $videoId...")
+        val playbackSource = PlaybackSource.NewPipe // Forced to NewPipe temporarily
 
-        val response = Innertube.player(videoId)?.getOrNull()
-        if (response == null) {
-            Log.e("SoundPod-PreCache", "Failed to get metadata for $videoId")
-            return
+        var finalUri: android.net.Uri? = null
+        var contentLength: Long? = null
+        var bitrate: Long? = null
+        var itag: Int? = null
+        var mimeType: String? = null
+
+        if (playbackSource == PlaybackSource.Automatic || playbackSource == PlaybackSource.Innertube) {
+            val response = Innertube.player(videoId)?.getOrNull()
+            if (response != null) {
+                NewPipeDownloader.getInstance().preCache(videoId, response)
+                val bestFormat = response.streamingData?.highestQualityFormat
+                finalUri = bestFormat?.url?.toUri()
+                contentLength = bestFormat?.contentLength
+                bitrate = bestFormat?.bitrate
+                itag = bestFormat?.itag
+                mimeType = bestFormat?.mimeType
+            }
         }
 
-        NewPipeDownloader.getInstance().preCache(videoId, response)
-        val bestFormat = response.streamingData?.highestQualityFormat
+        if (finalUri == null) {
+            if (playbackSource == PlaybackSource.Innertube) {
+                Log.e("SoundPod-PreCache", "Innertube resolution failed for $videoId")
+                return
+            }
+            
+            // USE NEWPIPE EXTRACTOR
+            runCatching {
+                val streamExtractor = ServiceList.YouTube.getStreamExtractor("https://www.youtube.com/watch?v=$videoId")
+                streamExtractor.fetchPage()
 
-        val initialUri = bestFormat?.url?.toUri()
+                val audioStreams = streamExtractor.audioStreams
+                val bestAudio = audioStreams
+                    .filter { it.codec?.lowercase(Locale.ROOT) == "opus" }
+                    .maxByOrNull { it.averageBitrate }
+                    ?: audioStreams.maxByOrNull { it.averageBitrate }
 
-        val finalUri: android.net.Uri = if (initialUri != null) {
-            mediaSourceProvider.injectUrl(videoId, initialUri)
-            initialUri
-        } else {
-            Log.w("SoundPod-PreCache", "No direct URL found for $videoId, waiting for resolver...")
-            val resolvedUri = runCatching { mediaSourceProvider.resolveUrl(videoId) }.getOrNull()
-
-            if (resolvedUri != null) {
-                resolvedUri
-            } else {
-                Log.e("SoundPod-PreCache", "Totally failed to resolve direct URL for $videoId")
+                if (bestAudio != null) {
+                    finalUri = bestAudio.content.toUri()
+                    bitrate = -1L
+                    itag = bestAudio.itag
+                    mimeType = "audio/webm"
+                    contentLength = -1L
+                } else {
+                    val bestVideo = streamExtractor.videoStreams.maxByOrNull { it.bitrate }
+                        ?: throw Exception("No playable streams found by NewPipe for $videoId")
+                    finalUri = bestVideo.content.toUri()
+                    bitrate = bestVideo.bitrate.toLong()
+                    itag = bestVideo.itag
+                    mimeType = "video/mp4"
+                    contentLength = -1L
+                }
+            }.onFailure { e ->
+                Log.e("SoundPod-Debug", "NewPipe resolution failed in PreCache for $videoId", e)
                 return
             }
         }
+
+        if (finalUri == null) return
+        val uri = finalUri!!
+
+        // If we are doing a partial cache, check if already sufficiently cached
+        if (length != -1L && cacheManager.isCached(videoId, 0, length)) {
+            Log.i("SoundPod-PreCache", "$videoId is already partially cached, skipping.")
+            return
+        }
+
+        val actualLength = if (length == -1L) contentLength ?: -1L else length
+        if (length == -1L && actualLength > 0 && cacheManager.isCached(videoId, 0, actualLength)) {
+            Log.i("SoundPod-PreCache", "$videoId is already fully cached, skipping.")
+            com.github.soundpod.transaction {
+                db.insert(
+                    Format(
+                        songId = videoId,
+                        itag = itag,
+                        mimeType = mimeType,
+                        bitrate = bitrate,
+                        contentLength = actualLength,
+                        lastModified = System.currentTimeMillis(),
+                        loudnessDb = null
+                    )
+                )
+                db.insert(DownloadedSong(videoId))
+                db.deletePrecachedSong(videoId)
+            }
+            return
+        }
+
+        mediaSourceProvider.injectUrl(videoId, uri)
+
         val dataSpec = DataSpec.Builder()
-            .setUri(finalUri)
+            .setUri(uri)
             .setKey(videoId)
             .setPosition(0)
-            .setLength(128 * 1024L)
+            .setLength(actualLength)
             .build()
 
-        val upstreamDataSource = DefaultHttpDataSource.Factory()
-            .setAllowCrossProtocolRedirects(true)
-            .createDataSource()
+        val upstreamDataSource = if (playbackSource == PlaybackSource.NewPipe) {
+            OkHttpDataSource.Factory(okHttpClient)
+                .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                .createDataSource()
+        } else {
+            OkHttpDataSource.Factory(okHttpClient)
+                .setUserAgent(PlayerMediaSourceProvider.DEFAULT_USER_AGENT)
+                .setDefaultRequestProperties(buildMap {
+                    put("Referer", "https://www.youtube.com/")
+                    put("Origin", "https://www.youtube.com")
+                    put("X-YouTube-Client-Name", "28")
+                    put("X-YouTube-Client-Version", "1.71.26")
+                    Innertube.visitorData?.let { put("X-Goog-Visitor-Id", it) }
+                    Innertube.cookies?.let { put("Cookie", it) }
+                })
+                .createDataSource()
+        }
 
         val cacheDataSource = CacheDataSource.Factory()
             .setCache(cacheManager.cache)
@@ -101,11 +229,66 @@ class PreCacheManager(
             .createDataSource()
 
         try {
-            CacheWriter(cacheDataSource, dataSpec, null, null).cache()
-            db.insert(PrecachedSong(videoId))
-            Log.i("SoundPod-PreCache", "Successfully buffered 128kb for $videoId")
+            Log.d("SoundPod-PreCache", "Starting CacheWriter for $videoId")
+            val writer = CacheWriter(cacheDataSource, dataSpec, null) { requestLength, bytesCached, _ ->
+                if (length == -1L && requestLength > 0) {
+                    val progress = (bytesCached * 100 / requestLength).toInt()
+                    if (bytesCached % (1024 * 1024) < 1024) { // Log every ~1MB
+                        Log.d("SoundPod-PreCache", "Download progress for $videoId: $progress% ($bytesCached/$requestLength)")
+                    }
+                }
+            }
+            writer.cache()
+            
+            if (length == -1L) {
+                // Update database with the actual cached length for full downloads
+                val metadataLength = ContentMetadata.getContentLength(cacheManager.cache.getContentMetadata(videoId))
+                val finalLength = if (metadataLength > 0) metadataLength else {
+                    cacheManager.cache.getCachedSpans(videoId).sumOf { it.length }
+                }
+
+                Log.d("SoundPod-PreCache", "Final calculated length for $videoId: $finalLength bytes")
+
+                if (finalLength > 0) {
+                    // Use internal.runInTransaction for blocking commit to ensure visibility
+                    com.github.soundpod.internal.runInTransaction {
+                        db.insert(
+                            Format(
+                                songId = videoId,
+                                itag = itag,
+                                mimeType = mimeType,
+                                bitrate = bitrate,
+                                contentLength = finalLength,
+                                lastModified = System.currentTimeMillis(),
+                                loudnessDb = null
+                            )
+                        )
+                        db.insert(DownloadedSong(videoId))
+                        db.deletePrecachedSong(videoId)
+                    }
+                } else {
+                    Log.w("SoundPod-PreCache", "Downloaded song $videoId has 0 length. Not marking as Downloaded.")
+                }
+                
+                withContext(Dispatchers.Main) {
+                    MainApplication.appContext.toast("Successfully downloaded ${mediaItem?.mediaMetadata?.title ?: videoId}")
+                }
+            } else {
+                // Partial cache, mark as temp for 24h cleanup
+                db.insert(PrecachedSong(videoId))
+            }
+            Log.i("SoundPod-PreCache", "Successfully cached $videoId")
         } catch (e: Exception) {
+            if (e.message?.contains("403") == true) {
+                Log.w("SoundPod-PreCache", "Hit 403 for $videoId, evicting URL and failing.")
+                mediaSourceProvider.evictUrl(videoId)
+            }
             Log.e("SoundPod-PreCache", "Caching failed for $videoId: ${e.message}")
+            if (length == -1L) {
+                withContext(Dispatchers.Main) {
+                    MainApplication.appContext.toast("Download failed for ${mediaItem?.mediaMetadata?.title ?: videoId}: ${e.message}")
+                }
+            }
         }
     }
 

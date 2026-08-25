@@ -67,9 +67,16 @@ const val autoBackup = "autoBackup"
 
 const val autoBackupUriPrefKey = "autoBackupUri"
 const val listGesturesEnabledKey = "listGesturesEnabled"
+const val playbackSourceKey = "playbackSource"
 
 const val updateAvailableKey = "updateAvailable"
 const val appearanceUpdatedKey = "appearanceUpdated"
+
+enum class PlaybackSource(val resourceId: Int) {
+    Automatic(R.string.automatic),
+    Innertube(R.string.innertube),
+    NewPipe(R.string.newpipe)
+}
 
 enum class TabStyle(val resourceId: Int) {
     Modern(R.string.modern),

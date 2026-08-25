@@ -63,8 +63,8 @@ fun OnlineSearch(
     val menuState = LocalMenuState.current
 
     androidx.compose.runtime.LaunchedEffect(songResults) {
-        songResults?.take(5)?.map { it.key }?.let { videoIds ->
-            binder?.preCacheManager?.preCache(videoIds)
+        songResults?.take(5)?.map(Innertube.SongItem::asMediaItem)?.let { mediaItems ->
+            binder?.preCacheManager?.preCache(mediaItems)
         }
     }
 

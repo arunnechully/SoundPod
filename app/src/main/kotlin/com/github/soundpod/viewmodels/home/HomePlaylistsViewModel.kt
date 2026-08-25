@@ -13,7 +13,12 @@ import com.github.soundpod.enums.PlaylistSortBy
 import com.github.soundpod.enums.SortOrder
 import com.github.soundpod.models.PlaylistPreview
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -22,23 +27,21 @@ class HomePlaylistsViewModel : ViewModel() {
     var offlineThumbnail: String? by mutableStateOf(null)
     var offlineCount: Int by mutableIntStateOf(0)
 
+    private var observationJob: Job? = null
+
     @UnstableApi
-    fun observeOfflineSongs(cache: Cache?) {
-        viewModelScope.launch {
-            db.songsWithContentLength()
-                .map { songsWithLength ->
-                    songsWithLength
-                        .filterNot {
-                            it.song.id.startsWith("content://") || it.song.id.startsWith("file://")
-                        }.filter { item ->
-                            val length = item.contentLength
-                            if (length != null) {
-                                cache?.isCached(item.song.id, 0, length) == true
-                            } else {
-                                (cache?.getCachedBytes(item.song.id, 0, -1) ?: 0L) > 0L
-                            }
-                        }
-                }
+    fun observeOfflineSongs(cache: Cache?, cacheChanges: kotlinx.coroutines.flow.Flow<Unit>) {
+        observationJob?.cancel()
+        observationJob = viewModelScope.launch {
+            combine(
+                db.downloadedSongs(),
+                cacheChanges.onStart { emit(Unit) }
+            ) { downloadedSongs, _ ->
+                downloadedSongs
+                    .filter { item ->
+                        (cache?.getCachedBytes(item.song.id, 0, -1) ?: 0L) > 0L
+                    }
+            }
                 .flowOn(Dispatchers.IO)
                 .collect { cachedSongs ->
                     offlineCount = cachedSongs.size

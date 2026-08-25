@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
+import kotlinx.coroutines.flow.flowOf
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
@@ -65,7 +66,7 @@ fun HomePlaylists(
     }
 
     LaunchedEffect(binder) {
-        viewModel.observeOfflineSongs(binder?.cache)
+        viewModel.observeOfflineSongs(binder?.cache, binder?.cacheChanges ?: flowOf(Unit))
     }
 
     val playlistName = stringResource(R.string.playlist)

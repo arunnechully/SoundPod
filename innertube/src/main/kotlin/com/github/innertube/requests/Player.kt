@@ -9,6 +9,7 @@ import com.github.innertube.models.bodies.ServiceIntegrityDimensions
 import com.github.innertube.utils.runCatchingNonCancellable
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -27,10 +28,14 @@ private data class PipedResponse(
 )
 
 suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
-    val response = client.post(PLAYER) {
+    val clientType = YouTubeClient.ANDROID_VR
+    val response = client.post("https://www.youtube.com$PLAYER") {
+        header("User-Agent", clientType.userAgent)
+        header("X-YouTube-Client-Name", clientType.clientId)
+        header("X-YouTube-Client-Version", clientType.clientVersion)
         setBody(
             PlayerBody(
-                context = YouTubeClient.ANDROID_VR.toContext(visitorData = visitorData),
+                context = clientType.toContext(visitorData = visitorData),
                 videoId = videoId,
                 serviceIntegrityDimensions = poToken?.let { ServiceIntegrityDimensions(poToken = it) }
             )
@@ -41,58 +46,24 @@ suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
     if (response.playabilityStatus?.status == "OK") {
         return@runCatchingNonCancellable response.applyDecipher(decipher)
     }
-    else {
-        val safePlayerResponse = client.post(PLAYER) {
-            setBody(
-                PlayerBody(
-                    context = YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER.toContext(visitorData = visitorData).copy(
-                        thirdParty = Context.ThirdParty(
-                            embedUrl = "https://www.youtube.com/watch?v=$videoId"
-                        )
-                    ),
-                    videoId = videoId
-                )
-            )
-            mask("playabilityStatus.status,playerConfig.audioConfig,streamingData.adaptiveFormats,streamingData.formats,videoDetails.videoId")
-        }.body<PlayerResponse>()
 
-        if (safePlayerResponse.playabilityStatus?.status != "OK") {
-            return@runCatchingNonCancellable response.applyDecipher(decipher)
-        }
-
-        val audioStreams = runCatching {
-            client.get("https://pipedapi.adminforge.de/streams/$videoId") {
-                contentType(ContentType.Application.Json)
-            }.body<PipedResponse>().audioStreams
-        }.getOrNull() ?: emptyList()
-
-        if (audioStreams.isEmpty()) {
-            return@runCatchingNonCancellable safePlayerResponse.applyDecipher(decipher)
-        }
-
-        safePlayerResponse.copy(
-            streamingData = safePlayerResponse.streamingData?.copy(
-                adaptiveFormats = safePlayerResponse.streamingData.adaptiveFormats?.map { adaptiveFormat ->
-                    adaptiveFormat.copy(
-                        url = audioStreams.minByOrNull {
-                            val bitrate = adaptiveFormat.bitrate ?: 0L
-                            if (bitrate == 0L) Long.MAX_VALUE
-                            else kotlin.math.abs(it.bitrate - bitrate)
-                        }?.url
+    val fallbackClient = YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER
+    val fallbackResponse = client.post("https://www.youtube.com$PLAYER") {
+        header("User-Agent", fallbackClient.userAgent)
+        setBody(
+            PlayerBody(
+                context = fallbackClient.toContext(visitorData = visitorData).copy(
+                    thirdParty = Context.ThirdParty(
+                        embedUrl = "https://www.youtube.com/watch?v=$videoId"
                     )
-                },
-                formats = safePlayerResponse.streamingData.formats?.map { format ->
-                    format.copy(
-                        url = audioStreams.minByOrNull {
-                            val bitrate = format.bitrate ?: 0L
-                            if (bitrate == 0L) Long.MAX_VALUE
-                            else kotlin.math.abs(it.bitrate - bitrate)
-                        }?.url
-                    )
-                }
+                ),
+                videoId = videoId
             )
-        ).applyDecipher(decipher)
-    }
+        )
+        mask("playabilityStatus.status,playerConfig.audioConfig,streamingData.adaptiveFormats,streamingData.formats,videoDetails.videoId")
+    }.body<PlayerResponse>()
+
+    return@runCatchingNonCancellable fallbackResponse.applyDecipher(decipher)
 }
 
 private suspend fun PlayerResponse.applyDecipher(decipher: (suspend (String) -> String)?): PlayerResponse {

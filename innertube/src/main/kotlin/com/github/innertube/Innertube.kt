@@ -51,6 +51,14 @@ object Innertube {
     val client = HttpClient(OkHttp) {
         expectSuccess = true
 
+        engine {
+            addInterceptor { chain ->
+                val request = chain.request().newBuilder()
+                cookies?.let { request.addHeader("Cookie", it) }
+                chain.proceed(request.build())
+            }
+        }
+
         install(HttpTimeout) {
             requestTimeoutMillis = 30.seconds.inWholeMilliseconds
             connectTimeoutMillis = 30.seconds.inWholeMilliseconds
@@ -74,7 +82,7 @@ object Innertube {
         defaultRequest {
             url(scheme = "https", host ="music.youtube.com") {
                 contentType(ContentType.Application.Json)
-                headers.append("X-Goog-Api-Key", "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8")
+                headers.append("X-Goog-Api-Key", "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30")
                 parameters.append("prettyPrint", "false")
             }
         }

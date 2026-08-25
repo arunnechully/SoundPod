@@ -205,6 +205,13 @@ class MainActivity : ComponentActivity() {
                                     putExtra("SCREEN_ID", SettingsDestinations.SLEEP_TIMER)
                                 }
                                 context.startActivity(intent)
+                            },
+                            onNavigateToPlaybackSourceSettings = {
+                                val intent = Intent(context, SettingsActivity::class.java).apply {
+                                    putExtra("SCREEN_ID", SettingsDestinations.PLAYER)
+                                    putExtra("HIGHLIGHT_SETTING", "playbackSource")
+                                }
+                                context.startActivity(intent)
                             }
                         ) {
                             MainNavigation(

@@ -28,6 +28,7 @@ import com.github.soundpod.viewmodels.SettingsViewModel
 @Composable
 fun SettingsScreen(
     screenId: String,
+    highlightSetting: String? = null,
     onBackClick: () -> Unit,
     onOptionClick: (String) -> Unit
 ) {
@@ -64,7 +65,8 @@ fun SettingsScreen(
 
                 SettingsDestinations.BACKGROUND -> BackgroundSettingsContent()
                 SettingsDestinations.PLAYER -> PlayerSettingsContent(
-                    onSleepTimerClick = { onOptionClick(SettingsDestinations.SLEEP_TIMER) }
+                    onSleepTimerClick = { onOptionClick(SettingsDestinations.SLEEP_TIMER) },
+                    highlightPlaybackSource = highlightSetting == "playbackSource"
                 )
 
                 SettingsDestinations.SLEEP_TIMER -> SleepTimerSettingsContent()

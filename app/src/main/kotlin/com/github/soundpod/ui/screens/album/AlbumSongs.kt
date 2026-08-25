@@ -60,7 +60,7 @@ fun AlbumSongs(
             songs = if (sortOrder.name == "Descending") sortedList.reversed() else sortedList
 
             if (songs.isNotEmpty()) {
-                binder?.preCacheManager?.preCache(songs.take(5).map { it.id })
+                binder?.preCacheManager?.preCache(songs.take(5).map(Song::asMediaItem))
             }
         }
     }

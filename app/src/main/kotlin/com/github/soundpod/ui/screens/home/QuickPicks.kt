@@ -119,7 +119,7 @@ fun QuickPicks(
 
     LaunchedEffect(viewModel.relatedPageResult) {
         viewModel.relatedPageResult?.getOrNull()?.songs?.let { songs ->
-            binder?.preCacheManager?.preCache(songs.mapNotNull { it.info?.endpoint?.videoId })
+            binder?.preCacheManager?.preCache(songs.map(Innertube.SongItem::asMediaItem))
         }
     }
 

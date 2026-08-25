@@ -30,7 +30,9 @@ import com.github.soundpod.utils.forceSeekToPrevious
 import com.github.soundpod.utils.intent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -251,16 +253,20 @@ class PlayerMediaBrowserService : MediaBrowserService(), ServiceConnection {
                         .first()
                         .shuffled()
 
-                    MediaId.OFFLINE -> db
-                        .songsWithContentLength()
-                        .first()
-                        .filter { song ->
-                            song.contentLength?.let {
-                                cache.isCached(song.song.id, 0, it)
-                            } == true
-                        }
-                        .map(SongWithContentLength::song)
-                        .shuffled()
+                    MediaId.OFFLINE -> db.downloadedSongs()
+                        .map { downloadedSongs ->
+                            downloadedSongs
+                                .filter { item ->
+                                    val length = item.contentLength ?: 0L
+                                    if (length > 0) {
+                                        cache.isCached(item.song.id, 0, length)
+                                    } else {
+                                        (cache.getCachedBytes(item.song.id, 0, -1)) > 0L
+                                    }
+                                }
+                                .map(SongWithContentLength::song)
+                                .shuffled()
+                        }.first()
 
                     MediaId.PLAYLISTS -> data
                         .getOrNull(1)

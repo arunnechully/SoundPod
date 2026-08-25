@@ -36,6 +36,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -100,7 +101,9 @@ import com.github.soundpod.utils.shuffleQueue
 import com.github.soundpod.utils.toast
 import com.github.soundpod.utils.trackLoopEnabledKey
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.onStart
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -673,7 +676,8 @@ fun PlayerTopControl(
     onLyricsClick: () -> Unit = {},
     isPlaylistShowing: Boolean,
     onSettingsClick: () -> Unit,
-    onSleepTimerClick: () -> Unit
+    onSleepTimerClick: () -> Unit,
+    isFullyCached: Boolean = false
 ) {
     val (colorPalette) = LocalAppearance.current
     val binder = LocalPlayerServiceBinder.current
@@ -684,6 +688,8 @@ fun PlayerTopControl(
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { }
 
     val sleepTimerMillisLeft by binder?.sleepTimerMillisLeft?.collectAsState(initial = null) ?: remember { mutableStateOf(null) }
+
+    val currentMediaItem = binder?.player?.currentMediaItem
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -711,6 +717,18 @@ fun PlayerTopControl(
         }
 
         Spacer(modifier = Modifier.weight(1f))
+
+        if (isFullyCached) {
+            Icon(
+                painter = painterResource(id = R.drawable.offline_music),
+                tint = colorPalette.text.copy(alpha = 0.5f),
+                contentDescription = "Cached",
+                modifier = Modifier
+                    .size(18.dp)
+                    .align(Alignment.CenterVertically)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+        }
 
         if (sleepTimerMillisLeft != null) {
             Text(
@@ -826,6 +844,25 @@ fun PlayerTopControl(
                         }
                     )
                 }
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = if (isFullyCached) stringResource(id = R.string.downloaded) else stringResource(id = R.string.make_offline),
+                            color = if (isFullyCached) colorPalette.text.copy(alpha = 0.5f) else colorPalette.text,
+                            style = typography.bodyLarge
+                        )
+                    },
+                    onClick = {
+                        showDropDown = false
+                        if (!isFullyCached) {
+                            currentMediaItem?.let { mediaItem ->
+                                binder.preCacheManager.cacheFull(mediaItem)
+                                context.toast("Downloading for offline playback...")
+                            }
+                        }
+                    },
+                    enabled = !isFullyCached
+                )
                 DropdownMenuItem(
                     text = {
                         Text(

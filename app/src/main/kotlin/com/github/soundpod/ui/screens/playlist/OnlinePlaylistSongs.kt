@@ -41,8 +41,8 @@ fun OnlinePlaylistSongs(
     val playerPadding = LocalPlayerPadding.current
 
     androidx.compose.runtime.LaunchedEffect(playlistPage) {
-        playlistPage?.songsPage?.items?.take(5)?.map { it.key }?.let { videoIds ->
-            binder?.preCacheManager?.preCache(videoIds)
+        playlistPage?.songsPage?.items?.take(5)?.map(Innertube.SongItem::asMediaItem)?.let { mediaItems ->
+            binder?.preCacheManager?.preCache(mediaItems)
         }
     }
 

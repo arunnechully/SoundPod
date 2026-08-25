@@ -34,9 +34,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.LaunchedEffect
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.github.soundpod.LocalPlayerServiceBinder
+import com.github.soundpod.db
 import com.github.soundpod.enums.PlayerLayout
 import com.github.soundpod.enums.ProgressBar
 import com.github.soundpod.ui.screens.player.lyrics.LyricsOverlay
@@ -46,6 +48,9 @@ import com.github.soundpod.utils.progressBarStyle
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.viewmodels.PlayerViewModel
 import com.github.soundpod.viewmodels.PlaylistViewModel
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.onStart
 
 @OptIn(UnstableApi::class)
 @kotlin.OptIn(
@@ -98,6 +103,25 @@ fun MainPlayerContent(
     }
 
     var isDraggingSeekBar by remember { mutableStateOf(false) }
+    
+    var isFullyCached by remember { mutableStateOf(false) }
+    LaunchedEffect(mediaItem?.mediaId, binder) {
+        val videoId = mediaItem?.mediaId ?: return@LaunchedEffect
+        val cache = binder?.cache ?: return@LaunchedEffect
+        
+        combine(
+            db.isDownloaded(videoId),
+            binder.cacheChanges.onStart { emit(Unit) }
+        ) { downloaded, _ ->
+            if (downloaded) {
+                (cache.getCachedBytes(videoId, 0, -1)) > 0L
+            } else {
+                false
+            }
+        }.distinctUntilChanged().collect {
+            isFullyCached = it
+        }
+    }
 
     val progressBarStyleState = rememberPreference(progressBarStyle, ProgressBar.Default)
     val currentProgressStyle = progressBarStyleState.value
@@ -169,7 +193,8 @@ fun MainPlayerContent(
                         onBack = {
                             if (showPlaylist) onTogglePlaylist(false) else onBack()
                         },
-                        isPlaylistShowing = if (layoutMode == PlayerLayout.Default) showPlaylist || showLyrics else showPlaylist
+                        isPlaylistShowing = if (layoutMode == PlayerLayout.Default) showPlaylist || showLyrics else showPlaylist,
+                        isFullyCached = isFullyCached
                     )
 
                     Box(
@@ -257,7 +282,8 @@ fun MainPlayerContent(
                     onBack = {
                         if (showPlaylist) onTogglePlaylist(false) else onBack()
                     },
-                    isPlaylistShowing = if (layoutMode == PlayerLayout.Default) showPlaylist || showLyrics else showPlaylist
+                    isPlaylistShowing = if (layoutMode == PlayerLayout.Default) showPlaylist || showLyrics else showPlaylist,
+                    isFullyCached = isFullyCached
                 )
 
                 Box(Modifier.weight(1f)) {

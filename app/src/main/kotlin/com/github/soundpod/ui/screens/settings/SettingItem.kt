@@ -45,6 +45,7 @@ inline fun <reified T : Enum<T>> EnumValueSelectorSettingsEntry(
     title: String,
     selectedValue: T,
     crossinline onValueSelected: (T) -> Unit,
+    modifier: Modifier = Modifier,
     icon: IconSource? = null,
     isEnabled: Boolean = true,
     crossinline valueText: @Composable (T) -> String = { it.name },
@@ -55,6 +56,7 @@ inline fun <reified T : Enum<T>> EnumValueSelectorSettingsEntry(
         selectedValue = selectedValue,
         values = enumValues<T>().toList(),
         onValueSelected = onValueSelected,
+        modifier = modifier,
         icon = icon,
         isEnabled = isEnabled,
         valueText = valueText,
@@ -68,6 +70,7 @@ inline fun <T> ValueSelectorSettingsEntry(
     selectedValue: T,
     values: List<T>,
     crossinline onValueSelected: (T) -> Unit,
+    modifier: Modifier = Modifier,
     icon: IconSource? = null,
     isEnabled: Boolean = true,
     crossinline valueText: @Composable (T) -> String = { it.toString() },
@@ -91,6 +94,7 @@ inline fun <T> ValueSelectorSettingsEntry(
     }
 
     SettingsColumn(
+        modifier = modifier,
         icon = icon,
         title = title,
         description = valueText(selectedValue),
@@ -266,6 +270,7 @@ fun SettingRow(
 
 @Composable
 fun SettingsColumn(
+    modifier: Modifier = Modifier,
     icon: IconSource? = null,
     leadingContent: @Composable (() -> Unit)? = null,
     title: String,
@@ -288,7 +293,7 @@ fun SettingsColumn(
         Modifier
     }
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .then(clickModifier)
             .padding(start = 12.dp, end = 12.dp)
