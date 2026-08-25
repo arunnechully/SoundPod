@@ -347,7 +347,7 @@
     <string name="kbps">%d kbps</string>
     <string name="decibel">%s dB</string>
     <string name="playback_source">Source de lecture</string>
-    <string name="automatic">Automatic</string>
+    <string name="automatic">Automatique</string>
     <string name="innertube">Innertube</string>
     <string name="newpipe">NewPipe</string>
     <string name="favorite_tracks">Titres Favoris</string>
@@ -356,8 +356,8 @@
     <string name="no_favorites">Aucun favori</string>
     <string name="download">Télécharger</string>
     <string name="remove_download">Supprimer le téléchargement</string>
-    <string name="make_offline">Save offline</string>
-    <string name="downloaded">Downloaded</string>
+    <string name="make_offline">Enregistrer hors ligne</string>
+    <string name="downloaded">Téléchargé</string>
     <string name="no_favorites_description">Appuyez sur l\'icône en forme de cœur à côté des titres, des albums ou des artistes pour les ajouter à vos favoris.</string>
     <string name="defualt">Par défaut</string>
     <string name="view_artist">Voir l\'Artiste</string>
