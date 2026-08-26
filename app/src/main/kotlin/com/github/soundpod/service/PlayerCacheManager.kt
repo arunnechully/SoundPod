@@ -48,11 +48,21 @@ class PlayerCacheManager(private val context: Context) {
         
         val globalEvictor = GlobalCacheListenerEvictor(baseEvictor)
 
-        // TODO: Remove in a future release
-        val directory = context.cacheDir.resolve("exoplayer").also { directory ->
+        // Move cache from cacheDir to filesDir to prevent system clearing it when storage is low
+        val oldDirectory = context.cacheDir.resolve("exoplayer")
+        val directory = context.filesDir.resolve("exoplayer").also { directory ->
             if (!directory.exists()) {
                 directory.mkdir()
 
+                // Migrate from cacheDir if exists
+                if (oldDirectory.exists()) {
+                    oldDirectory.listFiles()?.forEach { file ->
+                        file.renameTo(directory.resolve(file.name))
+                    }
+                    oldDirectory.deleteRecursively()
+                }
+
+                // Legacy migration
                 context.cacheDir.listFiles()?.forEach { file ->
                     if (file.isDirectory && file.name.length == 1 && file.name.isDigitsOnly() || file.extension == "uid") {
                         if (!file.renameTo(directory.resolve(file.name))) {

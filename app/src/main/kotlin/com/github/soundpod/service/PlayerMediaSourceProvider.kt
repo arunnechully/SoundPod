@@ -10,6 +10,7 @@ import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.datasource.cache.CacheDataSink
+import androidx.media3.datasource.cache.ContentMetadata
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
@@ -117,6 +118,14 @@ class PlayerMediaSourceProvider(
             return videoId.toUri()
         }
 
+        // Check if fully cached first to avoid network calls in offline mode
+        val metadata = cacheManager.cache.getContentMetadata(videoId)
+        val length = ContentMetadata.getContentLength(metadata)
+        if (length > 0 && cacheManager.cache.isCached(videoId, 0, length)) {
+            Log.d("SoundPod-DataSource", "Cache HIT for $videoId ($length bytes), bypassing resolution")
+            return urlCache[videoId]?.first ?: "https://www.youtube.com/watch?v=$videoId".toUri()
+        }
+
         urlCache[videoId]?.let { (uri, timestamp) ->
             if (System.currentTimeMillis() - timestamp < CACHE_EXPIRATION_MS) {
                 Log.d("SoundPod-DataSource", "URL cache hit for $videoId")
@@ -168,8 +177,9 @@ class PlayerMediaSourceProvider(
 
                 bestAudio.content
             }.getOrElse { e ->
-                Log.e("SoundPod-Debug", "NewPipe resolution failed for $videoId", e)
-                throw e
+                Log.e("SoundPod-Debug", "NewPipe resolution failed for $videoId (Network likely down)", e)
+                // If we're offline, return a generic URI. CacheDataSource will still check the cache key.
+                return "https://www.youtube.com/watch?v=$videoId".toUri()
             }
 
             val newUri = rawUrl.toUri()

@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.LaunchedEffect
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.cache.ContentMetadata
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.db
 import com.github.soundpod.enums.PlayerLayout
@@ -111,10 +112,19 @@ fun MainPlayerContent(
         
         combine(
             db.isDownloaded(videoId),
+            db.format(videoId),
             binder.cacheChanges.onStart { emit(Unit) }
-        ) { downloaded, _ ->
+        ) { downloaded, format, _ ->
             if (downloaded) {
-                (cache.getCachedBytes(videoId, 0, -1)) > 0L
+                val metadata = cache.getContentMetadata(videoId)
+                val length = ContentMetadata.getContentLength(metadata).takeIf { it > 0 }
+                    ?: format?.contentLength ?: -1L
+                
+                if (length > 0) {
+                    cache.isCached(videoId, 0, length)
+                } else {
+                    cache.getCachedBytes(videoId, 0, -1) > 0L
+                }
             } else {
                 false
             }

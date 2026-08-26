@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.Cache
+import androidx.media3.datasource.cache.ContentMetadata
 import com.github.soundpod.db
 import com.github.soundpod.enums.PlaylistSortBy
 import com.github.soundpod.enums.SortOrder
@@ -39,7 +40,11 @@ class HomePlaylistsViewModel : ViewModel() {
             ) { downloadedSongs, _ ->
                 downloadedSongs
                     .filter { item ->
-                        (cache?.getCachedBytes(item.song.id, 0, -1) ?: 0L) > 0L
+                        val metadata = cache?.getContentMetadata(item.song.id)
+                        val length = metadata?.let { ContentMetadata.getContentLength(it) }?.takeIf { it > 0 }
+                            ?: item.contentLength ?: 0L
+
+                        length > 0 && cache?.isCached(item.song.id, 0, length) == true
                     }
             }
                 .flowOn(Dispatchers.IO)

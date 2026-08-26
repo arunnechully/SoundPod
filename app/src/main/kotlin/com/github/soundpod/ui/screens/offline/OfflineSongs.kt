@@ -47,6 +47,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.cache.ContentMetadata
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
@@ -134,8 +135,12 @@ fun OfflineSongs(
                         val binderCache = binder?.cache
                         downloadedSongs
                             .filter { item ->
-                                // Lenient check: trust DB + check for any bytes to avoid minor metadata mismatches
-                                (binderCache?.getCachedBytes(item.song.id, 0, -1) ?: 0L) > 0L
+                                // Use physical metadata if available, otherwise fallback to DB reported length
+                                val metadata = binderCache?.getContentMetadata(item.song.id)
+                                val length = metadata?.let { ContentMetadata.getContentLength(it) }?.takeIf { it > 0 }
+                                    ?: item.contentLength ?: 0L
+
+                                length > 0 && binderCache?.isCached(item.song.id, 0, length) == true
                             }.map { it.song }
                             .let { songs ->
                                 when (sortBy) {

@@ -5,9 +5,11 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSpec
+import androidx.media3.datasource.cache.CacheDataSink
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.CacheWriter
 import androidx.media3.datasource.cache.ContentMetadata
+import androidx.media3.datasource.cache.ContentMetadataMutations
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import com.github.innertube.Innertube
 import com.github.innertube.requests.player
@@ -147,10 +149,10 @@ class PreCacheManager(
 
                 if (bestAudio != null) {
                     finalUri = bestAudio.content.toUri()
-                    bitrate = -1L
+                    bitrate = bestAudio.averageBitrate.toLong()
                     itag = bestAudio.itag
                     mimeType = "audio/webm"
-                    contentLength = -1L
+                    contentLength = bestAudio.itagItem?.contentLength ?: -1L
                 } else {
                     val bestVideo = streamExtractor.videoStreams.maxByOrNull { it.bitrate }
                         ?: throw Exception("No playable streams found by NewPipe for $videoId")
@@ -158,7 +160,11 @@ class PreCacheManager(
                     bitrate = bestVideo.bitrate.toLong()
                     itag = bestVideo.itag
                     mimeType = "video/mp4"
-                    contentLength = -1L
+                    contentLength = bestVideo.itagItem?.contentLength ?: -1L
+                }
+
+                if (contentLength == -1L) {
+                    contentLength = fetchContentLength(finalUri!!.toString())
                 }
             }.onFailure { e ->
                 Log.e("SoundPod-Debug", "NewPipe resolution failed in PreCache for $videoId", e)
@@ -226,15 +232,17 @@ class PreCacheManager(
         val cacheDataSource = CacheDataSource.Factory()
             .setCache(cacheManager.cache)
             .setUpstreamDataSourceFactory { upstreamDataSource }
+            .setCacheWriteDataSinkFactory(CacheDataSink.Factory().setCache(cacheManager.cache))
             .createDataSource()
 
         try {
             Log.d("SoundPod-PreCache", "Starting CacheWriter for $videoId")
             val writer = CacheWriter(cacheDataSource, dataSpec, null) { requestLength, bytesCached, _ ->
-                if (length == -1L && requestLength > 0) {
-                    val progress = (bytesCached * 100 / requestLength).toInt()
+                if (length == -1L) {
+                    val progress = if (requestLength > 0) (bytesCached * 100 / requestLength).toInt() else 0
                     if (bytesCached % (1024 * 1024) < 1024) { // Log every ~1MB
-                        Log.d("SoundPod-PreCache", "Download progress for $videoId: $progress% ($bytesCached/$requestLength)")
+                        val totalStr = if (requestLength > 0) "${requestLength / 1024 / 1024}MB" else "unknown"
+                        Log.d("SoundPod-PreCache", "Download progress for $videoId: $progress% (${bytesCached / 1024 / 1024}MB / $totalStr)")
                     }
                 }
             }
@@ -250,6 +258,11 @@ class PreCacheManager(
                 Log.d("SoundPod-PreCache", "Final calculated length for $videoId: $finalLength bytes")
 
                 if (finalLength > 0) {
+                    // Explicitly set the content length metadata in the cache to ensure offline playback works without resolution
+                    val mutations = ContentMetadataMutations()
+                    ContentMetadataMutations.setContentLength(mutations, finalLength)
+                    runCatching { cacheManager.cache.applyContentMetadataMutations(videoId, mutations) }
+
                     // Use internal.runInTransaction for blocking commit to ensure visibility
                     com.github.soundpod.internal.runInTransaction {
                         db.insert(
@@ -290,6 +303,20 @@ class PreCacheManager(
                 }
             }
         }
+    }
+
+    private suspend fun fetchContentLength(url: String): Long = withContext(Dispatchers.IO) {
+        val request = okhttp3.Request.Builder()
+            .url(url)
+            .head()
+            .build()
+        runCatching {
+            okHttpClient.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    response.header("Content-Length")?.toLongOrNull() ?: -1L
+                } else -1L
+            }
+        }.getOrDefault(-1L)
     }
 
     fun cleanUp() {
