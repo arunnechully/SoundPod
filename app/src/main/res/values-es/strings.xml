@@ -347,12 +347,17 @@
     <string name="kbps">%d kbps</string>
     <string name="decibel">%s dB</string>
     <string name="playback_source">Fuente de reproducción</string>
+    <string name="automatic">Automatic</string>
+    <string name="innertube">Innertube</string>
+    <string name="newpipe">NewPipe</string>
     <string name="favorite_tracks">Pistas favoritas</string>
     <string name="favorite_albums">Álbumes favoritos</string>
     <string name="favorite_artists">Artistas favoritos</string>
     <string name="no_favorites">Sin favoritos</string>
     <string name="download">Descargar</string>
     <string name="remove_download">Eliminar descarga</string>
+    <string name="make_offline">Save offline</string>
+    <string name="downloaded">Downloaded</string>
     <string name="no_favorites_description">Toca el icono del corazón en canciones, álbumes o artistas para añadirlos a tus favoritos.</string>
     <string name="defualt">Por defecto</string>
     <string name="view_artist">Ver artista</string>
