@@ -1,0 +1,6 @@
+• Playback Issue Fixes
+• Improved offline playback reliability and cache persistence
+• Added Artist Following section
+• Added Download option
+• Added Playback History to Quick Picks
+• Other minor improvements and bug fixes
