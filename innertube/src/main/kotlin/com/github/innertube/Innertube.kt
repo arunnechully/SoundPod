@@ -40,6 +40,7 @@ object Innertube {
     var onVisitorDataChanged: ((String?) -> Unit)? = null
     var poToken: String? = null
     var cookies: String? = null
+    var apiKey: String = "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30"
     var decipher: (suspend (String) -> String)? = null
 
     interface PoTokenResolver {
@@ -55,6 +56,15 @@ object Innertube {
             addInterceptor { chain ->
                 val request = chain.request().newBuilder()
                 cookies?.let { request.addHeader("Cookie", it) }
+                visitorData?.let { request.addHeader("X-Goog-Visitor-Id", it) }
+                poToken?.let { request.addHeader("X-YouTube-Po-Token", it) }
+                
+                // Add Authorization SAPISIDHASH if possible
+                val authHeader = generateAuthHeader(cookies)
+                if (authHeader != null) {
+                    request.addHeader("Authorization", authHeader)
+                }
+                
                 chain.proceed(request.build())
             }
         }
@@ -82,10 +92,27 @@ object Innertube {
         defaultRequest {
             url(scheme = "https", host ="music.youtube.com") {
                 contentType(ContentType.Application.Json)
-                headers.append("X-Goog-Api-Key", "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30")
+                headers.append("X-Goog-Api-Key", apiKey)
                 parameters.append("prettyPrint", "false")
             }
         }
+    }
+
+    fun generateAuthHeader(cookies: String?): String? {
+        if (cookies == null) return null
+        
+        val sapisid = cookies.substringAfter("SAPISID=", "").substringBefore(";")
+        if (sapisid.isEmpty()) return null
+        
+        val timestamp = System.currentTimeMillis() / 1000
+        val origin = "https://music.youtube.com"
+        val hash = sha1("${timestamp} ${sapisid} ${origin}")
+        return "SAPISIDHASH ${timestamp}_${hash}"
+    }
+
+    private fun sha1(input: String): String {
+        val bytes = java.security.MessageDigest.getInstance("SHA-1").digest(input.toByteArray())
+        return bytes.joinToString("") { "%02x".format(it) }
     }
 
     @Serializable

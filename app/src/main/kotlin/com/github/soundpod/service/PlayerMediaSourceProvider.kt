@@ -68,27 +68,33 @@ class PlayerMediaSourceProvider(
             .followSslRedirects(true)
             .build()
 
-        val httpDataSourceFactory = if (playbackSource == PlaybackSource.NewPipe) {
-            OkHttpDataSource.Factory(okHttpClient)
-                .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-        } else {
-            OkHttpDataSource.Factory(okHttpClient)
-                .setUserAgent(DEFAULT_USER_AGENT)
-                .setDefaultRequestProperties(buildMap {
-                    put("Referer", "https://www.youtube.com/")
-                    put("Origin", "https://www.youtube.com")
-                    put("X-YouTube-Client-Name", "28")
-                    put("X-YouTube-Client-Version", "1.74.31")
-                    Innertube.visitorData?.let { put("X-Goog-Visitor-Id", it) }
-                    Innertube.poToken?.let { put("X-YouTube-Po-Token", it) }
-                    Innertube.cookies?.let { put("Cookie", it) }
-                })
-        }
+        val httpDataSourceFactory = OkHttpDataSource.Factory(okHttpClient)
+            .setUserAgent(if (playbackSource == PlaybackSource.NewPipe) "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" else DEFAULT_USER_AGENT)
 
         val upstreamFactory = androidx.media3.datasource.DefaultDataSource.Factory(context, httpDataSourceFactory)
 
         val resolvingUpstreamFactory = ResolvingDataSource.Factory(upstreamFactory) { dataSpec ->
             val videoId = dataSpec.key ?: throw java.io.IOException("A key must be set")
+            
+            // If it's already a full playback URL, we need to ensure headers are attached
+            if (dataSpec.uri.toString().contains("videoplayback")) {
+                val headers = buildMap {
+                    put("Referer", "https://www.youtube.com/")
+                    put("Origin", "https://www.youtube.com")
+                    Innertube.visitorData?.let { put("X-Goog-Visitor-Id", it) }
+                    Innertube.poToken?.let { put("X-YouTube-Po-Token", it) }
+                    Innertube.cookies?.let { 
+                        put("Cookie", it)
+                        Innertube.generateAuthHeader(it)?.let { auth ->
+                            put("Authorization", auth)
+                        }
+                    }
+                }
+                return@Factory dataSpec.buildUpon()
+                    .setHttpRequestHeaders(headers)
+                    .build()
+            }
+
             Log.d("SoundPod-DataSource", "Resolving URI for key: $videoId")
             if (videoId.startsWith("http") || videoId.startsWith("content://") || videoId.startsWith("file://")) {
                 dataSpec

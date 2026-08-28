@@ -28,7 +28,10 @@ private data class PipedResponse(
 )
 
 suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
+    val currentPoToken = poTokenResolver?.getPoToken(videoId) ?: poToken
+
     val clients = listOf(
+        YouTubeClient.ANDROID_TESTSUITE,
         YouTubeClient.ANDROID_VR,
         YouTubeClient.VISION_OS,
         YouTubeClient.ANDROID_EMBEDDED_PLAYER,
@@ -44,7 +47,7 @@ suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
                 PlayerBody(
                     context = clientType.toContext(visitorData = visitorData),
                     videoId = videoId,
-                    serviceIntegrityDimensions = poToken?.let { ServiceIntegrityDimensions(poToken = it) }
+                    serviceIntegrityDimensions = currentPoToken?.let { ServiceIntegrityDimensions(poToken = it) }
                 )
             )
             mask("playabilityStatus.status,playerConfig.audioConfig,streamingData.adaptiveFormats,streamingData.formats,videoDetails.videoId")
