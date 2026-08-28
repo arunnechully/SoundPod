@@ -282,6 +282,20 @@ fun TrackDetails() {
                     color = colorPalette.text.copy(alpha = 0.1f)
                 )
 
+                val playbackSourceResId = mediaItem?.mediaId?.let { binder?.mediaSourceProvider?.getPlaybackSource(it) }
+                if (playbackSourceResId != null) {
+                    DetailItem(
+                        label = stringResource(id = R.string.playback_source),
+                        value = stringResource(id = playbackSourceResId)
+                    )
+
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        thickness = 0.5.dp,
+                        color = colorPalette.text.copy(alpha = 0.1f)
+                    )
+                }
+
                 DetailItem(
                     label = stringResource(id = R.string.path_id),
                     value = mediaItem?.mediaId ?: stringResource(id = R.string.unknown),

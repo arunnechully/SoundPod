@@ -28,31 +28,39 @@ private data class PipedResponse(
 )
 
 suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
-    val clientType = YouTubeClient.ANDROID_VR
-    val response = client.post("https://www.youtube.com$PLAYER") {
-        header("User-Agent", clientType.userAgent)
-        header("X-YouTube-Client-Name", clientType.clientId)
-        header("X-YouTube-Client-Version", clientType.clientVersion)
-        setBody(
-            PlayerBody(
-                context = clientType.toContext(visitorData = visitorData),
-                videoId = videoId,
-                serviceIntegrityDimensions = poToken?.let { ServiceIntegrityDimensions(poToken = it) }
-            )
-        )
-        mask("playabilityStatus.status,playerConfig.audioConfig,streamingData.adaptiveFormats,streamingData.formats,videoDetails.videoId")
-    }.body<PlayerResponse>()
+    val clients = listOf(
+        YouTubeClient.ANDROID_VR,
+        YouTubeClient.VISION_OS,
+        YouTubeClient.ANDROID_EMBEDDED_PLAYER,
+        YouTubeClient.ANDROID_MUSIC
+    )
 
-    if (response.playabilityStatus?.status == "OK") {
-        return@runCatchingNonCancellable response.applyDecipher(decipher)
+    for (clientType in clients) {
+        val response = client.post("https://www.youtube.com$PLAYER") {
+            header("User-Agent", clientType.userAgent)
+            header("X-YouTube-Client-Name", clientType.clientId ?: clientType.clientName)
+            header("X-YouTube-Client-Version", clientType.clientVersion)
+            setBody(
+                PlayerBody(
+                    context = clientType.toContext(visitorData = visitorData),
+                    videoId = videoId,
+                    serviceIntegrityDimensions = poToken?.let { ServiceIntegrityDimensions(poToken = it) }
+                )
+            )
+            mask("playabilityStatus.status,playerConfig.audioConfig,streamingData.adaptiveFormats,streamingData.formats,videoDetails.videoId")
+        }.body<PlayerResponse>()
+
+        if (response.playabilityStatus?.status == "OK" && response.streamingData?.highestQualityFormat != null) {
+            return@runCatchingNonCancellable response.applyDecipher(decipher)
+        }
     }
 
-    val fallbackClient = YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER
-    val fallbackResponse = client.post("https://www.youtube.com$PLAYER") {
-        header("User-Agent", fallbackClient.userAgent)
+    val finalFallbackClient = YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER
+    val finalFallbackResponse = client.post("https://www.youtube.com$PLAYER") {
+        header("User-Agent", finalFallbackClient.userAgent)
         setBody(
             PlayerBody(
-                context = fallbackClient.toContext(visitorData = visitorData).copy(
+                context = finalFallbackClient.toContext(visitorData = visitorData).copy(
                     thirdParty = Context.ThirdParty(
                         embedUrl = "https://www.youtube.com/watch?v=$videoId"
                     )
@@ -63,7 +71,7 @@ suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
         mask("playabilityStatus.status,playerConfig.audioConfig,streamingData.adaptiveFormats,streamingData.formats,videoDetails.videoId")
     }.body<PlayerResponse>()
 
-    return@runCatchingNonCancellable fallbackResponse.applyDecipher(decipher)
+    return@runCatchingNonCancellable finalFallbackResponse.applyDecipher(decipher)
 }
 
 private suspend fun PlayerResponse.applyDecipher(decipher: (suspend (String) -> String)?): PlayerResponse {

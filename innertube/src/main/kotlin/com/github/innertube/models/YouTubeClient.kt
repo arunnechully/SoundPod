@@ -52,10 +52,22 @@ enum class YouTubeClient(
     ),
     ANDROID_VR(
         clientName = "ANDROID_VR",
-        clientVersion = "1.71.26",
-        userAgent = "com.google.android.apps.youtube.vr.oculus/1.71.26 (Linux; U; Android 14; eureka-user Build/SQ3A.220605.009.A1) gzip",
+        clientVersion = "1.74.31",
+        userAgent = "com.google.android.apps.youtube.vr.oculus/1.74.31 (Linux; U; Android 14; eureka-user Build/SQ3A.220605.009.A1) gzip",
         osVersion = "14",
         clientId = "28"
+    ),
+    VISION_OS(
+        clientName = "VISION_OS",
+        clientVersion = "1.1.2",
+        userAgent = "com.google.ios.youtube/1.1.2 (VisionPro1,1; U; CPU OS 1_1 like Mac OS X; en_US)",
+        clientId = "113"
+    ),
+    ANDROID_EMBEDDED_PLAYER(
+        clientName = "ANDROID_EMBEDDED_PLAYER",
+        clientVersion = "1.2.2",
+        userAgent = "com.google.android.youtube.embedded.player/1.2.2 (Linux; U; Android 14; en_US; SM-S928B Build/UP1A.231005.007)",
+        clientId = "55"
     ),
     MAC_SAFARI_WEB_REMIX(
         clientName = "WEB_REMIX",

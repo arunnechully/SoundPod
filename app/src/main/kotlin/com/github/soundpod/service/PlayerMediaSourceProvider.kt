@@ -38,6 +38,9 @@ class PlayerMediaSourceProvider(
 ) {
     private val urlCache = ConcurrentHashMap<String, Pair<Uri, Long>>()
     private val resolutionLocks = ConcurrentHashMap<String, ReentrantLock>()
+    private val sourceTracker = ConcurrentHashMap<String, Int>()
+
+    fun getPlaybackSource(videoId: String): Int? = sourceTracker[videoId]
 
     fun injectUrl(videoId: String, uri: Uri) {
         urlCache[videoId] = Pair(uri, System.currentTimeMillis())
@@ -49,7 +52,7 @@ class PlayerMediaSourceProvider(
 
     companion object {
         const val CACHE_EXPIRATION_MS = 4 * 3600000L
-        const val DEFAULT_USER_AGENT = "com.google.android.apps.youtube.vr.oculus/1.71.26 (Linux; U; Android 14; eureka-user Build/SQ3A.220605.009.A1) gzip"
+        const val DEFAULT_USER_AGENT = "com.google.android.apps.youtube.vr.oculus/1.74.31 (Linux; U; Android 14; eureka-user Build/SQ3A.220605.009.A1) gzip"
     }
 
     fun createMediaSourceFactory(): MediaSource.Factory {
@@ -58,7 +61,7 @@ class PlayerMediaSourceProvider(
     }
 
     private fun createDataSourceFactory(): DataSource.Factory {
-        val playbackSource = PlaybackSource.NewPipe // Forced to NewPipe temporarily
+        val playbackSource = context.preferences.getEnum(playbackSourceKey, PlaybackSource.Automatic)
         
         val okHttpClient = okhttp3.OkHttpClient.Builder()
             .followRedirects(true)
@@ -75,8 +78,9 @@ class PlayerMediaSourceProvider(
                     put("Referer", "https://www.youtube.com/")
                     put("Origin", "https://www.youtube.com")
                     put("X-YouTube-Client-Name", "28")
-                    put("X-YouTube-Client-Version", "1.71.26")
+                    put("X-YouTube-Client-Version", "1.74.31")
                     Innertube.visitorData?.let { put("X-Goog-Visitor-Id", it) }
+                    Innertube.poToken?.let { put("X-YouTube-Po-Token", it) }
                     Innertube.cookies?.let { put("Cookie", it) }
                 })
         }
@@ -123,6 +127,7 @@ class PlayerMediaSourceProvider(
         val length = ContentMetadata.getContentLength(metadata)
         if (length > 0 && cacheManager.cache.isCached(videoId, 0, length)) {
             Log.d("SoundPod-DataSource", "Cache HIT for $videoId ($length bytes), bypassing resolution")
+            sourceTracker[videoId] = com.github.soundpod.R.string.cache
             return urlCache[videoId]?.first ?: "https://www.youtube.com/watch?v=$videoId".toUri()
         }
 
@@ -142,19 +147,35 @@ class PlayerMediaSourceProvider(
                 }
             }
 
-            val playbackSource = PlaybackSource.NewPipe // Forced to NewPipe temporarily
+            val playbackSource = context.preferences.getEnum(playbackSourceKey, PlaybackSource.Automatic)
 
             if (playbackSource == PlaybackSource.Automatic || playbackSource == PlaybackSource.Innertube) {
                 // TRY INNERTUBE FIRST (MUCH FASTER)
                 val fastUri: Uri? = runCatching {
                     val response = runBlocking { Innertube.player(videoId)?.getOrNull() }
+                    if (response == null) {
+                        Log.e("SoundPod-DataSource", "Innertube player response is null for $videoId")
+                    } else {
+                        Log.d("SoundPod-DataSource", "Innertube response status: ${response.playabilityStatus?.status}")
+                        if (response.streamingData?.highestQualityFormat == null) {
+                            Log.e("SoundPod-DataSource", "Highest quality format is null for $videoId. Formats count: ${response.streamingData?.adaptiveFormats?.size ?: 0}")
+                            response.streamingData?.adaptiveFormats?.forEach { format ->
+                                Log.d("SoundPod-DataSource", "Format: itag=${format.itag}, mimeType=${format.mimeType}, hasUrl=${format.url != null}")
+                            }
+                        }
+                    }
                     response?.streamingData?.highestQualityFormat?.url?.toUri()
-                }.getOrNull()
-
-                if (fastUri != null) {
-                    urlCache[videoId] = Pair(fastUri, System.currentTimeMillis())
-                    return fastUri
+                }.getOrElse { e ->
+                    Log.e("SoundPod-DataSource", "Innertube resolution error for $videoId", e)
+                    null
                 }
+
+                    if (fastUri != null) {
+                        Log.d("SoundPod-DataSource", "Innertube resolution SUCCESS for $videoId: $fastUri")
+                        urlCache[videoId] = Pair(fastUri, System.currentTimeMillis())
+                        sourceTracker[videoId] = com.github.soundpod.R.string.innertube
+                        return fastUri
+                    }
             }
 
             if (playbackSource == PlaybackSource.Innertube) {
@@ -184,6 +205,7 @@ class PlayerMediaSourceProvider(
 
             val newUri = rawUrl.toUri()
             urlCache[videoId] = Pair(newUri, System.currentTimeMillis())
+            sourceTracker[videoId] = com.github.soundpod.R.string.newpipe
 
             return newUri
         }

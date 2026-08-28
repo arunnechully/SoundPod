@@ -610,6 +610,7 @@ class PlayerService : InvincibleService(), Player.Listener,
     inner class Binder : AndroidBinder() {
         val player get() = this@PlayerService.player
         val cache get() = this@PlayerService.cacheManager.cache
+        val mediaSourceProvider get() = this@PlayerService.mediaSourceProvider
         val preCacheManager get() = this@PlayerService.preCacheManager
         val mediaSession get() = this@PlayerService.mediaSessionManager.mediaSession
 

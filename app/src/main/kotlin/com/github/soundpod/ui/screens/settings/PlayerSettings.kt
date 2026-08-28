@@ -159,10 +159,10 @@ fun PlayerSettingsContent(
             modifier = Modifier.background(highlightColor),
             icon = IconSource.Icon(painterResource(R.drawable.musical_notes)),
             title = stringResource(R.string.playback_source),
-            selectedValue = PlaybackSource.NewPipe,
+            selectedValue = playbackSource,
             onValueSelected = { playbackSource = it },
             valueText = { stringResource(it.resourceId) },
-            isEnabled = false
+            isEnabled = true
         )
     }
 
