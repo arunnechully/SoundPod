@@ -159,6 +159,8 @@
     <string name="most_played">Más reproducido</string>
     <string name="general">General</string>
     <string name="history">Historial</string>
+    <string name="recent">Recent</string>
+    <string name="create_playlist">Create a playlist</string>
     <string name="quick_picks_source">Fuente de las selecciones rápidas</string>
     <string name="quick_picks_custom_genre">Género personalizado</string>
     <string name="quick_picks_custom_genre_description">Introduce tu género preferido para Quick Picks</string>
@@ -322,6 +324,8 @@
     <string name="backup_location_description">Toca para seleccionar una carpeta</string>
     <string name="remove_from_favorites">Eliminar de favoritos</string>
     <string name="clear_playlist">¿Eliminar canciones seleccionadas?</string>
+    <string name="clear_history">Clear history</string>
+    <string name="clear_history_confirmation">Are you sure you want to clear your song history? This action cannot be undone.</string>
     <string name="clear_playlist_alert">¿Seguro que quieres eliminar la canción?</string>
     <string name="select_all">Seleccionar todo</string>
     <string name="deselect_all">Quitar todo</string>
