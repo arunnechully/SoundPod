@@ -1,79 +1,35 @@
 package com.github.soundpod.ui.screens.offline
 
 import androidx.annotation.OptIn
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.ContentMetadata
-import com.github.core.ui.LocalAppearance
-import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
-import com.github.soundpod.R
 import com.github.soundpod.db
 import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.enums.SongSortBy
 import com.github.soundpod.enums.SortOrder
-import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.models.Song
-import com.github.soundpod.ui.components.CircleDragHandle
-import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
-import com.github.soundpod.ui.components.SortingHeader
-import com.github.soundpod.ui.items.LocalSongItem
+import com.github.soundpod.ui.components.SongListContent
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlayAtIndex
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.showCachedSongsInOfflineKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.map
-import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import java.util.Collections
 
@@ -94,9 +50,6 @@ fun OfflineSongs(
     onSongsChange: (List<Song>) -> Unit
 ) {
     val binder = LocalPlayerServiceBinder.current
-    val menuState = LocalMenuState.current
-    val (colorPalette) = LocalAppearance.current
-    val playerPadding = LocalPlayerPadding.current
 
     val showCachedSongsInOffline by rememberPreference(showCachedSongsInOfflineKey, true)
 
@@ -135,7 +88,6 @@ fun OfflineSongs(
                         val binderCache = binder?.cache
                         downloadedSongs
                             .filter { item ->
-                                // Use physical metadata if available, otherwise fallback to DB reported length
                                 val metadata = binderCache?.getContentMetadata(item.song.id)
                                 val length = metadata?.let { ContentMetadata.getContentLength(it) }?.takeIf { it > 0 }
                                     ?: item.contentLength ?: 0L
@@ -161,174 +113,37 @@ fun OfflineSongs(
             onSongsChange(it)
         }
     }
-    Box(modifier = Modifier.fillMaxSize()) {
 
-        LazyColumn(
-            state = lazyListState,
-            contentPadding = PaddingValues(top = 12.dp, bottom = 16.dp + playerPadding),
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            item(key = "header") {
-                SortingHeader(
-                    sortBy = sortBy,
-                    changeSortBy = onSortByChange,
-                    sortByEntries = SongSortBy.entries.toList(),
-                    onPlayClick = {
-                        binder?.stopRadio()
-                        binder?.player?.forcePlayAtIndex(songs.map(Song::asMediaItem), 0)
-                    },
-                    onShuffleClick = {
-                        binder?.stopRadio()
-                        val shuffledSongs = songs.shuffled()
-                        binder?.player?.forcePlayAtIndex(shuffledSongs.map(Song::asMediaItem), 0)
-                    }
-                )
-            }
-
-            itemsIndexed(
-                items = songs,
-                key = { _, song -> song.id }
-            ) { index, song ->
-                val isChecked = selectedUids.contains(song.id)
-
-                // Centralized selection toggle logic
-                val toggleSelection = {
-                    val newSelection = if (isChecked) selectedUids - song.id else selectedUids + song.id
-                    onSelectedUidsChange(newSelection)
-                    if (newSelection.isEmpty()) {
-                        onEditModeChange(false)
-                    }
-                }
-
-                ReorderableItem(
-                    state = reorderableState,
-                    key = song.id
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        AnimatedVisibility(
-                            visible = isEditMode,
-                            enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
-                            exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.Start)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .padding(start = 16.dp, end = 4.dp)
-                                    .size(22.dp)
-                                    .clip(CircleShape)
-                                    .background(if (isChecked) MaterialTheme.colorScheme.primary else Color.Transparent)
-                                    .border(
-                                        width = 1.5.dp,
-                                        color = if (isChecked) MaterialTheme.colorScheme.primary else colorPalette.text.copy(alpha = 0.5f),
-                                        shape = CircleShape
-                                    )
-                                    .clickable { toggleSelection() },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                SongsAnimatedVisibility(
-                                    visible = isChecked,
-                                    enter = scaleIn() + fadeIn(),
-                                    exit = scaleOut() + fadeOut()
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onPrimary,
-                                        modifier = Modifier.size(14.dp)
-                                    )
-                                }
-                            }
-                        }
-
-                        Box(modifier = Modifier.weight(1f)) {
-                            LocalSongItem(
-                                song = song,
-                                onClick = {
-                                    if (isEditMode) {
-                                        toggleSelection()
-                                    } else {
-                                        binder?.stopRadio()
-                                        binder?.player?.forcePlayAtIndex(
-                                            songs.map(Song::asMediaItem),
-                                            index
-                                        )
-                                    }
-                                },
-                                onLongClick = {
-                                    if (!isEditMode) {
-                                        onEditModeChange(true)
-                                        onSelectedUidsChange(setOf(song.id))
-                                    }
-                                },
-                                trailingContent = {
-                                    if (isEditMode) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(48.dp)
-                                                .draggableHandle(),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            CircleDragHandle()
-                                        }
-                                    } else {
-                                        IconButton(
-                                            onClick = {
-                                                menuState.display {
-                                                    NonQueuedMediaItemMenu(
-                                                        mediaItem = song.asMediaItem,
-                                                        onDismiss = menuState::hide,
-                                                        onGoToAlbum = onGoToAlbum,
-                                                        onGoToArtist = onGoToArtist
-                                                    )
-                                                }
-                                            }
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Outlined.MoreVert,
-                                                contentDescription = "Menu",
-                                                tint = colorPalette.text
-                                            )
-                                        }
-                                    }
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-        }
-        if (songs.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = when (builtInPlaylist) {
-                        BuiltInPlaylist.Favorites -> "No favorite songs yet"
-                        BuiltInPlaylist.Offline -> stringResource(R.string.no_songs_found)
-                    },
-                    style = MaterialTheme.typography.titleMedium,
-                    color = colorPalette.text.copy(alpha = 0.6f)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun SongsAnimatedVisibility(
-    visible: Boolean,
-    enter: EnterTransition = fadeIn(),
-    exit: ExitTransition = fadeOut(),
-    content: @Composable AnimatedVisibilityScope.() -> Unit
-) {
-    AnimatedVisibility(
-        visible = visible,
-        enter = enter,
-        exit = exit,
-        content = content
+    SongListContent(
+        songs = songs,
+        sortBy = sortBy,
+        onSortByChange = onSortByChange,
+        sortByEntries = SongSortBy.entries.toList(),
+        onSongClick = { index ->
+            binder?.stopRadio()
+            binder?.player?.forcePlayAtIndex(
+                songs.map(Song::asMediaItem),
+                index
+            )
+        },
+        onSongLongClick = { /* Handled by SongListContent internal logic for selection */ },
+        onPlayAll = {
+            binder?.stopRadio()
+            binder?.player?.forcePlayAtIndex(songs.map(Song::asMediaItem), 0)
+        },
+        onShuffleAll = {
+            binder?.stopRadio()
+            val shuffledSongs = songs.shuffled()
+            binder?.player?.forcePlayAtIndex(shuffledSongs.map(Song::asMediaItem), 0)
+        },
+        isEditMode = isEditMode,
+        onEditModeChange = onEditModeChange,
+        selectedUids = selectedUids,
+        onSelectedUidsChange = onSelectedUidsChange,
+        onGoToAlbum = onGoToAlbum,
+        onGoToArtist = onGoToArtist,
+        lazyListState = lazyListState,
+        reorderableState = reorderableState,
+        modifier = Modifier.fillMaxSize()
     )
 }
