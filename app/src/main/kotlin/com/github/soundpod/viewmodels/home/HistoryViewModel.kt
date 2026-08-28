@@ -11,8 +11,11 @@ import com.github.soundpod.models.HistorySortBy
 import com.github.soundpod.models.Playlist
 import com.github.soundpod.models.Song
 import com.github.soundpod.models.SongPlaylistMap
+import com.github.soundpod.utils.historyCustomOrderKey
 import com.github.soundpod.utils.historySortByKey
 import com.github.soundpod.utils.historySortOrderKey
+import com.github.soundpod.utils.preferences
+import androidx.core.content.edit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -38,17 +41,34 @@ class HistoryViewModel : ViewModel() {
     init {
         viewModelScope.launch {
             combine(historyFlow, sortByFlow, sortOrderFlow) { songs, sortBy, sortOrder ->
-                val sortedSongs = when (sortBy) {
-                    HistorySortBy.Recent -> songs // Already sorted by timestamp DESC in DB
-                    HistorySortBy.Title -> songs.sortedBy { it.title }
-                    HistorySortBy.Artist -> songs.sortedBy { it.artistsText }
-                }
-                if (sortOrder == SortOrder.Descending && sortBy != HistorySortBy.Recent) {
-                    sortedSongs.reversed()
-                } else if (sortOrder == SortOrder.Ascending && sortBy == HistorySortBy.Recent) {
-                    sortedSongs.reversed()
-                } else {
-                    sortedSongs
+                when (sortBy) {
+                    HistorySortBy.Custom -> {
+                        val savedOrder = com.github.soundpod.MainApplication.appContext.preferences.getString(historyCustomOrderKey, null)
+                        if (savedOrder == null) {
+                            if (historySongs.isEmpty()) songs else historySongs
+                        } else {
+                            val idList = savedOrder.split(",").filter { it.isNotEmpty() }
+                            val idToIndex = idList.withIndex().associate { it.value to it.index }
+                            songs.sortedBy { song ->
+                                idToIndex[song.id] ?: -1
+                            }
+                        }
+                    }
+                    else -> {
+                        val sortedSongs = when (sortBy) {
+                            HistorySortBy.Recent -> songs // Already sorted by timestamp DESC in DB
+                            HistorySortBy.Title -> songs.sortedBy { it.title }
+                            HistorySortBy.Artist -> songs.sortedBy { it.artistsText }
+                            HistorySortBy.Custom -> error("Unreachable")
+                        }
+                        if (sortOrder == SortOrder.Descending && sortBy != HistorySortBy.Recent) {
+                            sortedSongs.reversed()
+                        } else if (sortOrder == SortOrder.Ascending && sortBy == HistorySortBy.Recent) {
+                            sortedSongs.reversed()
+                        } else {
+                            sortedSongs
+                        }
+                    }
                 }
             }.collect {
                 historySongs = it
@@ -88,12 +108,26 @@ class HistoryViewModel : ViewModel() {
         val mutableSongs = historySongs.toMutableList()
         Collections.swap(mutableSongs, from, to)
         historySongs = mutableSongs
+        if (sortBy != HistorySortBy.Custom) {
+            changeSortBy(HistorySortBy.Custom)
+        }
+        saveCustomOrder()
+    }
+
+    private fun saveCustomOrder() {
+        val order = historySongs.joinToString(",") { it.id }
+        com.github.soundpod.MainApplication.appContext.preferences.edit {
+            putString(historyCustomOrderKey, order)
+        }
     }
 
     fun clearHistory() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 db.clearEvents()
+                com.github.soundpod.MainApplication.appContext.preferences.edit {
+                    remove(historyCustomOrderKey)
+                }
             }
         }
     }

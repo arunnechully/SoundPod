@@ -26,6 +26,7 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PlaylistRemove
 import androidx.compose.material.icons.outlined.Podcasts
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.DownloadForOffline
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -71,7 +72,12 @@ import com.github.soundpod.utils.playlistSortByKey
 import com.github.soundpod.utils.playlistSortOrderKey
 import com.github.soundpod.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
+import androidx.media3.datasource.cache.ContentMetadata
+import com.github.soundpod.utils.toast
 
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @ExperimentalAnimationApi
@@ -257,6 +263,7 @@ fun BaseMediaItemMenu(
     }
 }
 
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Suppress("AssignedValueIsNeverRead")
 @ExperimentalAnimationApi
 @Composable
@@ -277,6 +284,7 @@ fun MediaItemMenu(
     onShare: () -> Unit
 ) {
     val binder = LocalPlayerServiceBinder.current
+    val context = LocalContext.current
     binder?.player ?: return
 
     val density = LocalDensity.current
@@ -309,6 +317,35 @@ fun MediaItemMenu(
 
     var likedAt by remember {
         mutableStateOf<Long?>(null)
+    }
+
+    var isFullyCached by remember { mutableStateOf(false) }
+
+    LaunchedEffect(mediaItem.mediaId, binder) {
+        val videoId = mediaItem.mediaId
+        val cache = binder.cache
+
+        combine(
+            db.isDownloaded(videoId),
+            db.format(videoId),
+            binder.cacheChanges.onStart { emit(Unit) }
+        ) { downloaded, format, _ ->
+            if (downloaded) {
+                val metadata = cache.getContentMetadata(videoId)
+                val length = ContentMetadata.getContentLength(metadata).takeIf { it > 0 }
+                    ?: format?.contentLength ?: -1L
+
+                if (length > 0) {
+                    cache.isCached(videoId, 0, length)
+                } else {
+                    cache.getCachedBytes(videoId, 0, -1) > 0L
+                }
+            } else {
+                false
+            }
+        }.distinctUntilChanged().collect {
+            isFullyCached = it
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -496,6 +533,18 @@ fun MediaItemMenu(
                                 imageVector = Icons.Outlined.ChevronRight,
                                 contentDescription = null
                             )
+                        }
+                    )
+                }
+
+                if (!isFullyCached) {
+                    MenuEntry(
+                        icon = Icons.Outlined.DownloadForOffline,
+                        text = stringResource(id = R.string.make_offline),
+                        onClick = {
+                            onDismiss()
+                            binder.preCacheManager.cacheFull(mediaItem)
+                            context.toast("Downloading for offline playback...")
                         }
                     )
                 }

@@ -59,6 +59,7 @@ fun HistoryScreen(
     val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
         if (from.index == 0 || to.index == 0) return@rememberReorderableLazyListState
         viewModel.move(from.index - 1, to.index - 1)
+        sortBy = HistorySortBy.Custom
     }
 
     BackHandler(enabled = isEditMode) {
@@ -145,6 +146,7 @@ fun HistoryScreen(
                         showCreatePlaylistDialog = true
                     } else {
                         isEditMode = true
+                        sortBy = HistorySortBy.Custom
                     }
                 }
             )
@@ -165,7 +167,13 @@ fun HistoryScreen(
             SongListContent(
                 songs = viewModel.historySongs,
                 sortBy = sortBy,
-                onSortByChange = { sortBy = it },
+                onSortByChange = { 
+                    sortBy = it
+                    isEditMode = (it == HistorySortBy.Custom)
+                    if (!isEditMode) {
+                        selectedUids = emptySet()
+                    }
+                },
                 sortByEntries = HistorySortBy.entries,
                 onSongClick = { index ->
                     val mediaItems = viewModel.historySongs.map { it.asMediaItem }
@@ -184,7 +192,12 @@ fun HistoryScreen(
                     binder?.player?.forcePlayAtIndex(mediaItems, 0)
                 },
                 isEditMode = isEditMode,
-                onEditModeChange = { isEditMode = it },
+                onEditModeChange = { 
+                    isEditMode = it
+                    if (it) {
+                        sortBy = HistorySortBy.Custom
+                    }
+                },
                 selectedUids = selectedUids,
                 onSelectedUidsChange = { selectedUids = it },
                 onGoToAlbum = onGoToAlbum,

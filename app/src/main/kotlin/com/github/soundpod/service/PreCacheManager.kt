@@ -79,6 +79,11 @@ class PreCacheManager(
         activeTasks[videoId]?.cancel()
         
         val job = scope.launch {
+            // Mark as downloaded immediately so it shows up in the Offline playlist
+            // Ensure song exists in DB first to satisfy FK constraints
+            ensureSongExists(videoId, mediaItem)
+            db.insert(DownloadedSong(videoId))
+
             try {
                 semaphore.withPermit {
                     preCacheSong(videoId, -1L, mediaItem)
@@ -90,10 +95,7 @@ class PreCacheManager(
         activeTasks[videoId] = job
     }
 
-    private suspend fun preCacheSong(videoId: String, length: Long, mediaItem: MediaItem? = null) {
-        Log.d("SoundPod-PreCache", "Pre-caching $videoId (requested length: $length)...")
-
-        // Ensure song exists in DB to avoid FK constraint crashes
+    private suspend fun ensureSongExists(videoId: String, mediaItem: MediaItem?) {
         mediaItem?.let { item ->
             val songExists = db.song(videoId).first() != null
             if (!songExists) {
@@ -108,6 +110,13 @@ class PreCacheManager(
                 )
             }
         }
+    }
+
+    private suspend fun preCacheSong(videoId: String, length: Long, mediaItem: MediaItem? = null) {
+        Log.d("SoundPod-PreCache", "Pre-caching $videoId (requested length: $length)...")
+
+        // Ensure song exists in DB to avoid FK constraint crashes
+        ensureSongExists(videoId, mediaItem)
 
         val playbackSource = PlaybackSource.NewPipe // Forced to NewPipe temporarily
 

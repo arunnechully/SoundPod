@@ -87,13 +87,7 @@ fun OfflineSongs(
                     ) { downloadedSongs, _ ->
                         val binderCache = binder?.cache
                         downloadedSongs
-                            .filter { item ->
-                                val metadata = binderCache?.getContentMetadata(item.song.id)
-                                val length = metadata?.let { ContentMetadata.getContentLength(it) }?.takeIf { it > 0 }
-                                    ?: item.contentLength ?: 0L
-
-                                length > 0 && binderCache?.isCached(item.song.id, 0, length) == true
-                            }.map { it.song }
+                            .map { it.song }
                             .let { songs ->
                                 when (sortBy) {
                                     SongSortBy.Title -> if (sortOrder == SortOrder.Ascending) songs.sortedBy { it.title } else songs.sortedByDescending { it.title }
