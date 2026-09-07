@@ -323,7 +323,9 @@ fun MainPlayerContent(
                         ) {
                             Spacer(modifier = Modifier.height(Dimensions.spacer))
 
-                            // Static placeholder for thumbnail area
+                            // Static placeholder for thumbnail area. The artwork itself is drawn by
+                            // SharedThumbnail as an overlay; if the spacing above changes, update
+                            // PlayerMetrics.expandedThumbnailTop accordingly.
                             Spacer(modifier = Modifier.size(thumbnailSize))
 
                             // Extra padding

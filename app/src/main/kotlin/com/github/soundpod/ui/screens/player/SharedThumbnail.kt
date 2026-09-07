@@ -122,7 +122,7 @@ fun SharedThumbnail(
         val expandedY = if (isLandscape) {
             (containerHeight - expandedSize) / 2
         } else {
-            100.dp
+            PlayerMetrics.expandedThumbnailTop
         }
         val collapsedY = 10.dp
 
