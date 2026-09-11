@@ -697,6 +697,7 @@ fun PlayerTopControl(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
+            .height(PlayerMetrics.topControlHeight)
             .padding(
                 horizontal = 15.dp,
             )
