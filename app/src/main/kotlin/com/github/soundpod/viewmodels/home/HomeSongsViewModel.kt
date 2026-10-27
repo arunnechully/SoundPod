@@ -11,22 +11,38 @@ import com.github.soundpod.enums.SongSortBy
 import com.github.soundpod.enums.SortOrder
 import com.github.soundpod.models.Song
 import com.github.soundpod.query
+import com.github.soundpod.utils.preferences
 import com.github.soundpod.utils.queryMediaStoreSongs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class HomeSongsViewModel : ViewModel() {
-    var items: List<Song> by mutableStateOf(emptyList())
-        private set
+    private var storedSongs: List<Song> by mutableStateOf(emptyList())
+    private var availableSongIds: Set<String> by mutableStateOf(emptySet())
+    private var hiddenSongIds: Set<String> by mutableStateOf(
+        appContext.preferences.getStringSet(HIDDEN_LOCAL_SONG_IDS, emptySet())?.toSet() ?: emptySet()
+    )
+
+    val items: List<Song>
+        get() = storedSongs.filter { it.id in availableSongIds && it.id !in hiddenSongIds }
+
+    private var scanJob: Job? = null
     private var dbJob: Job? = null
 
     fun refreshMediaStore() {
-        viewModelScope.launch(Dispatchers.IO) {
+        scanJob?.cancel()
+        scanJob = viewModelScope.launch(Dispatchers.IO) {
             val result = appContext.queryMediaStoreSongs()
+            if (!result.scanCompleted) return@launch
+
+            availableSongIds = result.songs.mapTo(mutableSetOf()) { it.id }
             if (result.songs.isNotEmpty()) {
                 query {
-                    result.songs.forEach { db.insert(it) }
+                    result.songs.forEach {
+                        db.insert(it)
+                        db.updateThumbnailUrl(it.id, it.thumbnailUrl)
+                    }
                     db.insertAlbums(result.albums)
                     db.insertArtists(result.artists)
                     db.insertSongAlbumMaps(result.songAlbumMaps)
@@ -34,6 +50,12 @@ class HomeSongsViewModel : ViewModel() {
                 }
             }
         }
+    }
+
+    fun hideSong(id: String) {
+        val updated = hiddenSongIds + id
+        appContext.preferences.edit().putStringSet(HIDDEN_LOCAL_SONG_IDS, updated).apply()
+        hiddenSongIds = updated
     }
 
     fun loadSongs(
@@ -45,8 +67,12 @@ class HomeSongsViewModel : ViewModel() {
         dbJob = viewModelScope.launch {
             db.localSongs(sortBy, sortOrder)
                 .collect { sortedSongs ->
-                    items = sortedSongs
+                    storedSongs = sortedSongs
                 }
         }
+    }
+
+    private companion object {
+        const val HIDDEN_LOCAL_SONG_IDS = "hidden_local_song_ids"
     }
 }

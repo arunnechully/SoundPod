@@ -17,7 +17,6 @@ import com.github.soundpod.utils.getEnum
 import com.github.soundpod.utils.pauseImageCacheKey
 import com.github.soundpod.utils.preferences
 import org.schabi.newpipe.extractor.NewPipe
-import java.util.Locale
 
 
 class MainApplication : Application(), SingletonImageLoader.Factory {
@@ -25,8 +24,6 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
     override fun onCreate() {
         super.onCreate()
         instance = this
-
-        Locale.setDefault(Locale.US)
 
         Thread {
             DatabaseInitializer.get(this)

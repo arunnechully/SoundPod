@@ -22,12 +22,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import com.github.soundpod.LocalPlayerServiceBinder
+import com.github.soundpod.R
 import com.github.soundpod.ui.modifier.fadingEdge
 import com.github.soundpod.utils.DisposableListener
 
@@ -66,7 +68,7 @@ fun PlayerMediaItem(
     ) {
         // TITLE
         Text(
-            text = currentItem?.mediaMetadata?.title?.toString() ?: "No song playing",
+            text = currentItem?.mediaMetadata?.title?.toString() ?: stringResource(R.string.no_song_playing),
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.basicMarquee(),
             style = MaterialTheme.typography.titleMedium.copy(

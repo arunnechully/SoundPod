@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.media3.common.Player
+import com.github.soundpod.R
 import com.github.soundpod.ui.common.MusicPlayerWidget
 import com.github.soundpod.ui.common.widgetArtistKey
 import com.github.soundpod.ui.common.widgetArtworkPathKey
@@ -22,7 +23,7 @@ class WidgetUpdater(
     private val coroutineScope: CoroutineScope
 ) {
     fun updateWidget(player: Player, currentBitmap: Bitmap?) {
-        val currentTitle = player.mediaMetadata.title?.toString() ?: "Not Playing"
+        val currentTitle = player.mediaMetadata.title?.toString() ?: context.getString(R.string.not_playing)
         val currentArtist = player.mediaMetadata.artist?.toString() ?: "SoundPod"
         val isCurrentlyPlaying = player.shouldBePlaying
 

@@ -784,7 +784,7 @@ fun PlayerTopControl(
                     try {
                         activityResultLauncher.launch(intent)
                     } catch (_: ActivityNotFoundException) {
-                        context.toast("Couldn't find an application to equalize audio")
+                        context.toast(context.getString(R.string.equalizer_not_found))
                     }
                 }
             }
@@ -858,7 +858,7 @@ fun PlayerTopControl(
                         if (!isFullyCached) {
                             currentMediaItem?.let { mediaItem ->
                                 binder.preCacheManager.cacheFull(mediaItem)
-                                context.toast("Downloading for offline playback...")
+                                context.toast(context.getString(R.string.downloading_offline))
                             }
                         }
                     },

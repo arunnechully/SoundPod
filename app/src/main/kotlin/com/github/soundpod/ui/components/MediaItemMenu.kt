@@ -87,7 +87,9 @@ fun InHistoryMediaItemMenu(
     song: Song,
     modifier: Modifier = Modifier,
     onGoToAlbum: (String) -> Unit,
-    onGoToArtist: (String) -> Unit
+    onGoToArtist: (String) -> Unit,
+    onHideLocalSong: (() -> Unit)? = null,
+    onDeleteLocalSong: (() -> Unit)? = null
 ) {
     val binder = LocalPlayerServiceBinder.current
     var isHiding by remember { mutableStateOf(false) }
@@ -95,14 +97,17 @@ fun InHistoryMediaItemMenu(
     if (isHiding) {
         ConfirmationDialog(
             title = stringResource(id = R.string.hide_song_dialog),
-            text = stringResource(id = R.string.hide_song_dialog_description),
+            text = stringResource(id = if (onHideLocalSong != null) R.string.hide_local_song_dialog_description else R.string.hide_song_dialog_description),
             onDismiss = { isHiding = false },
             onConfirm = {
                 onDismiss()
-                query {
-                    // Not sure we can do this here
-                    binder?.cache?.removeResource(song.id)
-                    db.incrementTotalPlayTimeMs(song.id, -song.totalPlayTimeMs)
+                if (onHideLocalSong != null) {
+                    onHideLocalSong()
+                } else {
+                    query {
+                        binder?.cache?.removeResource(song.id)
+                        db.incrementTotalPlayTimeMs(song.id, -song.totalPlayTimeMs)
+                    }
                 }
             }
         )
@@ -112,6 +117,7 @@ fun InHistoryMediaItemMenu(
         mediaItem = song.asMediaItem,
         onDismiss = onDismiss,
         onHideFromDatabase = { isHiding = true },
+        onDeleteFromDevice = onDeleteLocalSong,
         modifier = modifier,
         onGoToAlbum = onGoToAlbum,
         onGoToArtist = onGoToArtist
@@ -152,6 +158,7 @@ fun NonQueuedMediaItemMenu(
     modifier: Modifier = Modifier,
     onRemoveFromPlaylist: (() -> Unit)? = null,
     onHideFromDatabase: (() -> Unit)? = null,
+    onDeleteFromDevice: (() -> Unit)? = null,
     onRemoveFromQuickPicks: (() -> Unit)? = null,
     onGoToAlbum: ((String) -> Unit)? = null,
     onGoToArtist: ((String) -> Unit)? = null
@@ -176,6 +183,7 @@ fun NonQueuedMediaItemMenu(
         onEnqueue = { binder?.player?.enqueue(mediaItem) },
         onRemoveFromPlaylist = onRemoveFromPlaylist,
         onHideFromDatabase = onHideFromDatabase,
+        onDeleteFromDevice = onDeleteFromDevice,
         onRemoveFromQuickPicks = onRemoveFromQuickPicks,
         onGoToAlbum = onGoToAlbum,
         onGoToArtist = onGoToArtist
@@ -218,6 +226,7 @@ fun BaseMediaItemMenu(
     onRemoveFromQueue: (() -> Unit)? = null,
     onRemoveFromPlaylist: (() -> Unit)? = null,
     onHideFromDatabase: (() -> Unit)? = null,
+    onDeleteFromDevice: (() -> Unit)? = null,
     onRemoveFromQuickPicks: (() -> Unit)? = null,
     onGoToAlbum: ((String) -> Unit)? = null,
     onGoToArtist: ((String) -> Unit)? = null
@@ -232,6 +241,7 @@ fun BaseMediaItemMenu(
         onPlayNext = onPlayNext,
         onEnqueue = onEnqueue,
         onHideFromDatabase = onHideFromDatabase,
+        onDeleteFromDevice = onDeleteFromDevice,
         onRemoveFromQueue = onRemoveFromQueue,
         onRemoveFromPlaylist = onRemoveFromPlaylist,
         onAddToPlaylist = { playlist, position ->
@@ -275,6 +285,7 @@ fun MediaItemMenu(
     onPlayNext: (() -> Unit)? = null,
     onEnqueue: (() -> Unit)? = null,
     onHideFromDatabase: (() -> Unit)? = null,
+    onDeleteFromDevice: (() -> Unit)? = null,
     onRemoveFromQueue: (() -> Unit)? = null,
     onRemoveFromPlaylist: (() -> Unit)? = null,
     onAddToPlaylist: ((Playlist, Int) -> Unit)? = null,
@@ -544,7 +555,7 @@ fun MediaItemMenu(
                         onClick = {
                             onDismiss()
                             binder.preCacheManager.cacheFull(mediaItem)
-                            context.toast("Downloading for offline playback...")
+                            context.toast(context.getString(R.string.downloading_offline))
                         }
                     )
                 }
@@ -602,6 +613,17 @@ fun MediaItemMenu(
                         icon = Icons.Outlined.Delete,
                         text = stringResource(id = R.string.hide),
                         onClick = onHideFromDatabase
+                    )
+                }
+
+                onDeleteFromDevice?.let { onDeleteFromDevice ->
+                    MenuEntry(
+                        icon = Icons.Outlined.Delete,
+                        text = stringResource(id = R.string.delete_from_device),
+                        onClick = {
+                            onDismiss()
+                            onDeleteFromDevice()
+                        }
                     )
                 }
 

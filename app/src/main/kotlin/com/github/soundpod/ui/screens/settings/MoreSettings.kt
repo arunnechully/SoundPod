@@ -146,7 +146,7 @@ fun MoreSettingsContent() {
                         try {
                             context.startActivity(intent)
                         } catch (_: Exception) {
-                            context.toast("Couldn't find supported links settings, please configure them manually")
+                            context.toast(context.getString(R.string.supported_links_settings_not_found))
                         }
                     },
                 )
@@ -177,7 +177,7 @@ fun MoreSettingsContent() {
                                 Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
                             )
                         } catch (_: ActivityNotFoundException) {
-                            context.toast("Couldn't find battery optimization settings, please whitelist SoundPod manually")
+                            context.toast(context.getString(R.string.battery_settings_not_found))
                         }
                     }
                 },

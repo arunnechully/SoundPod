@@ -278,6 +278,7 @@ class PlayerService : InvincibleService(), Player.Listener,
         playerNotificationManager.release()
 
         mediaSessionManager.release()
+        preCacheManager.release()
         cacheManager.release()
 
         audioEffectManager.release()

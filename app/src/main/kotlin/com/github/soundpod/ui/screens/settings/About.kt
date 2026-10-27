@@ -109,7 +109,7 @@ fun AboutSettingsContent(
             )
         } else {
             Text(
-                text = "Version ${viewModel.currentVersion}",
+                text = stringResource(R.string.version, viewModel.currentVersion),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier
                     .fillMaxWidth()

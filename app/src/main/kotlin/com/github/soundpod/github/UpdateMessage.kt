@@ -104,13 +104,13 @@ fun UpdateMessage(
                 Column {
                     // Version Name
                     Text(
-                        text = "Version: ${status.version}",
+                        text = stringResource(R.string.version, status.version),
                         style = MaterialTheme.typography.titleMedium
                     )
 
                     // File Size
                     Text(
-                        text = "Size: ${formatFileSize(status.size)}",
+                        text = stringResource(R.string.file_size_label, formatFileSize(status.size)),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

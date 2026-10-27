@@ -9,6 +9,7 @@ import com.github.innertube.Innertube
 import com.github.innertube.requests.artistPage
 import com.github.innertube.requests.charts
 import com.github.innertube.requests.relatedPage
+import com.github.innertube.requests.recommendations
 import com.github.innertube.requests.searchPage
 import com.github.innertube.utils.from
 import com.github.soundpod.appContext
@@ -31,11 +32,13 @@ import kotlinx.coroutines.launch
 class QuickPicksViewModel : ViewModel() {
     var relatedPageResult: Result<Innertube.RelatedPage?>? by mutableStateOf(null)
     var historySongs: List<Song> by mutableStateOf(emptyList())
+    var latestQualifiedPlaybackTimestamp: Long? by mutableStateOf(null)
+        private set
     private var job: Job? = null
 
     companion object {
         private const val CACHE_EXPIRATION = 30 * 60 * 1000L
-        private const val PERSISTENT_CACHE_PREFIX = "quick_picks_cache_v2_"
+        private const val PERSISTENT_CACHE_PREFIX = "quick_picks_cache_v5_"
         private const val MIN_HISTORY_PLAY_TIME_MS = 30000L // 30 seconds
     }
 
@@ -43,6 +46,11 @@ class QuickPicksViewModel : ViewModel() {
         viewModelScope.launch {
             db.history(limit = 10, minPlayTimeMs = MIN_HISTORY_PLAY_TIME_MS).collect {
                 historySongs = it
+            }
+        }
+        viewModelScope.launch {
+            db.latestQualifiedPlaybackTimestamp(MIN_HISTORY_PLAY_TIME_MS).collect {
+                latestQualifiedPlaybackTimestamp = it
             }
         }
     }
@@ -83,12 +91,17 @@ class QuickPicksViewModel : ViewModel() {
 
     fun loadQuickPicks(quickPicksSource: QuickPicksSource, forceRefresh: Boolean = false) {
         val isScreenCacheEnabled = appContext.preferences.getBoolean(isScreenCacheEnabledKey, true)
+        val cacheKey = PERSISTENT_CACHE_PREFIX + quickPicksSource.name
         val cached = if (isScreenCacheEnabled) getCached(quickPicksSource) else null
         if (cached != null) {
             relatedPageResult = Result.success(cached)
         }
 
-        if (!forceRefresh && cached != null && !ScreenCache.isExpired(PERSISTENT_CACHE_PREFIX + quickPicksSource.name, CACHE_EXPIRATION)) {
+        val cacheTimestamp = ScreenCache.getTimestamp(cacheKey)
+        val cacheIncludesPlayback = quickPicksSource != QuickPicksSource.Default ||
+            cacheTimestamp >= (latestQualifiedPlaybackTimestamp ?: 0L)
+        if (!forceRefresh && cached != null &&
+            !ScreenCache.isExpired(cacheKey, CACHE_EXPIRATION) && cacheIncludesPlayback) {
             return
         }
 
@@ -140,9 +153,9 @@ class QuickPicksViewModel : ViewModel() {
                         }
                     }
 
-                    // 3. Add seeds from Charts if we don't have enough
-                    if (seeds.size < 3) {
-                        Innertube.charts()?.getOrNull()?.take(3 - seeds.size)?.forEach { item ->
+                    // Charts are only a fallback when there is no listening or following history.
+                    if (seeds.isEmpty()) {
+                        Innertube.charts()?.getOrNull()?.take(3)?.forEach { item ->
                             val mediaItem = item.asMediaItem
                             seeds.add(
                                 Song(
@@ -170,7 +183,18 @@ class QuickPicksViewModel : ViewModel() {
                 }
 
                 val relatedDeferreds = seedSongs.map { song ->
-                    async { Innertube.relatedPage(videoId = song.id)?.getOrNull() }
+                    async {
+                        val videoId = if (song.id.startsWith("content://")) {
+                            Innertube.searchPage(
+                                query = listOfNotNull(song.title, song.artistsText).joinToString(" "),
+                                params = Innertube.SearchFilter.Song.value,
+                                fromMusicShelfRendererContent = Innertube.SongItem.Companion::from
+                            )?.getOrNull()?.items?.firstOrNull { it.key.isNotEmpty() }?.key
+                        } else {
+                            song.id
+                        }
+                        videoId?.let { Innertube.relatedPage(videoId = it)?.getOrNull() }
+                    }
                 }
 
                 val relatedResults = relatedDeferreds.mapNotNull { it.await() }
@@ -184,6 +208,27 @@ class QuickPicksViewModel : ViewModel() {
                     )
                 } else null
 
+                if ((mergedPage == null || mergedPage.songs.isNullOrEmpty()) &&
+                    quickPicksSource == QuickPicksSource.Default && seedSongs.isNotEmpty()) {
+                    val searchedSongs = seedSongs.take(2).map { song ->
+                        async {
+                            val query = song.artistsText
+                                ?.takeUnless { it.isBlank() || it == "<unknown>" }
+                                ?: song.title
+                            Innertube.searchPage(
+                                query = query,
+                                params = Innertube.SearchFilter.Song.value,
+                                fromMusicShelfRendererContent = Innertube.SongItem.Companion::from
+                            )?.getOrNull()?.items.orEmpty()
+                        }
+                    }.map { it.await() }
+                    val seedIds = seedSongs.mapTo(mutableSetOf()) { it.id }
+                    val songs = interleave(searchedSongs)
+                        .filter { it.key.isNotEmpty() && it.key !in seedIds }
+                        .take(40)
+                    if (songs.isNotEmpty()) mergedPage = Innertube.RelatedPage(songs = songs)
+                }
+
                 if (mergedPage == null || mergedPage.songs.isNullOrEmpty()) {
                     chartsDeferred.await()?.shuffled()?.take(2)?.forEach { fallbackSong ->
                         val fallbackResult = Innertube.relatedPage(videoId = fallbackSong.key)?.getOrNull()
@@ -196,10 +241,23 @@ class QuickPicksViewModel : ViewModel() {
 
                 if (mergedPage == null || mergedPage.songs.isNullOrEmpty()) {
                     val globalFallbacks = listOf("fJ9rUzIMcZQ", "kJQP7kiw5Fk", "JGwWNGJdvx8")
-                    mergedPage = Innertube.relatedPage(videoId = globalFallbacks.random())?.getOrNull()
+                    for (videoId in globalFallbacks) {
+                        val fallbackPage = Innertube.relatedPage(videoId = videoId)?.getOrNull()
+                        if (!fallbackPage?.songs.isNullOrEmpty()) {
+                            mergedPage = fallbackPage
+                            break
+                        }
+                    }
                 }
 
-                val finalResult = mergedPage?.let { Result.success(it) } 
+                if (mergedPage == null || mergedPage.songs.isNullOrEmpty()) {
+                    val songs = Innertube.recommendations()?.getOrNull()
+                    if (!songs.isNullOrEmpty()) {
+                        mergedPage = Innertube.RelatedPage(songs = songs)
+                    }
+                }
+
+                val finalResult = mergedPage?.takeIf { !it.songs.isNullOrEmpty() }?.let { Result.success(it) }
                     ?: Result.failure(Exception("Failed to load Quick Picks"))
 
                 finalResult.getOrNull()?.let {
@@ -208,7 +266,11 @@ class QuickPicksViewModel : ViewModel() {
                     }
                 }
 
-                relatedPageResult = finalResult
+                relatedPageResult = if (finalResult.isFailure && cached != null) {
+                    Result.success(cached)
+                } else {
+                    finalResult
+                }
             }
         }
     }

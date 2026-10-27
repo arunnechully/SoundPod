@@ -15,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -23,6 +24,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.MediaMetadata
 import com.github.core.ui.LocalAppearance
+import com.github.soundpod.R
 import com.github.soundpod.ui.appearance.LoadingAnimation
 import com.github.soundpod.ui.components.Overlay
 import com.github.soundpod.utils.LyricsData
@@ -51,7 +53,7 @@ fun LyricsOverlay(
         enableScrollbar = false,
         headerContent = {
             Text(
-                text = mediaMetadata?.title?.toString() ?: "Lyrics",
+                text = mediaMetadata?.title?.toString() ?: stringResource(R.string.lyrics),
                 style = MaterialTheme.typography.titleMedium,
                 color = colorPalette.text,
                 fontWeight = FontWeight.ExtraBold,
@@ -90,7 +92,7 @@ fun LyricsOverlay(
                 LyricsData.None -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = "No lyrics found",
+                            text = stringResource(R.string.no_lyrics_found),
                             color = colorPalette.textDisabled,
                             fontSize = 16.sp
                         )

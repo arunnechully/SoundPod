@@ -58,7 +58,7 @@ fun NewSearchResult(
     val onPlaylistClick: (String) -> Unit = { playlistId -> navController.navigate(Routes.Playlist(id = playlistId)) }
 
     StaticScreenLayout(
-        title = resultType ?: "Results",
+        title = resultType ?: stringResource(R.string.results),
         onBackClick = { navController.popBackStack() },
         scrollable = false,
         horizontalPadding = 0.dp
@@ -258,7 +258,7 @@ fun NewSearchResult(
 
                 else -> {
                     Text(
-                        text = "Unknown category: $resultType",
+                        text = stringResource(R.string.unknown_category, resultType ?: "?"),
                         modifier = Modifier.padding(20.dp),
                         style = MaterialTheme.typography.bodyMedium
                     )
