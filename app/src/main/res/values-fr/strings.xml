@@ -123,7 +123,7 @@
     <string name="hide_song_dialog">Masquer ce titre ?</string>
     <string name="hide_song_dialog_description">Son temps de lecture et son cache seront effacés. Cette action est irréversible.</string>
     <string name="hide_local_song_dialog_description">This song will no longer appear in Songs. The audio file will remain on your device.</string>
-    <string name="delete_from_device">Delete from device</string>
+    <string name="delete_from_device">Supprimer de l\'appareil</string>
     <string name="delete_playlist_dialog">Supprimer cette playlist ?</string>
     <string name="no_items_found">Aucun élément trouvé</string>
     <string name="no_songs_found">Aucun titre disponible sur l\'appareil</string>
@@ -370,8 +370,8 @@
     <string name="added_to_playlist">Ajouté à la playlist</string>
     <string name="playlist_place_holder">Vous n\'avez pas encore de playlist. \nCréez-en une pour commencer</string>
     <string name="no_song_playing">Aucun titre n\'est en cours de lecture</string>
-    <string name="not_playing">Not playing</string>
-    <string name="results">Results</string>
+    <string name="not_playing">Pas de lecture</string>
+    <string name="results">Résultats</string>
     <string name="track_title">Track title</string>
     <string name="play">Play</string>
     <string name="following_remix">Following Remix</string>
