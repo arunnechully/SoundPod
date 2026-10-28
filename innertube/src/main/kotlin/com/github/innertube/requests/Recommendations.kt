@@ -31,17 +31,22 @@ suspend fun Innertube.recommendations(): Result<List<Innertube.SongItem>?>? = ru
         )
     }.body<BrowseResponse>()
 
-    val sectionListRenderer = response
-        .contents
-        ?.sectionListRenderer
+    val sectionListRenderer = response.contents?.sectionListRenderer
+        ?: response.contents?.singleColumnBrowseResultsRenderer?.tabs
+            ?.firstNotNullOfOrNull { it.tabRenderer?.content?.sectionListRenderer }
+        ?: response.contents?.twoColumnBrowseResultsRenderer?.tabs
+            ?.firstNotNullOfOrNull { it.tabRenderer?.content?.sectionListRenderer }
 
-    (sectionListRenderer?.findSectionByTitle("Quick picks")
-        ?: sectionListRenderer?.findSectionByTitle("Recommended")
-        ?: sectionListRenderer?.findSectionByTitle("Listen again")
-        ?: sectionListRenderer?.contents?.firstOrNull { it.musicCarouselShelfRenderer != null })
-        ?.musicCarouselShelfRenderer
-        ?.contents
-        ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicResponsiveListItemRenderer)
-        ?.mapNotNull(Innertube.SongItem::from)
-        ?.takeIf { it.isNotEmpty() }
+    val preferredSections = listOfNotNull(
+        sectionListRenderer?.findSectionByTitle("Quick picks"),
+        sectionListRenderer?.findSectionByTitle("Recommended"),
+        sectionListRenderer?.findSectionByTitle("Listen again")
+    )
+
+    (preferredSections + sectionListRenderer?.contents.orEmpty()).firstNotNullOfOrNull { section ->
+        section.musicCarouselShelfRenderer?.contents
+            ?.mapNotNull(MusicCarouselShelfRenderer.Content::musicResponsiveListItemRenderer)
+            ?.mapNotNull(Innertube.SongItem::from)
+            ?.takeIf { it.isNotEmpty() }
+    }
 }

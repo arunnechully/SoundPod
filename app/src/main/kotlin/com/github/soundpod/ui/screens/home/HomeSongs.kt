@@ -1,9 +1,13 @@
 package com.github.soundpod.ui.screens.home
 
 import android.Manifest
+import android.app.Activity
 import android.content.pm.PackageManager
+import android.database.ContentObserver
 import android.os.Build
+import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -42,6 +46,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -78,6 +83,13 @@ fun HomeSongs(
     val menuState = LocalMenuState.current
     val playerPadding = LocalPlayerPadding.current
     val context = LocalContext.current
+    val viewModel: HomeSongsViewModel = viewModel()
+
+    val deleteLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) viewModel.refreshMediaStore()
+    }
 
     val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         Manifest.permission.READ_MEDIA_AUDIO
@@ -102,11 +114,23 @@ fun HomeSongs(
                     context,
                     permission
                 ) == PackageManager.PERMISSION_GRANTED
+                if (isPermissionGranted) viewModel.refreshMediaStore()
+            }
+        }
+        val mediaObserver = object : ContentObserver(null) {
+            override fun onChange(selfChange: Boolean) {
+                if (isPermissionGranted) viewModel.refreshMediaStore()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
+        context.contentResolver.registerContentObserver(
+            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+            true,
+            mediaObserver
+        )
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
+            context.contentResolver.unregisterContentObserver(mediaObserver)
         }
     }
 
@@ -118,8 +142,6 @@ fun HomeSongs(
 
     var sortBy by rememberPreference(songSortByKey, SongSortBy.Title)
     var sortOrder by rememberPreference(songSortOrderKey, SortOrder.Ascending)
-
-    val viewModel: HomeSongsViewModel = viewModel()
 
     LaunchedEffect(isPermissionGranted) {
         if (isPermissionGranted) {
@@ -212,7 +234,15 @@ fun HomeSongs(
                                 song = song,
                                 onDismiss = menuState::hide,
                                 onGoToAlbum = onGoToAlbum,
-                                onGoToArtist = onGoToArtist
+                                onGoToArtist = onGoToArtist,
+                                onHideLocalSong = { viewModel.hideSong(song.id) },
+                                onDeleteLocalSong = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) ({
+                                    val request = MediaStore.createDeleteRequest(
+                                        context.contentResolver,
+                                        listOf(song.id.toUri())
+                                    )
+                                    deleteLauncher.launch(IntentSenderRequest.Builder(request.intentSender).build())
+                                }) else null
                             )
                         }
                     },

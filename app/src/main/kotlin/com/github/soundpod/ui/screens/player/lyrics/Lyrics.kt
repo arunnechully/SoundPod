@@ -251,7 +251,7 @@ fun OldLyrics(
                                             }
                                         )
                                     } catch (_: ActivityNotFoundException) {
-                                        context.toast("Couldn't find an application to browse the Internet")
+                                        context.toast(context.getString(R.string.browser_not_found))
                                     }
                                 }
                             )

@@ -37,8 +37,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.github.soundpod.R
 import kotlinx.coroutines.launch
 
 @Composable
@@ -77,12 +79,12 @@ fun WidgetCustomizationScreen(
                         else Color.Black.copy(alpha = opacity)
                     )
             ) {
-                Text("Widget Preview", color = Color.White, modifier = Modifier.align(Alignment.Center))
+                Text(stringResource(R.string.widget_preview), color = Color.White, modifier = Modifier.align(Alignment.Center))
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
-        Text("Background color", color = Color.Gray, style = MaterialTheme.typography.labelMedium)
+        Text(stringResource(R.string.background_color), color = Color.Gray, style = MaterialTheme.typography.labelMedium)
         Spacer(modifier = Modifier.height(8.dp))
 
         Card(
@@ -96,7 +98,7 @@ fun WidgetCustomizationScreen(
                         onClick = { isWhiteSelected = true },
                         colors = RadioButtonDefaults.colors(selectedColor = Color(0xFFAECBFA), unselectedColor = Color.Gray)
                     )
-                    Text("White", color = Color.White)
+                    Text(stringResource(R.string.white), color = Color.White)
                 }
 
                 HorizontalDivider(color = Color.DarkGray, modifier = Modifier.padding(vertical = 8.dp))
@@ -107,7 +109,7 @@ fun WidgetCustomizationScreen(
                         onClick = { isWhiteSelected = false },
                         colors = RadioButtonDefaults.colors(selectedColor = Color(0xFFAECBFA), unselectedColor = Color.Gray)
                     )
-                    Text("Black", color = Color.White)
+                    Text(stringResource(R.string.black), color = Color.White)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -140,7 +142,7 @@ fun WidgetCustomizationScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Match with Dark mode", color = Color.White)
+                Text(stringResource(R.string.match_dark_mode), color = Color.White)
                 Switch(
                     checked = matchDarkMode,
                     onCheckedChange = { matchDarkMode = it },
@@ -156,7 +158,7 @@ fun WidgetCustomizationScreen(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             TextButton(onClick = { onNavigateBack() }) {
-                Text("Cancel", color = Color.White, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.cancel), color = Color.White, fontWeight = FontWeight.Bold)
             }
             TextButton(
                 onClick = {
@@ -169,7 +171,7 @@ fun WidgetCustomizationScreen(
                     }
                 }
             ) {
-                Text("Save", color = Color.White, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.save), color = Color.White, fontWeight = FontWeight.Bold)
             }
         }
     }

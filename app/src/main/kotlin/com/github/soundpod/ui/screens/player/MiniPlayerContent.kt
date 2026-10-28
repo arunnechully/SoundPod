@@ -27,12 +27,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerServiceBinder
+import com.github.soundpod.R
 import com.github.soundpod.utils.DisposableListener
 import com.github.soundpod.utils.shouldBePlaying
 import kotlinx.coroutines.delay
@@ -118,7 +120,7 @@ fun MiniPlayerContent(
             supportingContent = {
                 Box(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = nullableMediaItem?.mediaMetadata?.artist?.toString() ?: "Not playing",
+                        text = nullableMediaItem?.mediaMetadata?.artist?.toString() ?: stringResource(R.string.not_playing),
                         modifier = Modifier.basicMarquee(),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,

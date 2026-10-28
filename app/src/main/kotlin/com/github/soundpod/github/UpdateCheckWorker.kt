@@ -75,10 +75,10 @@ class UpdateCheckWorker(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 channelId,
-                "App Updates",
+                context.getString(R.string.update_channel_name),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Notifications when a new update is available"
+                description = context.getString(R.string.update_notification_description)
             }
             notificationManager.createNotificationChannel(channel)
         }
@@ -94,8 +94,8 @@ class UpdateCheckWorker(
 
         val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.app_icon)
-            .setContentTitle("Update Available")
-            .setContentText("Version $version is ready to download.")
+            .setContentTitle(context.getString(R.string.updates_available))
+            .setContentText(context.getString(R.string.update_ready, version))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)

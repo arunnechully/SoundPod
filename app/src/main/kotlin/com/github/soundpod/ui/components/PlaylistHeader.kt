@@ -30,6 +30,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.github.core.ui.LocalAppearance
@@ -163,7 +164,7 @@ fun PlaylistHeader(
                     ) { expanded ->
                         if (expanded) {
                             Text(
-                                text = "Clear",
+                                text = stringResource(R.string.clear),
                                 color = colorPalette.text,
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.SemiBold
@@ -171,7 +172,7 @@ fun PlaylistHeader(
                         } else {
                             Icon(
                                 imageVector = Icons.Default.Clear,
-                                contentDescription = "Clear Queue",
+                                contentDescription = stringResource(R.string.clear_queue),
                                 tint = colorPalette.text,
                                 modifier = Modifier.size(18.dp)
                             )

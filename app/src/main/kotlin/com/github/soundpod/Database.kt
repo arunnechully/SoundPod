@@ -215,6 +215,9 @@ interface Database {
     @Query("UPDATE Song SET durationText = :durationText WHERE id = :songId")
     fun updateDurationText(songId: String, durationText: String): Int
 
+    @Query("UPDATE Song SET thumbnailUrl = :thumbnailUrl WHERE id = :songId")
+    fun updateThumbnailUrl(songId: String, thumbnailUrl: String?): Int
+
     @Query("SELECT * FROM Lyrics WHERE songId = :songId")
     fun lyrics(songId: String): Flow<Lyrics?>
 
@@ -469,9 +472,12 @@ interface Database {
     fun songArtistInfo(songId: String): List<Info>
 
     @Transaction
-    @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId WHERE playTime >= :minPlayTimeMs GROUP BY songId ORDER BY timestamp DESC LIMIT :limit")
+    @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId WHERE playTime >= :minPlayTimeMs GROUP BY songId ORDER BY MAX(timestamp) DESC LIMIT :limit")
     @RewriteQueriesToDropUnusedColumns
     fun history(limit: Int, minPlayTimeMs: Long): Flow<List<Song>>
+
+    @Query("SELECT MAX(timestamp) FROM Event WHERE playTime >= :minPlayTimeMs")
+    fun latestQualifiedPlaybackTimestamp(minPlayTimeMs: Long): Flow<Long?>
 
     @Transaction
     @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId GROUP BY songId ORDER BY SUM(CAST(playTime AS REAL) / (((:now - timestamp) / 86400000) + 1)) DESC LIMIT :limit")

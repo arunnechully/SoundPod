@@ -221,7 +221,7 @@ internal fun ArtistDescriptionSection(description: String) {
 
     if (attributionsIndex != -1) {
         Text(
-            text = "From Wikipedia under Creative Commons Attribution CC-BY-SA 3.0",
+            text = stringResource(R.string.wikipedia_attribution),
             style = typography.bodySmall,
             modifier = Modifier
                 .alpha(Dimensions.MEDIUMOPACITY)

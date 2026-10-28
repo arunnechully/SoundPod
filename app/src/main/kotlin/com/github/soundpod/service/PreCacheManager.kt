@@ -15,6 +15,7 @@ import com.github.innertube.Innertube
 import com.github.innertube.requests.player
 import com.github.soundpod.MainApplication
 import com.github.soundpod.NewPipeDownloader
+import com.github.soundpod.R
 import com.github.soundpod.db
 import com.github.soundpod.models.DownloadedSong
 import com.github.soundpod.models.Format
@@ -23,9 +24,13 @@ import com.github.soundpod.models.Song
 import com.github.soundpod.utils.PlaybackSource
 import com.github.soundpod.utils.toast
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
@@ -63,6 +68,10 @@ class PreCacheManager(
                     semaphore.withPermit {
                         preCacheSong(videoId, 128 * 1024L, mediaItem)
                     }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Log.e("SoundPod-PreCache", "Pre-caching failed for $videoId", e)
                 } finally {
                     activeTasks.remove(videoId)
                 }
@@ -79,15 +88,18 @@ class PreCacheManager(
         activeTasks[videoId]?.cancel()
         
         val job = scope.launch {
-            // Mark as downloaded immediately so it shows up in the Offline playlist
-            // Ensure song exists in DB first to satisfy FK constraints
-            ensureSongExists(videoId, mediaItem)
-            db.insert(DownloadedSong(videoId))
-
             try {
+                // Mark as downloaded immediately so it shows up in the Offline playlist
+                // Ensure song exists in DB first to satisfy FK constraints
+                ensureSongExists(videoId, mediaItem)
+                db.insert(DownloadedSong(videoId))
                 semaphore.withPermit {
                     preCacheSong(videoId, -1L, mediaItem)
                 }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e("SoundPod-PreCache", "Download failed for $videoId", e)
             } finally {
                 activeTasks.remove(videoId)
             }
@@ -183,6 +195,7 @@ class PreCacheManager(
 
         if (finalUri == null) return
         val uri = finalUri!!
+        currentCoroutineContext().ensureActive()
 
         // If we are doing a partial cache, check if already sufficiently cached
         if (length != -1L && cacheManager.isCached(videoId, 0, length)) {
@@ -293,7 +306,7 @@ class PreCacheManager(
                 }
                 
                 withContext(Dispatchers.Main) {
-                    MainApplication.appContext.toast("Successfully downloaded ${mediaItem?.mediaMetadata?.title ?: videoId}")
+                    MainApplication.appContext.toast(MainApplication.appContext.getString(R.string.download_success, mediaItem?.mediaMetadata?.title ?: videoId))
                 }
             } else {
                 // Partial cache, mark as temp for 24h cleanup
@@ -308,7 +321,7 @@ class PreCacheManager(
             Log.e("SoundPod-PreCache", "Caching failed for $videoId: ${e.message}")
             if (length == -1L) {
                 withContext(Dispatchers.Main) {
-                    MainApplication.appContext.toast("Download failed for ${mediaItem?.mediaMetadata?.title ?: videoId}: ${e.message}")
+                    MainApplication.appContext.toast(MainApplication.appContext.getString(R.string.download_failed, mediaItem?.mediaMetadata?.title ?: videoId, e.message))
                 }
             }
         }
@@ -334,10 +347,16 @@ class PreCacheManager(
             val oldSongs = db.oldPrecachedSongs(threshold)
 
             oldSongs.forEach { song ->
+                currentCoroutineContext().ensureActive()
                 cacheManager.removeCache(song.id)
                 db.deletePrecachedSong(song.id)
                 Log.d("SoundPod-PreCache", "Cleaned up expired pre-cache for ${song.id}")
             }
         }
+    }
+
+    fun release() {
+        scope.cancel()
+        activeTasks.clear()
     }
 }

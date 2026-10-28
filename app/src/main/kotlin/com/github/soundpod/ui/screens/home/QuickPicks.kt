@@ -110,7 +110,10 @@ fun QuickPicks(
         .padding(horizontal = 16.dp)
         .padding(bottom = 8.dp)
 
-    LaunchedEffect(quickPicksSource, quickPicksCustomGenre) {
+    val latestPlayback = if (quickPicksSource == QuickPicksSource.Default) {
+        viewModel.latestQualifiedPlaybackTimestamp
+    } else null
+    LaunchedEffect(quickPicksSource, quickPicksCustomGenre, latestPlayback) {
         viewModel.loadQuickPicks(
             quickPicksSource = quickPicksSource,
             forceRefresh = quickPicksSource == QuickPicksSource.Custom

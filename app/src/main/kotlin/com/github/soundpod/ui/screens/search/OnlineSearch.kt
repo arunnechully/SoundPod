@@ -79,7 +79,7 @@ fun OnlineSearch(
             )
             Spacer(modifier = Modifier.height(5.dp))
             Text(
-                text = "Loading...",
+                text = stringResource(R.string.loading_message),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

@@ -65,8 +65,8 @@ class MusicPlayerWidget : GlanceAppWidget() {
         provideContent {
             GlanceTheme {
                 val prefs = currentState<Preferences>()
-                val songTitle = prefs[widgetSongTitleKey] ?: "Track title"
-                val artist = prefs[widgetArtistKey] ?: "Artist"
+                val songTitle = prefs[widgetSongTitleKey] ?: context.getString(R.string.track_title)
+                val artist = prefs[widgetArtistKey] ?: context.getString(R.string.artist)
                 val isPlaying = prefs[widgetIsPlayingKey] ?: false
                 val artworkPath = prefs[widgetArtworkPathKey]
 

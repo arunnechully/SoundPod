@@ -69,7 +69,7 @@ fun BackupSettingsContent() {
             autoBackupUriString = uri.toString()
             scheduleAutoBackup(context, autoBackup)
 
-            context.toast("Backup location saved")
+            context.toast(context.getString(R.string.backup_location_saved))
         }
     }
 
@@ -124,7 +124,7 @@ fun BackupSettingsContent() {
                     try {
                         backupLauncher.launch("SoundPod_Manual_$formattedDate.db")
                     } catch (_: ActivityNotFoundException) {
-                        context.toast("Couldn't find an application to create documents")
+                        context.toast(context.getString(R.string.document_creator_not_found))
                     }
                 },
             )
@@ -143,7 +143,7 @@ fun BackupSettingsContent() {
                             )
                         )
                     } catch (_: ActivityNotFoundException) {
-                        context.toast("Couldn't find an application to open documents")
+                        context.toast(context.getString(R.string.document_opener_not_found))
                     }
                 }
             )

@@ -135,12 +135,12 @@ fun FollowingScreen(
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(
-                                    text = "No artists followed",
+                                    text = stringResource(R.string.no_artists_followed),
                                     style = MaterialTheme.typography.titleMedium,
                                     color = colorPalette.text
                                 )
                                 Text(
-                                    text = "Follow artists to get a personalized Remix and updates",
+                                    text = stringResource(R.string.follow_artists_description),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = colorPalette.text.copy(alpha = 0.7f),
                                     textAlign = TextAlign.Center,
@@ -249,7 +249,7 @@ fun FollowingScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Following Remix",
+                                text = stringResource(R.string.following_remix),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = colorPalette.text
                             )
@@ -266,7 +266,7 @@ fun FollowingScreen(
                                     ) {
                                         Icon(Icons.Default.PlayArrow, null, modifier = Modifier.size(18.dp))
                                         Spacer(Modifier.width(4.dp))
-                                        Text("Play")
+                                        Text(stringResource(R.string.play))
                                     }
 
                                     TextButton(
@@ -279,7 +279,7 @@ fun FollowingScreen(
                                     ) {
                                         Icon(Icons.Default.Shuffle, null, modifier = Modifier.size(18.dp))
                                         Spacer(Modifier.width(4.dp))
-                                        Text("Shuffle")
+                                        Text(stringResource(R.string.shuffle))
                                     }
                                 }
                             }
@@ -317,14 +317,14 @@ fun FollowingScreen(
                             } else {
                                 item {
                                     Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                                        Text(text = "No songs found for your remix", color = colorPalette.text)
+                                        Text(text = stringResource(R.string.no_remix_songs), color = colorPalette.text)
                                     }
                                 }
                             }
                         }.onFailure {
                             item {
                                 Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                                    Text(text = "Error loading remix", color = Color.Red)
+                                    Text(text = stringResource(R.string.remix_load_error), color = Color.Red)
                                 }
                             }
                         }
