@@ -1,49 +1,66 @@
-
-name: Build SoundPod APK
+name: Build & Release SoundPod APK
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
-    name: Build GitHub Release APK
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Java 17
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
+          distribution: 'temurin'
           java-version: '17'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android SDK 37
-        run: sdkmanager "platforms;android-37"
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Grant Gradle Permission
-        run: chmod +x gradlew
+      - name: Decode Keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > ${{ github.workspace }}/release.keystore
 
-      - name: Build SoundPod GitHub Release
-        run: ./gradlew :app:assembleGithubRelease
+      - name: Build Signed Release APKs
+        env:
+          KEYSTORE_FILE: ${{ github.workspace }}/release.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleGithubRelease assembleFdroidRelease
 
-      - name: Upload APK Files
+      - name: Collect and Rename APKs
+        run: |
+          mkdir -p release-apks
+          cp app/build/outputs/apk/github/release/*.apk release-apks/SoundPod-github-release.apk
+          cp app/build/outputs/apk/fdroid/release/*.apk release-apks/SoundPod-fdroid-release.apk
+
+      - name: Upload APKs to Workflow Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: SoundPod-GitHub-Release
-          path: app/build/outputs/apk/github/release/*.apk
-          if-no-files-found: error
-          retention-days: 30
+          name: SoundPod-Signed-APKs
+          path: release-apks/*.apk
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-apks/*.apk
+          generate_release_notes: true
+
+      - name: Clean up Keystore
+        if: always()
+        run: rm -f ${{ github.workspace }}/release.keystore
