@@ -8,7 +8,6 @@ plugins {
     alias(libs.plugins.kotlin.ksp)
 }
 
-
 kotlin {
     compilerOptions {
         jvmTarget = JvmTarget.JVM_17
@@ -68,8 +67,19 @@ extensions.configure<ApplicationExtension>("android") {
         }
     }
 
-    buildTypes {
+    signingConfigs {
+        create("release") {
+            val keystorePath = System.getenv("KEYSTORE_FILE")
+            if (!keystorePath.isNullOrEmpty()) {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            }
+        }
+    }
 
+    buildTypes {
         debug {
             applicationIdSuffix = ".debug"
         }
@@ -78,7 +88,12 @@ extensions.configure<ApplicationExtension>("android") {
             isMinifyEnabled = true
             isShrinkResources = true
 
-            signingConfig = signingConfigs.getByName("debug")
+            val releaseSigning = signingConfigs.getByName("release")
+            signingConfig = if (releaseSigning.storeFile != null) {
+                releaseSigning
+            } else {
+                signingConfigs.getByName("debug")
+            }
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -167,7 +182,6 @@ tasks.configureEach {
     if (name.contains("fdroid", ignoreCase = true) && name.contains("ArtProfile", ignoreCase = true)) {
         enabled = false
     }
-    // Disable resource shrinking for fdroid release to ensure reproducibility
     if (name == "shrinkFdroidReleaseRes") {
         enabled = false
     }
