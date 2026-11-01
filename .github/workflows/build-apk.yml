@@ -1,0 +1,49 @@
+
+name: Build SoundPod APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build GitHub Release APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK 37
+        run: sdkmanager "platforms;android-37"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant Gradle Permission
+        run: chmod +x gradlew
+
+      - name: Build SoundPod GitHub Release
+        run: ./gradlew :app:assembleGithubRelease
+
+      - name: Upload APK Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: SoundPod-GitHub-Release
+          path: app/build/outputs/apk/github/release/*.apk
+          if-no-files-found: error
+          retention-days: 30
