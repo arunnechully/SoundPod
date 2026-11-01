@@ -46,8 +46,6 @@ extensions.configure<ApplicationExtension>("android") {
         }
         resources {
             excludes += setOf(
-                "**/*.prof",
-                "**/*.profi",
                 "META-INF/version-control-info.textproto",
                 "META-INF/com/android/build/gradle/app-metadata.properties",
                 "META-INF/*.RSA",
@@ -57,13 +55,6 @@ extensions.configure<ApplicationExtension>("android") {
                 "META-INF/LICENSE*",
                 "META-INF/NOTICE*"
             )
-        }
-    }
-
-    splits {
-        abi {
-            reset()
-            isUniversalApk = false
         }
     }
 
