@@ -1,10 +1,13 @@
 name: Build & Release SoundPod APK
 
 on:
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
+    inputs:
+      publish_release:
+        description: 'Publish to GitHub Releases after building?'
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -43,21 +46,26 @@ jobs:
           ./gradlew assembleGithubRelease assembleFdroidRelease
 
       - name: Collect and Rename APKs
+        id: get_version
         run: |
+          VERSION=$(grep -m 1 'versionName[[:space:]]*=' app/build.gradle.kts | cut -d '"' -f 2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
           mkdir -p release-apks
-          cp app/build/outputs/apk/github/release/*.apk release-apks/SoundPod-github-release.apk
-          cp app/build/outputs/apk/fdroid/release/*.apk release-apks/SoundPod-fdroid-release.apk
+          cp app/build/outputs/apk/github/release/*.apk "release-apks/SoundPod-v${VERSION}-github-release.apk"
+          cp app/build/outputs/apk/fdroid/release/*.apk "release-apks/SoundPod-v${VERSION}-fdroid-release.apk"
 
       - name: Upload APKs to Workflow Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: SoundPod-Signed-APKs
+          name: SoundPod-v${{ steps.get_version.outputs.version }}-Signed-APKs
           path: release-apks/*.apk
 
       - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: ${{ inputs.publish_release == true }}
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: SoundPod v${{ steps.get_version.outputs.version }}
           files: release-apks/*.apk
           generate_release_notes: true
 
