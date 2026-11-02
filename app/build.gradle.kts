@@ -58,19 +58,6 @@ extensions.configure<ApplicationExtension>("android") {
         }
     }
 
-    val keystorePath = System.getenv("KEYSTORE_FILE")
-
-    signingConfigs {
-        create("release") {
-            if (!keystorePath.isNullOrEmpty()) {
-                storeFile = file(keystorePath)
-                storePassword = System.getenv("KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("KEY_ALIAS")
-                keyPassword = System.getenv("KEY_PASSWORD")
-            }
-        }
-    }
-
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
@@ -80,7 +67,7 @@ extensions.configure<ApplicationExtension>("android") {
             isMinifyEnabled = true
             isShrinkResources = true
 
-            signingConfig = signingConfigs.getByName(if (!keystorePath.isNullOrEmpty()) "release" else "debug")
+            signingConfig = signingConfigs.getByName("debug")
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -125,7 +112,6 @@ dependencies {
     implementation(libs.compose.material.icons)
     implementation(libs.compose.material3)
     implementation(libs.glance.appwidget)
-    implementation(libs.glance.appwidget.preview)
     implementation(libs.glance.material3)
     implementation(libs.compose.navigation)
     implementation(libs.compose.shimmer)
