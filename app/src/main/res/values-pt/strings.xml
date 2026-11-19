@@ -404,4 +404,7 @@
     <string name="update_channel_name">Atualizações do app</string>
     <string name="update_ready">A versão %s está pronta para baixar.</string>
     <string name="wikipedia_attribution">Da Wikipédia, sob a licença Creative Commons Atribuição CC-BY-SA 3.0</string>
+    <string name="apple_music">Apple Music</string>
+    <string name="samsung_music">Samsung Music</string>
+    <string name="accent_color_discription">Choose your preferred accent color</string>
 </resources>
