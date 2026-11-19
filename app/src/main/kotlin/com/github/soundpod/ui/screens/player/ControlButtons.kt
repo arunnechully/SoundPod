@@ -101,9 +101,7 @@ import com.github.soundpod.utils.shuffleQueue
 import com.github.soundpod.utils.toast
 import com.github.soundpod.utils.trackLoopEnabledKey
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.onStart
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -513,7 +511,7 @@ fun PlayerControlBottom(
     val player = binder?.player ?: return
     val (colorPalette) = LocalAppearance.current
 
-    val playerLayout by rememberPreference(playerlayout, PlayerLayout.Default)
+    val playerLayout by rememberPreference(playerlayout, PlayerLayout.SamsungMusic)
 
     var trackLoopEnabled by rememberPreference(trackLoopEnabledKey, defaultValue = false)
     var queueLoopEnabled by rememberPreference(queueLoopEnabledKey, defaultValue = false)
@@ -598,7 +596,7 @@ fun PlayerControlBottom(
                     isBuffering = isBuffering, // Passed directly
                     onClick = onPlayPauseClick
                 )
-            } else if (playerLayout == PlayerLayout.Default) {
+            } else if (playerLayout == PlayerLayout.SamsungMusic) {
                 PlayPauseButton(
                     playing = shouldBePlaying,
                     isBuffering = isBuffering, // Passed directly

@@ -28,8 +28,8 @@ fun AppearanceSettingsContent(
 ) {
     var appThemeColor by rememberPreference(appTheme, AppThemeColor.System)
     var progressBarStyle by rememberPreference(progressBarStyle, ProgressBar.Default )
-    var playerlayout by rememberPreference(playerlayout, PlayerLayout.Default )
-    var tabStyle by rememberPreference(tabStyleKey, TabStyle.Classic)
+    var playerlayout by rememberPreference(playerlayout, PlayerLayout.SamsungMusic )
+    var tabStyle by rememberPreference(tabStyleKey, TabStyle.Default)
 
     var isAppearanceUpdated by rememberPreference(appearanceUpdatedKey, false)
 
@@ -50,6 +50,12 @@ fun AppearanceSettingsContent(
             onValueSelected = { appThemeColor = it },
             icon = IconSource.Icon( painterResource(id = R.drawable.dark_mode)),
             valueText = { stringResource(it.resourceId) }
+        )
+        SettingsColumn(
+            icon = IconSource.Icon(painterResource(id = R.drawable.color_mode)),
+            title = stringResource(id = R.string.accent_color),
+            description = stringResource(id = R.string.accent_color_discription),
+            onClick = {/*Todo*/},
         )
     }
 
@@ -85,7 +91,7 @@ fun AppearanceSettingsContent(
         title = stringResource(id = R.string.home_screen_tabs),
     ) {
         EnumValueSelectorSettingsEntry(
-            title = stringResource(id = R.string.tab_style),
+            title = stringResource(id = R.string.home_style),
             selectedValue = tabStyle,
             onValueSelected = { tabStyle = it },
             icon = IconSource.Icon(painterResource(id = R.drawable.interface_ui_tabs)),

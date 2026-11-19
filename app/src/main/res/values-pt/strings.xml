@@ -257,7 +257,7 @@
     <string name="update_manually">Atualizar manualmente pela pasta Downloads</string>
     <string name="update_failed">Falha na atualização</string>
     <string name="updates_available">Nova atualização disponível</string>
-    <string name="download_and_update"><![CDATA[Baixar e atualizar]]></string>
+    <string name="download_and_update">Baixar e atualizar</string>
     <string name="install">Instalar</string>
     <string name="search_placeholder">Nenhum histórico de buscas encontrado</string>
     <string name="search_history">Buscas recentes</string>
@@ -299,7 +299,7 @@
     <string name="on">Ativado</string>
     <string name="primary_color">Cor primária</string>
     <string name="secondary_color">Cor secundária</string>
-    <string name="preset_and_custom"><![CDATA[Predefinidas e personalizadas]]></string>
+    <string name="preset_and_custom">Predefinidas e personalizadas</string>
     <string name="add">Adicionar</string>
     <string name="add_custom">Adicionar personalizada</string>
     <string name="custom_image">Imagem personalizada</string>

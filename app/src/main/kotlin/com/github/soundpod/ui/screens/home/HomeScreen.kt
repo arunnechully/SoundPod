@@ -52,7 +52,7 @@ fun HomeScreen(
     navController: NavController,
     onSettingsClick: () -> Unit,
 ) {
-    val tabStyle by rememberPreference(tabStyleKey, TabStyle.Classic)
+    val tabStyle by rememberPreference(tabStyleKey, TabStyle.Default)
     val updateAvailable by rememberPreference(updateAvailableKey, false)
     val appearanceUpdated by rememberPreference(appearanceUpdatedKey, false)
 
@@ -129,7 +129,7 @@ fun HomeScreen(
     ) {
         val tabTitles = activeTabs.map { it.title }
 
-        if (tabStyle == TabStyle.Modern) {
+        if (tabStyle == TabStyle.SamsungMusic) {
             HorizontalTabs(
                 pagerState = pagerState,
                 tabs = tabTitles

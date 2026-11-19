@@ -6,10 +6,13 @@ import com.github.soundpod.R
 enum class PlayerLayout(
     @get:StringRes val resourceId: Int
 ) {
-    Default(
-        resourceId = R.string.defualt,
+    SamsungMusic(
+        resourceId = R.string.samsung_music,
     ),
     New(
         resourceId = R.string.new_layout,
+    ),
+    AppleMusic(
+        resourceId = R.string.apple_music,
     )
 }
