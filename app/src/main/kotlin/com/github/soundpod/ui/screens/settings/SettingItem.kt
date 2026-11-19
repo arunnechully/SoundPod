@@ -409,7 +409,7 @@ fun SettingsAlertDialog(
 @Composable
 fun SettingsGroup(
     title: String? = null,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit = {}
 ) {
     if (title != null) {
 

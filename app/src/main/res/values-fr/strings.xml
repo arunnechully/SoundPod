@@ -336,7 +336,7 @@
     <string name="beta_updates">Accès anticipé (Bêta)</string>
     <string name="beta_updates_description">Activer la réception des versions préliminaires.</string>
     <string name="player_style">Style de lecteur</string>
-    <string name="tab_style">Style d\'onglet</string>
+    <string name="home_style">Style d\'onglet</string>
     <string name="modern">Moderne</string>
     <string name="classic">Classique</string>
     <string name="home_screen_tabs">Onglets de l\'écran d\'accueil</string>

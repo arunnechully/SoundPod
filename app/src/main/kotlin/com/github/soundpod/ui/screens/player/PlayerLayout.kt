@@ -20,7 +20,7 @@ fun PlayerLayout(
     showLyrics: Boolean,
     onTogglePlaylist: (Boolean) -> Unit
 ) {
-    val playerLayoutState = rememberPreference(playerlayout, PlayerLayout.Default)
+    val playerLayoutState = rememberPreference(playerlayout, PlayerLayout.SamsungMusic)
     val currentLayout = playerLayoutState.value
 
     MainPlayerContent(

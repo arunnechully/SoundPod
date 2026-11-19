@@ -203,7 +203,7 @@ fun MainPlayerContent(
                         onBack = {
                             if (showPlaylist) onTogglePlaylist(false) else onBack()
                         },
-                        isPlaylistShowing = if (layoutMode == PlayerLayout.Default) showPlaylist || showLyrics else showPlaylist,
+                        isPlaylistShowing = if (layoutMode == PlayerLayout.SamsungMusic) showPlaylist || showLyrics else showPlaylist,
                         isFullyCached = isFullyCached
                     )
 
@@ -224,7 +224,7 @@ fun MainPlayerContent(
 
                             Spacer(modifier = Modifier.height(Dimensions.spacer))
 
-                            if (layoutMode == PlayerLayout.Default) {
+                            if (layoutMode == PlayerLayout.SamsungMusic) {
                                 PlayerMiddleControl(
                                     showPlaylist = false,
                                     onTogglePlaylist = onTogglePlaylist,
@@ -251,7 +251,7 @@ fun MainPlayerContent(
 
                     Spacer(modifier = Modifier.height(Dimensions.spacer))
 
-                    if (layoutMode == PlayerLayout.Default) {
+                    if (layoutMode == PlayerLayout.SamsungMusic) {
                         PlayerControlBottom(
                             shouldBePlaying = shouldBePlaying,
                             onPlayPauseClick = { playerViewModel?.togglePlayPause() }
@@ -292,7 +292,7 @@ fun MainPlayerContent(
                     onBack = {
                         if (showPlaylist) onTogglePlaylist(false) else onBack()
                     },
-                    isPlaylistShowing = if (layoutMode == PlayerLayout.Default) showPlaylist || showLyrics else showPlaylist,
+                    isPlaylistShowing = if (layoutMode == PlayerLayout.SamsungMusic) showPlaylist || showLyrics else showPlaylist,
                     isFullyCached = isFullyCached
                 )
 
@@ -356,7 +356,7 @@ fun MainPlayerContent(
                             )
 
                             Box(modifier = Modifier.graphicsLayer { alpha = middleControlAlpha }) {
-                                if (layoutMode == PlayerLayout.Default) {
+                                if (layoutMode == PlayerLayout.SamsungMusic) {
                                     PlayerMiddleControl(
                                         showPlaylist = false,
                                         onTogglePlaylist = onTogglePlaylist,
@@ -387,7 +387,7 @@ fun MainPlayerContent(
 
                 Spacer(modifier = Modifier.height(Dimensions.spacer))
 
-                if (layoutMode == PlayerLayout.Default) {
+                if (layoutMode == PlayerLayout.SamsungMusic) {
                     PlayerControlBottom(
                         shouldBePlaying = shouldBePlaying,
                         onPlayPauseClick = { playerViewModel?.togglePlayPause() }

@@ -342,7 +342,7 @@
     <string name="beta_updates">Early access (Beta)</string>
     <string name="beta_updates_description">Enable to receive preview builds.</string>
     <string name="player_style">Player Style</string>
-    <string name="tab_style">Tab Style</string>
+    <string name="home_style">Home Screen Style</string>
     <string name="modern">Modern</string>
     <string name="classic">Classic</string>
     <string name="home_screen_tabs">Home Screen Tabs</string>
@@ -410,4 +410,7 @@
     <string name="update_channel_name">App updates</string>
     <string name="update_ready">Version %s is ready to download.</string>
     <string name="wikipedia_attribution">From Wikipedia under Creative Commons Attribution CC-BY-SA 3.0</string>
+    <string name="apple_music">Apple Music</string>
+    <string name="samsung_music">Samsung Music</string>
+    <string name="accent_color_discription">Choose your preferred accent color</string>
 </resources>

@@ -336,7 +336,7 @@
     <string name="beta_updates">Acesso antecipado (Beta)</string>
     <string name="beta_updates_description">Ative para receber versões de teste.</string>
     <string name="player_style">Estilo do reprodutor</string>
-    <string name="tab_style">Estilo das abas</string>
+    <string name="home_style">Estilo das abas</string>
     <string name="modern">Moderno</string>
     <string name="classic">Clássico</string>
     <string name="home_screen_tabs">Abas da tela inicial</string>

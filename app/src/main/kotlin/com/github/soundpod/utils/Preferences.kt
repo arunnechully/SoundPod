@@ -82,8 +82,9 @@ enum class PlaybackSource(val resourceId: Int) {
 }
 
 enum class TabStyle(val resourceId: Int) {
-    Modern(R.string.modern),
-    Classic(R.string.classic)
+    SamsungMusic(R.string.samsung_music),
+    Default(R.string.defualt),
+    AppleMusic (R.string.apple_music)
 }
 
 inline fun <reified T : Enum<T>> SharedPreferences.getEnum(

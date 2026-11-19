@@ -74,46 +74,74 @@ fun BackgroundSettingsContent() {
                 title = stringResource(id = R.string.off),
                 description = stringResource(id = R.string.off_description),
                 selected = currentStyle == BackgroundStyles.OFF,
-                onClick = { prefs.edit { putInt(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.OFF) } }
+                onClick = {
+                    prefs.edit {
+                        putInt(
+                            PLAYER_BACKGROUND_STYLE_KEY,
+                            BackgroundStyles.OFF
+                        )
+                    }
+                }
             )
             BackgroundOptionItem(
                 title = stringResource(id = R.string.static_colors),
                 description = stringResource(id = R.string.static_colors_description),
                 selected = currentStyle == BackgroundStyles.CROSS_FADE,
-                onClick = { prefs.edit { putInt(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.CROSS_FADE) } }
+                onClick = {
+                    prefs.edit {
+                        putInt(
+                            PLAYER_BACKGROUND_STYLE_KEY,
+                            BackgroundStyles.CROSS_FADE
+                        )
+                    }
+                }
             )
             BackgroundOptionItem(
                 title = stringResource(id = R.string.blurred_cover),
                 description = stringResource(id = R.string.blurred_cover_description),
                 selected = currentStyle == BackgroundStyles.BLURRED,
-                onClick = { prefs.edit { putInt(PLAYER_BACKGROUND_STYLE_KEY, BackgroundStyles.BLURRED) } }
+                onClick = {
+                    prefs.edit {
+                        putInt(
+                            PLAYER_BACKGROUND_STYLE_KEY,
+                            BackgroundStyles.BLURRED
+                        )
+                    }
+                }
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        SectionHeader(
-            stringResource(id = R.string.presets)
+        SettingsGroup(
+            title = stringResource(id = R.string.preset)
         )
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            presets.chunked(2).forEach { rowPresets ->
-                TwoColumnRow {
-                    rowPresets.forEach { preset ->
-                        BackgroundPreviewCard(
-                            preset = preset,
-                            selected = currentStyle == preset.styleId,
-                            onClick = { prefs.edit { putInt(PLAYER_BACKGROUND_STYLE_KEY, preset.styleId) } }
-                        )
-                    }
-                    if (rowPresets.size == 1) {
-                        Spacer(modifier = Modifier.weight(1f))
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                presets.chunked(2).forEach { rowPresets ->
+                    TwoColumnRow {
+                        rowPresets.forEach { preset ->
+                            BackgroundPreviewCard(
+                                preset = preset,
+                                selected = currentStyle == preset.styleId,
+                                onClick = {
+                                    prefs.edit {
+                                        putInt(
+                                            PLAYER_BACKGROUND_STYLE_KEY,
+                                            preset.styleId
+                                        )
+                                    }
+                                }
+                            )
+                        }
+                        if (rowPresets.size == 1) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
                     }
                 }
             }
-        }
         Spacer(modifier = Modifier.height(48.dp))
     }
 }
@@ -163,7 +191,9 @@ private fun RowScope.BackgroundPreviewCard(
                 LottieAnimation(
                     composition = composition,
                     progress = { 0.5f },
-                    modifier = Modifier.fillMaxSize().alpha(0.7f),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .alpha(0.7f),
                     contentScale = ContentScale.Crop
                 )
             }
@@ -176,7 +206,11 @@ private fun RowScope.BackgroundPreviewCard(
                         .background(colorPalette.accent, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Check, contentDescription = null, tint = colorPalette.onAccent)
+                    Icon(
+                        Icons.Default.Check,
+                        contentDescription = null,
+                        tint = colorPalette.onAccent
+                    )
                 }
             }
         }
@@ -219,8 +253,16 @@ fun BackgroundOptionItem(
         RadioButton(selected = selected, onClick = null)
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.bodyLarge, color = colorPalette.text)
-            Text(text = description, style = MaterialTheme.typography.bodySmall, color = colorPalette.textSecondary)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = colorPalette.text
+            )
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = colorPalette.textSecondary
+            )
         }
     }
 }
