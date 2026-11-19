@@ -20,7 +20,7 @@ extensions.configure<ApplicationExtension>("android") {
 
     defaultConfig {
         applicationId = "com.github.soundpod"
-        minSdk = 23
+        minSdk = 24
         targetSdk = 37
         versionCode = 33
         versionName = "1.3.7"
@@ -145,6 +145,7 @@ dependencies {
     implementation(project(":github"))
     implementation(project(":innertube"))
 
+    implementation(libs.documentfile)
     implementation(libs.newpipe.extractor)
 
     testImplementation(libs.junit)

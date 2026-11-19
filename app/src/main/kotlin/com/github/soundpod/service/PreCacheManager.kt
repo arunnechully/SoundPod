@@ -185,7 +185,7 @@ class PreCacheManager(
                 }
 
                 if (contentLength == -1L) {
-                    contentLength = fetchContentLength(finalUri!!.toString())
+                    contentLength = fetchContentLength(finalUri.toString())
                 }
             }.onFailure { e ->
                 Log.e("SoundPod-Debug", "NewPipe resolution failed in PreCache for $videoId", e)
@@ -194,7 +194,7 @@ class PreCacheManager(
         }
 
         if (finalUri == null) return
-        val uri = finalUri!!
+        val uri = finalUri
         currentCoroutineContext().ensureActive()
 
         // If we are doing a partial cache, check if already sufficiently cached

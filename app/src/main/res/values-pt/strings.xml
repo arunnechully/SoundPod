@@ -339,7 +339,7 @@
     <string name="home_style">Estilo das abas</string>
     <string name="modern">Moderno</string>
     <string name="classic">Clássico</string>
-    <string name="home_screen_tabs">Abas da tela inicial</string>
+    <string name="home_screen">Abas da tela inicial</string>
     <string name="track_details">Detalhes da faixa</string>
     <string name="album">Álbum</string>
     <string name="clear_image_cache">Deseja limpar o cache de imagens? Esta ação não pode ser desfeita.</string>
