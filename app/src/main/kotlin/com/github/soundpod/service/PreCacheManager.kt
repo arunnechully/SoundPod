@@ -22,6 +22,9 @@ import com.github.soundpod.models.Format
 import com.github.soundpod.models.PrecachedSong
 import com.github.soundpod.models.Song
 import com.github.soundpod.utils.PlaybackSource
+import com.github.soundpod.utils.getEnum
+import com.github.soundpod.utils.playbackSourceKey
+import com.github.soundpod.utils.preferences
 import com.github.soundpod.utils.toast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CancellationException
@@ -130,7 +133,7 @@ class PreCacheManager(
         // Ensure song exists in DB to avoid FK constraint crashes
         ensureSongExists(videoId, mediaItem)
 
-        val playbackSource = PlaybackSource.NewPipe // Forced to NewPipe temporarily
+        val playbackSource = MainApplication.appContext.preferences.getEnum(playbackSourceKey, PlaybackSource.Automatic)
 
         var finalUri: android.net.Uri? = null
         var contentLength: Long? = null
@@ -185,7 +188,7 @@ class PreCacheManager(
                 }
 
                 if (contentLength == -1L) {
-                    contentLength = fetchContentLength(finalUri!!.toString())
+                    contentLength = fetchContentLength(finalUri.toString())
                 }
             }.onFailure { e ->
                 Log.e("SoundPod-Debug", "NewPipe resolution failed in PreCache for $videoId", e)
@@ -194,7 +197,7 @@ class PreCacheManager(
         }
 
         if (finalUri == null) return
-        val uri = finalUri!!
+        val uri = finalUri
         currentCoroutineContext().ensureActive()
 
         // If we are doing a partial cache, check if already sufficiently cached
@@ -244,9 +247,15 @@ class PreCacheManager(
                     put("Referer", "https://www.youtube.com/")
                     put("Origin", "https://www.youtube.com")
                     put("X-YouTube-Client-Name", "28")
-                    put("X-YouTube-Client-Version", "1.71.26")
+                    put("X-YouTube-Client-Version", "1.74.31")
                     Innertube.visitorData?.let { put("X-Goog-Visitor-Id", it) }
-                    Innertube.cookies?.let { put("Cookie", it) }
+                    Innertube.poToken?.let { put("X-YouTube-Po-Token", it) }
+                    Innertube.cookies?.let { 
+                        put("Cookie", it)
+                        Innertube.generateAuthHeader(it)?.let { auth ->
+                            put("Authorization", auth)
+                        }
+                    }
                 })
                 .createDataSource()
         }

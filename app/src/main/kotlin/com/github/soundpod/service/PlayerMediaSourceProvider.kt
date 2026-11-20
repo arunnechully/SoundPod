@@ -76,20 +76,23 @@ class PlayerMediaSourceProvider(
         val resolvingUpstreamFactory = ResolvingDataSource.Factory(upstreamFactory) { dataSpec ->
             val videoId = dataSpec.key ?: throw java.io.IOException("A key must be set")
             
-            // If it's already a full playback URL, we need to ensure headers are attached
-            if (dataSpec.uri.toString().contains("videoplayback")) {
-                val headers = buildMap {
-                    put("Referer", "https://www.youtube.com/")
-                    put("Origin", "https://www.youtube.com")
-                    Innertube.visitorData?.let { put("X-Goog-Visitor-Id", it) }
-                    Innertube.poToken?.let { put("X-YouTube-Po-Token", it) }
-                    Innertube.cookies?.let { 
-                        put("Cookie", it)
-                        Innertube.generateAuthHeader(it)?.let { auth ->
-                            put("Authorization", auth)
-                        }
+            val headers = buildMap {
+                put("Referer", "https://www.youtube.com/")
+                put("Origin", "https://www.youtube.com")
+                put("X-YouTube-Client-Name", "28")
+                put("X-YouTube-Client-Version", "1.74.31")
+                Innertube.visitorData?.let { put("X-Goog-Visitor-Id", it) }
+                Innertube.poToken?.let { put("X-YouTube-Po-Token", it) }
+                Innertube.cookies?.let { 
+                    put("Cookie", it)
+                    Innertube.generateAuthHeader(it)?.let { auth ->
+                        put("Authorization", auth)
                     }
                 }
+            }
+            
+            // If it's already a full playback URL, we need to ensure headers are attached
+            if (dataSpec.uri.toString().contains("videoplayback")) {
                 return@Factory dataSpec.buildUpon()
                     .setHttpRequestHeaders(headers)
                     .build()
@@ -100,7 +103,10 @@ class PlayerMediaSourceProvider(
                 dataSpec
             } else {
                 val uri = resolveUrl(videoId)
-                dataSpec.withUri(uri)
+                dataSpec.buildUpon()
+                    .setUri(uri)
+                    .setHttpRequestHeaders(headers)
+                    .build()
             }
         }
 

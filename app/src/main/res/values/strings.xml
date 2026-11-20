@@ -345,7 +345,7 @@
     <string name="home_style">Home Screen Style</string>
     <string name="modern">Modern</string>
     <string name="classic">Classic</string>
-    <string name="home_screen_tabs">Home Screen Tabs</string>
+    <string name="home_screen">Home Screen</string>
     <string name="track_details">Track details</string>
     <string name="album">Album</string>
     <string name="clear_image_cache">Are you sure you want to clear the image cache? This action cannot be undone.</string>

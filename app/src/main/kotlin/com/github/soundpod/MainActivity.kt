@@ -63,7 +63,6 @@ import com.github.soundpod.enums.AppThemeColor
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.service.PlayerService
 import com.github.soundpod.github.UpdateCheckWorker
-import com.github.soundpod.ui.components.YouTubeWebView
 import com.github.soundpod.ui.navigation.MainNavigation
 import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.ui.navigation.SettingsDestinations
@@ -74,6 +73,7 @@ import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlay
 import com.github.soundpod.utils.intent
 import com.github.soundpod.utils.rememberPreference
+import com.github.soundpod.service.YouTubeWebViewManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -108,6 +108,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            YouTubeWebViewManager.initialize(applicationContext)
             enableEdgeToEdge(
                 statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
                 navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT)
@@ -184,7 +185,6 @@ class MainActivity : ComponentActivity() {
                 usePureBlack = false,
                 useMaterialNeutral = false,
             ) {
-                YouTubeWebView()
                 Box(
                     modifier = Modifier.fillMaxSize()
                 ) {

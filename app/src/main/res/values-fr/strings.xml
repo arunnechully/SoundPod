@@ -339,7 +339,7 @@
     <string name="home_style">Style de l\'écran d\'accueil</string>
     <string name="modern">Moderne</string>
     <string name="classic">Classique</string>
-    <string name="home_screen">Écran d\'accueil</string>
+    <string name="home_screen">Onglets de l\'écran d\'accueil</string>
     <string name="track_details">Détails du morceau</string>
     <string name="album">Album</string>
     <string name="clear_image_cache">Êtes-vous sûr de vouloir vider le cache des images ? Cette action ne peut pas être annulée.</string>

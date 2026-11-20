@@ -31,8 +31,8 @@ suspend fun Innertube.player(videoId: String) = runCatchingNonCancellable {
     val currentPoToken = poTokenResolver?.getPoToken(videoId) ?: poToken
 
     val clients = listOf(
-        YouTubeClient.ANDROID_TESTSUITE,
         YouTubeClient.ANDROID_VR,
+        YouTubeClient.ANDROID_TESTSUITE,
         YouTubeClient.VISION_OS,
         YouTubeClient.ANDROID_EMBEDDED_PLAYER,
         YouTubeClient.ANDROID_MUSIC

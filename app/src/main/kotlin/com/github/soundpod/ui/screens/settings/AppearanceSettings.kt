@@ -88,7 +88,7 @@ fun AppearanceSettingsContent(
     }
 
     SettingsGroup(
-        title = stringResource(id = R.string.home_screen_tabs),
+        title = stringResource(id = R.string.home_screen),
     ) {
         EnumValueSelectorSettingsEntry(
             title = stringResource(id = R.string.home_style),
@@ -98,7 +98,7 @@ fun AppearanceSettingsContent(
             valueText = { stringResource(it.resourceId) }
         )
         MultiSelectorSettingsEntry(
-            title = stringResource(id = R.string.home_screen_tabs),
+            title = stringResource(id = R.string.home_screen),
             selectedValues = homeTabsVisibility.filter { it.value.value }.keys.toSet(),
             values = HomeTab.entries,
             onConfirm = { newSelected ->
