@@ -1,8 +1,7 @@
 package com.github.soundpod.ui.items
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -32,7 +31,7 @@ fun AlbumItem(
         subtitle = listOfNotNull(
             album.authors?.joinToString(separator = ", ") { it.name ?: "" },
             album.year
-        ).joinToString(separator = " • "),
+        ).filter { it.isNotBlank() }.joinToString(separator = " • "),
         onClick = onClick
     ) {
         BoxWithConstraints(
@@ -46,10 +45,13 @@ fun AlbumItem(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
             )
             AsyncImage(
-                model = album.thumbnail?.url.thumbnail(maxWidth.px),
+                model = album.thumbnail?.url?.thumbnail(maxWidth.px),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.clip(MaterialTheme.shapes.large)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .clip(MaterialTheme.shapes.large)
             )
         }
     }
@@ -82,7 +84,10 @@ fun LocalAlbumItem(
                 model = album.thumbnailUrl?.thumbnail(maxWidth.px),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.clip(MaterialTheme.shapes.large)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .clip(MaterialTheme.shapes.large)
             )
         }
     }

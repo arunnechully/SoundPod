@@ -12,10 +12,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,12 +31,12 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import com.github.core.ui.LocalAppearance
 import com.github.innertube.Innertube
+import com.github.soundcore.SoundcoreSong
+import com.github.soundcore.asMediaItem
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.models.LocalMenuState
-import com.github.soundpod.service.JioSaavnSong
-import com.github.soundpod.service.asMediaItem
-import com.github.soundpod.service.asSong
+import com.github.soundpod.models.Song
 import com.github.soundpod.ui.appearance.LoadingAnimation
 import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
 import com.github.soundpod.ui.components.SettingsCard
@@ -47,6 +49,15 @@ import com.github.soundpod.ui.items.VideoItem
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlay
 
+val SoundcoreSong.asSong: Song
+    get() = Song(
+        id = id,
+        title = title,
+        artistsText = artistsText,
+        durationText = durationText,
+        thumbnailUrl = thumbnailUrl
+    )
+
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @UnstableApi
 @Composable
@@ -56,7 +67,7 @@ fun OnlineSearch(
     artistResults: List<Innertube.ArtistItem>?,
     videoResults: List<Innertube.VideoItem>?,
     playlistResults: List<Innertube.PlaylistItem>?,
-    jioSaavnResults: List<JioSaavnSong>?,
+    soundcoreResults: List<SoundcoreSong>?,
     isLoading: Boolean,
     onAlbumClick: (String) -> Unit,
     onArtistClick: (String) -> Unit,
@@ -95,11 +106,11 @@ fun OnlineSearch(
             contentPadding = PaddingValues(bottom = 16.dp),
             modifier = Modifier.fillMaxSize()
         ) {
-            // JioSaavn Songs Section (Full metadata directly from JioSaavn)
-            if (jioSaavnResults?.isNotEmpty() == true) {
+            // Soundcore Songs Section
+            if (soundcoreResults?.isNotEmpty() == true) {
                 item(span = { GridItemSpan(maxCurrentLineSpan) }) {
                     SearchSectionHeader(
-                        title = "JioSaavn",
+                        title = "Soundcore",
                         onViewAllClick = onViewAllClick,
                         colorPalette = colorPalette
                     )
@@ -107,12 +118,12 @@ fun OnlineSearch(
                 item(span = { GridItemSpan(maxCurrentLineSpan) }) {
                     SettingsCard {
                         Column {
-                            jioSaavnResults.forEach { saavnSong ->
+                            soundcoreResults.take(4).forEach { soundcoreSong ->
                                 LocalSongItem(
-                                    song = saavnSong.asSong,
+                                    song = soundcoreSong.asSong,
                                     onClick = {
                                         binder?.stopRadio()
-                                        binder?.player?.forcePlay(saavnSong.asMediaItem)
+                                        binder?.player?.forcePlay(soundcoreSong.asMediaItem)
                                     },
                                     onLongClick = {}
                                 )
@@ -134,7 +145,7 @@ fun OnlineSearch(
                 item(span = { GridItemSpan(maxCurrentLineSpan) }) {
                     SettingsCard {
                         Column {
-                            songResults.forEach { song ->
+                            songResults.take(4).forEach { song ->
                                 SongItem(
                                     song = song,
                                     onClick = {
@@ -205,11 +216,19 @@ fun OnlineSearch(
                         colorPalette = colorPalette
                     )
                 }
-                items(albumResults.take(6)) { album ->
-                    AlbumItem(
-                        album = album,
-                        onClick = { onAlbumClick(album.key) }
-                    )
+                item(span = { GridItemSpan(maxCurrentLineSpan) }) {
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(albumResults.take(8)) { album ->
+                            AlbumItem(
+                                modifier = Modifier.width(120.dp),
+                                album = album,
+                                onClick = { onAlbumClick(album.key) }
+                            )
+                        }
+                    }
                 }
             }
 
@@ -222,11 +241,19 @@ fun OnlineSearch(
                         colorPalette = colorPalette
                     )
                 }
-                items(artistResults.take(6)) { artist ->
-                    ArtistItem(
-                        artist = artist,
-                        onClick = { onArtistClick(artist.key) }
-                    )
+                item(span = { GridItemSpan(maxCurrentLineSpan) }) {
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(artistResults.take(8)) { artist ->
+                            ArtistItem(
+                                modifier = Modifier.width(120.dp),
+                                artist = artist,
+                                onClick = { onArtistClick(artist.key) }
+                            )
+                        }
+                    }
                 }
             }
 
@@ -239,11 +266,19 @@ fun OnlineSearch(
                         colorPalette = colorPalette
                     )
                 }
-                items(playlistResults.take(6)) { playlist ->
-                    PlaylistItem(
-                        playlist = playlist,
-                        onClick = { onPlaylistClick(playlist.key) }
-                    )
+                item(span = { GridItemSpan(maxCurrentLineSpan) }) {
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(playlistResults.take(8)) { playlist ->
+                            PlaylistItem(
+                                modifier = Modifier.width(120.dp),
+                                playlist = playlist,
+                                onClick = { onPlaylistClick(playlist.key) }
+                            )
+                        }
+                    }
                 }
             }
         }

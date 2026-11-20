@@ -67,7 +67,10 @@ import com.github.soundpod.ui.appearance.LoadingAnimation
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.StaticScreenLayout
 import com.github.soundpod.ui.navigation.Routes
+import com.github.soundpod.utils.PlaybackSource
+import com.github.soundpod.utils.getEnum
 import com.github.soundpod.utils.pauseSearchHistoryKey
+import com.github.soundpod.utils.playbackSourceKey
 import com.github.soundpod.utils.preferences
 import com.github.soundpod.utils.rememberVoiceSearchLauncher
 import com.github.soundpod.viewmodels.SearchViewModel
@@ -151,8 +154,18 @@ fun NewSearchLayout(
         if (textFieldValue.text.isNotEmpty() && confirmedSearchQuery == null) {
             isLoadingSuggestions = true
             delay(300.milliseconds)
+            val playbackSource = context.preferences.getEnum(playbackSourceKey, PlaybackSource.Automatic)
             suggestionsResult = withContext(Dispatchers.IO) {
-                Innertube.searchSuggestions(input = textFieldValue.text)
+                if (playbackSource == PlaybackSource.Soundcore) {
+                    val soundcoreSuggestions = com.github.soundcore.Soundcore.getSearchSuggestions(textFieldValue.text)
+                    if (soundcoreSuggestions.isNotEmpty()) {
+                        Result.success(soundcoreSuggestions)
+                    } else {
+                        Innertube.searchSuggestions(input = textFieldValue.text)
+                    }
+                } else {
+                    Innertube.searchSuggestions(input = textFieldValue.text)
+                }
             }
             isLoadingSuggestions = false
         } else {
@@ -249,7 +262,7 @@ fun NewSearchLayout(
                         artistResults = searchViewModel.artistResults,
                         videoResults = searchViewModel.videoResults,
                         playlistResults = searchViewModel.playlistResults,
-                        jioSaavnResults = searchViewModel.jioSaavnResults,
+                        soundcoreResults = searchViewModel.soundcoreResults,
                         isLoading = searchViewModel.isLoading,
                         onAlbumClick = onAlbumClick,
                         onArtistClick = onArtistClick,

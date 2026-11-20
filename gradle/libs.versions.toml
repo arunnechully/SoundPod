@@ -19,6 +19,7 @@ material-motion = "2.0.1"
 media = "1.8.0"
 media3 = "1.11.1"
 navigation = "2.10.2"
+okhttp = "4.12.0"
 palette-ktx = "1.1.0"
 preference-ktx = "1.2.1"
 reorderable = "3.1.0"
@@ -51,6 +52,7 @@ compose-material-icons = { group = "androidx.compose.material", name = "material
 compose-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
 compose-shimmer = { group = "com.valentinilk.shimmer", name = "compose-shimmer", version.ref = "compose-shimmer" }
 compose-ui = { group = "androidx.compose.ui", name = "ui" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 ui-geometry = { group = "androidx.compose.ui", name = "ui-geometry" }
 compose-ui-util = { group = "androidx.compose.ui", name = "ui-util" }
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore-preferences" }

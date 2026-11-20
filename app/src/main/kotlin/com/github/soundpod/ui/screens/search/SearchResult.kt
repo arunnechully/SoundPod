@@ -11,7 +11,9 @@ import androidx.compose.material.icons.automirrored.outlined.PlaylistPlay
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
@@ -19,6 +21,11 @@ import androidx.navigation.NavController
 import com.github.innertube.Innertube
 import com.github.innertube.requests.searchPage
 import com.github.innertube.utils.from
+import com.github.soundcore.Soundcore
+import com.github.soundcore.asSoundcoreAlbumItem
+import com.github.soundcore.asSoundcoreArtistItem
+import com.github.soundcore.asSoundcorePlaylistItem
+import com.github.soundcore.asSoundcoreSongItem
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.models.ActionInfo
@@ -28,16 +35,20 @@ import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.StaticScreenLayout
 import com.github.soundpod.ui.components.SwipeToActionBox
 import com.github.soundpod.ui.items.AlbumItem
-import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.ui.items.ArtistItem
 import com.github.soundpod.ui.items.ItemPlaceholder
 import com.github.soundpod.ui.items.ListItemPlaceholder
 import com.github.soundpod.ui.items.PlaylistItem
 import com.github.soundpod.ui.items.SongItem
 import com.github.soundpod.ui.items.VideoItem
+import com.github.soundpod.ui.navigation.Routes
+import com.github.soundpod.utils.PlaybackSource
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.enqueue
 import com.github.soundpod.utils.forcePlay
+import com.github.soundpod.utils.getEnum
+import com.github.soundpod.utils.playbackSourceKey
+import com.github.soundpod.utils.preferences
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @UnstableApi
@@ -49,6 +60,8 @@ fun NewSearchResult(
 ) {
     BackHandler { navController.popBackStack() }
 
+    val context = LocalContext.current
+    val playbackSource = remember { context.preferences.getEnum(playbackSourceKey, PlaybackSource.Automatic) }
     val binder = LocalPlayerServiceBinder.current
     val menuState = LocalMenuState.current
     val emptyItemsText = stringResource(id = R.string.no_results_found)
@@ -69,11 +82,14 @@ fun NewSearchResult(
         ){
             when (resultType) {
 
-                stringResource(R.string.songs) -> {
+                stringResource(R.string.songs), "Soundcore" -> {
                     ItemsPage(
                         tag = "searchResults/$query/songs",
                         itemsPageProvider = { continuation ->
-                            if (continuation == null) {
+                            if (playbackSource == PlaybackSource.Soundcore || resultType == "Soundcore") {
+                                val soundcoreSongs = Soundcore.searchSongs(query)
+                                Result.success(Innertube.ItemsPage(items = soundcoreSongs.map { it.asSoundcoreSongItem }, continuation = null))
+                            } else if (continuation == null) {
                                 Innertube.searchPage(
                                     query = query,
                                     params = Innertube.SearchFilter.Song.value,
@@ -176,7 +192,10 @@ fun NewSearchResult(
                     ItemsPage(
                         tag = "searchResults/$query/albums",
                         itemsPageProvider = { continuation ->
-                            if (continuation == null) {
+                            if (playbackSource == PlaybackSource.Soundcore) {
+                                val soundcoreAlbums = Soundcore.searchAlbums(query)
+                                Result.success(Innertube.ItemsPage(items = soundcoreAlbums.map { it.asSoundcoreAlbumItem }, continuation = null))
+                            } else if (continuation == null) {
                                 Innertube.searchPage(
                                     query = query,
                                     params = Innertube.SearchFilter.Album.value,
@@ -204,7 +223,10 @@ fun NewSearchResult(
                     ItemsPage(
                         tag = "searchResults/$query/artists",
                         itemsPageProvider = { continuation ->
-                            if (continuation == null) {
+                            if (playbackSource == PlaybackSource.Soundcore) {
+                                val soundcoreArtists = Soundcore.searchArtists(query)
+                                Result.success(Innertube.ItemsPage(items = soundcoreArtists.map { it.asSoundcoreArtistItem }, continuation = null))
+                            } else if (continuation == null) {
                                 Innertube.searchPage(
                                     query = query,
                                     params = Innertube.SearchFilter.Artist.value,
@@ -232,7 +254,10 @@ fun NewSearchResult(
                     ItemsPage(
                         tag = "searchResults/$query/playlists",
                         itemsPageProvider = { continuation ->
-                            if (continuation == null) {
+                            if (playbackSource == PlaybackSource.Soundcore) {
+                                val soundcorePlaylists = Soundcore.searchPlaylists(query)
+                                Result.success(Innertube.ItemsPage(items = soundcorePlaylists.map { it.asSoundcorePlaylistItem }, continuation = null))
+                            } else if (continuation == null) {
                                 Innertube.searchPage(
                                     query = query,
                                     params = Innertube.SearchFilter.CommunityPlaylist.value,

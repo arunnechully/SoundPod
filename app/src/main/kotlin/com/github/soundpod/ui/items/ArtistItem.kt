@@ -1,8 +1,7 @@
 package com.github.soundpod.ui.items
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -16,13 +15,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import java.util.Locale
 import coil3.compose.AsyncImage
 import com.github.innertube.Innertube
 import com.github.soundpod.R
 import com.github.soundpod.models.Artist
 import com.github.soundpod.ui.styling.px
 import com.github.soundpod.utils.thumbnail
+import java.util.Locale
 
 @Composable
 fun ArtistItem(
@@ -52,11 +51,12 @@ fun ArtistItem(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
             )
             AsyncImage(
-                model = artist.thumbnail?.url.thumbnail(maxWidth.px),
+                model = artist.thumbnail?.url?.thumbnail(maxWidth.px),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
                     .clip(CircleShape)
             )
         }
@@ -87,11 +87,12 @@ fun LocalArtistItem(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
             )
             AsyncImage(
-                model = artist.thumbnailUrl.thumbnail(maxWidth.px),
+                model = artist.thumbnailUrl?.thumbnail(maxWidth.px),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
                     .clip(CircleShape)
             )
         }

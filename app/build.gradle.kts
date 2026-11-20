@@ -144,6 +144,7 @@ dependencies {
     implementation(project(":core:visuals"))
     implementation(project(":github"))
     implementation(project(":innertube"))
+    implementation(project(":soundcore"))
 
     implementation(libs.documentfile)
     implementation(libs.newpipe.extractor)

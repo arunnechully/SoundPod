@@ -16,7 +16,7 @@ import com.github.soundpod.utils.coilDiskCacheMaxSizeKey
 import com.github.soundpod.utils.getEnum
 import com.github.soundpod.utils.pauseImageCacheKey
 import com.github.soundpod.utils.preferences
-import com.github.soundpod.service.JioSaavnWebViewManager
+import com.github.soundcore.SoundcoreWebViewManager
 import org.schabi.newpipe.extractor.NewPipe
 
 
@@ -29,7 +29,7 @@ class MainApplication : Application(), SingletonImageLoader.Factory {
         Thread {
             DatabaseInitializer.get(this)
             NewPipe.init(NewPipeDownloader.getInstance())
-            JioSaavnWebViewManager.initialize(this)
+            SoundcoreWebViewManager.initialize(this)
 
             Innertube.visitorData = preferences.getString("visitor_data", null)
             Innertube.onVisitorDataChanged = { visitorData: String? ->

@@ -3,7 +3,11 @@ package com.github.soundpod.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.innertube.Innertube
+import com.github.innertube.models.Thumbnail
 import com.github.innertube.requests.albumPage
+import com.github.soundcore.Soundcore
+import com.github.soundcore.asMediaItem
+import com.github.soundcore.asSoundcoreSongItem
 import com.github.soundpod.db
 import com.github.soundpod.models.Album
 import com.github.soundpod.models.SongAlbumMap
@@ -74,6 +78,58 @@ class AlbumViewModel : ViewModel() {
     private fun fetchAlbumData(browseId: String) {
         val isScreenCacheEnabled = com.github.soundpod.appContext.preferences.getBoolean(isScreenCacheEnabledKey, true)
         viewModelScope.launch(Dispatchers.IO) {
+            if (browseId.startsWith("soundcore_album:") || browseId.startsWith("saavn_album:") || browseId.startsWith("soundcore:") || browseId.startsWith("saavn:")) {
+                val albumId = browseId.removePrefix("soundcore_album:").removePrefix("saavn_album:").removePrefix("soundcore:").removePrefix("saavn:")
+                val soundcoreAlbum = Soundcore.getAlbumDetails(albumId)
+                if (soundcoreAlbum != null) {
+                    val innertubeSongs = soundcoreAlbum.songs.map { it.asSoundcoreSongItem }
+                    val page = Innertube.PlaylistOrAlbumPage(
+                        title = soundcoreAlbum.title,
+                        authors = soundcoreAlbum.artistsText?.let { listOf(Innertube.Info(name = it, endpoint = null)) },
+                        year = soundcoreAlbum.year,
+                        thumbnail = soundcoreAlbum.thumbnailUrl?.let { Thumbnail(url = it, width = 500, height = 500) },
+                        url = "https://www.jiosaavn.com/album/$albumId",
+                        songsPage = Innertube.ItemsPage(items = innertubeSongs, continuation = null),
+                        otherVersions = emptyList(),
+                        relatedAlbums = emptyList()
+                    )
+
+                    _uiState.update { it.copy(albumPage = page, isLoading = false) }
+                    if (isScreenCacheEnabled) {
+                        ScreenCache.save("album_$browseId", page)
+                    }
+
+                    db.clearAlbum(browseId)
+
+                    val currentAlbum = _uiState.value.album
+                    db.upsert(
+                        Album(
+                            id = browseId,
+                            title = soundcoreAlbum.title,
+                            thumbnailUrl = soundcoreAlbum.thumbnailUrl,
+                            year = soundcoreAlbum.year,
+                            authorsText = soundcoreAlbum.artistsText,
+                            artistId = null,
+                            shareUrl = "https://www.jiosaavn.com/album/$albumId",
+                            timestamp = System.currentTimeMillis(),
+                            bookmarkedAt = currentAlbum?.bookmarkedAt
+                        ),
+                        soundcoreAlbum.songs.map { it.asMediaItem }
+                            .onEach(db::insert)
+                            .mapIndexed { position, mediaItem ->
+                                SongAlbumMap(
+                                    songId = mediaItem.mediaId,
+                                    albumId = browseId,
+                                    position = position
+                                )
+                            }
+                    )
+                } else {
+                    _uiState.update { it.copy(isLoading = false) }
+                }
+                return@launch
+            }
+
             Innertube.albumPage(browseId = browseId)
                 ?.completed()
                 ?.onSuccess { currentAlbumPage ->

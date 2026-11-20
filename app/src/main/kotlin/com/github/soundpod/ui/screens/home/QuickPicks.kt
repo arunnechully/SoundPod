@@ -72,9 +72,11 @@ import com.github.soundpod.ui.items.PlaylistItem
 import com.github.soundpod.ui.items.SongItem
 import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.ui.styling.px
+import com.github.soundpod.utils.PlaybackSource
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlay
 import com.github.soundpod.utils.isLandscape
+import com.github.soundpod.utils.playbackSourceKey
 import com.github.soundpod.utils.quickPicksCustomGenreKey
 import com.github.soundpod.utils.quickPicksSourceKey
 import com.github.soundpod.utils.rememberPreference
@@ -102,6 +104,7 @@ fun QuickPicks(
     val viewModel: QuickPicksViewModel = viewModel()
     val quickPicksSource by rememberPreference(quickPicksSourceKey, QuickPicksSource.Default)
     val quickPicksCustomGenre by rememberPreference(quickPicksCustomGenreKey, "ROCK")
+    val playbackSource by rememberPreference(playbackSourceKey, PlaybackSource.Automatic)
 
     val songThumbnailSizeDp = Dimensions.thumbnails.song
     val itemSize = 108.dp + 2 * 8.dp
@@ -113,7 +116,7 @@ fun QuickPicks(
     val latestPlayback = if (quickPicksSource == QuickPicksSource.Default) {
         viewModel.latestQualifiedPlaybackTimestamp
     } else null
-    LaunchedEffect(quickPicksSource, quickPicksCustomGenre, latestPlayback) {
+    LaunchedEffect(quickPicksSource, quickPicksCustomGenre, playbackSource, latestPlayback) {
         viewModel.loadQuickPicks(
             quickPicksSource = quickPicksSource,
             forceRefresh = quickPicksSource == QuickPicksSource.Custom

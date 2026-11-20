@@ -362,7 +362,7 @@
     <string name="automatic">Automatic</string>
     <string name="innertube">Innertube</string>
     <string name="newpipe">NewPipe</string>
-    <string name="jiosaavn" translatable="false">JioSaavn</string>
+    <string name="soundcore" translatable="false">Soundcore</string>
     <string name="favorite_tracks">Favorite Tracks</string>
     <string name="favorite_albums">Favorite Albums</string>
     <string name="favorite_artists">Favorite Artists</string>

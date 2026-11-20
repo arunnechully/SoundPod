@@ -1,4 +1,4 @@
-package com.github.soundpod.service
+package com.github.soundcore
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -10,7 +10,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 
 @SuppressLint("SetJavaScriptEnabled", "StaticFieldLeak")
-object JioSaavnWebViewManager {
+object SoundcoreWebViewManager {
     private var webView: WebView? = null
 
     fun initialize(context: Context) {
@@ -28,7 +28,7 @@ object JioSaavnWebViewManager {
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView, url: String) {
                         super.onPageFinished(view, url)
-                        Log.d("SoundPod-JioSaavnWebView", "Page finished: $url")
+                        Log.d("SoundPod-SoundcoreWebView", "Page finished: $url")
                         CookieManager.getInstance().flush()
                     }
                 }

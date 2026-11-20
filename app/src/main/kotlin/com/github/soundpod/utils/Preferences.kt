@@ -79,7 +79,7 @@ enum class PlaybackSource(val resourceId: Int) {
     Automatic(R.string.automatic),
     Innertube(R.string.innertube),
     NewPipe(R.string.newpipe),
-    JioSaavn(R.string.jiosaavn)
+    Soundcore(R.string.soundcore)
 }
 
 enum class TabStyle(val resourceId: Int) {

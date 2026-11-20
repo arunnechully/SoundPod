@@ -74,8 +74,8 @@ import com.github.soundpod.utils.forcePlay
 import com.github.soundpod.utils.intent
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.service.YouTubeWebViewManager
-import com.github.soundpod.service.JioSaavnWebViewManager
-import com.github.soundpod.service.JioSaavn
+import com.github.soundcore.SoundcoreWebViewManager
+import com.github.soundcore.Soundcore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -111,7 +111,7 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             YouTubeWebViewManager.initialize(applicationContext)
-            JioSaavnWebViewManager.initialize(applicationContext)
+            SoundcoreWebViewManager.initialize(applicationContext)
             enableEdgeToEdge(
                 statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
                 navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT)
@@ -311,21 +311,21 @@ class MainActivity : ComponentActivity() {
                             uri.host?.contains("jiosaavn.com") == true -> {
                                 val albumId = uri.lastPathSegment
                                 if (!albumId.isNullOrBlank() && albumId != "album") {
-                                    val album = withContext(Dispatchers.IO) { JioSaavn.getAlbumDetails(albumId) }
+                                    val album = withContext(Dispatchers.IO) { Soundcore.getAlbumDetails(albumId) }
                                     if (album != null && album.songs.isNotEmpty()) {
                                         val binder = snapshotFlow { binder }.filterNotNull().first()
                                         withContext(Dispatchers.Main) {
-                                            val mediaItems = album.songs.mapNotNull { saavnSong ->
-                                                saavnSong.streamUrl?.let { url ->
+                                            val mediaItems = album.songs.mapNotNull { soundcoreSong ->
+                                                soundcoreSong.streamUrl?.let { url ->
                                                     androidx.media3.common.MediaItem.Builder()
-                                                        .setMediaId(saavnSong.id)
+                                                        .setMediaId(soundcoreSong.id)
                                                         .setUri(url)
                                                         .setMediaMetadata(
                                                             androidx.media3.common.MediaMetadata.Builder()
-                                                                .setTitle(saavnSong.title)
-                                                                .setArtist(saavnSong.artistsText)
+                                                                .setTitle(soundcoreSong.title)
+                                                                .setArtist(soundcoreSong.artistsText)
                                                                 .setAlbumTitle(album.title)
-                                                                .setArtworkUri(saavnSong.thumbnailUrl?.toUri())
+                                                                .setArtworkUri(soundcoreSong.thumbnailUrl?.toUri())
                                                                 .build()
                                                         )
                                                         .build()

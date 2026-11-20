@@ -19,6 +19,7 @@ import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.extractor.DefaultExtractorsFactory
 import com.github.innertube.Innertube
 import com.github.innertube.requests.player
+import com.github.innertube.requests.song
 import com.github.soundpod.utils.PlaybackSource
 import com.github.soundpod.utils.getEnum
 import com.github.soundpod.utils.pauseSongCacheKey
@@ -161,20 +162,33 @@ class PlayerMediaSourceProvider(
 
             val playbackSource = context.preferences.getEnum(playbackSourceKey, PlaybackSource.Automatic)
 
-            if (playbackSource == PlaybackSource.JioSaavn || playbackSource == PlaybackSource.Automatic) {
+            if (playbackSource == PlaybackSource.Soundcore || playbackSource == PlaybackSource.Automatic) {
                 val song = runCatching { com.github.soundpod.db.getSong(videoId) }.getOrNull()
-                val saavnUrl = runCatching {
-                    JioSaavn.resolveSongUrl(videoId, song?.title, song?.artistsText)
+                var title = song?.title
+                var artistsText = song?.artistsText
+
+                if (title.isNullOrBlank() && videoId.length == 11 && !videoId.startsWith("http")) {
+                    val innertubeSong = runCatching {
+                        runBlocking {
+                            Innertube.song(videoId)?.getOrNull()
+                        }
+                    }.getOrNull()
+                    title = innertubeSong?.info?.name
+                    artistsText = innertubeSong?.authors?.mapNotNull { it.name }?.joinToString(", ")
+                }
+
+                val soundcoreUrl = runCatching {
+                    com.github.soundcore.Soundcore.resolveSongUrl(videoId, title, artistsText)
                 }.getOrNull()
 
-                if (saavnUrl != null) {
-                    Log.d("SoundPod-DataSource", "JioSaavn resolution SUCCESS for $videoId: $saavnUrl")
-                    val uri = saavnUrl.toUri()
+                if (soundcoreUrl != null) {
+                    Log.d("SoundPod-DataSource", "Soundcore resolution SUCCESS for $videoId: $soundcoreUrl")
+                    val uri = soundcoreUrl.toUri()
                     urlCache[videoId] = Pair(uri, System.currentTimeMillis())
-                    sourceTracker[videoId] = com.github.soundpod.R.string.jiosaavn
+                    sourceTracker[videoId] = com.github.soundpod.R.string.soundcore
                     return uri
-                } else if (playbackSource == PlaybackSource.JioSaavn) {
-                    throw Exception("JioSaavn resolution failed for $videoId")
+                } else if (playbackSource == PlaybackSource.Soundcore) {
+                    throw Exception("Soundcore resolution failed for $videoId")
                 }
             }
 

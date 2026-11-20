@@ -24,6 +24,7 @@ rootProject.name = "SoundPod"
 // Modules
 include(":app")
 include(":innertube")
+include(":soundcore")
 //include(":extractor")
 include(":core:ui")
 include(":core:visuals")

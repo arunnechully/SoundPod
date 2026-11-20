@@ -29,7 +29,7 @@ val Innertube.SongItem.asMediaItem: MediaItem
                         album?.endpoint?.browseId?.let { putString("albumId", it) }
                         durationText?.let { putString("durationText", it) }
 
-                        val names = authors?.filter { it.endpoint != null }?.mapNotNull { it.name }
+                        val names = authors?.mapNotNull { it.name }
                         if (!names.isNullOrEmpty()) putStringArrayList("artistNames", ArrayList(names))
 
                         val ids = authors?.mapNotNull { it.endpoint?.browseId }

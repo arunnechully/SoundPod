@@ -12,13 +12,22 @@ import com.github.innertube.requests.relatedPage
 import com.github.innertube.requests.recommendations
 import com.github.innertube.requests.searchPage
 import com.github.innertube.utils.from
+import com.github.soundcore.Soundcore
+import com.github.soundcore.SoundcoreSong
+import com.github.soundcore.asSoundcoreAlbumItem
+import com.github.soundcore.asSoundcoreArtistItem
+import com.github.soundcore.asSoundcorePlaylistItem
+import com.github.soundcore.asSoundcoreSongItem
 import com.github.soundpod.appContext
 import com.github.soundpod.db
 import com.github.soundpod.enums.QuickPicksSource
 import com.github.soundpod.models.Song
+import com.github.soundpod.utils.PlaybackSource
 import com.github.soundpod.utils.ScreenCache
 import com.github.soundpod.utils.asMediaItem
+import com.github.soundpod.utils.getEnum
 import com.github.soundpod.utils.isScreenCacheEnabledKey
+import com.github.soundpod.utils.playbackSourceKey
 import com.github.soundpod.utils.preferences
 import com.github.soundpod.utils.quickPicksCustomGenreKey
 import kotlinx.coroutines.Dispatchers
@@ -60,12 +69,12 @@ class QuickPicksViewModel : ViewModel() {
         QuickPicksSource.Custom -> db.randomSongs(limit)
     }
 
-    private fun getCached(source: QuickPicksSource): Innertube.RelatedPage? {
-        return ScreenCache.load(PERSISTENT_CACHE_PREFIX + source.name)
+    private fun getCached(key: String): Innertube.RelatedPage? {
+        return ScreenCache.load(key)
     }
 
-    private fun saveToCache(source: QuickPicksSource, page: Innertube.RelatedPage) {
-        ScreenCache.save(PERSISTENT_CACHE_PREFIX + source.name, page)
+    private fun saveToCache(key: String, page: Innertube.RelatedPage) {
+        ScreenCache.save(key, page)
     }
 
     private fun <T : Innertube.Item> interleave(lists: List<List<T>>): List<T> {
@@ -91,8 +100,9 @@ class QuickPicksViewModel : ViewModel() {
 
     fun loadQuickPicks(quickPicksSource: QuickPicksSource, forceRefresh: Boolean = false) {
         val isScreenCacheEnabled = appContext.preferences.getBoolean(isScreenCacheEnabledKey, true)
-        val cacheKey = PERSISTENT_CACHE_PREFIX + quickPicksSource.name
-        val cached = if (isScreenCacheEnabled) getCached(quickPicksSource) else null
+        val playbackSource = appContext.preferences.getEnum(playbackSourceKey, PlaybackSource.Automatic)
+        val cacheKey = PERSISTENT_CACHE_PREFIX + quickPicksSource.name + "_" + playbackSource.name
+        val cached = if (isScreenCacheEnabled) getCached(cacheKey) else null
         if (cached != null) {
             relatedPageResult = Result.success(cached)
         }
@@ -107,6 +117,85 @@ class QuickPicksViewModel : ViewModel() {
 
         job?.cancel()
         job = viewModelScope.launch(Dispatchers.IO) {
+            if (playbackSource == PlaybackSource.Soundcore) {
+                coroutineScope {
+                    val history = db.history(limit = 5, minPlayTimeMs = MIN_HISTORY_PLAY_TIME_MS).first()
+                    val historySongIds = history.mapTo(mutableSetOf()) { it.id }
+
+                    // Step 1: Personal Recommendation Signals via Soundcore reco.getreco
+                    val recoDeferreds = history.map { song ->
+                        async {
+                            val soundcoreId: String? = if (!song.id.startsWith("content://") && !song.id.contains("http") && song.id.length != 11) {
+                                song.id
+                            } else {
+                                val query = listOfNotNull(song.title, song.artistsText).joinToString(" ")
+                                val searchMatch = Soundcore.searchSongs(query)
+                                searchMatch.firstOrNull()?.id
+                            }
+
+                            if (soundcoreId != null) {
+                                Soundcore.getRecommendations(soundcoreId)
+                            } else {
+                                emptyList()
+                            }
+                        }
+                    }
+
+                    // Step 2: Followed Artists top songs
+                    val followed = db.followedArtists().first()
+                    val artistDeferreds = followed.shuffled().take(3).map { artist ->
+                        async {
+                            artist.name?.let { Soundcore.searchSongs(it) } ?: emptyList()
+                        }
+                    }
+
+                    // Step 3: Launch Data (Trending songs, Top albums, Featured playlists)
+                    val launchDataDeferred = async { Soundcore.getLaunchData() }
+
+                    val recoLists = recoDeferreds.map { it.await() }
+                    val artistLists = artistDeferreds.map { it.await() }
+                    val launchData = launchDataDeferred.await()
+
+                    val allRecoSongs = mutableListOf<List<SoundcoreSong>>()
+                    recoLists.filter { it.isNotEmpty() }.forEach { allRecoSongs.add(it) }
+                    artistLists.filter { it.isNotEmpty() }.forEach { allRecoSongs.add(it) }
+                    if (launchData.trendingSongs.isNotEmpty()) {
+                        allRecoSongs.add(launchData.trendingSongs)
+                    }
+
+                    val soundcoreSongs = interleave(allRecoSongs.map { list ->
+                        list.filter { it.id !in historySongIds }.map { it.asSoundcoreSongItem }
+                    }).take(40)
+
+                    val soundcoreAlbums = launchData.topAlbums.map { it.asSoundcoreAlbumItem }.take(15)
+                    val soundcorePlaylists = launchData.topPlaylists.map { it.asSoundcorePlaylistItem }.take(15)
+
+                    val seedArtistNames = history.mapNotNull { it.artistsText?.split(",")?.firstOrNull()?.trim() }.distinct().take(3)
+                    val searchArtistDeferreds = seedArtistNames.map { name -> async { Soundcore.searchArtists(name) } }
+                    val soundcoreArtists = interleave(searchArtistDeferreds.map { it.await().map { a -> a.asSoundcoreArtistItem } }).take(15)
+
+                    val page = Innertube.RelatedPage(
+                        songs = soundcoreSongs.ifEmpty { null },
+                        albums = soundcoreAlbums.ifEmpty { null },
+                        artists = soundcoreArtists.ifEmpty { null },
+                        playlists = soundcorePlaylists.ifEmpty { null }
+                    )
+
+                    if (soundcoreSongs.isNotEmpty()) {
+                        val res = Result.success(page)
+                        if (isScreenCacheEnabled) {
+                            saveToCache(cacheKey, page)
+                        }
+                        relatedPageResult = res
+                    } else if (cached != null) {
+                        relatedPageResult = Result.success(cached)
+                    } else {
+                        relatedPageResult = Result.failure(Exception("Failed to load Soundcore QuickPicks"))
+                    }
+                }
+                return@launch
+            }
+
             val seedSongs = when (quickPicksSource) {
                 QuickPicksSource.Custom -> {
                     val customGenre = appContext.preferences.getString(quickPicksCustomGenreKey, "ROCK") ?: "ROCK"
@@ -262,7 +351,7 @@ class QuickPicksViewModel : ViewModel() {
 
                 finalResult.getOrNull()?.let {
                     if (isScreenCacheEnabled) {
-                        saveToCache(quickPicksSource, it)
+                        saveToCache(cacheKey, it)
                     }
                 }
 

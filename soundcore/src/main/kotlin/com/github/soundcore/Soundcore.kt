@@ -1,0 +1,802 @@
+package com.github.soundcore
+
+import android.annotation.SuppressLint
+import android.util.Base64
+import android.util.Log
+import androidx.core.net.toUri
+import androidx.core.text.HtmlCompat
+import com.github.innertube.Innertube
+import com.github.innertube.models.NavigationEndpoint
+import com.github.innertube.models.Thumbnail
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONArray
+import org.json.JSONObject
+import java.net.URLDecoder
+import java.net.URLEncoder
+import java.util.Locale
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
+
+data class SoundcoreSong(
+    val id: String,
+    val title: String,
+    val artistsText: String?,
+    val durationText: String?,
+    val thumbnailUrl: String?,
+    val streamUrl: String?,
+    val albumTitle: String?
+)
+
+data class SoundcoreAlbum(
+    val id: String,
+    val title: String,
+    val thumbnailUrl: String?,
+    val artistsText: String? = null,
+    val year: String? = null,
+    val songs: List<SoundcoreSong> = emptyList()
+)
+
+data class SoundcoreArtist(
+    val id: String,
+    val title: String,
+    val thumbnailUrl: String?
+)
+
+data class SoundcorePlaylist(
+    val id: String,
+    val title: String,
+    val thumbnailUrl: String?,
+    val songCount: Int? = null
+)
+
+data class SoundcoreLaunchData(
+    val trendingSongs: List<SoundcoreSong> = emptyList(),
+    val topAlbums: List<SoundcoreAlbum> = emptyList(),
+    val topPlaylists: List<SoundcorePlaylist> = emptyList()
+)
+
+@Suppress("unused")
+object Soundcore {
+    private val client = OkHttpClient.Builder()
+        .followRedirects(true)
+        .followSslRedirects(true)
+        .build()
+
+    private const val USER_AGENT = "Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Mobile Safari/537.36"
+
+    private fun buildRequest(url: String): Request {
+        val builder = Request.Builder()
+            .url(url)
+            .header("User-Agent", USER_AGENT)
+            .header("Referer", "https://www.jiosaavn.com/")
+            .header("Accept", "application/json, text/plain, */*")
+            .header("Accept-Language", "en-US,en;q=0.9")
+
+        runCatching {
+            val cookieManager = android.webkit.CookieManager.getInstance()
+            val cookies = cookieManager.getCookie("https://www.jiosaavn.com")
+            if (!cookies.isNullOrBlank()) {
+                builder.header("Cookie", cookies)
+            }
+        }
+
+        return builder.build()
+    }
+
+    fun unescapeHtml(text: String?): String? {
+        if (text.isNullOrBlank()) return null
+        val unescaped = HtmlCompat.fromHtml(text, HtmlCompat.FROM_HTML_MODE_LEGACY).toString().trim()
+        return unescaped.ifBlank { null }
+    }
+
+    fun decryptUrl(encryptedUrl: String): String {
+        if (encryptedUrl.isBlank()) return ""
+        return try {
+            var rawEncrypted = encryptedUrl.trim().removeSurrounding("\"")
+            if (rawEncrypted.contains("%")) {
+                runCatching { rawEncrypted = URLDecoder.decode(rawEncrypted, "UTF-8") }
+            }
+
+            @SuppressLint("GetInstance")
+            val cipher = Cipher.getInstance("DES/ECB/PKCS5Padding")
+            val key = SecretKeySpec("38346591".toByteArray(Charsets.UTF_8), "DES")
+            cipher.init(Cipher.DECRYPT_MODE, key)
+
+            val decodedBytes = Base64.decode(rawEncrypted, Base64.DEFAULT)
+            val decryptedBytes = cipher.doFinal(decodedBytes)
+            var url = String(decryptedBytes, Charsets.UTF_8).trim()
+
+            if (url.startsWith("http://")) {
+                url = url.replace("http://", "https://")
+            }
+
+            url = url
+                .replace("_96.mp4", "_320.mp4")
+                .replace("_160.mp4", "_320.mp4")
+                .replace("_96.m4a", "_320.m4a")
+                .replace("_160.m4a", "_320.m4a")
+                .replace("_96_p.mp4", "_320_p.mp4")
+                .replace("_160_p.mp4", "_320_p.mp4")
+
+            url
+        } catch (e: Exception) {
+            Log.e("SoundPod-Soundcore", "Failed to decrypt URL: $encryptedUrl", e)
+            encryptedUrl.replace("http://", "https://")
+        }
+    }
+
+    private fun parseSongObject(obj: JSONObject): SoundcoreSong? {
+        val id = obj.optString("id").takeIf { it.isNotBlank() } ?: obj.optString("perma_url")
+        if (id.isBlank()) return null
+
+        val rawTitle = obj.optString("title").takeIf { it.isNotBlank() } ?: obj.optString("song")
+        val title = unescapeHtml(rawTitle) ?: return null
+
+        val moreInfo = obj.optJSONObject("more_info")
+        val primaryArtists = moreInfo?.optString("primary_artists") ?: obj.optString("primary_artists")
+        val singers = moreInfo?.optString("singers") ?: obj.optString("singers")
+        val artistsText = unescapeHtml(primaryArtists.ifBlank { singers })
+
+        val duration = moreInfo?.optString("duration") ?: obj.optString("duration")
+        val durationText = duration?.toLongOrNull()?.let {
+            val min = it / 60
+            val sec = it % 60
+            String.format(Locale.ROOT, "%d:%02d", min, sec)
+        }
+
+        val rawImage = (obj.optString("image").takeIf { it.isNotBlank() }
+            ?: moreInfo?.optString("image") ?: "").replace("150x150", "500x500").replace("50x50", "500x500")
+        val thumbnailUrl = if (rawImage.isNotBlank()) rawImage.replace("http://", "https://") else null
+
+        val encUrl = (moreInfo?.optString("encrypted_media_url") ?: obj.optString("encrypted_media_url")).takeIf { !it.isNullOrBlank() }
+        var streamUrl: String? = encUrl?.let { decryptUrl(it) }
+        if (streamUrl.isNullOrBlank()) {
+            val mediaUrl = (moreInfo?.optString("media_url") ?: obj.optString("media_url")).takeIf { !it.isNullOrBlank() }
+            streamUrl = mediaUrl?.replace("http://", "https://")
+        }
+
+        val albumTitle = unescapeHtml(moreInfo?.optString("album") ?: obj.optString("album"))
+
+        return SoundcoreSong(
+            id = id,
+            title = title,
+            artistsText = artistsText,
+            durationText = durationText,
+            thumbnailUrl = thumbnailUrl,
+            streamUrl = streamUrl,
+            albumTitle = albumTitle
+        )
+    }
+
+    fun searchSongs(query: String): List<SoundcoreSong> {
+        if (query.isBlank()) return emptyList()
+        return try {
+            val encodedQuery = URLEncoder.encode(query, "UTF-8")
+            val url = "https://www.jiosaavn.com/api.php?__call=search.getMoreResults&q=$encodedQuery&cat=songs&n=20&p=1&_format=json&_marker=0&api_version=4"
+            val request = buildRequest(url)
+            val list = mutableListOf<SoundcoreSong>()
+
+            client.newCall(request).execute().use { response ->
+                val body = response.body?.string() ?: ""
+                val json = runCatching { JSONObject(body) }.getOrNull()
+                val resultsArray = json?.optJSONArray("results")
+                    ?: json?.optJSONArray("songs")
+                    ?: runCatching { JSONArray(body) }.getOrNull()
+                    ?: JSONArray()
+
+                for (i in 0 until resultsArray.length()) {
+                    val obj = resultsArray.optJSONObject(i) ?: continue
+                    parseSongObject(obj)?.let { list.add(it) }
+                }
+            }
+
+            if (list.isEmpty()) {
+                val fallbackUrl = "https://www.jiosaavn.com/api.php?__call=search.getResults&q=$encodedQuery&_format=json&_marker=0&api_version=4"
+                client.newCall(buildRequest(fallbackUrl)).execute().use { response ->
+                    val body = response.body?.string() ?: ""
+                    val json = runCatching { JSONObject(body) }.getOrNull()
+                    val results = json?.optJSONArray("results") ?: JSONArray()
+                    for (i in 0 until results.length()) {
+                        val obj = results.optJSONObject(i) ?: continue
+                        parseSongObject(obj)?.let { list.add(it) }
+                    }
+                }
+            }
+
+            list
+        } catch (e: Exception) {
+            Log.e("SoundPod-Soundcore", "Search songs failed for $query", e)
+            emptyList()
+        }
+    }
+
+    fun searchAlbums(query: String): List<SoundcoreAlbum> {
+        if (query.isBlank()) return emptyList()
+        return try {
+            val encodedQuery = URLEncoder.encode(query, "UTF-8")
+            val list = mutableListOf<SoundcoreAlbum>()
+
+            val url1 = "https://www.jiosaavn.com/api.php?__call=search.getAlbumResults&q=$encodedQuery&n=20&p=1&_format=json&_marker=0&api_version=4"
+            client.newCall(buildRequest(url1)).execute().use { response ->
+                val body = response.body?.string() ?: ""
+                val json = runCatching { JSONObject(body) }.getOrNull()
+                val resultsArray = json?.optJSONArray("results")
+                    ?: json?.optJSONArray("albums")
+                    ?: json?.optJSONObject("albums")?.optJSONArray("data")
+                    ?: runCatching { JSONArray(body) }.getOrNull()
+                    ?: JSONArray()
+
+                for (i in 0 until resultsArray.length()) {
+                    val obj = resultsArray.optJSONObject(i) ?: continue
+                    val id = obj.optString("id").takeIf { it.isNotBlank() } ?: obj.optString("albumid")
+                    if (id.isBlank()) continue
+                    val title = unescapeHtml(obj.optString("title").takeIf { it.isNotBlank() } ?: obj.optString("name") ?: obj.optString("album")) ?: continue
+                    val rawImage = obj.optString("image").replace("150x150", "500x500").replace("50x50", "500x500")
+                    val thumbnailUrl = if (rawImage.isNotBlank()) rawImage.replace("http://", "https://") else null
+                    val moreInfo = obj.optJSONObject("more_info")
+                    val artistsText = unescapeHtml(moreInfo?.optString("music") ?: obj.optString("music") ?: obj.optString("artist") ?: obj.optString("primary_artists"))
+                    val year = moreInfo?.optString("year") ?: obj.optString("year")
+
+                    list.add(
+                        SoundcoreAlbum(
+                            id = id,
+                            title = title,
+                            thumbnailUrl = thumbnailUrl,
+                            artistsText = artistsText,
+                            year = year
+                        )
+                    )
+                }
+            }
+
+            if (list.isEmpty()) {
+                val url2 = "https://www.jiosaavn.com/api.php?__call=search.getResults&q=$encodedQuery&_format=json&_marker=0&api_version=4"
+                client.newCall(buildRequest(url2)).execute().use { response ->
+                    val body = response.body?.string() ?: ""
+                    val json = runCatching { JSONObject(body) }.getOrNull()
+                    val albumsArray = json?.optJSONObject("albums")?.optJSONArray("data")
+                        ?: json?.optJSONArray("albums")
+                        ?: JSONArray()
+
+                    for (i in 0 until albumsArray.length()) {
+                        val obj = albumsArray.optJSONObject(i) ?: continue
+                        val id = obj.optString("id").takeIf { it.isNotBlank() } ?: obj.optString("albumid")
+                        if (id.isBlank()) continue
+                        val title = unescapeHtml(obj.optString("title").takeIf { it.isNotBlank() } ?: obj.optString("name") ?: obj.optString("album")) ?: continue
+                        val rawImage = obj.optString("image").replace("150x150", "500x500").replace("50x50", "500x500")
+                        val thumbnailUrl = if (rawImage.isNotBlank()) rawImage.replace("http://", "https://") else null
+                        val moreInfo = obj.optJSONObject("more_info")
+                        val artistsText = unescapeHtml(moreInfo?.optString("music") ?: obj.optString("music") ?: obj.optString("artist") ?: obj.optString("primary_artists"))
+                        val year = moreInfo?.optString("year") ?: obj.optString("year")
+
+                        list.add(
+                            SoundcoreAlbum(
+                                id = id,
+                                title = title,
+                                thumbnailUrl = thumbnailUrl,
+                                artistsText = artistsText,
+                                year = year
+                            )
+                        )
+                    }
+                }
+            }
+
+            if (list.isEmpty()) {
+                val url3 = "https://www.jiosaavn.com/api.php?__call=search.getMoreResults&q=$encodedQuery&cat=albums&n=20&p=1&_format=json&_marker=0&api_version=4"
+                client.newCall(buildRequest(url3)).execute().use { response ->
+                    val body = response.body?.string() ?: ""
+                    val json = runCatching { JSONObject(body) }.getOrNull()
+                    val resultsArray = json?.optJSONArray("results") ?: json?.optJSONArray("albums") ?: JSONArray()
+                    for (i in 0 until resultsArray.length()) {
+                        val obj = resultsArray.optJSONObject(i) ?: continue
+                        val id = obj.optString("id").takeIf { it.isNotBlank() } ?: obj.optString("albumid")
+                        if (id.isBlank()) continue
+                        val title = unescapeHtml(obj.optString("title").takeIf { it.isNotBlank() } ?: obj.optString("name") ?: obj.optString("album")) ?: continue
+                        val rawImage = obj.optString("image").replace("150x150", "500x500").replace("50x50", "500x500")
+                        val thumbnailUrl = if (rawImage.isNotBlank()) rawImage.replace("http://", "https://") else null
+                        val moreInfo = obj.optJSONObject("more_info")
+                        val artistsText = unescapeHtml(moreInfo?.optString("music") ?: obj.optString("music") ?: obj.optString("artist") ?: obj.optString("primary_artists"))
+                        val year = moreInfo?.optString("year") ?: obj.optString("year")
+
+                        list.add(
+                            SoundcoreAlbum(
+                                id = id,
+                                title = title,
+                                thumbnailUrl = thumbnailUrl,
+                                artistsText = artistsText,
+                                year = year
+                            )
+                        )
+                    }
+                }
+            }
+
+            list.distinctBy { it.id }
+        } catch (e: Exception) {
+            Log.e("SoundPod-Soundcore", "Search albums failed for $query", e)
+            emptyList()
+        }
+    }
+
+    fun searchArtists(query: String): List<SoundcoreArtist> {
+        if (query.isBlank()) return emptyList()
+        return try {
+            val encodedQuery = URLEncoder.encode(query, "UTF-8")
+            val list = mutableListOf<SoundcoreArtist>()
+
+            val url1 = "https://www.jiosaavn.com/api.php?__call=search.getArtistResults&q=$encodedQuery&n=20&p=1&_format=json&_marker=0&api_version=4"
+            client.newCall(buildRequest(url1)).execute().use { response ->
+                val body = response.body?.string() ?: ""
+                val json = runCatching { JSONObject(body) }.getOrNull()
+                val resultsArray = json?.optJSONArray("results")
+                    ?: json?.optJSONArray("artists")
+                    ?: json?.optJSONObject("artists")?.optJSONArray("data")
+                    ?: runCatching { JSONArray(body) }.getOrNull()
+                    ?: JSONArray()
+
+                for (i in 0 until resultsArray.length()) {
+                    val obj = resultsArray.optJSONObject(i) ?: continue
+                    val id = obj.optString("id").takeIf { it.isNotBlank() } ?: obj.optString("artistid")
+                    if (id.isBlank()) continue
+                    val title = unescapeHtml(obj.optString("name").takeIf { it.isNotBlank() } ?: obj.optString("title")) ?: continue
+                    val rawImage = obj.optString("image").replace("150x150", "500x500").replace("50x50", "500x500")
+                    val thumbnailUrl = if (rawImage.isNotBlank()) rawImage.replace("http://", "https://") else null
+
+                    list.add(
+                        SoundcoreArtist(
+                            id = id,
+                            title = title,
+                            thumbnailUrl = thumbnailUrl
+                        )
+                    )
+                }
+            }
+
+            if (list.isEmpty()) {
+                val url2 = "https://www.jiosaavn.com/api.php?__call=search.getResults&q=$encodedQuery&_format=json&_marker=0&api_version=4"
+                client.newCall(buildRequest(url2)).execute().use { response ->
+                    val body = response.body?.string() ?: ""
+                    val json = runCatching { JSONObject(body) }.getOrNull()
+                    val artistsArray = json?.optJSONObject("artists")?.optJSONArray("data")
+                        ?: json?.optJSONArray("artists")
+                        ?: JSONArray()
+
+                    for (i in 0 until artistsArray.length()) {
+                        val obj = artistsArray.optJSONObject(i) ?: continue
+                        val id = obj.optString("id").takeIf { it.isNotBlank() } ?: obj.optString("artistid")
+                        if (id.isBlank()) continue
+                        val title = unescapeHtml(obj.optString("name").takeIf { it.isNotBlank() } ?: obj.optString("title")) ?: continue
+                        val rawImage = obj.optString("image").replace("150x150", "500x500").replace("50x50", "500x500")
+                        val thumbnailUrl = if (rawImage.isNotBlank()) rawImage.replace("http://", "https://") else null
+
+                        list.add(
+                            SoundcoreArtist(
+                                id = id,
+                                title = title,
+                                thumbnailUrl = thumbnailUrl
+                            )
+                        )
+                    }
+                }
+            }
+
+            if (list.isEmpty()) {
+                val url3 = "https://www.jiosaavn.com/api.php?__call=search.getMoreResults&q=$encodedQuery&cat=artists&n=20&p=1&_format=json&_marker=0&api_version=4"
+                client.newCall(buildRequest(url3)).execute().use { response ->
+                    val body = response.body?.string() ?: ""
+                    val json = runCatching { JSONObject(body) }.getOrNull()
+                    val resultsArray = json?.optJSONArray("results") ?: json?.optJSONArray("artists") ?: JSONArray()
+                    for (i in 0 until resultsArray.length()) {
+                        val obj = resultsArray.optJSONObject(i) ?: continue
+                        val id = obj.optString("id").takeIf { it.isNotBlank() } ?: obj.optString("artistid")
+                        if (id.isBlank()) continue
+                        val title = unescapeHtml(obj.optString("name").takeIf { it.isNotBlank() } ?: obj.optString("title")) ?: continue
+                        val rawImage = obj.optString("image").replace("150x150", "500x500").replace("50x50", "500x500")
+                        val thumbnailUrl = if (rawImage.isNotBlank()) rawImage.replace("http://", "https://") else null
+
+                        list.add(
+                            SoundcoreArtist(
+                                id = id,
+                                title = title,
+                                thumbnailUrl = thumbnailUrl
+                            )
+                        )
+                    }
+                }
+            }
+
+            list.distinctBy { it.id }
+        } catch (e: Exception) {
+            Log.e("SoundPod-Soundcore", "Search artists failed for $query", e)
+            emptyList()
+        }
+    }
+
+    fun searchPlaylists(query: String): List<SoundcorePlaylist> {
+        if (query.isBlank()) return emptyList()
+        return try {
+            val encodedQuery = URLEncoder.encode(query, "UTF-8")
+            val url = "https://www.jiosaavn.com/api.php?__call=search.getMoreResults&q=$encodedQuery&cat=playlists&n=20&p=1&_format=json&_marker=0&api_version=4"
+            val list = mutableListOf<SoundcorePlaylist>()
+
+            client.newCall(buildRequest(url)).execute().use { response ->
+                val body = response.body?.string() ?: ""
+                val json = runCatching { JSONObject(body) }.getOrNull()
+                val resultsArray = json?.optJSONArray("results") ?: json?.optJSONArray("playlists") ?: JSONArray()
+
+                for (i in 0 until resultsArray.length()) {
+                    val obj = resultsArray.optJSONObject(i) ?: continue
+                    val id = obj.optString("id").takeIf { it.isNotBlank() } ?: obj.optString("listid")
+                    if (id.isBlank()) continue
+                    val title = unescapeHtml(obj.optString("title").takeIf { it.isNotBlank() } ?: obj.optString("listname") ?: obj.optString("name")) ?: continue
+                    val rawImage = obj.optString("image").replace("150x150", "500x500").replace("50x50", "500x500")
+                    val thumbnailUrl = if (rawImage.isNotBlank()) rawImage.replace("http://", "https://") else null
+                    val songCount = obj.optJSONObject("more_info")?.optString("song_count")?.toIntOrNull() ?: obj.optString("song_count").toIntOrNull()
+
+                    list.add(
+                        SoundcorePlaylist(
+                            id = id,
+                            title = title,
+                            thumbnailUrl = thumbnailUrl,
+                            songCount = songCount
+                        )
+                    )
+                }
+            }
+            list
+        } catch (e: Exception) {
+            Log.e("SoundPod-Soundcore", "Search playlists failed for $query", e)
+            emptyList()
+        }
+    }
+
+    fun getSongDetails(songId: String): SoundcoreSong? {
+        if (songId.isBlank()) return null
+        return try {
+            val url = "https://www.jiosaavn.com/api.php?__call=song.getDetails&cc=in&_marker=0&_format=json&api_version=4&pids=$songId"
+            client.newCall(buildRequest(url)).execute().use { response ->
+                val body = response.body?.string() ?: ""
+                val json = JSONObject(body)
+
+                val songObj = json.optJSONObject(songId)
+                    ?: json.optJSONArray("songs")?.optJSONObject(0)
+                    ?: json.keys().asSequence().firstOrNull()?.let { json.optJSONObject(it) }
+
+                songObj?.let { parseSongObject(it) }
+            }
+        } catch (e: Exception) {
+            Log.e("SoundPod-Soundcore", "Failed to get song details for $songId", e)
+            null
+        }
+    }
+
+    fun getRecommendations(songId: String): List<SoundcoreSong> {
+        if (songId.isBlank()) return emptyList()
+        return try {
+            val url = "https://www.jiosaavn.com/api.php?__call=reco.getreco&pid=$songId&_format=json&_marker=0&api_version=4"
+            val list = mutableListOf<SoundcoreSong>()
+
+            client.newCall(buildRequest(url)).execute().use { response ->
+                val body = response.body?.string() ?: ""
+                val jsonArray = runCatching { JSONArray(body) }.getOrNull()
+                    ?: runCatching { JSONObject(body).optJSONArray("songs") }.getOrNull()
+                    ?: runCatching { JSONObject(body).optJSONArray("results") }.getOrNull()
+                    ?: JSONArray()
+
+                for (i in 0 until jsonArray.length()) {
+                    val obj = jsonArray.optJSONObject(i) ?: continue
+                    parseSongObject(obj)?.let { list.add(it) }
+                }
+            }
+            list
+        } catch (e: Exception) {
+            Log.e("SoundPod-Soundcore", "Failed to get recommendations for $songId", e)
+            emptyList()
+        }
+    }
+
+    fun getLaunchData(): SoundcoreLaunchData {
+        return try {
+            val url = "https://www.jiosaavn.com/api.php?__call=launch.getLaunchData&_format=json&_marker=0&api_version=4"
+            client.newCall(buildRequest(url)).execute().use { response ->
+                val body = response.body?.string() ?: ""
+                val json = JSONObject(body)
+
+                val trendingSongs = mutableListOf<SoundcoreSong>()
+                val topAlbums = mutableListOf<SoundcoreAlbum>()
+                val topPlaylists = mutableListOf<SoundcorePlaylist>()
+
+                val trendingArray = json.optJSONArray("new_trending") ?: json.optJSONArray("top_shows") ?: JSONArray()
+                for (i in 0 until trendingArray.length()) {
+                    val obj = trendingArray.optJSONObject(i) ?: continue
+                    val type = obj.optString("type")
+                    if (type == "song" || obj.has("song")) {
+                        parseSongObject(obj)?.let { trendingSongs.add(it) }
+                    } else if (type == "album") {
+                        val id = obj.optString("id")
+                        val title = unescapeHtml(obj.optString("title").takeIf { it.isNotBlank() } ?: obj.optString("name"))
+                        val rawImg = obj.optString("image").replace("150x150", "500x500").replace("50x50", "500x500")
+                        val img = if (rawImg.isNotBlank()) rawImg.replace("http://", "https://") else null
+                        title?.takeIf { id.isNotBlank() }?.let {
+                            topAlbums.add(SoundcoreAlbum(id = id, title = it, thumbnailUrl = img))
+                        }
+                    }
+                }
+
+                val playlistsArray = json.optJSONArray("top_playlists") ?: json.optJSONArray("charts") ?: JSONArray()
+                for (i in 0 until playlistsArray.length()) {
+                    val obj = playlistsArray.optJSONObject(i) ?: continue
+                    val id = obj.optString("id").takeIf { it.isNotBlank() } ?: obj.optString("listid")
+                    val title = unescapeHtml(obj.optString("title").takeIf { it.isNotBlank() } ?: obj.optString("listname"))
+                    val rawImg = obj.optString("image").replace("150x150", "500x500").replace("50x50", "500x500")
+                    val img = if (rawImg.isNotBlank()) rawImg.replace("http://", "https://") else null
+                    title?.takeIf { id.isNotBlank() }?.let {
+                        topPlaylists.add(SoundcorePlaylist(id = id, title = it, thumbnailUrl = img))
+                    }
+                }
+
+                val albumsArray = json.optJSONArray("new_albums") ?: JSONArray()
+                for (i in 0 until albumsArray.length()) {
+                    val obj = albumsArray.optJSONObject(i) ?: continue
+                    val id = obj.optString("id")
+                    val title = unescapeHtml(obj.optString("title").takeIf { it.isNotBlank() } ?: obj.optString("name"))
+                    val rawImg = obj.optString("image").replace("150x150", "500x500").replace("50x50", "500x500")
+                    val img = if (rawImg.isNotBlank()) rawImg.replace("http://", "https://") else null
+                    title?.takeIf { id.isNotBlank() && topAlbums.none { a -> a.id == id } }?.let {
+                        topAlbums.add(SoundcoreAlbum(id = id, title = it, thumbnailUrl = img))
+                    }
+                }
+
+                SoundcoreLaunchData(
+                    trendingSongs = trendingSongs,
+                    topAlbums = topAlbums,
+                    topPlaylists = topPlaylists
+                )
+            }
+        } catch (e: Exception) {
+            Log.e("SoundPod-Soundcore", "Failed to fetch launch data", e)
+            SoundcoreLaunchData()
+        }
+    }
+
+    fun getAlbumDetails(albumId: String): SoundcoreAlbum? {
+        if (albumId.isBlank()) return null
+        return try {
+            val url = "https://www.jiosaavn.com/api.php?__call=content.getAlbumDetails&albumid=$albumId&_format=json&_marker=0&api_version=4&ctx=web6dot0"
+            client.newCall(buildRequest(url)).execute().use { response ->
+                val body = response.body?.string() ?: ""
+                val json = JSONObject(body)
+                val rawTitle = json.optString("title").takeIf { it.isNotBlank() } ?: json.optString("name")
+                val title = unescapeHtml(rawTitle) ?: "Album"
+                val rawImage = json.optString("image").replace("150x150", "500x500").replace("50x50", "500x500")
+                val thumbnailUrl = if (rawImage.isNotBlank()) rawImage.replace("http://", "https://") else null
+                val artistsText = unescapeHtml(json.optString("primary_artists") ?: json.optString("artist_name"))
+                val year = json.optString("year")
+
+                val songsArray = json.optJSONArray("songs") ?: JSONArray()
+                val songs = mutableListOf<SoundcoreSong>()
+                for (i in 0 until songsArray.length()) {
+                    val obj = songsArray.optJSONObject(i) ?: continue
+                    parseSongObject(obj)?.let { songs.add(it) }
+                }
+
+                SoundcoreAlbum(
+                    id = albumId,
+                    title = title,
+                    thumbnailUrl = thumbnailUrl,
+                    artistsText = artistsText,
+                    year = year,
+                    songs = songs
+                )
+            }
+        } catch (e: Exception) {
+            Log.e("SoundPod-Soundcore", "Failed to get album details for $albumId", e)
+            null
+        }
+    }
+
+    fun getSearchSuggestions(query: String): List<String> {
+        if (query.isBlank()) return emptyList()
+        return try {
+            val encodedQuery = URLEncoder.encode(query, "UTF-8")
+            val url = "https://www.jiosaavn.com/api.php?__call=autocomplete.get&_format=json&_marker=0&api_version=4&query=$encodedQuery"
+            client.newCall(buildRequest(url)).execute().use { response ->
+                val body = response.body?.string() ?: ""
+                val json = JSONObject(body)
+                val suggestions = LinkedHashSet<String>()
+
+                json.optJSONObject("topquery")?.optJSONArray("data")?.let { topQueryData ->
+                    for (i in 0 until topQueryData.length()) {
+                        val item = topQueryData.optJSONObject(i) ?: continue
+                        val title = unescapeHtml(item.optString("title").takeIf { it.isNotBlank() } ?: item.optString("query"))
+                        if (!title.isNullOrBlank()) suggestions.add(title)
+                    }
+                }
+
+                json.optJSONObject("songs")?.optJSONArray("data")?.let { songsData ->
+                    for (i in 0 until songsData.length()) {
+                        val item = songsData.optJSONObject(i) ?: continue
+                        val title = unescapeHtml(item.optString("title"))
+                        if (!title.isNullOrBlank()) suggestions.add(title)
+                    }
+                }
+
+                json.optJSONObject("albums")?.optJSONArray("data")?.let { albumsData ->
+                    for (i in 0 until albumsData.length()) {
+                        val item = albumsData.optJSONObject(i) ?: continue
+                        val title = unescapeHtml(item.optString("title"))
+                        if (!title.isNullOrBlank()) suggestions.add(title)
+                    }
+                }
+
+                suggestions.toList().take(10)
+            }
+        } catch (e: Exception) {
+            Log.e("SoundPod-Soundcore", "Failed to get suggestions for $query", e)
+            emptyList()
+        }
+    }
+
+    private fun normalize(text: String): String {
+        return text.lowercase(Locale.ROOT)
+            .replace(Regex("\\([^)]*\\)|\\[[^]]*]"), "")
+            .replace(Regex("[^a-z0-9\\s]"), "")
+            .trim()
+            .replace(Regex("\\s+"), " ")
+    }
+
+    fun resolveSongUrl(songId: String, title: String?, artistsText: String?): String? {
+        if (songId.startsWith("http://") || songId.startsWith("https://")) return songId
+
+        val directSong = getSongDetails(songId)
+        val directUrl = directSong?.streamUrl
+        if (directUrl != null) {
+            Log.d("SoundPod-Soundcore", "Direct Soundcore ID lookup SUCCESS for $songId: $directUrl")
+            return directUrl
+        }
+
+        val targetTitle = title?.let { normalize(it) } ?: ""
+        val targetArtists = artistsText?.let { normalize(it) } ?: ""
+
+        val queries = listOfNotNull(
+            if (targetTitle.isNotBlank()) "$targetTitle $targetArtists" else null,
+            targetTitle.takeIf { it.isNotBlank() },
+            songId.takeIf { !it.contains("http") }
+        ).distinct()
+
+        for (query in queries) {
+            val results = searchSongs(query)
+            if (results.isEmpty()) continue
+
+            var bestMatch: SoundcoreSong? = null
+            var bestScore = -1.0
+
+            for (song in results) {
+                val songTitle = normalize(song.title)
+                val songArtists = normalize(song.artistsText ?: "")
+
+                var score = 0.0
+                if (targetTitle.isNotBlank()) {
+                    if (songTitle == targetTitle) {
+                        score += 10.0
+                    } else if (songTitle.contains(targetTitle) || targetTitle.contains(songTitle)) {
+                        score += 5.0
+                    } else {
+                        val targetTokens = targetTitle.split("\\s+".toRegex()).toSet()
+                        val songTokens = songTitle.split("\\s+".toRegex()).toSet()
+                        val intersection = targetTokens.intersect(songTokens)
+                        if (intersection.isNotEmpty()) {
+                            score += (intersection.size.toDouble() / targetTokens.size.toDouble()) * 3.0
+                        }
+                    }
+                }
+
+                if (targetArtists.isNotBlank() && songArtists.isNotBlank()) {
+                    if (songArtists.contains(targetArtists) || targetArtists.contains(songArtists)) {
+                        score += 4.0
+                    } else {
+                        val targetTokens = targetArtists.split("\\s+".toRegex()).toSet()
+                        val songTokens = songArtists.split("\\s+".toRegex()).toSet()
+                        val intersection = targetTokens.intersect(songTokens)
+                        if (intersection.isNotEmpty()) {
+                            score += (intersection.size.toDouble() / targetTokens.size.toDouble()) * 2.0
+                        }
+                    }
+                }
+
+                if (score > bestScore) {
+                    bestScore = score
+                    bestMatch = song
+                }
+            }
+
+            val streamUrl = bestMatch?.streamUrl
+            if (streamUrl != null) {
+                if (targetTitle.isBlank() || bestScore >= 2.0 || results.size == 1) {
+                    Log.d("SoundPod-Soundcore", "Matched '$title' -> Best match: '${bestMatch.title}' by '${bestMatch.artistsText}' with score $bestScore")
+                    return streamUrl
+                }
+            }
+        }
+
+        return null
+    }
+}
+
+val SoundcoreSong.asSoundcoreSongItem: Innertube.SongItem
+    get() = Innertube.SongItem(
+        info = Innertube.Info(
+            name = title,
+            endpoint = NavigationEndpoint.Endpoint.Watch(videoId = id)
+        ),
+        authors = artistsText?.let { artists ->
+            listOf(Innertube.Info(name = artists, endpoint = NavigationEndpoint.Endpoint.Browse(browseId = "soundcore_artist:$id")))
+        },
+        album = albumTitle?.let {
+            Innertube.Info(name = it, endpoint = null)
+        },
+        durationText = durationText,
+        thumbnail = thumbnailUrl?.let { Thumbnail(url = it, width = 500, height = 500) }
+    )
+
+val SoundcoreAlbum.asSoundcoreAlbumItem: Innertube.AlbumItem
+    get() = Innertube.AlbumItem(
+        info = Innertube.Info(
+            name = title,
+            endpoint = NavigationEndpoint.Endpoint.Browse(browseId = "soundcore_album:$id")
+        ),
+        authors = artistsText?.let {
+            listOf(Innertube.Info(name = it, endpoint = null))
+        },
+        year = year,
+        thumbnail = thumbnailUrl?.let { Thumbnail(url = it, width = 500, height = 500) }
+    )
+
+val SoundcoreArtist.asSoundcoreArtistItem: Innertube.ArtistItem
+    get() = Innertube.ArtistItem(
+        info = Innertube.Info(
+            name = title,
+            endpoint = NavigationEndpoint.Endpoint.Browse(browseId = "soundcore_artist:$id")
+        ),
+        subscribersCountText = null,
+        thumbnail = thumbnailUrl?.let { Thumbnail(url = it, width = 500, height = 500) }
+    )
+
+val SoundcorePlaylist.asSoundcorePlaylistItem: Innertube.PlaylistItem
+    get() = Innertube.PlaylistItem(
+        info = Innertube.Info(
+            name = title,
+            endpoint = NavigationEndpoint.Endpoint.Browse(browseId = "soundcore_playlist:$id")
+        ),
+        channel = null,
+        songCount = songCount,
+        thumbnail = thumbnailUrl?.let { Thumbnail(url = it, width = 500, height = 500) }
+    )
+
+val SoundcoreSong.asMediaItem: androidx.media3.common.MediaItem
+    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+    get() = androidx.media3.common.MediaItem.Builder()
+        .setMediaId(id)
+        .setUri(streamUrl ?: id)
+        .setCustomCacheKey(id)
+        .setMediaMetadata(
+            androidx.media3.common.MediaMetadata.Builder()
+                .setTitle(title)
+                .setArtist(artistsText)
+                .setAlbumTitle(albumTitle)
+                .setArtworkUri(thumbnailUrl?.toUri())
+                .setExtras(
+                    android.os.Bundle().apply {
+                        durationText?.let { putString("durationText", it) }
+                        albumTitle?.let { putString("albumTitle", it) }
+                        artistsText?.let { artists ->
+                            putStringArrayList("artistNames", arrayListOf(artists))
+                            putStringArrayList("artistIds", arrayListOf("soundcore_artist:$id"))
+                        }
+                    }
+                )
+                .build()
+        )
+        .build()
