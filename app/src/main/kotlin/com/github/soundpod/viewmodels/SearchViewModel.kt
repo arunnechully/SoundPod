@@ -8,6 +8,8 @@ import androidx.lifecycle.viewModelScope
 import com.github.innertube.Innertube
 import com.github.innertube.requests.searchPage
 import com.github.innertube.utils.from
+import com.github.soundpod.service.JioSaavn
+import com.github.soundpod.service.JioSaavnSong
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -22,6 +24,8 @@ class SearchViewModel : ViewModel() {
     var videoResults by mutableStateOf<List<Innertube.VideoItem>?>(null)
         private set
     var playlistResults by mutableStateOf<List<Innertube.PlaylistItem>?>(null)
+        private set
+    var jioSaavnResults by mutableStateOf<List<JioSaavnSong>?>(null)
         private set
 
     var isLoading by mutableStateOf(false)
@@ -40,6 +44,7 @@ class SearchViewModel : ViewModel() {
             artistResults = null
             videoResults = null
             playlistResults = null
+            jioSaavnResults = null
             isLoading = false
             return
         }
@@ -83,12 +88,16 @@ class SearchViewModel : ViewModel() {
                         fromMusicShelfRendererContent = Innertube.PlaylistItem::from
                     )
                 }
+                val jioSaavnDeferred = async {
+                    JioSaavn.searchSongs(query)
+                }
 
                 songResults = songsDeferred.await()?.getOrNull()?.items?.take(3)
                 albumResults = albumsDeferred.await()?.getOrNull()?.items?.take(8)
                 artistResults = artistsDeferred.await()?.getOrNull()?.items?.take(8)
                 videoResults = videosDeferred.await()?.getOrNull()?.items?.take(6)
                 playlistResults = playlistsDeferred.await()?.getOrNull()?.items?.take(8)
+                jioSaavnResults = jioSaavnDeferred.await().take(10)
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {

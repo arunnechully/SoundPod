@@ -32,11 +32,15 @@ import com.github.innertube.Innertube
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.models.LocalMenuState
+import com.github.soundpod.service.JioSaavnSong
+import com.github.soundpod.service.asMediaItem
+import com.github.soundpod.service.asSong
 import com.github.soundpod.ui.appearance.LoadingAnimation
 import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.items.AlbumItem
 import com.github.soundpod.ui.items.ArtistItem
+import com.github.soundpod.ui.items.LocalSongItem
 import com.github.soundpod.ui.items.PlaylistItem
 import com.github.soundpod.ui.items.SongItem
 import com.github.soundpod.ui.items.VideoItem
@@ -52,6 +56,7 @@ fun OnlineSearch(
     artistResults: List<Innertube.ArtistItem>?,
     videoResults: List<Innertube.VideoItem>?,
     playlistResults: List<Innertube.PlaylistItem>?,
+    jioSaavnResults: List<JioSaavnSong>?,
     isLoading: Boolean,
     onAlbumClick: (String) -> Unit,
     onArtistClick: (String) -> Unit,
@@ -90,6 +95,33 @@ fun OnlineSearch(
             contentPadding = PaddingValues(bottom = 16.dp),
             modifier = Modifier.fillMaxSize()
         ) {
+            // JioSaavn Songs Section (Full metadata directly from JioSaavn)
+            if (jioSaavnResults?.isNotEmpty() == true) {
+                item(span = { GridItemSpan(maxCurrentLineSpan) }) {
+                    SearchSectionHeader(
+                        title = "JioSaavn",
+                        onViewAllClick = onViewAllClick,
+                        colorPalette = colorPalette
+                    )
+                }
+                item(span = { GridItemSpan(maxCurrentLineSpan) }) {
+                    SettingsCard {
+                        Column {
+                            jioSaavnResults.forEach { saavnSong ->
+                                LocalSongItem(
+                                    song = saavnSong.asSong,
+                                    onClick = {
+                                        binder?.stopRadio()
+                                        binder?.player?.forcePlay(saavnSong.asMediaItem)
+                                    },
+                                    onLongClick = {}
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             // Songs Section
             if (songResults?.isNotEmpty() == true) {
                 item(span = { GridItemSpan(maxCurrentLineSpan) }) {

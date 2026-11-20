@@ -74,6 +74,8 @@ import com.github.soundpod.utils.forcePlay
 import com.github.soundpod.utils.intent
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.service.YouTubeWebViewManager
+import com.github.soundpod.service.JioSaavnWebViewManager
+import com.github.soundpod.service.JioSaavn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -109,6 +111,7 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             YouTubeWebViewManager.initialize(applicationContext)
+            JioSaavnWebViewManager.initialize(applicationContext)
             enableEdgeToEdge(
                 statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
                 navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT)
@@ -305,6 +308,39 @@ class MainActivity : ComponentActivity() {
                         else -> when {
                             path == "watch" -> uri.getQueryParameter("v")
                             uri.host == "youtu.be" -> path
+                            uri.host?.contains("jiosaavn.com") == true -> {
+                                val albumId = uri.lastPathSegment
+                                if (!albumId.isNullOrBlank() && albumId != "album") {
+                                    val album = withContext(Dispatchers.IO) { JioSaavn.getAlbumDetails(albumId) }
+                                    if (album != null && album.songs.isNotEmpty()) {
+                                        val binder = snapshotFlow { binder }.filterNotNull().first()
+                                        withContext(Dispatchers.Main) {
+                                            val mediaItems = album.songs.mapNotNull { saavnSong ->
+                                                saavnSong.streamUrl?.let { url ->
+                                                    androidx.media3.common.MediaItem.Builder()
+                                                        .setMediaId(saavnSong.id)
+                                                        .setUri(url)
+                                                        .setMediaMetadata(
+                                                            androidx.media3.common.MediaMetadata.Builder()
+                                                                .setTitle(saavnSong.title)
+                                                                .setArtist(saavnSong.artistsText)
+                                                                .setAlbumTitle(album.title)
+                                                                .setArtworkUri(saavnSong.thumbnailUrl?.toUri())
+                                                                .build()
+                                                        )
+                                                        .build()
+                                                }
+                                            }
+                                            if (mediaItems.isNotEmpty()) {
+                                                binder.player.setMediaItems(mediaItems)
+                                                binder.player.prepare()
+                                                binder.player.play()
+                                            }
+                                        }
+                                    }
+                                }
+                                null
+                            }
                             else -> null
                         }?.let { videoId ->
                             Innertube.song(videoId)?.getOrNull()?.let { song ->

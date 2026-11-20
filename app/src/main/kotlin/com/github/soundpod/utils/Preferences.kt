@@ -78,7 +78,8 @@ const val appearanceUpdatedKey = "appearanceUpdated"
 enum class PlaybackSource(val resourceId: Int) {
     Automatic(R.string.automatic),
     Innertube(R.string.innertube),
-    NewPipe(R.string.newpipe)
+    NewPipe(R.string.newpipe),
+    JioSaavn(R.string.jiosaavn)
 }
 
 enum class TabStyle(val resourceId: Int) {

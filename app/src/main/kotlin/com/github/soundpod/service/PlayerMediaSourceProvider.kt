@@ -161,7 +161,24 @@ class PlayerMediaSourceProvider(
 
             val playbackSource = context.preferences.getEnum(playbackSourceKey, PlaybackSource.Automatic)
 
-            if (playbackSource == PlaybackSource.Automatic || playbackSource == PlaybackSource.Innertube) {
+            if (playbackSource == PlaybackSource.JioSaavn || playbackSource == PlaybackSource.Automatic) {
+                val song = runCatching { com.github.soundpod.db.getSong(videoId) }.getOrNull()
+                val saavnUrl = runCatching {
+                    JioSaavn.resolveSongUrl(videoId, song?.title, song?.artistsText)
+                }.getOrNull()
+
+                if (saavnUrl != null) {
+                    Log.d("SoundPod-DataSource", "JioSaavn resolution SUCCESS for $videoId: $saavnUrl")
+                    val uri = saavnUrl.toUri()
+                    urlCache[videoId] = Pair(uri, System.currentTimeMillis())
+                    sourceTracker[videoId] = com.github.soundpod.R.string.jiosaavn
+                    return uri
+                } else if (playbackSource == PlaybackSource.JioSaavn) {
+                    throw Exception("JioSaavn resolution failed for $videoId")
+                }
+            }
+
+            if (playbackSource == PlaybackSource.Innertube) {
                 // TRY INNERTUBE FIRST (MUCH FASTER)
                 val fastUri: Uri? = runCatching {
                     val response = runBlocking { Innertube.player(videoId)?.getOrNull() }
