@@ -49,6 +49,47 @@ import com.github.soundpod.utils.forcePlay
 import com.github.soundpod.utils.getEnum
 import com.github.soundpod.utils.playbackSourceKey
 import com.github.soundpod.utils.preferences
+import java.util.Locale
+
+private fun getItemName(item: Innertube.Item): String? = when (item) {
+    is Innertube.SongItem -> item.info?.name
+    is Innertube.AlbumItem -> item.info?.name
+    is Innertube.ArtistItem -> item.info?.name
+    is Innertube.PlaylistItem -> item.info?.name
+    is Innertube.VideoItem -> item.info?.name
+}
+
+private fun <T : Innertube.Item> mergeItems(list1: List<T>?, list2: List<T>?): List<T> {
+    if (list1.isNullOrEmpty()) return list2.orEmpty()
+    if (list2.isNullOrEmpty()) return list1
+    val result = mutableListOf<T>()
+    val iter1 = list1.iterator()
+    val iter2 = list2.iterator()
+    val seenKeys = mutableSetOf<String>()
+    val seenNames = mutableSetOf<String>()
+
+    var hasMore = true
+    while (hasMore) {
+        hasMore = false
+        if (iter1.hasNext()) {
+            val item = iter1.next()
+            val normName = getItemName(item)?.lowercase(Locale.ROOT)?.trim().orEmpty()
+            if (seenKeys.add(item.key) && (normName.isBlank() || seenNames.add(normName))) {
+                result.add(item)
+            }
+            hasMore = true
+        }
+        if (iter2.hasNext()) {
+            val item = iter2.next()
+            val normName = getItemName(item)?.lowercase(Locale.ROOT)?.trim().orEmpty()
+            if (seenKeys.add(item.key) && (normName.isBlank() || seenNames.add(normName))) {
+                result.add(item)
+            }
+            hasMore = true
+        }
+    }
+    return result
+}
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @UnstableApi
@@ -89,6 +130,15 @@ fun NewSearchResult(
                             if (playbackSource == PlaybackSource.Soundcore || resultType == "Soundcore") {
                                 val soundcoreSongs = Soundcore.searchSongs(query)
                                 Result.success(Innertube.ItemsPage(items = soundcoreSongs.map { it.asSoundcoreSongItem }, continuation = null))
+                            } else if (playbackSource == PlaybackSource.Automatic && continuation == null) {
+                                val innertubePage = Innertube.searchPage(
+                                    query = query,
+                                    params = Innertube.SearchFilter.Song.value,
+                                    fromMusicShelfRendererContent = Innertube.SongItem.Companion::from
+                                )?.getOrNull()
+                                val soundcoreSongs = Soundcore.searchSongs(query)
+                                val merged = mergeItems(innertubePage?.items, soundcoreSongs.map { it.asSoundcoreSongItem })
+                                Result.success(Innertube.ItemsPage(items = merged, continuation = innertubePage?.continuation))
                             } else if (continuation == null) {
                                 Innertube.searchPage(
                                     query = query,
@@ -195,6 +245,15 @@ fun NewSearchResult(
                             if (playbackSource == PlaybackSource.Soundcore) {
                                 val soundcoreAlbums = Soundcore.searchAlbums(query)
                                 Result.success(Innertube.ItemsPage(items = soundcoreAlbums.map { it.asSoundcoreAlbumItem }, continuation = null))
+                            } else if (playbackSource == PlaybackSource.Automatic && continuation == null) {
+                                val innertubePage = Innertube.searchPage(
+                                    query = query,
+                                    params = Innertube.SearchFilter.Album.value,
+                                    fromMusicShelfRendererContent = Innertube.AlbumItem::from
+                                )?.getOrNull()
+                                val soundcoreAlbums = Soundcore.searchAlbums(query)
+                                val merged = mergeItems(innertubePage?.items, soundcoreAlbums.map { it.asSoundcoreAlbumItem })
+                                Result.success(Innertube.ItemsPage(items = merged, continuation = innertubePage?.continuation))
                             } else if (continuation == null) {
                                 Innertube.searchPage(
                                     query = query,
@@ -226,6 +285,15 @@ fun NewSearchResult(
                             if (playbackSource == PlaybackSource.Soundcore) {
                                 val soundcoreArtists = Soundcore.searchArtists(query)
                                 Result.success(Innertube.ItemsPage(items = soundcoreArtists.map { it.asSoundcoreArtistItem }, continuation = null))
+                            } else if (playbackSource == PlaybackSource.Automatic && continuation == null) {
+                                val innertubePage = Innertube.searchPage(
+                                    query = query,
+                                    params = Innertube.SearchFilter.Artist.value,
+                                    fromMusicShelfRendererContent = Innertube.ArtistItem::from
+                                )?.getOrNull()
+                                val soundcoreArtists = Soundcore.searchArtists(query)
+                                val merged = mergeItems(innertubePage?.items, soundcoreArtists.map { it.asSoundcoreArtistItem })
+                                Result.success(Innertube.ItemsPage(items = merged, continuation = innertubePage?.continuation))
                             } else if (continuation == null) {
                                 Innertube.searchPage(
                                     query = query,
@@ -257,6 +325,15 @@ fun NewSearchResult(
                             if (playbackSource == PlaybackSource.Soundcore) {
                                 val soundcorePlaylists = Soundcore.searchPlaylists(query)
                                 Result.success(Innertube.ItemsPage(items = soundcorePlaylists.map { it.asSoundcorePlaylistItem }, continuation = null))
+                            } else if (playbackSource == PlaybackSource.Automatic && continuation == null) {
+                                val innertubePage = Innertube.searchPage(
+                                    query = query,
+                                    params = Innertube.SearchFilter.CommunityPlaylist.value,
+                                    fromMusicShelfRendererContent = Innertube.PlaylistItem::from
+                                )?.getOrNull()
+                                val soundcorePlaylists = Soundcore.searchPlaylists(query)
+                                val merged = mergeItems(innertubePage?.items, soundcorePlaylists.map { it.asSoundcorePlaylistItem })
+                                Result.success(Innertube.ItemsPage(items = merged, continuation = innertubePage?.continuation))
                             } else if (continuation == null) {
                                 Innertube.searchPage(
                                     query = query,

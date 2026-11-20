@@ -192,8 +192,8 @@ class PlayerMediaSourceProvider(
                 }
             }
 
-            if (playbackSource == PlaybackSource.Innertube) {
-                // TRY INNERTUBE FIRST (MUCH FASTER)
+            if (playbackSource == PlaybackSource.Innertube || playbackSource == PlaybackSource.Automatic) {
+                // TRY INNERTUBE
                 val fastUri: Uri? = runCatching {
                     val response = runBlocking { Innertube.player(videoId)?.getOrNull() }
                     if (response == null) {

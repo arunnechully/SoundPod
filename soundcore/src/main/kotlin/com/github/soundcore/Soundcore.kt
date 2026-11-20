@@ -80,6 +80,10 @@ object Soundcore {
         return builder.build()
     }
 
+    private fun JSONObject.optNonBlankString(key: String): String? {
+        return optString(key).trim().takeIf { it.isNotBlank() && it != "null" }
+    }
+
     fun unescapeHtml(text: String?): String? {
         if (text.isNullOrBlank()) return null
         var s = text
@@ -97,14 +101,59 @@ object Soundcore {
                 .replace("&hellip;", "…")
             s = s.replace(Regex("&#(\\d+);")) { match ->
                 val code = match.groupValues[1].toIntOrNull()
-                if (code != null) code.toChar().toString() else match.value
+                code?.toChar()?.toString() ?: match.value
             }.replace(Regex("&#x([0-9a-fA-F]+);")) { match ->
                 val code = match.groupValues[1].toIntOrNull(16)
-                if (code != null) code.toChar().toString() else match.value
+                code?.toChar()?.toString() ?: match.value
             }
         }
         val trimmed = s.trim()
         return trimmed.ifBlank { null }
+    }
+
+    private fun extractArtistsText(obj: JSONObject, moreInfo: JSONObject?): String? {
+        moreInfo?.optNonBlankString("primary_artists")?.let { return unescapeHtml(it) }
+        obj.optNonBlankString("primary_artists")?.let { return unescapeHtml(it) }
+
+        moreInfo?.optNonBlankString("singers")?.let { return unescapeHtml(it) }
+        obj.optNonBlankString("singers")?.let { return unescapeHtml(it) }
+
+        moreInfo?.optNonBlankString("artist")?.let { return unescapeHtml(it) }
+        obj.optNonBlankString("artist")?.let { return unescapeHtml(it) }
+        moreInfo?.optNonBlankString("music")?.let { return unescapeHtml(it) }
+        obj.optNonBlankString("music")?.let { return unescapeHtml(it) }
+        moreInfo?.optNonBlankString("artist_name")?.let { return unescapeHtml(it) }
+        obj.optNonBlankString("artist_name")?.let { return unescapeHtml(it) }
+        moreInfo?.optNonBlankString("primary_artist")?.let { return unescapeHtml(it) }
+        obj.optNonBlankString("primary_artist")?.let { return unescapeHtml(it) }
+
+        val artistMap = moreInfo?.optJSONObject("artistMap") ?: obj.optJSONObject("artistMap")
+        if (artistMap != null) {
+            val artistNames = mutableListOf<String>()
+            val primaryArr = artistMap.optJSONArray("primary_artists")
+                ?: artistMap.optJSONArray("artists")
+                ?: artistMap.optJSONArray("singers")
+            if (primaryArr != null) {
+                for (i in 0 until primaryArr.length()) {
+                    val artistObj = primaryArr.optJSONObject(i) ?: continue
+                    artistObj.optNonBlankString("name")?.let { artistNames.add(it) }
+                }
+            }
+            if (artistNames.isNotEmpty()) {
+                return unescapeHtml(artistNames.joinToString(", "))
+            }
+        }
+
+        val subtitle = obj.optNonBlankString("subtitle") ?: moreInfo?.optNonBlankString("subtitle")
+        if (!subtitle.isNullOrBlank()) {
+            val candidate = subtitle.substringBefore(" - ").substringBefore(" • ").trim()
+            if (candidate.isNotBlank()) {
+                return unescapeHtml(candidate)
+            }
+            return unescapeHtml(subtitle)
+        }
+
+        return null
     }
 
     private object Base64Decoder {
@@ -184,36 +233,34 @@ object Soundcore {
     }
 
     private fun parseSongObject(obj: JSONObject): SoundcoreSong? {
-        val id = obj.optString("id").takeIf { it.isNotBlank() } ?: obj.optString("perma_url")
-        if (id.isBlank()) return null
+        val id = obj.optNonBlankString("id") ?: obj.optNonBlankString("perma_url")
+        if (id.isNullOrBlank()) return null
 
-        val rawTitle = obj.optString("title").takeIf { it.isNotBlank() } ?: obj.optString("song")
+        val rawTitle = obj.optNonBlankString("title") ?: obj.optNonBlankString("song")
         val title = unescapeHtml(rawTitle) ?: return null
 
         val moreInfo = obj.optJSONObject("more_info")
-        val primaryArtists = moreInfo?.optString("primary_artists") ?: obj.optString("primary_artists")
-        val singers = moreInfo?.optString("singers") ?: obj.optString("singers")
-        val artistsText = unescapeHtml(primaryArtists.ifBlank { singers })
+        val artistsText = extractArtistsText(obj, moreInfo)
 
-        val duration = moreInfo?.optString("duration") ?: obj.optString("duration")
+        val duration = moreInfo?.optNonBlankString("duration") ?: obj.optNonBlankString("duration")
         val durationText = duration?.toLongOrNull()?.let {
             val min = it / 60
             val sec = it % 60
             String.format(Locale.ROOT, "%d:%02d", min, sec)
         }
 
-        val rawImage = (obj.optString("image").takeIf { it.isNotBlank() }
-            ?: moreInfo?.optString("image") ?: "").replace("150x150", "500x500").replace("50x50", "500x500")
+        val rawImage = (obj.optNonBlankString("image")
+            ?: moreInfo?.optNonBlankString("image") ?: "").replace("150x150", "500x500").replace("50x50", "500x500")
         val thumbnailUrl = if (rawImage.isNotBlank()) rawImage.replace("http://", "https://") else null
 
-        val encUrl = (moreInfo?.optString("encrypted_media_url") ?: obj.optString("encrypted_media_url")).takeIf { !it.isNullOrBlank() }
+        val encUrl = (moreInfo?.optNonBlankString("encrypted_media_url") ?: obj.optNonBlankString("encrypted_media_url"))
         var streamUrl: String? = encUrl?.let { decryptUrl(it) }
         if (streamUrl.isNullOrBlank()) {
-            val mediaUrl = (moreInfo?.optString("media_url") ?: obj.optString("media_url")).takeIf { !it.isNullOrBlank() }
+            val mediaUrl = (moreInfo?.optNonBlankString("media_url") ?: obj.optNonBlankString("media_url"))
             streamUrl = mediaUrl?.replace("http://", "https://")
         }
 
-        val albumTitle = unescapeHtml(moreInfo?.optString("album") ?: obj.optString("album"))
+        val albumTitle = unescapeHtml(moreInfo?.optNonBlankString("album") ?: obj.optNonBlankString("album"))
 
         return SoundcoreSong(
             id = id,
@@ -286,14 +333,13 @@ object Soundcore {
 
                 for (i in 0 until resultsArray.length()) {
                     val obj = resultsArray.optJSONObject(i) ?: continue
-                    val id = obj.optString("id").takeIf { it.isNotBlank() } ?: obj.optString("albumid")
-                    if (id.isBlank()) continue
-                    val title = unescapeHtml(obj.optString("title").takeIf { it.isNotBlank() } ?: obj.optString("name") ?: obj.optString("album")) ?: continue
-                    val rawImage = obj.optString("image").replace("150x150", "500x500").replace("50x50", "500x500")
+                    val id = obj.optNonBlankString("id") ?: obj.optNonBlankString("albumid") ?: continue
+                    val title = unescapeHtml(obj.optNonBlankString("title") ?: obj.optNonBlankString("name") ?: obj.optNonBlankString("album")) ?: continue
+                    val rawImage = (obj.optNonBlankString("image") ?: "").replace("150x150", "500x500").replace("50x50", "500x500")
                     val thumbnailUrl = if (rawImage.isNotBlank()) rawImage.replace("http://", "https://") else null
                     val moreInfo = obj.optJSONObject("more_info")
-                    val artistsText = unescapeHtml(moreInfo?.optString("music") ?: obj.optString("music") ?: obj.optString("artist") ?: obj.optString("primary_artists"))
-                    val year = moreInfo?.optString("year") ?: obj.optString("year")
+                    val artistsText = extractArtistsText(obj, moreInfo)
+                    val year = moreInfo?.optNonBlankString("year") ?: obj.optNonBlankString("year")
 
                     list.add(
                         SoundcoreAlbum(
@@ -318,14 +364,13 @@ object Soundcore {
 
                     for (i in 0 until albumsArray.length()) {
                         val obj = albumsArray.optJSONObject(i) ?: continue
-                        val id = obj.optString("id").takeIf { it.isNotBlank() } ?: obj.optString("albumid")
-                        if (id.isBlank()) continue
-                        val title = unescapeHtml(obj.optString("title").takeIf { it.isNotBlank() } ?: obj.optString("name") ?: obj.optString("album")) ?: continue
-                        val rawImage = obj.optString("image").replace("150x150", "500x500").replace("50x50", "500x500")
+                        val id = obj.optNonBlankString("id") ?: obj.optNonBlankString("albumid") ?: continue
+                        val title = unescapeHtml(obj.optNonBlankString("title") ?: obj.optNonBlankString("name") ?: obj.optNonBlankString("album")) ?: continue
+                        val rawImage = (obj.optNonBlankString("image") ?: "").replace("150x150", "500x500").replace("50x50", "500x500")
                         val thumbnailUrl = if (rawImage.isNotBlank()) rawImage.replace("http://", "https://") else null
                         val moreInfo = obj.optJSONObject("more_info")
-                        val artistsText = unescapeHtml(moreInfo?.optString("music") ?: obj.optString("music") ?: obj.optString("artist") ?: obj.optString("primary_artists"))
-                        val year = moreInfo?.optString("year") ?: obj.optString("year")
+                        val artistsText = extractArtistsText(obj, moreInfo)
+                        val year = moreInfo?.optNonBlankString("year") ?: obj.optNonBlankString("year")
 
                         list.add(
                             SoundcoreAlbum(
@@ -348,14 +393,13 @@ object Soundcore {
                     val resultsArray = json?.optJSONArray("results") ?: json?.optJSONArray("albums") ?: JSONArray()
                     for (i in 0 until resultsArray.length()) {
                         val obj = resultsArray.optJSONObject(i) ?: continue
-                        val id = obj.optString("id").takeIf { it.isNotBlank() } ?: obj.optString("albumid")
-                        if (id.isBlank()) continue
-                        val title = unescapeHtml(obj.optString("title").takeIf { it.isNotBlank() } ?: obj.optString("name") ?: obj.optString("album")) ?: continue
-                        val rawImage = obj.optString("image").replace("150x150", "500x500").replace("50x50", "500x500")
+                        val id = obj.optNonBlankString("id") ?: obj.optNonBlankString("albumid") ?: continue
+                        val title = unescapeHtml(obj.optNonBlankString("title") ?: obj.optNonBlankString("name") ?: obj.optNonBlankString("album")) ?: continue
+                        val rawImage = (obj.optNonBlankString("image") ?: "").replace("150x150", "500x500").replace("50x50", "500x500")
                         val thumbnailUrl = if (rawImage.isNotBlank()) rawImage.replace("http://", "https://") else null
                         val moreInfo = obj.optJSONObject("more_info")
-                        val artistsText = unescapeHtml(moreInfo?.optString("music") ?: obj.optString("music") ?: obj.optString("artist") ?: obj.optString("primary_artists"))
-                        val year = moreInfo?.optString("year") ?: obj.optString("year")
+                        val artistsText = extractArtistsText(obj, moreInfo)
+                        val year = moreInfo?.optNonBlankString("year") ?: obj.optNonBlankString("year")
 
                         list.add(
                             SoundcoreAlbum(
@@ -395,10 +439,9 @@ object Soundcore {
 
                 for (i in 0 until resultsArray.length()) {
                     val obj = resultsArray.optJSONObject(i) ?: continue
-                    val id = obj.optString("id").takeIf { it.isNotBlank() } ?: obj.optString("artistid")
-                    if (id.isBlank()) continue
-                    val title = unescapeHtml(obj.optString("name").takeIf { it.isNotBlank() } ?: obj.optString("title")) ?: continue
-                    val rawImage = obj.optString("image").replace("150x150", "500x500").replace("50x50", "500x500")
+                    val id = obj.optNonBlankString("id") ?: obj.optNonBlankString("artistid") ?: continue
+                    val title = unescapeHtml(obj.optNonBlankString("name") ?: obj.optNonBlankString("title") ?: obj.optNonBlankString("artist")) ?: continue
+                    val rawImage = (obj.optNonBlankString("image") ?: "").replace("150x150", "500x500").replace("50x50", "500x500")
                     val thumbnailUrl = if (rawImage.isNotBlank()) rawImage.replace("http://", "https://") else null
 
                     list.add(
@@ -422,10 +465,9 @@ object Soundcore {
 
                     for (i in 0 until artistsArray.length()) {
                         val obj = artistsArray.optJSONObject(i) ?: continue
-                        val id = obj.optString("id").takeIf { it.isNotBlank() } ?: obj.optString("artistid")
-                        if (id.isBlank()) continue
-                        val title = unescapeHtml(obj.optString("name").takeIf { it.isNotBlank() } ?: obj.optString("title")) ?: continue
-                        val rawImage = obj.optString("image").replace("150x150", "500x500").replace("50x50", "500x500")
+                        val id = obj.optNonBlankString("id") ?: obj.optNonBlankString("artistid") ?: continue
+                        val title = unescapeHtml(obj.optNonBlankString("name") ?: obj.optNonBlankString("title") ?: obj.optNonBlankString("artist")) ?: continue
+                        val rawImage = (obj.optNonBlankString("image") ?: "").replace("150x150", "500x500").replace("50x50", "500x500")
                         val thumbnailUrl = if (rawImage.isNotBlank()) rawImage.replace("http://", "https://") else null
 
                         list.add(
@@ -447,10 +489,9 @@ object Soundcore {
                     val resultsArray = json?.optJSONArray("results") ?: json?.optJSONArray("artists") ?: JSONArray()
                     for (i in 0 until resultsArray.length()) {
                         val obj = resultsArray.optJSONObject(i) ?: continue
-                        val id = obj.optString("id").takeIf { it.isNotBlank() } ?: obj.optString("artistid")
-                        if (id.isBlank()) continue
-                        val title = unescapeHtml(obj.optString("name").takeIf { it.isNotBlank() } ?: obj.optString("title")) ?: continue
-                        val rawImage = obj.optString("image").replace("150x150", "500x500").replace("50x50", "500x500")
+                        val id = obj.optNonBlankString("id") ?: obj.optNonBlankString("artistid") ?: continue
+                        val title = unescapeHtml(obj.optNonBlankString("name") ?: obj.optNonBlankString("title") ?: obj.optNonBlankString("artist")) ?: continue
+                        val rawImage = (obj.optNonBlankString("image") ?: "").replace("150x150", "500x500").replace("50x50", "500x500")
                         val thumbnailUrl = if (rawImage.isNotBlank()) rawImage.replace("http://", "https://") else null
 
                         list.add(
@@ -485,12 +526,11 @@ object Soundcore {
 
                 for (i in 0 until resultsArray.length()) {
                     val obj = resultsArray.optJSONObject(i) ?: continue
-                    val id = obj.optString("id").takeIf { it.isNotBlank() } ?: obj.optString("listid")
-                    if (id.isBlank()) continue
-                    val title = unescapeHtml(obj.optString("title").takeIf { it.isNotBlank() } ?: obj.optString("listname") ?: obj.optString("name")) ?: continue
-                    val rawImage = obj.optString("image").replace("150x150", "500x500").replace("50x50", "500x500")
+                    val id = obj.optNonBlankString("id") ?: obj.optNonBlankString("listid") ?: continue
+                    val title = unescapeHtml(obj.optNonBlankString("title") ?: obj.optNonBlankString("listname") ?: obj.optNonBlankString("name")) ?: continue
+                    val rawImage = (obj.optNonBlankString("image") ?: "").replace("150x150", "500x500").replace("50x50", "500x500")
                     val thumbnailUrl = if (rawImage.isNotBlank()) rawImage.replace("http://", "https://") else null
-                    val songCount = obj.optJSONObject("more_info")?.optString("song_count")?.toIntOrNull() ?: obj.optString("song_count").toIntOrNull()
+                    val songCount = obj.optJSONObject("more_info")?.optNonBlankString("song_count")?.toIntOrNull() ?: obj.optNonBlankString("song_count")?.toIntOrNull()
 
                     list.add(
                         SoundcorePlaylist(
@@ -568,16 +608,17 @@ object Soundcore {
                 val trendingArray = json.optJSONArray("new_trending") ?: json.optJSONArray("top_shows") ?: JSONArray()
                 for (i in 0 until trendingArray.length()) {
                     val obj = trendingArray.optJSONObject(i) ?: continue
-                    val type = obj.optString("type")
+                    val type = obj.optNonBlankString("type")
                     if (type == "song" || obj.has("song")) {
                         parseSongObject(obj)?.let { trendingSongs.add(it) }
                     } else if (type == "album") {
-                        val id = obj.optString("id")
-                        val title = unescapeHtml(obj.optString("title").takeIf { it.isNotBlank() } ?: obj.optString("name"))
-                        val rawImg = obj.optString("image").replace("150x150", "500x500").replace("50x50", "500x500")
+                        val id = obj.optNonBlankString("id") ?: continue
+                        val title = unescapeHtml(obj.optNonBlankString("title") ?: obj.optNonBlankString("name"))
+                        val rawImg = (obj.optNonBlankString("image") ?: "").replace("150x150", "500x500").replace("50x50", "500x500")
                         val img = if (rawImg.isNotBlank()) rawImg.replace("http://", "https://") else null
-                        title?.takeIf { id.isNotBlank() }?.let {
-                            topAlbums.add(SoundcoreAlbum(id = id, title = it, thumbnailUrl = img))
+                        val artistsText = extractArtistsText(obj, obj.optJSONObject("more_info"))
+                        title?.let {
+                            topAlbums.add(SoundcoreAlbum(id = id, title = it, thumbnailUrl = img, artistsText = artistsText))
                         }
                     }
                 }
@@ -585,11 +626,11 @@ object Soundcore {
                 val playlistsArray = json.optJSONArray("top_playlists") ?: json.optJSONArray("charts") ?: JSONArray()
                 for (i in 0 until playlistsArray.length()) {
                     val obj = playlistsArray.optJSONObject(i) ?: continue
-                    val id = obj.optString("id").takeIf { it.isNotBlank() } ?: obj.optString("listid")
-                    val title = unescapeHtml(obj.optString("title").takeIf { it.isNotBlank() } ?: obj.optString("listname"))
-                    val rawImg = obj.optString("image").replace("150x150", "500x500").replace("50x50", "500x500")
+                    val id = obj.optNonBlankString("id") ?: obj.optNonBlankString("listid") ?: continue
+                    val title = unescapeHtml(obj.optNonBlankString("title") ?: obj.optNonBlankString("listname"))
+                    val rawImg = (obj.optNonBlankString("image") ?: "").replace("150x150", "500x500").replace("50x50", "500x500")
                     val img = if (rawImg.isNotBlank()) rawImg.replace("http://", "https://") else null
-                    title?.takeIf { id.isNotBlank() }?.let {
+                    title?.let {
                         topPlaylists.add(SoundcorePlaylist(id = id, title = it, thumbnailUrl = img))
                     }
                 }
@@ -597,12 +638,13 @@ object Soundcore {
                 val albumsArray = json.optJSONArray("new_albums") ?: JSONArray()
                 for (i in 0 until albumsArray.length()) {
                     val obj = albumsArray.optJSONObject(i) ?: continue
-                    val id = obj.optString("id")
-                    val title = unescapeHtml(obj.optString("title").takeIf { it.isNotBlank() } ?: obj.optString("name"))
-                    val rawImg = obj.optString("image").replace("150x150", "500x500").replace("50x50", "500x500")
+                    val id = obj.optNonBlankString("id") ?: continue
+                    val title = unescapeHtml(obj.optNonBlankString("title") ?: obj.optNonBlankString("name"))
+                    val rawImg = (obj.optNonBlankString("image") ?: "").replace("150x150", "500x500").replace("50x50", "500x500")
                     val img = if (rawImg.isNotBlank()) rawImg.replace("http://", "https://") else null
-                    title?.takeIf { id.isNotBlank() && topAlbums.none { a -> a.id == id } }?.let {
-                        topAlbums.add(SoundcoreAlbum(id = id, title = it, thumbnailUrl = img))
+                    val artistsText = extractArtistsText(obj, obj.optJSONObject("more_info"))
+                    title?.takeIf { topAlbums.none { a -> a.id == id } }?.let {
+                        topAlbums.add(SoundcoreAlbum(id = id, title = it, thumbnailUrl = img, artistsText = artistsText))
                     }
                 }
 
@@ -625,12 +667,12 @@ object Soundcore {
             client.newCall(buildRequest(url)).execute().use { response ->
                 val body = response.body?.string() ?: ""
                 val json = JSONObject(body)
-                val rawTitle = json.optString("title").takeIf { it.isNotBlank() } ?: json.optString("name")
+                val rawTitle = json.optNonBlankString("title") ?: json.optNonBlankString("name")
                 val title = unescapeHtml(rawTitle) ?: "Album"
-                val rawImage = json.optString("image").replace("150x150", "500x500").replace("50x50", "500x500")
+                val rawImage = (json.optNonBlankString("image") ?: "").replace("150x150", "500x500").replace("50x50", "500x500")
                 val thumbnailUrl = if (rawImage.isNotBlank()) rawImage.replace("http://", "https://") else null
-                val artistsText = unescapeHtml(json.optString("primary_artists") ?: json.optString("artist_name"))
-                val year = json.optString("year")
+                val artistsText = extractArtistsText(json, json.optJSONObject("more_info"))
+                val year = json.optNonBlankString("year") ?: json.optJSONObject("more_info")?.optNonBlankString("year")
 
                 val songsArray = json.optJSONArray("songs") ?: JSONArray()
                 val songs = mutableListOf<SoundcoreSong>()
@@ -667,7 +709,7 @@ object Soundcore {
                 json.optJSONObject("topquery")?.optJSONArray("data")?.let { topQueryData ->
                     for (i in 0 until topQueryData.length()) {
                         val item = topQueryData.optJSONObject(i) ?: continue
-                        val title = unescapeHtml(item.optString("title").takeIf { it.isNotBlank() } ?: item.optString("query"))
+                        val title = unescapeHtml(item.optNonBlankString("title") ?: item.optNonBlankString("query"))
                         if (!title.isNullOrBlank()) suggestions.add(title)
                     }
                 }
@@ -675,7 +717,7 @@ object Soundcore {
                 json.optJSONObject("songs")?.optJSONArray("data")?.let { songsData ->
                     for (i in 0 until songsData.length()) {
                         val item = songsData.optJSONObject(i) ?: continue
-                        val title = unescapeHtml(item.optString("title"))
+                        val title = unescapeHtml(item.optNonBlankString("title"))
                         if (!title.isNullOrBlank()) suggestions.add(title)
                     }
                 }
@@ -683,7 +725,7 @@ object Soundcore {
                 json.optJSONObject("albums")?.optJSONArray("data")?.let { albumsData ->
                     for (i in 0 until albumsData.length()) {
                         val item = albumsData.optJSONObject(i) ?: continue
-                        val title = unescapeHtml(item.optString("title"))
+                        val title = unescapeHtml(item.optNonBlankString("title"))
                         if (!title.isNullOrBlank()) suggestions.add(title)
                     }
                 }
@@ -786,7 +828,7 @@ val SoundcoreSong.asSoundcoreSongItem: Innertube.SongItem
             name = title,
             endpoint = NavigationEndpoint.Endpoint.Watch(videoId = id)
         ),
-        authors = artistsText?.let { artists ->
+        authors = artistsText?.takeIf { it.isNotBlank() }?.let { artists ->
             listOf(Innertube.Info(name = artists, endpoint = NavigationEndpoint.Endpoint.Browse(browseId = "soundcore_artist:$id")))
         },
         album = albumTitle?.let {
@@ -802,7 +844,7 @@ val SoundcoreAlbum.asSoundcoreAlbumItem: Innertube.AlbumItem
             name = title,
             endpoint = NavigationEndpoint.Endpoint.Browse(browseId = "soundcore_album:$id")
         ),
-        authors = artistsText?.let {
+        authors = artistsText?.takeIf { it.isNotBlank() }?.let {
             listOf(Innertube.Info(name = it, endpoint = null))
         },
         year = year,

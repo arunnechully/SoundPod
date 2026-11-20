@@ -23,8 +23,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -45,8 +47,12 @@ import com.github.soundpod.ui.items.LocalSongItem
 import com.github.soundpod.ui.items.PlaylistItem
 import com.github.soundpod.ui.items.SongItem
 import com.github.soundpod.ui.items.VideoItem
+import com.github.soundpod.utils.PlaybackSource
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlay
+import com.github.soundpod.utils.getEnum
+import com.github.soundpod.utils.playbackSourceKey
+import com.github.soundpod.utils.preferences
 
 val SoundcoreSong.asSong: Song
     get() = Song(
@@ -73,6 +79,8 @@ fun OnlineSearch(
     onPlaylistClick: (String) -> Unit,
     onViewAllClick: (String) -> Unit
 ) {
+    val context = LocalContext.current
+    val playbackSource = remember { context.preferences.getEnum(playbackSourceKey, PlaybackSource.Automatic) }
     val (colorPalette) = LocalAppearance.current
     val binder = LocalPlayerServiceBinder.current
     val menuState = LocalMenuState.current
@@ -105,8 +113,8 @@ fun OnlineSearch(
             contentPadding = PaddingValues(bottom = 16.dp),
             modifier = Modifier.fillMaxSize()
         ) {
-            // Soundcore Songs Section
-            if (soundcoreResults?.isNotEmpty() == true) {
+            // Soundcore Songs Section (shown separately only in non-Automatic mode)
+            if (playbackSource != PlaybackSource.Automatic && soundcoreResults?.isNotEmpty() == true) {
                 item(span = { GridItemSpan(maxCurrentLineSpan) }) {
                     SearchSectionHeader(
                         title = "Soundcore",
