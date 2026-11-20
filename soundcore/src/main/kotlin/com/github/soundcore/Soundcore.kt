@@ -738,87 +738,98 @@ object Soundcore {
         }
     }
 
-    private fun normalize(text: String): String {
-        return text.lowercase(Locale.ROOT)
-            .replace(Regex("\\([^)]*\\)|\\[[^]]*]"), "")
-            .replace(Regex("[^a-z0-9\\s]"), "")
-            .trim()
-            .replace(Regex("\\s+"), " ")
-    }
-
-    fun resolveSongUrl(songId: String, title: String?, artistsText: String?): String? {
+    fun resolveSongUrl(
+        songId: String,
+        title: String?,
+        artistsText: String?,
+        albumTitle: String? = null,
+        durationText: String? = null,
+    ): String? {
         if (songId.startsWith("http://") || songId.startsWith("https://")) return songId
 
-        val directSong = getSongDetails(songId)
-        val directUrl = directSong?.streamUrl
-        if (directUrl != null) {
-            return directUrl
+        val directSong = runCatching { getSongDetails(songId) }.getOrNull()
+        directSong?.streamUrl?.takeIf { it.isNotBlank() }?.let { return it }
+
+        val resolvedTitle = title?.trim().takeIf { !it.isNullOrBlank() } ?: return null
+        val resolvedArtists = artistsText?.trim() ?: ""
+
+        val signals = SoundcoreMatcher.SongSignals(
+            title = resolvedTitle,
+            artists = resolvedArtists,
+            album = albumTitle?.trim(),
+            durationSeconds = SoundcoreMatcher.parseDurationSeconds(durationText),
+        )
+        val match = SoundcoreMatcher.resolveMatch(
+            signals = signals,
+            searcher = { query -> searchSongs(query) },
+            maxQueriesRun = 3,
+        )
+
+        if (match != null) {
+            System.err.println(
+                "SoundPod-Soundcore: Matched '$resolvedTitle' by '$resolvedArtists' " +
+                "→ '${match.title}' by '${match.artistsText}' (id=${match.id})"
+            )
+            return match.streamUrl
         }
 
-        val targetTitle = title?.let { normalize(it) } ?: ""
-        val targetArtists = artistsText?.let { normalize(it) } ?: ""
-
-        val queries = listOfNotNull(
-            if (targetTitle.isNotBlank()) "$targetTitle $targetArtists" else null,
-            targetTitle.takeIf { it.isNotBlank() },
-            songId.takeIf { !it.contains("http") }
-        ).distinct()
-
-        for (query in queries) {
-            val results = searchSongs(query)
-            if (results.isEmpty()) continue
-
-            var bestMatch: SoundcoreSong? = null
-            var bestScore = -1.0
-
-            for (song in results) {
-                val songTitle = normalize(song.title)
-                val songArtists = normalize(song.artistsText ?: "")
-
-                var score = 0.0
-                if (targetTitle.isNotBlank()) {
-                    if (songTitle == targetTitle) {
-                        score += 10.0
-                    } else if (songTitle.contains(targetTitle) || targetTitle.contains(songTitle)) {
-                        score += 5.0
-                    } else {
-                        val targetTokens = targetTitle.split("\\s+".toRegex()).toSet()
-                        val songTokens = songTitle.split("\\s+".toRegex()).toSet()
-                        val intersection = targetTokens.intersect(songTokens)
-                        if (intersection.isNotEmpty()) {
-                            score += (intersection.size.toDouble() / targetTokens.size.toDouble()) * 3.0
-                        }
-                    }
-                }
-
-                if (targetArtists.isNotBlank() && songArtists.isNotBlank()) {
-                    if (songArtists.contains(targetArtists) || targetArtists.contains(songArtists)) {
-                        score += 4.0
-                    } else {
-                        val targetTokens = targetArtists.split("\\s+".toRegex()).toSet()
-                        val songTokens = songArtists.split("\\s+".toRegex()).toSet()
-                        val intersection = targetTokens.intersect(songTokens)
-                        if (intersection.isNotEmpty()) {
-                            score += (intersection.size.toDouble() / targetTokens.size.toDouble()) * 2.0
-                        }
-                    }
-                }
-
-                if (score > bestScore) {
-                    bestScore = score
-                    bestMatch = song
-                }
-            }
-
-            val streamUrl = bestMatch?.streamUrl
-            if (streamUrl != null) {
-                if (targetTitle.isBlank() || bestScore >= 2.0 || results.size == 1) {
-                    return streamUrl
-                }
-            }
-        }
-
+        System.err.println("SoundPod-Soundcore: No match found for '$resolvedTitle' by '$resolvedArtists'")
         return null
+    }
+
+    fun matchInnertubeToSoundcore(innertubeItem: Innertube.SongItem): SoundcoreSong? {
+        val title = innertubeItem.info?.name?.trim().takeIf { !it.isNullOrBlank() } ?: return null
+        val artists = innertubeItem.authors
+            ?.mapNotNull { it.name?.trim() }
+            ?.filter { it.isNotBlank() }
+            ?.joinToString(", ")
+            .orEmpty()
+        val album = innertubeItem.album?.name?.trim()
+        val durationSeconds = SoundcoreMatcher.parseDurationSeconds(innertubeItem.durationText)
+
+        val signals = SoundcoreMatcher.SongSignals(
+            title = title,
+            artists = artists,
+            album = album,
+            durationSeconds = durationSeconds,
+        )
+
+        return SoundcoreMatcher.resolveMatch(
+            signals = signals,
+            searcher = { query -> searchSongs(query) },
+            maxQueriesRun = 3,
+        )
+    }
+
+    fun matchInnertubeToSoundcoreArtist(innertubeItem: Innertube.ArtistItem): SoundcoreArtist? {
+        val name = innertubeItem.info?.name?.trim().takeIf { !it.isNullOrBlank() } ?: return null
+        val signals = SoundcoreMatcher.ArtistSignals(name = name)
+        return SoundcoreMatcher.resolveArtistMatch(
+            signals = signals,
+            searcher = { query -> searchArtists(query) },
+            maxQueriesRun = 2,
+        )
+    }
+
+    fun matchInnertubeToSoundcoreAlbum(innertubeItem: Innertube.AlbumItem): SoundcoreAlbum? {
+        val title = innertubeItem.info?.name?.trim().takeIf { !it.isNullOrBlank() } ?: return null
+        val artists = innertubeItem.authors
+            ?.mapNotNull { it.name?.trim() }
+            ?.filter { it.isNotBlank() }
+            ?.joinToString(", ")
+            .takeIf { !it.isNullOrBlank() }
+        val year = innertubeItem.year?.trim()
+
+        val signals = SoundcoreMatcher.AlbumSignals(
+            title = title,
+            artists = artists,
+            year = year,
+        )
+        return SoundcoreMatcher.resolveAlbumMatch(
+            signals = signals,
+            searcher = { query -> searchAlbums(query) },
+            maxQueriesRun = 3,
+        )
     }
 }
 

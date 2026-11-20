@@ -128,12 +128,10 @@ class PreCacheManager(
     }
 
     private suspend fun preCacheSong(videoId: String, length: Long, mediaItem: MediaItem? = null) {
-        Log.d("SoundPod-PreCache", "Pre-caching $videoId (requested length: $length)...")
+        Log.d("SoundPod-PreCache", "Pre-caching $videoId with NewPipe ONLY (requested length: $length)...")
 
         // Ensure song exists in DB to avoid FK constraint crashes
         ensureSongExists(videoId, mediaItem)
-
-        val playbackSource = MainApplication.appContext.preferences.getEnum(playbackSourceKey, PlaybackSource.Automatic)
 
         var finalUri: android.net.Uri? = null
         var contentLength: Long? = null
@@ -141,59 +139,39 @@ class PreCacheManager(
         var itag: Int? = null
         var mimeType: String? = null
 
-        if (playbackSource == PlaybackSource.Automatic || playbackSource == PlaybackSource.Innertube) {
-            val response = Innertube.player(videoId)?.getOrNull()
-            if (response != null) {
-                NewPipeDownloader.getInstance().preCache(videoId, response)
-                val bestFormat = response.streamingData?.highestQualityFormat
-                finalUri = bestFormat?.url?.toUri()
-                contentLength = bestFormat?.contentLength
-                bitrate = bestFormat?.bitrate
-                itag = bestFormat?.itag
-                mimeType = bestFormat?.mimeType
+        // USE EXCLUSIVELY NEWPIPE EXTRACTOR FOR PRE-CACHING
+        runCatching {
+            val streamExtractor = ServiceList.YouTube.getStreamExtractor("https://www.youtube.com/watch?v=$videoId")
+            streamExtractor.fetchPage()
+
+            val audioStreams = streamExtractor.audioStreams
+            val bestAudio = audioStreams
+                .filter { it.codec?.lowercase(Locale.ROOT) == "opus" }
+                .maxByOrNull { it.averageBitrate }
+                ?: audioStreams.maxByOrNull { it.averageBitrate }
+
+            if (bestAudio != null) {
+                finalUri = bestAudio.content.toUri()
+                bitrate = bestAudio.averageBitrate.toLong()
+                itag = bestAudio.itag
+                mimeType = "audio/webm"
+                contentLength = bestAudio.itagItem?.contentLength ?: -1L
+            } else {
+                val bestVideo = streamExtractor.videoStreams.maxByOrNull { it.bitrate }
+                    ?: throw Exception("No playable streams found by NewPipe for $videoId")
+                finalUri = bestVideo.content.toUri()
+                bitrate = bestVideo.bitrate.toLong()
+                itag = bestVideo.itag
+                mimeType = "video/mp4"
+                contentLength = bestVideo.itagItem?.contentLength ?: -1L
             }
-        }
 
-        if (finalUri == null) {
-            if (playbackSource == PlaybackSource.Innertube) {
-                Log.e("SoundPod-PreCache", "Innertube resolution failed for $videoId")
-                return
+            if (contentLength == -1L) {
+                contentLength = fetchContentLength(finalUri.toString())
             }
-            
-            // USE NEWPIPE EXTRACTOR
-            runCatching {
-                val streamExtractor = ServiceList.YouTube.getStreamExtractor("https://www.youtube.com/watch?v=$videoId")
-                streamExtractor.fetchPage()
-
-                val audioStreams = streamExtractor.audioStreams
-                val bestAudio = audioStreams
-                    .filter { it.codec?.lowercase(Locale.ROOT) == "opus" }
-                    .maxByOrNull { it.averageBitrate }
-                    ?: audioStreams.maxByOrNull { it.averageBitrate }
-
-                if (bestAudio != null) {
-                    finalUri = bestAudio.content.toUri()
-                    bitrate = bestAudio.averageBitrate.toLong()
-                    itag = bestAudio.itag
-                    mimeType = "audio/webm"
-                    contentLength = bestAudio.itagItem?.contentLength ?: -1L
-                } else {
-                    val bestVideo = streamExtractor.videoStreams.maxByOrNull { it.bitrate }
-                        ?: throw Exception("No playable streams found by NewPipe for $videoId")
-                    finalUri = bestVideo.content.toUri()
-                    bitrate = bestVideo.bitrate.toLong()
-                    itag = bestVideo.itag
-                    mimeType = "video/mp4"
-                    contentLength = bestVideo.itagItem?.contentLength ?: -1L
-                }
-
-                if (contentLength == -1L) {
-                    contentLength = fetchContentLength(finalUri.toString())
-                }
-            }.onFailure { e ->
-                Log.e("SoundPod-Debug", "NewPipe resolution failed in PreCache for $videoId", e)
-                return
-            }
+        }.onFailure { e ->
+            Log.e("SoundPod-PreCache", "NewPipe resolution failed in PreCache for $videoId", e)
+            return
         }
 
         if (finalUri == null) return
@@ -236,29 +214,9 @@ class PreCacheManager(
             .setLength(actualLength)
             .build()
 
-        val upstreamDataSource = if (playbackSource == PlaybackSource.NewPipe) {
-            OkHttpDataSource.Factory(okHttpClient)
-                .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-                .createDataSource()
-        } else {
-            OkHttpDataSource.Factory(okHttpClient)
-                .setUserAgent(PlayerMediaSourceProvider.DEFAULT_USER_AGENT)
-                .setDefaultRequestProperties(buildMap {
-                    put("Referer", "https://www.youtube.com/")
-                    put("Origin", "https://www.youtube.com")
-                    put("X-YouTube-Client-Name", "28")
-                    put("X-YouTube-Client-Version", "1.74.31")
-                    Innertube.visitorData?.let { put("X-Goog-Visitor-Id", it) }
-                    Innertube.poToken?.let { put("X-YouTube-Po-Token", it) }
-                    Innertube.cookies?.let { 
-                        put("Cookie", it)
-                        Innertube.generateAuthHeader(it)?.let { auth ->
-                            put("Authorization", auth)
-                        }
-                    }
-                })
-                .createDataSource()
-        }
+        val upstreamDataSource = OkHttpDataSource.Factory(okHttpClient)
+            .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+            .createDataSource()
 
         val cacheDataSource = CacheDataSource.Factory()
             .setCache(cacheManager.cache)
