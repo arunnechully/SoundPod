@@ -38,6 +38,7 @@ import com.github.soundpod.utils.stopAfterCurrentKey
 import com.github.soundpod.utils.volumeNormalizationKey
 import kotlinx.coroutines.delay
 import java.util.Locale
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun PlayerSettingsContent(
@@ -67,9 +68,9 @@ fun PlayerSettingsContent(
 
     androidx.compose.runtime.LaunchedEffect(highlightPlaybackSource) {
         if (highlightPlaybackSource) {
-            delay(500)
+            delay(500.milliseconds)
             isHighlighted = true
-            delay(2000)
+            delay(2000.milliseconds)
             isHighlighted = false
         }
     }
@@ -155,13 +156,15 @@ fun PlayerSettingsContent(
         )
     }
     SettingsGroup {
-        EnumValueSelectorSettingsEntry(
+        ValueSelectorSettingsEntry(
             modifier = Modifier.background(highlightColor),
             icon = IconSource.Icon(painterResource(R.drawable.musical_notes)),
             title = stringResource(R.string.playback_source),
             selectedValue = playbackSource,
+            values = listOf(PlaybackSource.Automatic, PlaybackSource.NewPipe),
             onValueSelected = { playbackSource = it },
             valueText = { stringResource(it.resourceId) },
+            descriptionColor = LocalAppearance.current.colorPalette.accent,
             isEnabled = true
         )
     }
