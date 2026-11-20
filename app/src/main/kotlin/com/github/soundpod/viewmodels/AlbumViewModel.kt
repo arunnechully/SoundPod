@@ -6,7 +6,6 @@ import com.github.innertube.Innertube
 import com.github.innertube.models.Thumbnail
 import com.github.innertube.requests.albumPage
 import com.github.soundcore.Soundcore
-import com.github.soundcore.asMediaItem
 import com.github.soundcore.asSoundcoreSongItem
 import com.github.soundpod.db
 import com.github.soundpod.models.Album

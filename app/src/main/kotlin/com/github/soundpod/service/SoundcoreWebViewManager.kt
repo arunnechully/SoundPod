@@ -1,4 +1,4 @@
-package com.github.soundcore
+package com.github.soundpod.service
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -8,12 +8,17 @@ import android.util.Log
 import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import com.github.soundcore.Soundcore
 
 @SuppressLint("SetJavaScriptEnabled", "StaticFieldLeak")
 object SoundcoreWebViewManager {
     private var webView: WebView? = null
 
     fun initialize(context: Context) {
+        Soundcore.cookieProvider = {
+            CookieManager.getInstance().getCookie("https://www.jiosaavn.com")
+        }
+
         if (webView != null) return
 
         val handler = Handler(Looper.getMainLooper())

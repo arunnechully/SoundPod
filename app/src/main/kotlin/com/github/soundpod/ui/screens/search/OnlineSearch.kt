@@ -32,7 +32,6 @@ import androidx.media3.common.util.UnstableApi
 import com.github.core.ui.LocalAppearance
 import com.github.innertube.Innertube
 import com.github.soundcore.SoundcoreSong
-import com.github.soundcore.asMediaItem
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.models.LocalMenuState

@@ -1,10 +1,5 @@
 package com.github.soundcore
 
-import android.annotation.SuppressLint
-import android.util.Base64
-import android.util.Log
-import androidx.core.net.toUri
-import androidx.core.text.HtmlCompat
 import com.github.innertube.Innertube
 import com.github.innertube.models.NavigationEndpoint
 import com.github.innertube.models.Thumbnail
@@ -65,6 +60,8 @@ object Soundcore {
 
     private const val USER_AGENT = "Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Mobile Safari/537.36"
 
+    var cookieProvider: (() -> String?)? = null
+
     private fun buildRequest(url: String): Request {
         val builder = Request.Builder()
             .url(url)
@@ -74,8 +71,7 @@ object Soundcore {
             .header("Accept-Language", "en-US,en;q=0.9")
 
         runCatching {
-            val cookieManager = android.webkit.CookieManager.getInstance()
-            val cookies = cookieManager.getCookie("https://www.jiosaavn.com")
+            val cookies = cookieProvider?.invoke()
             if (!cookies.isNullOrBlank()) {
                 builder.header("Cookie", cookies)
             }
@@ -86,8 +82,70 @@ object Soundcore {
 
     fun unescapeHtml(text: String?): String? {
         if (text.isNullOrBlank()) return null
-        val unescaped = HtmlCompat.fromHtml(text, HtmlCompat.FROM_HTML_MODE_LEGACY).toString().trim()
-        return unescaped.ifBlank { null }
+        var s = text
+        if (s.contains("&")) {
+            s = s.replace("&amp;", "&")
+                .replace("&quot;", "\"")
+                .replace("&apos;", "'")
+                .replace("&#039;", "'")
+                .replace("&#39;", "'")
+                .replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("&nbsp;", " ")
+                .replace("&ndash;", "–")
+                .replace("&mdash;", "—")
+                .replace("&hellip;", "…")
+            s = s.replace(Regex("&#(\\d+);")) { match ->
+                val code = match.groupValues[1].toIntOrNull()
+                if (code != null) code.toChar().toString() else match.value
+            }.replace(Regex("&#x([0-9a-fA-F]+);")) { match ->
+                val code = match.groupValues[1].toIntOrNull(16)
+                if (code != null) code.toChar().toString() else match.value
+            }
+        }
+        val trimmed = s.trim()
+        return trimmed.ifBlank { null }
+    }
+
+    private object Base64Decoder {
+        private val DECODE_TABLE = IntArray(256) { -1 }.apply {
+            for (i in 'A'..'Z') this[i.code] = i - 'A'
+            for (i in 'a'..'z') this[i.code] = i - 'a' + 26
+            for (i in '0'..'9') this[i.code] = i - '0' + 52
+            this['+'.code] = 62
+            this['/'.code] = 63
+        }
+
+        fun decode(input: String): ByteArray {
+            val cleanInput = input.replace(Regex("[^A-Za-z0-9+/=]"), "")
+            val len = cleanInput.length
+            if (len == 0) return ByteArray(0)
+            var padding = 0
+            if (cleanInput.endsWith("==")) padding = 2
+            else if (cleanInput.endsWith("=")) padding = 1
+
+            val outLen = (len * 3) / 4 - padding
+            val out = ByteArray(outLen)
+            var outIdx = 0
+
+            var i = 0
+            while (i < len) {
+                val b0 = DECODE_TABLE[cleanInput[i].code]
+                val b1 = DECODE_TABLE[cleanInput[i + 1].code]
+                val b2 = if (i + 2 < len && cleanInput[i + 2] != '=') DECODE_TABLE[cleanInput[i + 2].code] else 0
+                val b3 = if (i + 3 < len && cleanInput[i + 3] != '=') DECODE_TABLE[cleanInput[i + 3].code] else 0
+
+                out[outIdx++] = ((b0 shl 2) or (b1 shr 4)).toByte()
+                if (outIdx < outLen) {
+                    out[outIdx++] = (((b1 and 0xF) shl 4) or (b2 shr 2)).toByte()
+                }
+                if (outIdx < outLen) {
+                    out[outIdx++] = (((b2 and 0x3) shl 6) or b3).toByte()
+                }
+                i += 4
+            }
+            return out
+        }
     }
 
     fun decryptUrl(encryptedUrl: String): String {
@@ -98,12 +156,11 @@ object Soundcore {
                 runCatching { rawEncrypted = URLDecoder.decode(rawEncrypted, "UTF-8") }
             }
 
-            @SuppressLint("GetInstance")
             val cipher = Cipher.getInstance("DES/ECB/PKCS5Padding")
             val key = SecretKeySpec("38346591".toByteArray(Charsets.UTF_8), "DES")
             cipher.init(Cipher.DECRYPT_MODE, key)
 
-            val decodedBytes = Base64.decode(rawEncrypted, Base64.DEFAULT)
+            val decodedBytes = Base64Decoder.decode(rawEncrypted)
             val decryptedBytes = cipher.doFinal(decodedBytes)
             var url = String(decryptedBytes, Charsets.UTF_8).trim()
 
@@ -121,7 +178,7 @@ object Soundcore {
 
             url
         } catch (e: Exception) {
-            Log.e("SoundPod-Soundcore", "Failed to decrypt URL: $encryptedUrl", e)
+            System.err.println("SoundPod-Soundcore: Failed to decrypt URL: $encryptedUrl - ${e.message}")
             encryptedUrl.replace("http://", "https://")
         }
     }
@@ -206,7 +263,7 @@ object Soundcore {
 
             list
         } catch (e: Exception) {
-            Log.e("SoundPod-Soundcore", "Search songs failed for $query", e)
+            System.err.println("SoundPod-Soundcore: Search songs failed for $query - ${e.message}")
             emptyList()
         }
     }
@@ -315,7 +372,7 @@ object Soundcore {
 
             list.distinctBy { it.id }
         } catch (e: Exception) {
-            Log.e("SoundPod-Soundcore", "Search albums failed for $query", e)
+            System.err.println("SoundPod-Soundcore: Search albums failed for $query - ${e.message}")
             emptyList()
         }
     }
@@ -409,7 +466,7 @@ object Soundcore {
 
             list.distinctBy { it.id }
         } catch (e: Exception) {
-            Log.e("SoundPod-Soundcore", "Search artists failed for $query", e)
+            System.err.println("SoundPod-Soundcore: Search artists failed for $query - ${e.message}")
             emptyList()
         }
     }
@@ -447,7 +504,7 @@ object Soundcore {
             }
             list
         } catch (e: Exception) {
-            Log.e("SoundPod-Soundcore", "Search playlists failed for $query", e)
+            System.err.println("SoundPod-Soundcore: Search playlists failed for $query - ${e.message}")
             emptyList()
         }
     }
@@ -467,7 +524,7 @@ object Soundcore {
                 songObj?.let { parseSongObject(it) }
             }
         } catch (e: Exception) {
-            Log.e("SoundPod-Soundcore", "Failed to get song details for $songId", e)
+            System.err.println("SoundPod-Soundcore: Failed to get song details for $songId - ${e.message}")
             null
         }
     }
@@ -492,7 +549,7 @@ object Soundcore {
             }
             list
         } catch (e: Exception) {
-            Log.e("SoundPod-Soundcore", "Failed to get recommendations for $songId", e)
+            System.err.println("SoundPod-Soundcore: Failed to get recommendations for $songId - ${e.message}")
             emptyList()
         }
     }
@@ -556,7 +613,7 @@ object Soundcore {
                 )
             }
         } catch (e: Exception) {
-            Log.e("SoundPod-Soundcore", "Failed to fetch launch data", e)
+            System.err.println("SoundPod-Soundcore: Failed to fetch launch data - ${e.message}")
             SoundcoreLaunchData()
         }
     }
@@ -592,7 +649,7 @@ object Soundcore {
                 )
             }
         } catch (e: Exception) {
-            Log.e("SoundPod-Soundcore", "Failed to get album details for $albumId", e)
+            System.err.println("SoundPod-Soundcore: Failed to get album details for $albumId - ${e.message}")
             null
         }
     }
@@ -634,7 +691,7 @@ object Soundcore {
                 suggestions.toList().take(10)
             }
         } catch (e: Exception) {
-            Log.e("SoundPod-Soundcore", "Failed to get suggestions for $query", e)
+            System.err.println("SoundPod-Soundcore: Failed to get suggestions for $query - ${e.message}")
             emptyList()
         }
     }
@@ -653,7 +710,6 @@ object Soundcore {
         val directSong = getSongDetails(songId)
         val directUrl = directSong?.streamUrl
         if (directUrl != null) {
-            Log.d("SoundPod-Soundcore", "Direct Soundcore ID lookup SUCCESS for $songId: $directUrl")
             return directUrl
         }
 
@@ -715,7 +771,6 @@ object Soundcore {
             val streamUrl = bestMatch?.streamUrl
             if (streamUrl != null) {
                 if (targetTitle.isBlank() || bestScore >= 2.0 || results.size == 1) {
-                    Log.d("SoundPod-Soundcore", "Matched '$title' -> Best match: '${bestMatch.title}' by '${bestMatch.artistsText}' with score $bestScore")
                     return streamUrl
                 }
             }
@@ -774,29 +829,3 @@ val SoundcorePlaylist.asSoundcorePlaylistItem: Innertube.PlaylistItem
         songCount = songCount,
         thumbnail = thumbnailUrl?.let { Thumbnail(url = it, width = 500, height = 500) }
     )
-
-val SoundcoreSong.asMediaItem: androidx.media3.common.MediaItem
-    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-    get() = androidx.media3.common.MediaItem.Builder()
-        .setMediaId(id)
-        .setUri(streamUrl ?: id)
-        .setCustomCacheKey(id)
-        .setMediaMetadata(
-            androidx.media3.common.MediaMetadata.Builder()
-                .setTitle(title)
-                .setArtist(artistsText)
-                .setAlbumTitle(albumTitle)
-                .setArtworkUri(thumbnailUrl?.toUri())
-                .setExtras(
-                    android.os.Bundle().apply {
-                        durationText?.let { putString("durationText", it) }
-                        albumTitle?.let { putString("albumTitle", it) }
-                        artistsText?.let { artists ->
-                            putStringArrayList("artistNames", arrayListOf(artists))
-                            putStringArrayList("artistIds", arrayListOf("soundcore_artist:$id"))
-                        }
-                    }
-                )
-                .build()
-        )
-        .build()

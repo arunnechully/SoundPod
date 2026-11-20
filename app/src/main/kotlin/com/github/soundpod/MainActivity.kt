@@ -74,7 +74,7 @@ import com.github.soundpod.utils.forcePlay
 import com.github.soundpod.utils.intent
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.service.YouTubeWebViewManager
-import com.github.soundcore.SoundcoreWebViewManager
+import com.github.soundpod.service.SoundcoreWebViewManager
 import com.github.soundcore.Soundcore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filterNotNull

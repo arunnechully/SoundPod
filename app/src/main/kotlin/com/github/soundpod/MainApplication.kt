@@ -16,7 +16,7 @@ import com.github.soundpod.utils.coilDiskCacheMaxSizeKey
 import com.github.soundpod.utils.getEnum
 import com.github.soundpod.utils.pauseImageCacheKey
 import com.github.soundpod.utils.preferences
-import com.github.soundcore.SoundcoreWebViewManager
+import com.github.soundpod.service.SoundcoreWebViewManager
 import org.schabi.newpipe.extractor.NewPipe
 
 

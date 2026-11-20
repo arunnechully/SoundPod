@@ -10,6 +10,7 @@ import androidx.media3.common.MediaMetadata
 import com.github.innertube.Innertube
 import com.github.innertube.requests.playlistPageContinuation
 import com.github.innertube.utils.plus
+import com.github.soundcore.SoundcoreSong
 import com.github.soundpod.models.Song
 
 val Innertube.SongItem.asMediaItem: MediaItem
@@ -144,3 +145,29 @@ inline val isAtLeastAndroid12
 
 inline val isAtLeastAndroid13
     get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+
+val SoundcoreSong.asMediaItem: MediaItem
+    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+    get() = MediaItem.Builder()
+        .setMediaId(id)
+        .setUri(streamUrl ?: id)
+        .setCustomCacheKey(id)
+        .setMediaMetadata(
+            MediaMetadata.Builder()
+                .setTitle(title)
+                .setArtist(artistsText)
+                .setAlbumTitle(albumTitle)
+                .setArtworkUri(thumbnailUrl?.toUri())
+                .setExtras(
+                    Bundle().apply {
+                        durationText?.let { putString("durationText", it) }
+                        albumTitle?.let { putString("albumTitle", it) }
+                        artistsText?.let { artists ->
+                            putStringArrayList("artistNames", arrayListOf(artists))
+                            putStringArrayList("artistIds", arrayListOf("soundcore_artist:$id"))
+                        }
+                    }
+                )
+                .build()
+        )
+        .build()
