@@ -33,6 +33,8 @@ import com.github.soundpod.utils.forcePlayAtIndex
 @Composable
 fun OnlinePlaylistSongs(
     playlistPage: Innertube.PlaylistOrAlbumPage?,
+    isLoadingMore: Boolean = false,
+    onLoadMore: () -> Unit = {},
     onGoToAlbum: (String) -> Unit,
     onGoToArtist: (String) -> Unit,
 ) {
@@ -40,8 +42,11 @@ fun OnlinePlaylistSongs(
     val menuState = LocalMenuState.current
     val playerPadding = LocalPlayerPadding.current
 
+    val songs = playlistPage?.songsPage?.items ?: emptyList()
+    val continuation = playlistPage?.songsPage?.continuation
+
     androidx.compose.runtime.LaunchedEffect(playlistPage) {
-        playlistPage?.songsPage?.items?.take(5)?.map(Innertube.SongItem::asMediaItem)?.let { mediaItems ->
+        songs.take(5).map(Innertube.SongItem::asMediaItem).let { mediaItems ->
             binder?.preCacheManager?.preCache(mediaItems)
         }
     }
@@ -52,9 +57,15 @@ fun OnlinePlaylistSongs(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         itemsIndexed(
-            items = playlistPage?.songsPage?.items ?: emptyList(),
-            key = { _, song -> song.key }
+            items = songs,
+            key = { index, song -> "${song.key}_$index" }
         ) { index, song ->
+            if (index >= songs.size - 5 && continuation != null && !isLoadingMore) {
+                androidx.compose.runtime.LaunchedEffect(index, continuation) {
+                    onLoadMore()
+                }
+            }
+
             SwipeToActionBox(
                 primaryAction = ActionInfo(
                     onClick = { binder?.player?.enqueue(song.asMediaItem) },
@@ -65,11 +76,10 @@ fun OnlinePlaylistSongs(
                 SongItem(
                     song = song,
                     onClick = {
-                        playlistPage?.songsPage?.items?.map(Innertube.SongItem::asMediaItem)
-                            ?.let { mediaItems ->
-                                binder?.stopRadio()
-                                binder?.player?.forcePlayAtIndex(mediaItems, index)
-                            }
+                        songs.map(Innertube.SongItem::asMediaItem).let { mediaItems ->
+                            binder?.stopRadio()
+                            binder?.player?.forcePlayAtIndex(mediaItems, index)
+                        }
                     },
                     onLongClick = {
                         menuState.display {
@@ -89,6 +99,14 @@ fun OnlinePlaylistSongs(
             item(key = "loading") {
                 ShimmerHost {
                     repeat(8) {
+                        ListItemPlaceholder()
+                    }
+                }
+            }
+        } else if (isLoadingMore) {
+            item(key = "loading_more") {
+                ShimmerHost {
+                    repeat(3) {
                         ListItemPlaceholder()
                     }
                 }

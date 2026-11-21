@@ -18,12 +18,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.RestartAlt
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -42,7 +42,6 @@ import androidx.compose.ui.unit.sp
 import com.github.core.ui.LocalAppearance
 import kotlin.math.abs
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SliderSettingsItem(
     label: String,
@@ -71,6 +70,12 @@ fun SliderSettingsItem(
     )
 
     val (colorPalette) = LocalAppearance.current
+
+    val sliderState = rememberSliderState(
+        value = value,
+        trackRange = valueRange
+    )
+    sliderState.value = value
 
     Column(
         modifier = Modifier
@@ -114,9 +119,8 @@ fun SliderSettingsItem(
         Spacer(modifier = Modifier.height(4.dp))
 
         Slider(
-            value = value,
+            state = sliderState,
             onValueChange = { newValue ->
-
                 if (hapticUseIntegerStep) {
                     val currentInt = newValue.toInt()
                     if (currentInt != lastValue.toInt()) {
@@ -125,7 +129,6 @@ fun SliderSettingsItem(
                     }
 
                 } else if (hapticUseFloatStep) {
-
                     val diff = abs(newValue - lastValue)
                     if (diff >= hapticFloatStep) {
                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
@@ -144,11 +147,8 @@ fun SliderSettingsItem(
 
                 onValueChange(newValue)
             },
-            valueRange = valueRange,
             interactionSource = interactionSource,
-            modifier = Modifier
-                .fillMaxWidth(),
-
+            modifier = Modifier.fillMaxWidth(),
             thumb = {
                 Box(
                     modifier = Modifier
@@ -158,14 +158,8 @@ fun SliderSettingsItem(
                         .border(3.dp, colorPalette.accent, CircleShape)
                 )
             },
-
-            track = { sliderState ->
-                val range = sliderState.valueRange.endInclusive - sliderState.valueRange.start
-                val fraction = if (range == 0f) {
-                    0f
-                } else {
-                    ((sliderState.value - sliderState.valueRange.start) / range).coerceIn(0f, 1f)
-                }
+            track = { state ->
+                val fraction = state.coercedValueAsFraction
 
                 Box(
                     modifier = Modifier

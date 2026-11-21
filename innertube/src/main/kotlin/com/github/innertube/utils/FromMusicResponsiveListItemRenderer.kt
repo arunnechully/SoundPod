@@ -6,15 +6,33 @@ import com.github.innertube.models.NavigationEndpoint
 import com.github.innertube.models.Runs
 
 fun Innertube.SongItem.Companion.from(renderer: MusicResponsiveListItemRenderer): Innertube.SongItem? {
+    val titleRun = renderer
+        .flexColumns
+        .getOrNull(0)
+        ?.musicResponsiveListItemFlexColumnRenderer
+        ?.text
+        ?.runs
+        ?.getOrNull(0)
+
+    val rawInfo = titleRun?.let { Innertube.Info<NavigationEndpoint.Endpoint.Watch>(it) }
+
+    val videoId = rawInfo?.endpoint?.videoId
+        ?: renderer.navigationEndpoint?.watchEndpoint?.videoId
+        ?: renderer.playlistItemData?.videoId
+
+    if (videoId == null) return null
+
+    val info = if (rawInfo?.endpoint?.videoId != null) {
+        rawInfo
+    } else {
+        Innertube.Info(
+            name = titleRun?.text ?: "",
+            endpoint = NavigationEndpoint.Endpoint.Watch(videoId = videoId)
+        )
+    }
+
     return Innertube.SongItem(
-        info = renderer
-            .flexColumns
-            .getOrNull(0)
-            ?.musicResponsiveListItemFlexColumnRenderer
-            ?.text
-            ?.runs
-            ?.getOrNull(0)
-            ?.let(Innertube::Info),
+        info = info,
         authors = renderer
             .flexColumns
             .getOrNull(1)
@@ -45,5 +63,5 @@ fun Innertube.SongItem.Companion.from(renderer: MusicResponsiveListItemRenderer)
             ?.thumbnail
             ?.thumbnails
             ?.lastOrNull()
-    ).takeIf { it.info?.endpoint?.videoId != null }
+    )
 }

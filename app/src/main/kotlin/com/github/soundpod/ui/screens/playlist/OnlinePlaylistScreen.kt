@@ -28,6 +28,8 @@ import androidx.media3.common.util.UnstableApi
 import com.github.core.ui.LocalAppearance
 import com.github.innertube.Innertube
 import com.github.innertube.requests.playlistPage
+import com.github.innertube.requests.playlistPageContinuation
+import com.github.innertube.utils.plus
 import com.github.soundpod.R
 import com.github.soundpod.db
 import com.github.soundpod.models.Playlist
@@ -57,6 +59,7 @@ fun OnlinePlaylistScreen(
     val context = LocalContext.current
     val (colorPalette) = LocalAppearance.current
     var playlistPage: Innertube.PlaylistOrAlbumPage? by remember(browseId) { mutableStateOf(null) }
+    var isLoadingMore by remember { mutableStateOf(false) }
     var localPlaylist: Playlist? by remember { mutableStateOf(null) }
     var isImportingPlaylist by rememberSaveable { mutableStateOf(false) }
 
@@ -75,17 +78,53 @@ fun OnlinePlaylistScreen(
         }
 
         withContext(Dispatchers.IO) {
-            Innertube.playlistPage(browseId = browseId)
-                ?.completed()
-                ?.getOrNull()
-                ?.let { page ->
+            var page = Innertube.playlistPage(browseId = browseId)?.getOrNull()
+            if (page != null) {
+                withContext(Dispatchers.Main) {
+                    playlistPage = page
+                }
+                while (page?.songsPage?.continuation != null) {
+                    withContext(Dispatchers.Main) {
+                        isLoadingMore = true
+                    }
+                    val continuation = page.songsPage?.continuation!!
+                    val nextContinuation = Innertube.playlistPageContinuation(continuation)?.getOrNull() ?: break
+                    val currentSongsPage = page.songsPage
+                    val updatedSongsPage = currentSongsPage + nextContinuation
+                    page = page.copy(songsPage = updatedSongsPage)
                     withContext(Dispatchers.Main) {
                         playlistPage = page
-                        if (isScreenCacheEnabled) {
-                            ScreenCache.save(cacheKey, page)
-                        }
                     }
                 }
+                withContext(Dispatchers.Main) {
+                    isLoadingMore = false
+                }
+                if (isScreenCacheEnabled && page != null) {
+                    ScreenCache.save(cacheKey, page)
+                }
+            }
+        }
+    }
+
+    val loadMore: () -> Unit = {
+        val continuation = playlistPage?.songsPage?.continuation
+        if (continuation != null && !isLoadingMore) {
+            isLoadingMore = true
+            scope.launch(Dispatchers.IO) {
+                val continuationResult = Innertube.playlistPageContinuation(continuation)?.getOrNull()
+                withContext(Dispatchers.Main) {
+                    if (continuationResult != null) {
+                        val currentSongsPage = playlistPage?.songsPage
+                        val updatedSongsPage = currentSongsPage + continuationResult
+                        val updatedPage = playlistPage?.copy(songsPage = updatedSongsPage)
+                        playlistPage = updatedPage
+                        if (context.preferences.getBoolean(isScreenCacheEnabledKey, true) && updatedPage != null) {
+                            ScreenCache.save("playlist_$browseId", updatedPage)
+                        }
+                    }
+                    isLoadingMore = false
+                }
+            }
         }
     }
 
@@ -154,6 +193,8 @@ fun OnlinePlaylistScreen(
         content = {
             OnlinePlaylistSongs(
                 playlistPage = playlistPage,
+                isLoadingMore = isLoadingMore,
+                onLoadMore = loadMore,
                 onGoToAlbum = onGoToAlbum,
                 onGoToArtist = onGoToArtist
             )
@@ -169,6 +210,9 @@ fun OnlinePlaylistScreen(
             onDismiss = { isImportingPlaylist = false },
             onDone = { text ->
                 scope.launch(Dispatchers.IO) {
+                    val fullPage = playlistPage?.let { page ->
+                        Result.success(page).completed()?.getOrNull() ?: page
+                    } ?: playlistPage
                     query {
                         transaction {
                             val playlistId = db.insert(
@@ -178,7 +222,7 @@ fun OnlinePlaylistScreen(
                                 )
                             )
 
-                            playlistPage?.songsPage?.items
+                            fullPage?.songsPage?.items
                                 ?.map(Innertube.SongItem::asMediaItem)
                                 ?.onEach(db::insert)
                                 ?.mapIndexed { index, mediaItem ->

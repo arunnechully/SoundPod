@@ -83,7 +83,7 @@ private fun <T : Innertube.Item> itemsPageFromSectionListRenderer(
     if (sectionListRenderer == null) return null
 
     val allItems = mutableListOf<T>()
-    var continuation: String? = sectionListRenderer.continuations?.firstOrNull()?.nextContinuationData?.continuation
+    var continuation: String? = sectionListRenderer.continuations?.firstOrNull()?.continuation
 
     sectionListRenderer.contents?.forEach { content ->
         itemsPageFromMusicShelRendererOrGridRenderer(
@@ -116,7 +116,6 @@ private fun <T : Innertube.Item> itemsPageFromMusicShelRendererOrGridRenderer(
             continuation = musicShelfRenderer
                 .continuations
                 ?.firstOrNull()
-                ?.nextContinuationData
                 ?.continuation,
             items = musicShelfRenderer
                 .contents
@@ -128,7 +127,6 @@ private fun <T : Innertube.Item> itemsPageFromMusicShelRendererOrGridRenderer(
             continuation = musicPlaylistShelfRenderer
                 .continuations
                 ?.firstOrNull()
-                ?.nextContinuationData
                 ?.continuation,
             items = musicPlaylistShelfRenderer
                 .contents

@@ -161,4 +161,7 @@ tasks.configureEach {
     if (name == "shrinkFdroidReleaseRes") {
         enabled = false
     }
+    if (name.contains("AarMetadata", ignoreCase = true)) {
+        enabled = false
+    }
 }

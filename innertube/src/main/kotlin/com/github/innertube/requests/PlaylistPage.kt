@@ -115,27 +115,56 @@ suspend fun Innertube.playlistPageContinuation(continuation: String) = runCatchi
         setBody(ContinuationBody(continuation = continuation))
     }.body<ContinuationResponse>()
 
+    val continuationItems = response
+        .onResponseReceivedActions
+        ?.firstNotNullOfOrNull { action ->
+            action.appendContinuationItemsAction?.continuationItems
+                ?: action.reloadContinuationItemsCommand?.continuationItems
+        }
+
+    if (continuationItems != null) {
+        val songs = continuationItems
+            .mapNotNull { it.musicResponsiveListItemRenderer }
+            .mapNotNull(Innertube.SongItem::from)
+
+        val nextContinuation = continuationItems
+            .firstNotNullOfOrNull { it.continuationItemRenderer?.continuation }
+
+        return@runCatchingNonCancellable Innertube.ItemsPage(
+            items = songs,
+            continuation = nextContinuation
+        )
+    }
+
+    val fallbackContinuation = response
+        .continuationContents
+        ?.sectionListContinuation
+        ?.continuations
+        ?.firstOrNull()
+        ?.continuation
+
     response
         .continuationContents
         ?.musicShelfContinuation
-        ?.toSongsPage()
+        ?.toSongsPage(fallbackContinuation)
         ?: response
             .continuationContents
             ?.musicPlaylistShelfContinuation
-            ?.toSongsPage()
+            ?.toSongsPage(fallbackContinuation)
         ?: response
             .continuationContents
             ?.sectionListContinuation
             ?.contents
             ?.firstNotNullOfOrNull { content ->
-                content.musicShelfRenderer?.toSongsPage() ?: content.musicPlaylistShelfRenderer?.toSongsPage()
+                content.musicShelfRenderer?.toSongsPage(fallbackContinuation)
+                    ?: content.musicPlaylistShelfRenderer?.toSongsPage(fallbackContinuation)
             }
 }
 
 /**
  * Standard Shelf Converter (PL/VL)
  */
-private fun MusicShelfRenderer?.toSongsPage() =
+private fun MusicShelfRenderer?.toSongsPage(fallbackContinuation: String? = null) =
     Innertube.ItemsPage(
         items = this
             ?.contents
@@ -144,14 +173,17 @@ private fun MusicShelfRenderer?.toSongsPage() =
         continuation = this
             ?.continuations
             ?.firstOrNull()
-            ?.nextContinuationData
             ?.continuation
+            ?: this
+                ?.contents
+                ?.firstNotNullOfOrNull { it.continuationItemRenderer?.continuation }
+            ?: fallbackContinuation
     )
 
 /**
  * Mix/Chart Shelf Converter (RDCLAK)
  */
-private fun MusicPlaylistShelfRenderer?.toSongsPage() =
+private fun MusicPlaylistShelfRenderer?.toSongsPage(fallbackContinuation: String? = null) =
     Innertube.ItemsPage(
         items = this
             ?.contents
@@ -160,6 +192,9 @@ private fun MusicPlaylistShelfRenderer?.toSongsPage() =
         continuation = this
             ?.continuations
             ?.firstOrNull()
-            ?.nextContinuationData
             ?.continuation
+            ?: this
+                ?.contents
+                ?.firstNotNullOfOrNull { it.continuationItemRenderer?.continuation }
+            ?: fallbackContinuation
     )

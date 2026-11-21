@@ -10,6 +10,7 @@ data class MusicPlaylistShelfRenderer(
 ) {
     @Serializable
     data class Content(
-        val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer? = null
+        val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer? = null,
+        val continuationItemRenderer: ContinuationItemRenderer? = null
     )
 }

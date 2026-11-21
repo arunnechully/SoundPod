@@ -163,7 +163,7 @@ fun AddToListScreen() {
                                     SongPlaylistMap(
                                         songId = mediaItem.mediaId,
                                         playlistId = playlistPreview.id,
-                                        position = 0
+                                        position = playlistPreview.songCount
                                     )
                                 )
                             }

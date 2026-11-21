@@ -95,6 +95,5 @@ private fun NextResponse.MusicQueueRenderer.Content.PlaylistPanelRenderer?.toSon
         continuation = this
             ?.continuations
             ?.firstOrNull()
-            ?.nextContinuationData
             ?.continuation
     )

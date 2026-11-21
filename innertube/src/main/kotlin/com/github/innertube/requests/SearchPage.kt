@@ -36,7 +36,7 @@ suspend fun <T : Innertube.Item> Innertube.searchPage(
         ?.sectionListRenderer
 
     val allItems = mutableListOf<T>()
-    var continuation: String? = sectionListRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
+    var continuation: String? = sectionListRenderer?.continuations?.firstOrNull()?.continuation
 
     sectionListRenderer?.contents?.forEach { content ->
         content.musicShelfRenderer?.toItemsPage(fromMusicShelfRendererContent)?.let { page ->
@@ -66,7 +66,7 @@ suspend fun <T : Innertube.Item> Innertube.searchPage(
 
     val sectionListRenderer = response.continuationContents?.sectionListContinuation
     val allItems = mutableListOf<T>()
-    var nextContinuation: String? = sectionListRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
+    var nextContinuation: String? = sectionListRenderer?.continuations?.firstOrNull()?.continuation
 
     sectionListRenderer?.contents?.forEach { content ->
         content.musicShelfRenderer?.toItemsPage(fromMusicShelfRendererContent)?.let { page ->
@@ -89,6 +89,5 @@ private fun <T : Innertube.Item> MusicShelfRenderer?.toItemsPage(mapper: (MusicS
         continuation = this
             ?.continuations
             ?.firstOrNull()
-            ?.nextContinuationData
             ?.continuation
     )
