@@ -22,9 +22,7 @@ import com.github.innertube.Innertube
 import com.github.innertube.requests.searchPage
 import com.github.innertube.utils.from
 import com.github.soundcore.Soundcore
-import com.github.soundcore.asSoundcoreAlbumItem
 import com.github.soundcore.asSoundcoreArtistItem
-import com.github.soundcore.asSoundcorePlaylistItem
 import com.github.soundcore.asSoundcoreSongItem
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
@@ -233,19 +231,7 @@ fun NewSearchResult(
                     ItemsPage(
                         tag = "searchResults/$query/albums",
                         itemsPageProvider = { continuation ->
-                            if (playbackSource == PlaybackSource.Soundcore) {
-                                val soundcoreAlbums = Soundcore.searchAlbums(query)
-                                Result.success(Innertube.ItemsPage(items = soundcoreAlbums.map { it.asSoundcoreAlbumItem }, continuation = null))
-                            } else if (playbackSource == PlaybackSource.Automatic && continuation == null) {
-                                val innertubePage = Innertube.searchPage(
-                                    query = query,
-                                    params = Innertube.SearchFilter.Album.value,
-                                    fromMusicShelfRendererContent = Innertube.AlbumItem::from
-                                )?.getOrNull()
-                                val soundcoreAlbums = Soundcore.searchAlbums(query)
-                                val merged = mergeItems(innertubePage?.items, soundcoreAlbums.map { it.asSoundcoreAlbumItem })
-                                Result.success(Innertube.ItemsPage(items = merged, continuation = innertubePage?.continuation))
-                            } else if (continuation == null) {
+                            if (continuation == null) {
                                 Innertube.searchPage(
                                     query = query,
                                     params = Innertube.SearchFilter.Album.value,
@@ -313,10 +299,7 @@ fun NewSearchResult(
                     ItemsPage(
                         tag = "searchResults/$query/playlists",
                         itemsPageProvider = { continuation ->
-                            if (playbackSource == PlaybackSource.Soundcore) {
-                                val soundcorePlaylists = Soundcore.searchPlaylists(query)
-                                Result.success(Innertube.ItemsPage(items = soundcorePlaylists.map { it.asSoundcorePlaylistItem }, continuation = null))
-                            } else if (continuation == null) {
+                            if (continuation == null) {
                                 Innertube.searchPage(
                                     query = query,
                                     params = Innertube.SearchFilter.CommunityPlaylist.value,

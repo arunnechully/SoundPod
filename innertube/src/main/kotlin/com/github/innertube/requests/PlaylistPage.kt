@@ -26,7 +26,15 @@ suspend fun Innertube.playlistPage(
         browseId
     }.removePrefix("VL")
 
-    val actualBrowseId = if (cleanId.startsWith("VL")) cleanId else "VL$cleanId"
+    val actualBrowseId = if (cleanId.startsWith("VL")) {
+        cleanId
+    } else if (cleanId.startsWith("MPRE") || cleanId.startsWith("UC") || cleanId.startsWith("FE")) {
+        cleanId
+    } else if (browseId.contains("list=") || cleanId.startsWith("PL") || cleanId.startsWith("RD") || cleanId.startsWith("OLAK") || cleanId.startsWith("LM")) {
+        "VL$cleanId"
+    } else {
+        cleanId
+    }
 
     val response = client.post(BROWSE) {
         setBody(

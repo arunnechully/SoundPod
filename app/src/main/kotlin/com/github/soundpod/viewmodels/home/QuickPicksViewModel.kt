@@ -15,9 +15,7 @@ import com.github.innertube.utils.from
 import com.github.soundcore.Soundcore
 import com.github.soundcore.SoundcoreRecommender
 import com.github.soundcore.SoundcoreSong
-import com.github.soundcore.asSoundcoreAlbumItem
 import com.github.soundcore.asSoundcoreArtistItem
-import com.github.soundcore.asSoundcorePlaylistItem
 import com.github.soundcore.asSoundcoreSongItem
 import com.github.soundpod.appContext
 import com.github.soundpod.db
@@ -148,20 +146,16 @@ class QuickPicksViewModel : ViewModel() {
                         limit = 40
                     )
 
-                    val launchDataDeferred = async { Soundcore.getLaunchData() }
                     val searchArtistDeferreds = seedArtistNames.take(3).map { name -> async { Soundcore.searchArtists(name) } }
 
-                    val launchData = launchDataDeferred.await()
                     val soundcoreSongs = recommendedSongs.map { it.asSoundcoreSongItem }
-                    val soundcoreAlbums = launchData.topAlbums.map { it.asSoundcoreAlbumItem }.take(15)
-                    val soundcorePlaylists = launchData.topPlaylists.map { it.asSoundcorePlaylistItem }.take(15)
                     val soundcoreArtists = interleave(searchArtistDeferreds.map { it.await().map { a -> a.asSoundcoreArtistItem } }).take(15)
 
                     val page = Innertube.RelatedPage(
                         songs = soundcoreSongs.ifEmpty { null },
-                        albums = soundcoreAlbums.ifEmpty { null },
+                        albums = null,
                         artists = soundcoreArtists.ifEmpty { null },
-                        playlists = soundcorePlaylists.ifEmpty { null }
+                        playlists = null
                     )
 
                     if (soundcoreSongs.isNotEmpty()) {

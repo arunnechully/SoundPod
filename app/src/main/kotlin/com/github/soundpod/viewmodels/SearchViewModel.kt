@@ -10,9 +10,7 @@ import com.github.innertube.requests.searchPage
 import com.github.innertube.utils.from
 import com.github.soundcore.Soundcore
 import com.github.soundcore.SoundcoreSong
-import com.github.soundcore.asSoundcoreAlbumItem
 import com.github.soundcore.asSoundcoreArtistItem
-import com.github.soundcore.asSoundcorePlaylistItem
 import com.github.soundcore.asSoundcoreSongItem
 import com.github.soundpod.MainApplication
 import com.github.soundpod.utils.PlaybackSource
@@ -106,20 +104,32 @@ class SearchViewModel : ViewModel() {
                 val playbackSource = MainApplication.appContext.preferences.getEnum(playbackSourceKey, PlaybackSource.Automatic)
                 if (playbackSource == PlaybackSource.Soundcore) {
                     val soundcoreSongsDeferred = async { Soundcore.searchSongs(query) }
-                    val soundcoreAlbumsDeferred = async { Soundcore.searchAlbums(query) }
                     val soundcoreArtistsDeferred = async { Soundcore.searchArtists(query) }
-                    val soundcorePlaylistsDeferred = async { Soundcore.searchPlaylists(query) }
+                    val albumsDeferred = async {
+                        Innertube.searchPage(
+                            query = query,
+                            params = Innertube.SearchFilter.Album.value,
+                            fromMusicShelfRendererContent = Innertube.AlbumItem::from
+                        )
+                    }
+                    val playlistsDeferred = async {
+                        Innertube.searchPage(
+                            query = query,
+                            params = Innertube.SearchFilter.CommunityPlaylist.value,
+                            fromMusicShelfRendererContent = Innertube.PlaylistItem::from
+                        )
+                    }
 
                     val soundcoreSongs = soundcoreSongsDeferred.await()
-                    val soundcoreAlbums = soundcoreAlbumsDeferred.await()
                     val soundcoreArtists = soundcoreArtistsDeferred.await()
-                    val soundcorePlaylists = soundcorePlaylistsDeferred.await()
+                    val innertubeAlbums = albumsDeferred.await()?.getOrNull()?.items
+                    val innertubePlaylists = playlistsDeferred.await()?.getOrNull()?.items
 
                     soundcoreResults = soundcoreSongs.take(10)
                     songResults = soundcoreSongs.map { it.asSoundcoreSongItem }
-                    albumResults = soundcoreAlbums.map { it.asSoundcoreAlbumItem }
+                    albumResults = innertubeAlbums?.take(10)
                     artistResults = soundcoreArtists.map { it.asSoundcoreArtistItem }
-                    playlistResults = soundcorePlaylists.map { it.asSoundcorePlaylistItem }
+                    playlistResults = innertubePlaylists?.take(10)
                     videoResults = emptyList()
                 } else if (playbackSource == PlaybackSource.Automatic) {
                     val songsDeferred = async {
@@ -158,7 +168,6 @@ class SearchViewModel : ViewModel() {
                         )
                     }
                     val soundcoreSongsDeferred = async { Soundcore.searchSongs(query) }
-                    val soundcoreAlbumsDeferred = async { Soundcore.searchAlbums(query) }
                     val soundcoreArtistsDeferred = async { Soundcore.searchArtists(query) }
 
                     val innertubeSongs = songsDeferred.await()?.getOrNull()?.items
@@ -168,12 +177,11 @@ class SearchViewModel : ViewModel() {
                     val innertubePlaylists = playlistsDeferred.await()?.getOrNull()?.items
 
                     val soundcoreSongs = soundcoreSongsDeferred.await()
-                    val soundcoreAlbums = soundcoreAlbumsDeferred.await()
                     val soundcoreArtists = soundcoreArtistsDeferred.await()
 
                     soundcoreResults = soundcoreSongs.take(10)
                     songResults = innertubeSongs?.take(10)
-                    albumResults = mergeItems(innertubeAlbums, soundcoreAlbums.map { it.asSoundcoreAlbumItem }).take(10)
+                    albumResults = innertubeAlbums?.take(10)
                     artistResults = mergeItems(innertubeArtists, soundcoreArtists.map { it.asSoundcoreArtistItem }).take(10)
                     playlistResults = innertubePlaylists?.take(10)
                     videoResults = innertubeVideos?.take(6)
