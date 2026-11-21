@@ -8,17 +8,18 @@ import kotlinx.serialization.json.JsonNames
 @Serializable
 data class SectionListRenderer(
     val contents: List<Content>?,
-    val continuations: List<Continuation>?
+    val continuations: List<Continuation>? = null
 ) {
     @Serializable
     data class Content(
         @JsonNames("musicImmersiveCarouselShelfRenderer")
-        val musicCarouselShelfRenderer: MusicCarouselShelfRenderer?,
-        val musicShelfRenderer: MusicShelfRenderer?,
-        val musicPlaylistShelfRenderer: MusicPlaylistShelfRenderer?,
-        val gridRenderer: GridRenderer?,
-        val musicDescriptionShelfRenderer: MusicDescriptionShelfRenderer?,
-        val musicResponsiveHeaderRenderer: MusicResponsiveHeaderRenderer?
+        val musicCarouselShelfRenderer: MusicCarouselShelfRenderer? = null,
+        val musicShelfRenderer: MusicShelfRenderer? = null,
+        val musicPlaylistShelfRenderer: MusicPlaylistShelfRenderer? = null,
+        val gridRenderer: GridRenderer? = null,
+        val musicDescriptionShelfRenderer: MusicDescriptionShelfRenderer? = null,
+        val musicResponsiveHeaderRenderer: MusicResponsiveHeaderRenderer? = null,
+        val musicEditablePlaylistDetailHeaderRenderer: MusicEditablePlaylistDetailHeaderRenderer? = null
     ){
         @Serializable
         data class MusicDescriptionShelfRenderer(
@@ -33,5 +34,15 @@ data class SectionListRenderer(
             val thumbnail: ThumbnailRenderer?,
             val straplineTextOne: Runs?
         )
+
+        @Serializable
+        data class MusicEditablePlaylistDetailHeaderRenderer(
+            val header: EditableHeader? = null
+        ) {
+            @Serializable
+            data class EditableHeader(
+                val musicResponsiveHeaderRenderer: MusicResponsiveHeaderRenderer? = null
+            )
+        }
     }
 }

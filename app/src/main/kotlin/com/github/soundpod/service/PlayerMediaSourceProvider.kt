@@ -18,6 +18,7 @@ import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.extractor.DefaultExtractorsFactory
 import com.github.innertube.Innertube
+import com.github.innertube.requests.player
 import com.github.innertube.requests.song
 import com.github.soundpod.db
 import com.github.soundpod.utils.PlaybackSource
@@ -54,7 +55,7 @@ class PlayerMediaSourceProvider(
 
     companion object {
         const val CACHE_EXPIRATION_MS = 4 * 3600000L
-        const val DEFAULT_USER_AGENT = "com.google.android.apps.youtube.vr.oculus/1.74.31 (Linux; U; Android 14; eureka-user Build/SQ3A.220605.009.A1) gzip"
+        const val DEFAULT_USER_AGENT = "com.google.android.youtube/20.10.38 (Linux; U; Android 14; en_US; SM-S928B Build/UP1A.231005.007)"
     }
 
     fun createMediaSourceFactory(): MediaSource.Factory {
@@ -78,38 +79,38 @@ class PlayerMediaSourceProvider(
         val resolvingUpstreamFactory = ResolvingDataSource.Factory(upstreamFactory) { dataSpec ->
             val videoId = dataSpec.key ?: throw java.io.IOException("A key must be set")
             
-            val headers = buildMap {
-                put("Referer", "https://www.youtube.com/")
-                put("Origin", "https://www.youtube.com")
-                put("X-YouTube-Client-Name", "28")
-                put("X-YouTube-Client-Version", "1.74.31")
-                Innertube.visitorData?.let { put("X-Goog-Visitor-Id", it) }
-                Innertube.poToken?.let { put("X-YouTube-Po-Token", it) }
-                Innertube.cookies?.let { 
-                    put("Cookie", it)
-                    Innertube.generateAuthHeader(it)?.let { auth ->
-                        put("Authorization", auth)
-                    }
-                }
-            }
-            
-            // If it's already a full playback URL, we need to ensure headers are attached
-            if (dataSpec.uri.toString().contains("videoplayback")) {
-                return@Factory dataSpec.buildUpon()
-                    .setHttpRequestHeaders(headers)
-                    .build()
+            Log.d("SoundPod-DataSource", "Resolving URI for key: $videoId")
+            val targetUri = if (videoId.startsWith("http") || videoId.startsWith("content://") || videoId.startsWith("file://") || dataSpec.uri.toString().contains("videoplayback")) {
+                dataSpec.uri
+            } else {
+                resolveUrl(videoId)
             }
 
-            Log.d("SoundPod-DataSource", "Resolving URI for key: $videoId")
-            if (videoId.startsWith("http") || videoId.startsWith("content://") || videoId.startsWith("file://")) {
-                dataSpec
+            val isYouTubeStream = targetUri.toString().contains("googlevideo.com") || targetUri.toString().contains("youtube.com")
+
+            val headers = if (isYouTubeStream) {
+                buildMap {
+                    put("Referer", "https://www.youtube.com/")
+                    put("Origin", "https://www.youtube.com")
+                    put("X-YouTube-Client-Name", "1")
+                    put("X-YouTube-Client-Version", "20.10.38")
+                    Innertube.visitorData?.let { put("X-Goog-Visitor-Id", it) }
+                    Innertube.poToken?.let { put("X-YouTube-Po-Token", it) }
+                    Innertube.cookies?.let { 
+                        put("Cookie", it)
+                        Innertube.generateAuthHeader(it)?.let { auth ->
+                            put("Authorization", auth)
+                        }
+                    }
+                }
             } else {
-                val uri = resolveUrl(videoId)
-                dataSpec.buildUpon()
-                    .setUri(uri)
-                    .setHttpRequestHeaders(headers)
-                    .build()
+                emptyMap()
             }
+
+            dataSpec.buildUpon()
+                .setUri(targetUri)
+                .setHttpRequestHeaders(headers)
+                .build()
         }
 
         return DataSource.Factory {
@@ -216,6 +217,21 @@ class PlayerMediaSourceProvider(
                 }
             }
 
+            if (playbackSource == PlaybackSource.Innertube) {
+                val innertubeUrl = runCatching {
+                    val playerResponse = runBlocking { Innertube.player(videoId) }?.getOrNull()
+                    playerResponse?.streamingData?.highestQualityFormat?.url
+                        ?: throw Exception("No stream URL in Innertube player response for $videoId")
+                }.getOrNull()
+
+                if (innertubeUrl != null) {
+                    val uri = innertubeUrl.toUri()
+                    urlCache[videoId] = Pair(uri, System.currentTimeMillis())
+                    sourceTracker[videoId] = com.github.soundpod.R.string.innertube
+                    return uri
+                }
+            }
+
             if (playbackSource == PlaybackSource.NewPipe || playbackSource == PlaybackSource.Automatic || playbackSource == PlaybackSource.Innertube) {
                 val rawUrl = runCatching {
                     val streamExtractor = ServiceList.YouTube.getStreamExtractor("https://www.youtube.com/watch?v=$videoId")
@@ -231,8 +247,13 @@ class PlayerMediaSourceProvider(
                         ?: throw Exception("No playable streams found by NewPipe for $videoId")
 
                     bestAudio.content
+                }.recoverCatching { e ->
+                    Log.w("SoundPod-Debug", "NewPipe resolution failed for $videoId, falling back to Innertube", e)
+                    val playerResponse = runBlocking { Innertube.player(videoId) }?.getOrNull()
+                    playerResponse?.streamingData?.highestQualityFormat?.url
+                        ?: throw Exception("Innertube fallback also failed for $videoId", e)
                 }.getOrElse { e ->
-                    Log.e("SoundPod-Debug", "NewPipe resolution failed for $videoId (Network likely down)", e)
+                    Log.e("SoundPod-Debug", "All resolution methods failed for $videoId", e)
                     return "https://www.youtube.com/watch?v=$videoId".toUri()
                 }
 

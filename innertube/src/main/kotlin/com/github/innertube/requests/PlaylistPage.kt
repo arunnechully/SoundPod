@@ -9,6 +9,8 @@ import com.github.innertube.models.ContinuationResponse
 import com.github.innertube.models.MusicCarouselShelfRenderer
 import com.github.innertube.models.MusicShelfRenderer
 import com.github.innertube.models.MusicPlaylistShelfRenderer
+import com.github.innertube.models.NavigationEndpoint
+import com.github.innertube.models.Runs
 import com.github.innertube.models.bodies.BrowseBody
 import com.github.innertube.models.bodies.ContinuationBody
 import com.github.innertube.utils.from
@@ -18,16 +20,24 @@ suspend fun Innertube.playlistPage(
     browseId: String,
     params: String? = null
 ) = runCatchingNonCancellable {
+    val cleanId = if (browseId.contains("list=")) {
+        browseId.substringAfter("list=").substringBefore("&")
+    } else {
+        browseId
+    }.removePrefix("VL")
+
+    val actualBrowseId = if (cleanId.startsWith("VL")) cleanId else "VL$cleanId"
+
     val response = client.post(BROWSE) {
         setBody(
             BrowseBody(
-                browseId = browseId,
+                browseId = actualBrowseId,
                 params = params
             )
         )
     }.body<BrowseResponse>()
 
-    val header = response
+    val tabSectionContents = response
         .contents
         ?.twoColumnBrowseResultsRenderer
         ?.tabs
@@ -36,67 +46,130 @@ suspend fun Innertube.playlistPage(
         ?.content
         ?.sectionListRenderer
         ?.contents
-        ?.firstOrNull()
-        ?.musicResponsiveHeaderRenderer
+        ?: response
+            .contents
+            ?.singleColumnBrowseResultsRenderer
+            ?.tabs
+            ?.firstOrNull()
+            ?.tabRenderer
+            ?.content
+            ?.sectionListRenderer
+            ?.contents
 
-    val contents = response
+    val secondarySectionContents = response
         .contents
         ?.twoColumnBrowseResultsRenderer
         ?.secondaryContents
         ?.sectionListRenderer
         ?.contents
 
+    val rootSectionContents = response
+        .contents
+        ?.sectionListRenderer
+        ?.contents
+
+    val allSectionContents = listOfNotNull(
+        secondarySectionContents,
+        tabSectionContents,
+        rootSectionContents
+    ).flatten()
+
     // Standard playlists (PL/VL)
-    val musicShelfRenderer = contents
-        ?.firstOrNull()
-        ?.musicShelfRenderer
+    val musicShelfRenderer = allSectionContents
+        .firstNotNullOfOrNull { it.musicShelfRenderer }
 
     // Mixes and Charts (RDCLAK/Mixes)
-    val musicPlaylistShelfRenderer = contents
+    val musicPlaylistShelfRenderer = allSectionContents
+        .firstNotNullOfOrNull { it.musicPlaylistShelfRenderer }
+
+    val otherVersionsSection = secondarySectionContents?.let { contents ->
+        if (contents.size == 3) contents.getOrNull(1)
+        else {
+            val section = contents.getOrNull(1)
+            if (section?.musicCarouselShelfRenderer?.contents?.size == 10) null
+            else section
+        }
+    }
+
+    val relatedAlbumsSection = secondarySectionContents?.let { contents ->
+        if (contents.size == 3) contents.getOrNull(2)
+        else {
+            val section = contents.getOrNull(1)
+            if (section?.musicCarouselShelfRenderer?.contents?.size == 10) section
+            else null
+        }
+    }
+
+    val responsiveHeader = allSectionContents
+        .firstNotNullOfOrNull {
+            it.musicResponsiveHeaderRenderer
+                ?: it.musicEditablePlaylistDetailHeaderRenderer?.header?.musicResponsiveHeaderRenderer
+        }
+        ?: response.header?.musicResponsiveHeaderRenderer
+        ?: response.header?.musicEditablePlaylistDetailHeaderRenderer?.header?.musicResponsiveHeaderRenderer
+
+    val detailHeader = response.header?.musicDetailHeaderRenderer
+
+    val immersiveHeader = response.header?.musicImmersiveHeaderRenderer
+
+    val title = Innertube.Info.cleanName(
+        responsiveHeader?.title?.text
+            ?: detailHeader?.title?.text
+            ?: immersiveHeader?.title?.text
+            ?: musicShelfRenderer?.title?.text
+    )
+
+    val thumbnail = responsiveHeader
+        ?.thumbnail
+        ?.musicThumbnailRenderer
+        ?.thumbnail
+        ?.thumbnails
         ?.firstOrNull()
-        ?.musicPlaylistShelfRenderer
-
-    val otherVersionsSection = if (contents?.size == 3) contents.getOrNull(1)
-    else {
-        val section = contents?.getOrNull(1)
-        if (section?.musicCarouselShelfRenderer?.contents?.size == 10) null
-        else section
-    }
-
-    val relatedAlbumsSection = if (contents?.size == 3) contents.getOrNull(2)
-    else {
-        val section = contents?.getOrNull(1)
-        if (section?.musicCarouselShelfRenderer?.contents?.size == 10) section
-        else null
-    }
-
-    Innertube.PlaylistOrAlbumPage(
-        title = Innertube.Info.cleanName(header
-            ?.title
-            ?.text),
-        thumbnail = header
+        ?: detailHeader
             ?.thumbnail
             ?.musicThumbnailRenderer
             ?.thumbnail
             ?.thumbnails
-            ?.firstOrNull(),
-        authors = header
-            ?.straplineTextOne
-            ?.splitBySeparator()
-            ?.getOrNull(0)
-            ?.map(Innertube::Info),
-        year = header
+            ?.firstOrNull()
+        ?: immersiveHeader
+            ?.thumbnail
+            ?.musicThumbnailRenderer
+            ?.thumbnail
+            ?.thumbnails
+            ?.firstOrNull()
+
+    val authors = (responsiveHeader
+        ?.straplineTextOne
+        ?: detailHeader?.subtitle)
+        ?.splitBySeparator()
+        ?.getOrNull(0)
+        ?.map<Runs.Run, Innertube.Info<NavigationEndpoint.Endpoint.Browse>>(Innertube::Info)
+
+    val year = responsiveHeader
+        ?.subtitle
+        ?.splitBySeparator()
+        ?.getOrNull(1)
+        ?.firstOrNull()
+        ?.text
+        ?: detailHeader
             ?.subtitle
             ?.splitBySeparator()
             ?.getOrNull(1)
             ?.firstOrNull()
-            ?.text,
+            ?.text
+
+    Innertube.PlaylistOrAlbumPage(
+        title = title,
+        thumbnail = thumbnail,
+        authors = authors,
+        year = year,
         url = response
             .microformat
             ?.microformatDataRenderer
             ?.urlCanonical,
         songsPage = musicShelfRenderer?.toSongsPage()
-            ?: musicPlaylistShelfRenderer?.toSongsPage(),
+            ?: musicPlaylistShelfRenderer?.toSongsPage()
+            ?: Innertube.ItemsPage(items = emptyList(), continuation = null),
         otherVersions = otherVersionsSection
             ?.musicCarouselShelfRenderer
             ?.contents

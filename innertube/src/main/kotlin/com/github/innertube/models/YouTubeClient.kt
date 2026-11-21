@@ -31,7 +31,10 @@ enum class YouTubeClient(
     ANDROID(
         clientName = "ANDROID",
         clientVersion = "20.10.38",
-        userAgent = "com.google.android.youtube/20.10.38 (Linux; U; Android 14; en_US; SM-S928B Build/UP1A.231005.007)"
+        userAgent = "com.google.android.youtube/20.10.38 (Linux; U; Android 14; en_US; SM-S928B Build/UP1A.231005.007)",
+        platform = "MOBILE",
+        osVersion = "14",
+        clientId = "1"
     ),
     ANDROID_MUSIC(
         clientName = "ANDROID_MUSIC",

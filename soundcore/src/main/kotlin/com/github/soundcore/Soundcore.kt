@@ -45,6 +45,15 @@ data class SoundcorePlaylist(
     val songCount: Int? = null
 )
 
+data class SoundcorePlaylistDetails(
+    val id: String,
+    val title: String,
+    val thumbnailUrl: String?,
+    val artistsText: String? = null,
+    val year: String? = null,
+    val songs: List<SoundcoreSong> = emptyList()
+)
+
 data class SoundcoreLaunchData(
     val trendingSongs: List<SoundcoreSong> = emptyList(),
     val topAlbums: List<SoundcoreAlbum> = emptyList(),
@@ -543,9 +552,45 @@ object Soundcore {
                 }
             }
             list
-        } catch (e: Exception) {
+         } catch (e: Exception) {
             System.err.println("SoundPod-Soundcore: Search playlists failed for $query - ${e.message}")
             emptyList()
+        }
+    }
+
+    fun getPlaylistDetails(playlistId: String): SoundcorePlaylistDetails? {
+        if (playlistId.isBlank()) return null
+        return try {
+            val url = "https://www.jiosaavn.com/api.php?__call=playlist.getDetails&listid=$playlistId&_format=json&_marker=0&api_version=4&ctx=web6dot0"
+            client.newCall(buildRequest(url)).execute().use { response ->
+                val body = response.body?.string() ?: ""
+                val json = JSONObject(body)
+                val rawTitle = json.optNonBlankString("title") ?: json.optNonBlankString("listname") ?: json.optNonBlankString("name")
+                val title = unescapeHtml(rawTitle) ?: "Playlist"
+                val rawImage = (json.optNonBlankString("image") ?: "").replace("150x150", "500x500").replace("50x50", "500x500")
+                val thumbnailUrl = if (rawImage.isNotBlank()) rawImage.replace("http://", "https://") else null
+                val artistsText = extractArtistsText(json, json.optJSONObject("more_info"))
+                val year = json.optNonBlankString("year") ?: json.optJSONObject("more_info")?.optNonBlankString("year")
+
+                val songsArray = json.optJSONArray("list") ?: json.optJSONArray("songs") ?: JSONArray()
+                val songs = mutableListOf<SoundcoreSong>()
+                for (i in 0 until songsArray.length()) {
+                    val obj = songsArray.optJSONObject(i) ?: continue
+                    parseSongObject(obj)?.let { songs.add(it) }
+                }
+
+                SoundcorePlaylistDetails(
+                    id = playlistId,
+                    title = title,
+                    thumbnailUrl = thumbnailUrl,
+                    artistsText = artistsText,
+                    year = year,
+                    songs = songs
+                )
+            }
+        } catch (e: Exception) {
+            System.err.println("SoundPod-Soundcore: Failed to get playlist details for $playlistId - ${e.message}")
+            null
         }
     }
 

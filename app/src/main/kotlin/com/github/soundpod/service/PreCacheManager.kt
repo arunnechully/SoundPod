@@ -170,8 +170,25 @@ class PreCacheManager(
                 contentLength = fetchContentLength(finalUri.toString())
             }
         }.onFailure { e ->
-            Log.e("SoundPod-PreCache", "NewPipe resolution failed in PreCache for $videoId", e)
-            return
+            Log.w("SoundPod-PreCache", "NewPipe resolution failed in PreCache for $videoId, trying Innertube fallback", e)
+            val innertubeResponse = runCatching {
+                Innertube.player(videoId)?.getOrNull()
+            }.getOrNull()
+
+            val bestFormat = innertubeResponse?.streamingData?.highestQualityFormat
+            val streamUrl = bestFormat?.url
+            if (streamUrl != null) {
+                finalUri = streamUrl.toUri()
+                bitrate = bestFormat.bitrate ?: (bestFormat.averageBitrate ?: 128000L)
+                itag = bestFormat.itag
+                mimeType = bestFormat.mimeType
+                contentLength = bestFormat.contentLength ?: -1L
+                if (contentLength == -1L) {
+                    contentLength = fetchContentLength(finalUri.toString())
+                }
+            } else {
+                return
+            }
         }
 
         if (finalUri == null) return

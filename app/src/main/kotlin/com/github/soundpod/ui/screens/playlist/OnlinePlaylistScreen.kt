@@ -27,9 +27,12 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import com.github.core.ui.LocalAppearance
 import com.github.innertube.Innertube
+import com.github.innertube.models.Thumbnail
 import com.github.innertube.requests.playlistPage
 import com.github.innertube.requests.playlistPageContinuation
 import com.github.innertube.utils.plus
+import com.github.soundcore.Soundcore
+import com.github.soundcore.asSoundcoreSongItem
 import com.github.soundpod.R
 import com.github.soundpod.db
 import com.github.soundpod.models.Playlist
@@ -75,6 +78,37 @@ fun OnlinePlaylistScreen(
 
         if (playlistPage == null && isScreenCacheEnabled) {
             playlistPage = ScreenCache.load(cacheKey)
+        }
+
+        if (browseId.startsWith("soundcore_playlist:") || browseId.startsWith("saavn_playlist:") || browseId.startsWith("soundcore:") || browseId.startsWith("saavn:")) {
+            val playlistId = browseId
+                .removePrefix("soundcore_playlist:")
+                .removePrefix("saavn_playlist:")
+                .removePrefix("soundcore:")
+                .removePrefix("saavn:")
+            withContext(Dispatchers.IO) {
+                val soundcorePlaylist = Soundcore.getPlaylistDetails(playlistId)
+                if (soundcorePlaylist != null) {
+                    val innertubeSongs = soundcorePlaylist.songs.map { it.asSoundcoreSongItem }
+                    val page = Innertube.PlaylistOrAlbumPage(
+                        title = soundcorePlaylist.title,
+                        authors = soundcorePlaylist.artistsText?.let { listOf(Innertube.Info(name = it, endpoint = null)) },
+                        year = soundcorePlaylist.year,
+                        thumbnail = soundcorePlaylist.thumbnailUrl?.let { Thumbnail(url = it, width = 500, height = 500) },
+                        url = "https://www.jiosaavn.com/featured/$playlistId",
+                        songsPage = Innertube.ItemsPage(items = innertubeSongs, continuation = null),
+                        otherVersions = emptyList(),
+                        relatedAlbums = emptyList()
+                    )
+                    withContext(Dispatchers.Main) {
+                        playlistPage = page
+                    }
+                    if (isScreenCacheEnabled) {
+                        ScreenCache.save(cacheKey, page)
+                    }
+                }
+            }
+            return@LaunchedEffect
         }
 
         withContext(Dispatchers.IO) {
@@ -176,7 +210,11 @@ fun OnlinePlaylistScreen(
                 },
                 onClick = {
                     val url = playlistPage?.url
-                        ?: "https://music.youtube.com/playlist?list=${browseId.removePrefix("VL")}"
+                        ?: if (browseId.startsWith("soundcore") || browseId.startsWith("saavn")) {
+                            "https://www.jiosaavn.com/featured/${browseId.substringAfter(":")}"
+                        } else {
+                            "https://music.youtube.com/playlist?list=${browseId.removePrefix("VL")}"
+                        }
                     val sendIntent = Intent().apply {
                         action = Intent.ACTION_SEND
                         type = "text/plain"

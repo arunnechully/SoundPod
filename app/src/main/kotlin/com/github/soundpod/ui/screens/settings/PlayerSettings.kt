@@ -161,7 +161,7 @@ fun PlayerSettingsContent(
             icon = IconSource.Icon(painterResource(R.drawable.musical_notes)),
             title = stringResource(R.string.playback_source),
             selectedValue = playbackSource,
-            values = listOf(PlaybackSource.Automatic, PlaybackSource.NewPipe),
+            values = listOf(PlaybackSource.Automatic, PlaybackSource.Innertube, PlaybackSource.NewPipe),
             onValueSelected = { playbackSource = it },
             valueText = { stringResource(it.resourceId) },
             descriptionColor = LocalAppearance.current.colorPalette.accent,
