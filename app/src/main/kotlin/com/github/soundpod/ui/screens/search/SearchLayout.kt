@@ -157,7 +157,7 @@ fun NewSearchLayout(
             val playbackSource = context.preferences.getEnum(playbackSourceKey, PlaybackSource.Automatic)
             suggestionsResult = withContext(Dispatchers.IO) {
                 if (playbackSource == PlaybackSource.Soundcore) {
-                    val soundcoreSuggestions = com.github.soundcore.Soundcore.getSearchSuggestions(textFieldValue.text)
+                    val soundcoreSuggestions = com.github.soundcore.SoundcoreRecommender.getSearchSuggestions(textFieldValue.text)
                     if (soundcoreSuggestions.isNotEmpty()) {
                         Result.success(soundcoreSuggestions)
                     } else {

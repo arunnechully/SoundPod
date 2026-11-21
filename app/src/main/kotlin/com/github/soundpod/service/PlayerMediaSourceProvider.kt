@@ -171,14 +171,14 @@ class PlayerMediaSourceProvider(
             if (isPrecachedByNewPipe) {
                 Log.d("SoundPod-DataSource", "Song $videoId is pre-cached by NewPipe, skipping Soundcore and continuing with NewPipe/Cache")
             } else if (playbackSource == PlaybackSource.Soundcore || playbackSource == PlaybackSource.Automatic) {
+                val isYouTubeTrack = videoId.length == 11 && !videoId.startsWith("http")
                 val song = runCatching { com.github.soundpod.db.getSong(videoId) }.getOrNull()
                 var title = song?.title
                 var artistsText = song?.artistsText
-                // Extra signals improve cross-platform matching accuracy in SoundcoreMatcher
                 var albumTitle: String? = null
                 var durationText: String? = song?.durationText
 
-                if (title.isNullOrBlank() && videoId.length == 11 && !videoId.startsWith("http")) {
+                if (isYouTubeTrack && title.isNullOrBlank()) {
                     val innertubeSong = runCatching {
                         runBlocking {
                             Innertube.song(videoId)?.getOrNull()
@@ -190,15 +190,20 @@ class PlayerMediaSourceProvider(
                     durationText = innertubeSong?.durationText
                 }
 
-                val soundcoreUrl = runCatching {
-                    com.github.soundcore.Soundcore.resolveSongUrl(
-                        songId = videoId,
-                        title = title,
-                        artistsText = artistsText,
-                        albumTitle = albumTitle,
-                        durationText = durationText,
-                    )
-                }.getOrNull()
+                // In Automatic mode, only try Soundcore for YouTube tracks if they belong to an album; YTM playlists are kept separate
+                val shouldAttemptSoundcore = playbackSource == PlaybackSource.Soundcore || !isYouTubeTrack || albumTitle != null
+
+                val soundcoreUrl = if (shouldAttemptSoundcore) {
+                    runCatching {
+                        com.github.soundcore.Soundcore.resolveSongUrl(
+                            songId = videoId,
+                            title = title,
+                            artistsText = artistsText,
+                            albumTitle = albumTitle,
+                            durationText = durationText,
+                        )
+                    }.getOrNull()
+                } else null
 
                 if (soundcoreUrl != null) {
                     Log.d("SoundPod-DataSource", "Soundcore resolution SUCCESS for $videoId: $soundcoreUrl")

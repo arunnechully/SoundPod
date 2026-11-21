@@ -594,6 +594,13 @@ object Soundcore {
         }
     }
 
+    fun getRecommendedSongs(
+        seedSongIds: List<String>,
+        seedArtistNames: List<String> = emptyList(),
+        excludeSongIds: Set<String> = emptySet(),
+        limit: Int = 30,
+    ): List<SoundcoreSong> = SoundcoreRecommender.getRecommendedSongs(seedSongIds, seedArtistNames, excludeSongIds, limit)
+
     fun getLaunchData(): SoundcoreLaunchData {
         return try {
             val url = "https://www.jiosaavn.com/api.php?__call=launch.getLaunchData&_format=json&_marker=0&api_version=4"

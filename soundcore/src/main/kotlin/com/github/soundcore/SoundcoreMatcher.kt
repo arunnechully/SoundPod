@@ -6,7 +6,8 @@ import kotlin.math.max
 import kotlin.math.min
 
 object SoundcoreMatcher {
-    const val ACCEPT_THRESHOLD = 5.0
+    const val ACCEPT_THRESHOLD = 7.0
+    private const val FALLBACK_THRESHOLD = 5.0
 
     data class SongSignals(
         val title: String,
@@ -68,47 +69,45 @@ object SoundcoreMatcher {
         }
     }
 
-    fun score(query: SongSignals, candidate: SoundcoreSong): Double {
-        var total = 0.0
+    private fun scoreTitle(queryTitle: String, candidateTitle: String): Double {
+        val qTitle = normalize(removeFeat(queryTitle))
+        val cTitle = normalize(removeFeat(candidateTitle))
+        if (qTitle.isBlank() || cTitle.isBlank()) return 0.0
 
-        val qTitle = normalize(removeFeat(query.title))
-        val cTitle = normalize(removeFeat(candidate.title))
-
-        val qTitleSoft = normalizeSoft(query.title)
-
-        total += when {
+        return when {
             qTitle == cTitle -> 10.0
-            qTitle.isBlank() || cTitle.isBlank() -> 0.0
             qTitle.contains(cTitle) || cTitle.contains(qTitle) -> 7.0
-            qTitleSoft.contains(normalizeSoft(candidate.title)) ||
-                    normalizeSoft(candidate.title).contains(qTitleSoft) -> 5.5
-            else -> {
-                val jac = jaccard(tokenSet(query.title), tokenSet(candidate.title))
-                jac * 5.0
-            }
+            normalizeSoft(queryTitle).let { q ->
+                val c = normalizeSoft(candidateTitle)
+                q.contains(c) || c.contains(q)
+            } -> 5.5
+            else -> jaccard(tokenSet(queryTitle), tokenSet(candidateTitle)) * 5.0
         }
+    }
 
-        if (total == 0.0) return 0.0
+    private fun scoreArtists(queryArtists: String, candidateArtists: String?): Double {
+        val qArtists = normalize(queryArtists)
+        val cArtists = normalize(candidateArtists ?: "")
+        if (qArtists.isBlank() || cArtists.isBlank()) return 0.0
 
-        val qArtists = normalize(query.artists)
-        val cArtists = normalize(candidate.artistsText ?: "")
-
-        if (qArtists.isNotBlank() && cArtists.isNotBlank()) {
-            total += when {
-                qArtists == cArtists -> 5.0
-                qArtists.contains(cArtists) || cArtists.contains(qArtists) -> 3.0
-                else -> {
-                    val jac = jaccard(tokenSet(query.artists), tokenSet(candidate.artistsText ?: ""))
-                    jac * 2.0
-                }
-            }
+        return when {
+            qArtists == cArtists -> 5.0
+            qArtists.contains(cArtists) || cArtists.contains(qArtists) -> 3.0
+            else -> jaccard(tokenSet(queryArtists), tokenSet(candidateArtists ?: "")) * 2.0
         }
+    }
+
+    fun score(query: SongSignals, candidate: SoundcoreSong): Double {
+        val titleScore = scoreTitle(query.title, candidate.title)
+        if (titleScore == 0.0) return 0.0
+
+        var total = titleScore
+        total += scoreArtists(query.artists, candidate.artistsText)
 
         val qAlbum = query.album?.let { normalize(it) }
         val cAlbum = candidate.albumTitle?.let { normalize(it) }
         if (!qAlbum.isNullOrBlank() && !cAlbum.isNullOrBlank()) {
-            val jac = jaccard(tokenSet(qAlbum), tokenSet(cAlbum))
-            total += jac * 2.0
+            total += jaccard(tokenSet(qAlbum), tokenSet(cAlbum)) * 2.0
         }
 
         val qDur = query.durationSeconds
@@ -120,34 +119,28 @@ object SoundcoreMatcher {
                 diff <= 2 -> 2.5
                 diff <= 5 -> 1.5
                 diff <= 10 -> 0.5
-                else -> 0.0
+                else -> -1.0
             }
         }
 
         return total
     }
 
-    fun findBestMatch(
-        query: SongSignals,
-        candidates: List<SoundcoreSong>,
-    ): SoundcoreSong? {
-        if (candidates.isEmpty()) return null
-
-        var bestSong: SoundcoreSong? = null
-        var bestScore = Double.MIN_VALUE
-
-        for (candidate in candidates) {
-            val s = score(query, candidate)
-            if (s > bestScore) {
-                bestScore = s
-                bestSong = candidate
-            }
-        }
-
-        return if (bestScore >= ACCEPT_THRESHOLD) bestSong else null
+    fun artistsMatch(queryArtists: String?, candidateArtists: String?): Boolean {
+        if (queryArtists.isNullOrBlank() || candidateArtists.isNullOrBlank()) return false
+        val qTokens = tokenSet(queryArtists)
+        val cTokens = tokenSet(candidateArtists)
+        if (qTokens.isEmpty() || cTokens.isEmpty()) return false
+        val overlap = qTokens.intersect(cTokens).size.toDouble() / min(qTokens.size, cTokens.size)
+        return overlap >= 0.5
     }
 
-    private const val FALLBACK_THRESHOLD = 3.0
+    fun albumsMatch(queryTitle: String?, candidateTitle: String?, queryArtists: String?, candidateArtists: String?): Boolean {
+        if (queryTitle.isNullOrBlank() || candidateTitle.isNullOrBlank()) return false
+        val titleScore = scoreTitle(queryTitle, candidateTitle)
+        if (titleScore < 5.0) return false
+        return queryArtists.isNullOrBlank() || candidateArtists.isNullOrBlank() || artistsMatch(queryArtists, candidateArtists)
+    }
 
     fun buildSearchQueries(signals: SongSignals): List<String> {
         val cleanTitle = removeFeat(signals.title).trim()
@@ -159,18 +152,8 @@ object SoundcoreMatcher {
             if (normalTitle.isNotBlank() && firstArtist.isNotBlank()) {
                 add("$cleanTitle $firstArtist")
             }
-            if (normalTitle.isNotBlank() && artists.isNotBlank() && artists != firstArtist) {
-                add("$cleanTitle $artists")
-            }
             if (normalTitle.isNotBlank()) {
                 add(cleanTitle)
-            }
-            if (signals.title != cleanTitle && firstArtist.isNotBlank()) {
-                add("${signals.title} $firstArtist")
-            }
-            val album = signals.album?.trim()
-            if (!album.isNullOrBlank() && normalTitle.isNotBlank()) {
-                add("$album $cleanTitle")
             }
         }.distinct().filter { it.isNotBlank() }
     }
@@ -178,7 +161,7 @@ object SoundcoreMatcher {
     fun resolveMatch(
         signals: SongSignals,
         searcher: (query: String) -> List<SoundcoreSong>,
-        maxQueriesRun: Int = 3,
+        maxQueriesRun: Int = 2,
     ): SoundcoreSong? {
         val queries = buildSearchQueries(signals)
 
@@ -191,23 +174,13 @@ object SoundcoreMatcher {
             val candidates = searcher(query)
             if (candidates.isEmpty()) continue
 
-            var localBest: SoundcoreSong? = null
-            var localBestScore = Double.MIN_VALUE
-
             for (candidate in candidates) {
                 val s = score(signals, candidate)
-                if (s > localBestScore) {
-                    localBestScore = s
-                    localBest = candidate
-                }
+                if (s >= ACCEPT_THRESHOLD) return candidate
                 if (s > globalBestScore) {
                     globalBestScore = s
                     globalBest = candidate
                 }
-            }
-
-            if (localBestScore >= ACCEPT_THRESHOLD && localBest != null) {
-                return localBest
             }
         }
 
@@ -235,21 +208,14 @@ object SoundcoreMatcher {
         }
     }
 
-    fun buildArtistSearchQueries(signals: ArtistSignals): List<String> {
-        val name = signals.name.trim()
-        val normalized = normalize(name)
-        return buildList {
-            if (name.isNotBlank()) add(name)
-            if (normalized != name.lowercase(Locale.ROOT) && normalized.isNotBlank()) add(normalized)
-        }.distinct().filter { it.isNotBlank() }
-    }
-
     fun resolveArtistMatch(
         signals: ArtistSignals,
         searcher: (query: String) -> List<SoundcoreArtist>,
         maxQueriesRun: Int = 2,
     ): SoundcoreArtist? {
-        val queries = buildArtistSearchQueries(signals)
+        val name = signals.name.trim()
+        if (name.isBlank()) return null
+        val queries = listOf(name).distinct()
         var globalBest: SoundcoreArtist? = null
         var globalBestScore = Double.MIN_VALUE
 
@@ -260,11 +226,11 @@ object SoundcoreMatcher {
 
             for (candidate in candidates) {
                 val s = scoreArtist(signals, candidate)
+                if (s >= ARTIST_ACCEPT_THRESHOLD) return candidate
                 if (s > globalBestScore) {
                     globalBestScore = s
                     globalBest = candidate
                 }
-                if (s >= ARTIST_ACCEPT_THRESHOLD) return candidate
             }
         }
 
@@ -275,34 +241,10 @@ object SoundcoreMatcher {
     private const val ALBUM_FALLBACK_THRESHOLD = 4.0
 
     fun scoreAlbum(query: AlbumSignals, candidate: SoundcoreAlbum): Double {
-        var total = 0.0
-        val qTitle = normalize(query.title)
-        val cTitle = normalize(candidate.title)
-        if (qTitle.isBlank() || cTitle.isBlank()) return 0.0
-
-        total += when {
-            qTitle == cTitle -> 10.0
-            qTitle.contains(cTitle) || cTitle.contains(qTitle) -> 7.0
-            else -> {
-                val jac = jaccard(tokenSet(query.title), tokenSet(candidate.title))
-                jac * 5.0
-            }
-        }
-
+        var total = scoreTitle(query.title, candidate.title)
         if (total == 0.0) return 0.0
 
-        val qArtists = query.artists?.let { normalize(it) }.orEmpty()
-        val cArtists = normalize(candidate.artistsText ?: "")
-        if (qArtists.isNotBlank() && cArtists.isNotBlank()) {
-            total += when {
-                qArtists == cArtists -> 5.0
-                qArtists.contains(cArtists) || cArtists.contains(qArtists) -> 3.0
-                else -> {
-                    val jac = jaccard(tokenSet(qArtists), tokenSet(cArtists))
-                    jac * 2.0
-                }
-            }
-        }
+        total += scoreArtists(query.artists ?: "", candidate.artistsText)
 
         val qYear = query.year?.trim()
         val cYear = candidate.year?.trim()
@@ -313,23 +255,19 @@ object SoundcoreMatcher {
         return total
     }
 
-    fun buildAlbumSearchQueries(signals: AlbumSignals): List<String> {
-        val title = signals.title.trim()
-        val artists = signals.artists?.trim().orEmpty()
-        val firstArtist = artists.split(",", "&").first().trim()
-        return buildList {
-            if (title.isNotBlank() && firstArtist.isNotBlank()) add("$title $firstArtist")
-            if (title.isNotBlank() && artists.isNotBlank() && artists != firstArtist) add("$title $artists")
-            if (title.isNotBlank()) add(title)
-        }.distinct().filter { it.isNotBlank() }
-    }
-
     fun resolveAlbumMatch(
         signals: AlbumSignals,
         searcher: (query: String) -> List<SoundcoreAlbum>,
-        maxQueriesRun: Int = 3,
+        maxQueriesRun: Int = 2,
     ): SoundcoreAlbum? {
-        val queries = buildAlbumSearchQueries(signals)
+        val title = signals.title.trim()
+        val artists = signals.artists?.trim().orEmpty()
+        val firstArtist = artists.split(",", "&").first().trim()
+        val queries = buildList {
+            if (title.isNotBlank() && firstArtist.isNotBlank()) add("$title $firstArtist")
+            if (title.isNotBlank()) add(title)
+        }.distinct().filter { it.isNotBlank() }
+
         var globalBest: SoundcoreAlbum? = null
         var globalBestScore = Double.MIN_VALUE
 
@@ -340,11 +278,11 @@ object SoundcoreMatcher {
 
             for (candidate in candidates) {
                 val s = scoreAlbum(signals, candidate)
+                if (s >= ALBUM_ACCEPT_THRESHOLD) return candidate
                 if (s > globalBestScore) {
                     globalBestScore = s
                     globalBest = candidate
                 }
-                if (s >= ALBUM_ACCEPT_THRESHOLD) return candidate
             }
         }
 

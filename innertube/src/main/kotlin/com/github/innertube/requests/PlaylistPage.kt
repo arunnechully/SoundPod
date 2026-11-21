@@ -113,13 +113,23 @@ suspend fun Innertube.playlistPage(
 suspend fun Innertube.playlistPageContinuation(continuation: String) = runCatchingNonCancellable {
     val response = client.post(BROWSE) {
         setBody(ContinuationBody(continuation = continuation))
-        mask("continuationContents.musicPlaylistShelfContinuation(continuations,contents.$MUSIC_RESPONSIVE_LIST_ITEM_RENDERER_MASK)")
     }.body<ContinuationResponse>()
 
     response
         .continuationContents
         ?.musicShelfContinuation
         ?.toSongsPage()
+        ?: response
+            .continuationContents
+            ?.musicPlaylistShelfContinuation
+            ?.toSongsPage()
+        ?: response
+            .continuationContents
+            ?.sectionListContinuation
+            ?.contents
+            ?.firstNotNullOfOrNull { content ->
+                content.musicShelfRenderer?.toSongsPage() ?: content.musicPlaylistShelfRenderer?.toSongsPage()
+            }
 }
 
 /**

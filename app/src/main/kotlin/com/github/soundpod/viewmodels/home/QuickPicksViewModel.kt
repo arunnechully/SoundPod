@@ -13,6 +13,7 @@ import com.github.innertube.requests.recommendations
 import com.github.innertube.requests.searchPage
 import com.github.innertube.utils.from
 import com.github.soundcore.Soundcore
+import com.github.soundcore.SoundcoreRecommender
 import com.github.soundcore.SoundcoreSong
 import com.github.soundcore.asSoundcoreAlbumItem
 import com.github.soundcore.asSoundcoreArtistItem
@@ -119,59 +120,41 @@ class QuickPicksViewModel : ViewModel() {
         job = viewModelScope.launch(Dispatchers.IO) {
             if (playbackSource == PlaybackSource.Soundcore) {
                 coroutineScope {
-                    val history = db.history(limit = 5, minPlayTimeMs = MIN_HISTORY_PLAY_TIME_MS).first()
+                    val history = db.history(limit = 8, minPlayTimeMs = MIN_HISTORY_PLAY_TIME_MS).first()
                     val historySongIds = history.mapTo(mutableSetOf()) { it.id }
 
-                    // Step 1: Personal Recommendation Signals via Soundcore reco.getreco
-                    val recoDeferreds = history.map { song ->
+                    val seedSongIdDeferreds = history.map { song ->
                         async {
-                            val soundcoreId: String? = if (!song.id.startsWith("content://") && !song.id.contains("http") && song.id.length != 11) {
+                            if (!song.id.startsWith("content://") && !song.id.contains("http") && song.id.length != 11) {
                                 song.id
                             } else {
                                 val query = listOfNotNull(song.title, song.artistsText).joinToString(" ")
-                                val searchMatch = Soundcore.searchSongs(query)
-                                searchMatch.firstOrNull()?.id
-                            }
-
-                            if (soundcoreId != null) {
-                                Soundcore.getRecommendations(soundcoreId)
-                            } else {
-                                emptyList()
+                                Soundcore.searchSongs(query).firstOrNull()?.id
                             }
                         }
                     }
 
-                    // Step 2: Followed Artists top songs
                     val followed = db.followedArtists().first()
-                    val artistDeferreds = followed.shuffled().take(3).map { artist ->
-                        async {
-                            artist.name?.let { Soundcore.searchSongs(it) } ?: emptyList()
-                        }
-                    }
+                    val followedArtistNames = followed.mapNotNull { it.name }
+                    val historyArtistNames = history.mapNotNull { it.artistsText?.split(",")?.firstOrNull()?.trim() }
+                    val seedArtistNames = (historyArtistNames + followedArtistNames).distinct().take(5)
 
-                    // Step 3: Launch Data (Trending songs, Top albums, Featured playlists)
+                    val seedSongIds = seedSongIdDeferreds.mapNotNull { it.await() }
+
+                    val recommendedSongs = SoundcoreRecommender.getRecommendedSongs(
+                        seedSongIds = seedSongIds,
+                        seedArtistNames = seedArtistNames,
+                        excludeSongIds = historySongIds,
+                        limit = 40
+                    )
+
                     val launchDataDeferred = async { Soundcore.getLaunchData() }
+                    val searchArtistDeferreds = seedArtistNames.take(3).map { name -> async { Soundcore.searchArtists(name) } }
 
-                    val recoLists = recoDeferreds.map { it.await() }
-                    val artistLists = artistDeferreds.map { it.await() }
                     val launchData = launchDataDeferred.await()
-
-                    val allRecoSongs = mutableListOf<List<SoundcoreSong>>()
-                    recoLists.filter { it.isNotEmpty() }.forEach { allRecoSongs.add(it) }
-                    artistLists.filter { it.isNotEmpty() }.forEach { allRecoSongs.add(it) }
-                    if (launchData.trendingSongs.isNotEmpty()) {
-                        allRecoSongs.add(launchData.trendingSongs)
-                    }
-
-                    val soundcoreSongs = interleave(allRecoSongs.map { list ->
-                        list.filter { it.id !in historySongIds }.map { it.asSoundcoreSongItem }
-                    }).take(40)
-
+                    val soundcoreSongs = recommendedSongs.map { it.asSoundcoreSongItem }
                     val soundcoreAlbums = launchData.topAlbums.map { it.asSoundcoreAlbumItem }.take(15)
                     val soundcorePlaylists = launchData.topPlaylists.map { it.asSoundcorePlaylistItem }.take(15)
-
-                    val seedArtistNames = history.mapNotNull { it.artistsText?.split(",")?.firstOrNull()?.trim() }.distinct().take(3)
-                    val searchArtistDeferreds = seedArtistNames.map { name -> async { Soundcore.searchArtists(name) } }
                     val soundcoreArtists = interleave(searchArtistDeferreds.map { it.await().map { a -> a.asSoundcoreArtistItem } }).take(15)
 
                     val page = Innertube.RelatedPage(

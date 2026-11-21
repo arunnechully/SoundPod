@@ -160,7 +160,6 @@ class SearchViewModel : ViewModel() {
                     val soundcoreSongsDeferred = async { Soundcore.searchSongs(query) }
                     val soundcoreAlbumsDeferred = async { Soundcore.searchAlbums(query) }
                     val soundcoreArtistsDeferred = async { Soundcore.searchArtists(query) }
-                    val soundcorePlaylistsDeferred = async { Soundcore.searchPlaylists(query) }
 
                     val innertubeSongs = songsDeferred.await()?.getOrNull()?.items
                     val innertubeAlbums = albumsDeferred.await()?.getOrNull()?.items
@@ -171,13 +170,12 @@ class SearchViewModel : ViewModel() {
                     val soundcoreSongs = soundcoreSongsDeferred.await()
                     val soundcoreAlbums = soundcoreAlbumsDeferred.await()
                     val soundcoreArtists = soundcoreArtistsDeferred.await()
-                    val soundcorePlaylists = soundcorePlaylistsDeferred.await()
 
                     soundcoreResults = soundcoreSongs.take(10)
-                    songResults = mergeItems(innertubeSongs, soundcoreSongs.map { it.asSoundcoreSongItem }).take(10)
+                    songResults = innertubeSongs?.take(10)
                     albumResults = mergeItems(innertubeAlbums, soundcoreAlbums.map { it.asSoundcoreAlbumItem }).take(10)
                     artistResults = mergeItems(innertubeArtists, soundcoreArtists.map { it.asSoundcoreArtistItem }).take(10)
-                    playlistResults = mergeItems(innertubePlaylists, soundcorePlaylists.map { it.asSoundcorePlaylistItem }).take(10)
+                    playlistResults = innertubePlaylists?.take(10)
                     videoResults = innertubeVideos?.take(6)
                 } else {
                     val songsDeferred = async {

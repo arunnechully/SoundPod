@@ -130,15 +130,6 @@ fun NewSearchResult(
                             if (playbackSource == PlaybackSource.Soundcore || resultType == "Soundcore") {
                                 val soundcoreSongs = Soundcore.searchSongs(query)
                                 Result.success(Innertube.ItemsPage(items = soundcoreSongs.map { it.asSoundcoreSongItem }, continuation = null))
-                            } else if (playbackSource == PlaybackSource.Automatic && continuation == null) {
-                                val innertubePage = Innertube.searchPage(
-                                    query = query,
-                                    params = Innertube.SearchFilter.Song.value,
-                                    fromMusicShelfRendererContent = Innertube.SongItem.Companion::from
-                                )?.getOrNull()
-                                val soundcoreSongs = Soundcore.searchSongs(query)
-                                val merged = mergeItems(innertubePage?.items, soundcoreSongs.map { it.asSoundcoreSongItem })
-                                Result.success(Innertube.ItemsPage(items = merged, continuation = innertubePage?.continuation))
                             } else if (continuation == null) {
                                 Innertube.searchPage(
                                     query = query,
@@ -325,15 +316,6 @@ fun NewSearchResult(
                             if (playbackSource == PlaybackSource.Soundcore) {
                                 val soundcorePlaylists = Soundcore.searchPlaylists(query)
                                 Result.success(Innertube.ItemsPage(items = soundcorePlaylists.map { it.asSoundcorePlaylistItem }, continuation = null))
-                            } else if (playbackSource == PlaybackSource.Automatic && continuation == null) {
-                                val innertubePage = Innertube.searchPage(
-                                    query = query,
-                                    params = Innertube.SearchFilter.CommunityPlaylist.value,
-                                    fromMusicShelfRendererContent = Innertube.PlaylistItem::from
-                                )?.getOrNull()
-                                val soundcorePlaylists = Soundcore.searchPlaylists(query)
-                                val merged = mergeItems(innertubePage?.items, soundcorePlaylists.map { it.asSoundcorePlaylistItem })
-                                Result.success(Innertube.ItemsPage(items = merged, continuation = innertubePage?.continuation))
                             } else if (continuation == null) {
                                 Innertube.searchPage(
                                     query = query,

@@ -80,7 +80,6 @@ fun OnlineSearch(
     onViewAllClick: (String) -> Unit
 ) {
     val context = LocalContext.current
-    val playbackSource = remember { context.preferences.getEnum(playbackSourceKey, PlaybackSource.Automatic) }
     val (colorPalette) = LocalAppearance.current
     val binder = LocalPlayerServiceBinder.current
     val menuState = LocalMenuState.current
@@ -113,8 +112,8 @@ fun OnlineSearch(
             contentPadding = PaddingValues(bottom = 16.dp),
             modifier = Modifier.fillMaxSize()
         ) {
-            // Soundcore Songs Section (shown separately only in non-Automatic mode)
-            if (playbackSource != PlaybackSource.Automatic && soundcoreResults?.isNotEmpty() == true) {
+            // Soundcore Songs Section (shown separately from YTM songs)
+            if (soundcoreResults?.isNotEmpty() == true) {
                 item(span = { GridItemSpan(maxCurrentLineSpan) }) {
                     SearchSectionHeader(
                         title = "Soundcore",
