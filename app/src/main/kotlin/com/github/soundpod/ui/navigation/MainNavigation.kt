@@ -33,7 +33,8 @@ import com.github.soundpod.ui.screens.favorites.FavoriteTracksScreen
 import com.github.soundpod.ui.screens.favorites.FavoritesScreen
 import com.github.soundpod.ui.screens.home.style.AppleHome
 import com.github.soundpod.ui.screens.home.HistoryScreen
-import com.github.soundpod.ui.screens.home.HomeScreen
+import com.github.soundpod.ui.screens.home.style.SoundPodHome
+import com.github.soundpod.ui.screens.home.style.SamsungHome
 import com.github.soundpod.ui.screens.playlist.FavoritePlaylistScreen
 import com.github.soundpod.ui.screens.playlist.OnlinePlaylistScreen
 import com.github.soundpod.ui.screens.search.NewSearchLayout
@@ -97,13 +98,17 @@ fun MainNavigation(
         }
 
         playerComposable(route = Routes.Home::class) {
-            val homeStyle by rememberPreference(homeStyleKey, HomeStyle.Default)
+            val homeStyle by rememberPreference(homeStyleKey, HomeStyle.SoundPodHome)
             when (homeStyle) {
-                homeStyle.AppleMusic -> AppleHome(
+                HomeStyle.AppleHome -> AppleHome(
                     navController = navController,
                     onSettingsClick = onNavigateToSettings
                 )
-                homeStyle.SamsungMusic, homeStyle.Default -> HomeScreen(
+                HomeStyle.SamsungHome -> SamsungHome(
+                    navController = navController,
+                    onSettingsClick = onNavigateToSettings
+                )
+                HomeStyle.SoundPodHome -> SoundPodHome(
                     navController = navController,
                     onSettingsClick = onNavigateToSettings
                 )

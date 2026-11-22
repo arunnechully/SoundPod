@@ -82,7 +82,7 @@ fun PlayerLayout(
             )
         }
 
-        PlayerLayout.New -> {
+        PlayerLayout.SoundPod -> {
             MainPlayerContent(
                 expandProgress = expandProgress,
                 onGoToAlbum = onGoToAlbum,

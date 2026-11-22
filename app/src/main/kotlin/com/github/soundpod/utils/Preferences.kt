@@ -86,7 +86,7 @@ enum class PlaybackSource(val resourceId: Int) {
 
 enum class HomeStyle(val resourceId: Int) {
     SamsungHome(R.string.samsung_music),
-    Default(R.string.defualt),
+    SoundPodHome(R.string.app_name),
     AppleHome (R.string.apple_music)
 }
 
@@ -96,8 +96,8 @@ enum class PlayerLayout(
     SamsungMusic(
         resourceId = R.string.samsung_music,
     ),
-    New(
-        resourceId = R.string.new_layout,
+    SoundPod(
+        resourceId = R.string.app_name,
     ),
     AppleMusic(
         resourceId = R.string.apple_music,

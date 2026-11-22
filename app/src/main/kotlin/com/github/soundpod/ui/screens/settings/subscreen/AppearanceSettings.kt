@@ -13,13 +13,11 @@ import com.github.soundpod.enums.ProgressBar
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.utils.HomeTab
 import com.github.soundpod.utils.HomeStyle
-import com.github.soundpod.utils.appearanceUpdatedKey
 import com.github.soundpod.utils.appTheme
 import com.github.soundpod.utils.playerlayout
 import com.github.soundpod.utils.progressBarStyle
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.homeStyleKey
-import androidx.compose.runtime.LaunchedEffect
 import com.github.soundpod.ui.screens.settings.EnumValueSelectorSettingsEntry
 import com.github.soundpod.ui.screens.settings.MultiSelectorSettingsEntry
 import com.github.soundpod.ui.screens.settings.SettingsColumn
@@ -33,13 +31,7 @@ fun AppearanceSettingsContent(
     var appThemeColor by rememberPreference(appTheme, AppThemeColor.System)
     var progressBarStyle by rememberPreference(progressBarStyle, ProgressBar.Default )
     var playerlayout by rememberPreference(playerlayout, PlayerLayout.SamsungMusic )
-    var homeStyle by rememberPreference(homeStyleKey, HomeStyle.Default)
-
-    var isAppearanceUpdated by rememberPreference(appearanceUpdatedKey, false)
-
-    LaunchedEffect(Unit) {
-        isAppearanceUpdated = false
-    }
+    var homeStyle by rememberPreference(homeStyleKey, HomeStyle.SoundPodHome)
 
     val homeTabsVisibility = HomeTab.entries.associateWith { tab ->
         rememberPreference(tab.key, true)
@@ -99,7 +91,6 @@ fun AppearanceSettingsContent(
             selectedValue = homeStyle,
             onValueSelected = {
                 homeStyle = it
-                isAppearanceUpdated = true
             },
             icon = IconSource.Icon(painterResource(id = R.drawable.interface_ui_tabs)),
             valueText = { stringResource(it.resourceId) }

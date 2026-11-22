@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 
-package com.github.soundpod.ui.screens.home
+package com.github.soundpod.ui.screens.home.style
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.BorderStroke
@@ -34,25 +34,27 @@ import androidx.navigation.NavController
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
 import com.github.soundpod.enums.BuiltInPlaylist
-import com.github.soundpod.ui.components.ClassicHorizontalTabs
 import com.github.soundpod.ui.components.HorizontalTabs
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.StaticScreenLayout
 import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.ui.screens.favorites.FavoritesScreen
+import com.github.soundpod.ui.screens.home.FollowingScreen
+import com.github.soundpod.ui.screens.home.HomeAlbums
+import com.github.soundpod.ui.screens.home.HomeArtistList
+import com.github.soundpod.ui.screens.home.HomePlaylists
+import com.github.soundpod.ui.screens.home.HomeSongs
+import com.github.soundpod.ui.screens.home.QuickPicks
 import com.github.soundpod.utils.HomeTab
-import com.github.soundpod.utils.HomeStyle
 import com.github.soundpod.utils.appearanceUpdatedKey
 import com.github.soundpod.utils.rememberPreference
-import com.github.soundpod.utils.homeStyleKey
 import com.github.soundpod.utils.updateAvailableKey
 
 @Composable
-fun HomeScreen(
+fun SamsungHome(
     navController: NavController,
     onSettingsClick: () -> Unit,
 ) {
-    val homeStyle by rememberPreference(homeStyleKey, HomeStyle.Default)
     val updateAvailable by rememberPreference(updateAvailableKey, false)
     val appearanceUpdated by rememberPreference(appearanceUpdatedKey, false)
 
@@ -128,18 +130,10 @@ fun HomeScreen(
         }
     ) {
         val tabTitles = activeTabs.map { it.title }
-
-        if (homeStyle == homeStyle.SamsungMusic) {
             HorizontalTabs(
                 pagerState = pagerState,
                 tabs = tabTitles
             )
-        } else {
-            ClassicHorizontalTabs(
-                pagerState = pagerState,
-                tabs = tabTitles
-            )
-        }
 
         SettingsCard(
             modifier = Modifier.weight(1f)

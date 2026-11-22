@@ -82,7 +82,7 @@ import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.db
-import com.github.soundpod.enums.PlayerLayout
+import com.github.soundpod.utils.PlayerLayout
 import com.github.soundpod.enums.ProgressBar
 import com.github.soundpod.models.Song
 import com.github.soundpod.query
@@ -588,9 +588,9 @@ fun PlayerControlBottom(
         // Play/Pause Control (Crossfade Removed)
         Box(
             contentAlignment = Alignment.Center,
-            modifier = Modifier.size(if (playerLayout == PlayerLayout.New) 84.dp else 72.dp)
+            modifier = Modifier.size(if (playerLayout == PlayerLayout.SoundPod) 84.dp else 72.dp)
         ) {
-            if (playerLayout == PlayerLayout.New) {
+            if (playerLayout == PlayerLayout.SoundPod) {
                 NewPlayPauseButton(
                     playing = shouldBePlaying,
                     isBuffering = isBuffering, // Passed directly

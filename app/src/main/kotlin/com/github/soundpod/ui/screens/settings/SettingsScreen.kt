@@ -1,10 +1,7 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.github.soundpod.ui.screens.settings
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,7 +36,6 @@ import com.github.soundpod.viewmodels.SettingsViewModel
 @Composable
 fun SettingsScreen(
     screenId: String,
-    highlightSetting: String? = null,
     onBackClick: () -> Unit,
     onOptionClick: (String) -> Unit
 ) {

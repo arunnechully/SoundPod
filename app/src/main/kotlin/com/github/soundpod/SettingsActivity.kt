@@ -71,7 +71,6 @@ class SettingsActivity : ComponentActivity() {
         }
 
         val initialScreenId = intent.getStringExtra("SCREEN_ID") ?: SettingsDestinations.MAIN
-        val highlightSetting = intent.getStringExtra("HIGHLIGHT_SETTING")
 
         setContent {
             val appTheme by rememberPreference(appTheme, AppThemeColor.System)
@@ -115,7 +114,6 @@ class SettingsActivity : ComponentActivity() {
                 CompositionLocalProvider(value = LocalPlayerServiceBinder provides binder) {
                     SettingsScreen(
                         screenId = currentScreenId,
-                        highlightSetting = if (currentScreenId == initialScreenId) highlightSetting else null,
                         onBackClick = onBack,
                         onOptionClick = { routeId ->
                             screenStack.add(routeId)
