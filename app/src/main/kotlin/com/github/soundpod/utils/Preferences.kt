@@ -77,7 +77,6 @@ const val appearanceUpdatedKey = "appearanceUpdated"
 
 enum class PlaybackSource(val resourceId: Int) {
     Automatic(R.string.automatic),
-    Innertube(R.string.innertube),
     NewPipe(R.string.newpipe),
     Soundcore(R.string.soundcore)
 }

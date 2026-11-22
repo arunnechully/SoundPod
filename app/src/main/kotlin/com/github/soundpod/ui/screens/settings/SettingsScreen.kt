@@ -65,8 +65,7 @@ fun SettingsScreen(
 
                 SettingsDestinations.BACKGROUND -> BackgroundSettingsContent()
                 SettingsDestinations.PLAYER -> PlayerSettingsContent(
-                    onSleepTimerClick = { onOptionClick(SettingsDestinations.SLEEP_TIMER) },
-                    highlightPlaybackSource = highlightSetting == "playbackSource"
+                    onSleepTimerClick = { onOptionClick(SettingsDestinations.SLEEP_TIMER) }
                 )
 
                 SettingsDestinations.SLEEP_TIMER -> SleepTimerSettingsContent()

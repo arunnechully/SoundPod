@@ -41,37 +41,6 @@ enum class YouTubeClient(
         clientVersion = "7.07.51",
         userAgent = "com.google.android.apps.youtube.music/7.07.51 (Linux; U; Android 14; en_US; SM-S928B Build/UP1A.231005.007)"
     ),
-    ANDROID_TESTSUITE(
-        clientName = "ANDROID_TESTSUITE",
-        clientVersion = "1.9.31",
-        userAgent = "com.google.android.youtube.testsuite/1.9.31 (Linux; U; Android 14; en_US; SM-S928B Build/UP1A.231005.007)"
-    ),
-    TVHTML5_SIMPLY_EMBEDDED_PLAYER(
-        clientName = "TVHTML5_SIMPLY_EMBEDDED_PLAYER",
-        clientVersion = "2.0",
-        userAgent = "Mozilla/5.0 (PlayStation; PlayStation 4/12.02) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.4 Safari/605.1.15",
-        platform = "TV",
-        clientId = "85"
-    ),
-    ANDROID_VR(
-        clientName = "ANDROID_VR",
-        clientVersion = "1.74.31",
-        userAgent = "com.google.android.apps.youtube.vr.oculus/1.74.31 (Linux; U; Android 14; eureka-user Build/SQ3A.220605.009.A1) gzip",
-        osVersion = "14",
-        clientId = "28"
-    ),
-    VISION_OS(
-        clientName = "VISION_OS",
-        clientVersion = "1.1.2",
-        userAgent = "com.google.ios.youtube/1.1.2 (VisionPro1,1; U; CPU OS 1_1 like Mac OS X; en_US)",
-        clientId = "113"
-    ),
-    ANDROID_EMBEDDED_PLAYER(
-        clientName = "ANDROID_EMBEDDED_PLAYER",
-        clientVersion = "1.2.2",
-        userAgent = "com.google.android.youtube.embedded.player/1.2.2 (Linux; U; Android 14; en_US; SM-S928B Build/UP1A.231005.007)",
-        clientId = "55"
-    ),
     MAC_SAFARI_WEB_REMIX(
         clientName = "WEB_REMIX",
         clientVersion = "1.20260818.08.00",
@@ -97,18 +66,13 @@ enum class YouTubeClient(
                 else -> "67"
             },
             osVersion = osVersion ?: when (this) {
-                ANDROID, ANDROID_MUSIC, ANDROID_TESTSUITE -> "14"
+                ANDROID, ANDROID_MUSIC -> "14"
                 IOS -> "17.6"
                 MWEB -> "14"
                 else -> "13"
             },
             platform = platform ?: when (this) {
-                IOS -> "MOBILE"
-                ANDROID -> "MOBILE"
-                ANDROID_MUSIC -> "MOBILE"
-                ANDROID_VR -> "MOBILE"
-                MWEB -> "MOBILE"
-                TVHTML5_SIMPLY_EMBEDDED_PLAYER -> "TV"
+                IOS, ANDROID, ANDROID_MUSIC, MWEB -> "MOBILE"
                 else -> "DESKTOP"
             },
             userAgent = userAgent,

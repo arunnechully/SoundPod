@@ -56,7 +56,6 @@ import java.nio.channels.UnresolvedAddressException
 fun PlaybackError(
     error: PlaybackException?,
     onDismiss: () -> Unit,
-    onNavigateToPlaybackSourceSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val clipboard = LocalClipboard.current
@@ -110,18 +109,6 @@ fun PlaybackError(
                     Text(text = stringResource(id = R.string.retry))
                 }
 
-                Button(
-                    onClick = onNavigateToPlaybackSourceSettings
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Info,
-                        contentDescription = stringResource(id = R.string.playback_source)
-                    )
-
-                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-
-                    Text(text = stringResource(id = R.string.playback_source))
-                }
 
                 FilledTonalIconButton(
                     onClick = { isShowingLogsDialog = true }

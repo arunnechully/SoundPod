@@ -66,7 +66,6 @@ fun SharedPlayer(
     navController: NavController,
     onNavigateToSettings: () -> Unit,
     onNavigateToSleepTimer: () -> Unit,
-    onNavigateToPlaybackSourceSettings: () -> Unit,
     sheetState: SheetState,
     scaffoldPadding: PaddingValues,
     showPlayer: Boolean,
@@ -341,8 +340,7 @@ fun SharedPlayer(
                         ) {
                             SharedThumbnail(
                                 expandProgress = expandProgress,
-                                isLandscape = isLandscape,
-                                onNavigateToPlaybackSourceSettings = onNavigateToPlaybackSourceSettings
+                                isLandscape = isLandscape
                             )
                         }
                     }

@@ -624,7 +624,11 @@ class PlayerService : InvincibleService(), Player.Listener,
         fun startSleepTimer(delay: Long) = sleepTimerManager.startTimer(delay)
         fun cancelSleepTimer() = sleepTimerManager.cancelTimer()
 
-        fun setupRadio(endpoint: NavigationEndpoint.Endpoint.Watch?) = radioManager.setupRadio(endpoint)
+        fun setupRadio(
+            endpoint: NavigationEndpoint.Endpoint.Watch?,
+            title: String? = null,
+            artist: String? = null
+        ) = radioManager.setupRadio(endpoint, title, artist)
         fun stopRadio() = radioManager.stop()
 
         fun removeFromCache(songIds: List<String>) {

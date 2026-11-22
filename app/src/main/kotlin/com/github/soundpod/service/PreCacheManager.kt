@@ -11,20 +11,13 @@ import androidx.media3.datasource.cache.CacheWriter
 import androidx.media3.datasource.cache.ContentMetadata
 import androidx.media3.datasource.cache.ContentMetadataMutations
 import androidx.media3.datasource.okhttp.OkHttpDataSource
-import com.github.innertube.Innertube
-import com.github.innertube.requests.player
 import com.github.soundpod.MainApplication
-import com.github.soundpod.NewPipeDownloader
 import com.github.soundpod.R
 import com.github.soundpod.db
 import com.github.soundpod.models.DownloadedSong
 import com.github.soundpod.models.Format
 import com.github.soundpod.models.PrecachedSong
 import com.github.soundpod.models.Song
-import com.github.soundpod.utils.PlaybackSource
-import com.github.soundpod.utils.getEnum
-import com.github.soundpod.utils.playbackSourceKey
-import com.github.soundpod.utils.preferences
 import com.github.soundpod.utils.toast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CancellationException
@@ -170,25 +163,8 @@ class PreCacheManager(
                 contentLength = fetchContentLength(finalUri.toString())
             }
         }.onFailure { e ->
-            Log.w("SoundPod-PreCache", "NewPipe resolution failed in PreCache for $videoId, trying Innertube fallback", e)
-            val innertubeResponse = runCatching {
-                Innertube.player(videoId)?.getOrNull()
-            }.getOrNull()
-
-            val bestFormat = innertubeResponse?.streamingData?.highestQualityFormat
-            val streamUrl = bestFormat?.url
-            if (streamUrl != null) {
-                finalUri = streamUrl.toUri()
-                bitrate = bestFormat.bitrate ?: (bestFormat.averageBitrate ?: 128000L)
-                itag = bestFormat.itag
-                mimeType = bestFormat.mimeType
-                contentLength = bestFormat.contentLength ?: -1L
-                if (contentLength == -1L) {
-                    contentLength = fetchContentLength(finalUri.toString())
-                }
-            } else {
-                return
-            }
+            Log.w("SoundPod-PreCache", "NewPipe resolution failed in PreCache for $videoId", e)
+            return
         }
 
         if (finalUri == null) return

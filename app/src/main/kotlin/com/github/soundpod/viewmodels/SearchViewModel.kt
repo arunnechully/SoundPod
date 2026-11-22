@@ -9,14 +9,8 @@ import com.github.innertube.Innertube
 import com.github.innertube.requests.searchPage
 import com.github.innertube.utils.from
 import com.github.soundcore.Soundcore
-import com.github.soundcore.SoundcoreSong
 import com.github.soundcore.asSoundcoreArtistItem
 import com.github.soundcore.asSoundcoreSongItem
-import com.github.soundpod.MainApplication
-import com.github.soundpod.utils.PlaybackSource
-import com.github.soundpod.utils.getEnum
-import com.github.soundpod.utils.playbackSourceKey
-import com.github.soundpod.utils.preferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -33,8 +27,6 @@ class SearchViewModel : ViewModel() {
         private set
     var playlistResults by mutableStateOf<List<Innertube.PlaylistItem>?>(null)
         private set
-    var soundcoreResults by mutableStateOf<List<SoundcoreSong>?>(null)
-        private set
 
     var isLoading by mutableStateOf(false)
         private set
@@ -42,8 +34,16 @@ class SearchViewModel : ViewModel() {
     private var lastSearchedQuery = ""
 
     private fun getItemName(item: Innertube.Item): String? = when (item) {
-        is Innertube.SongItem -> item.info?.name
-        is Innertube.AlbumItem -> item.info?.name
+        is Innertube.SongItem -> {
+            val title = item.info?.name.orEmpty()
+            val artist = item.authors?.firstOrNull()?.name.orEmpty()
+            "$title - $artist"
+        }
+        is Innertube.AlbumItem -> {
+            val title = item.info?.name.orEmpty()
+            val artist = item.authors?.firstOrNull()?.name.orEmpty()
+            "$title - $artist"
+        }
         is Innertube.ArtistItem -> item.info?.name
         is Innertube.PlaylistItem -> item.info?.name
         is Innertube.VideoItem -> item.info?.name
@@ -92,7 +92,6 @@ class SearchViewModel : ViewModel() {
             artistResults = null
             videoResults = null
             playlistResults = null
-            soundcoreResults = null
             isLoading = false
             return
         }
@@ -101,137 +100,68 @@ class SearchViewModel : ViewModel() {
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val playbackSource = MainApplication.appContext.preferences.getEnum(playbackSourceKey, PlaybackSource.Automatic)
-                if (playbackSource == PlaybackSource.Soundcore) {
-                    val soundcoreSongsDeferred = async { Soundcore.searchSongs(query) }
-                    val soundcoreArtistsDeferred = async { Soundcore.searchArtists(query) }
-                    val albumsDeferred = async {
-                        Innertube.searchPage(
-                            query = query,
-                            params = Innertube.SearchFilter.Album.value,
-                            fromMusicShelfRendererContent = Innertube.AlbumItem::from
-                        )
-                    }
-                    val playlistsDeferred = async {
-                        Innertube.searchPage(
-                            query = query,
-                            params = Innertube.SearchFilter.CommunityPlaylist.value,
-                            fromMusicShelfRendererContent = Innertube.PlaylistItem::from
-                        )
-                    }
-
-                    val soundcoreSongs = soundcoreSongsDeferred.await()
-                    val soundcoreArtists = soundcoreArtistsDeferred.await()
-                    val innertubeAlbums = albumsDeferred.await()?.getOrNull()?.items
-                    val innertubePlaylists = playlistsDeferred.await()?.getOrNull()?.items
-
-                    soundcoreResults = soundcoreSongs.take(10)
-                    songResults = soundcoreSongs.map { it.asSoundcoreSongItem }
-                    albumResults = innertubeAlbums?.take(10)
-                    artistResults = soundcoreArtists.map { it.asSoundcoreArtistItem }
-                    playlistResults = innertubePlaylists?.take(10)
-                    videoResults = emptyList()
-                } else if (playbackSource == PlaybackSource.Automatic) {
-                    val songsDeferred = async {
+                val songsDeferred = async {
+                    runCatching {
                         Innertube.searchPage(
                             query = query,
                             params = Innertube.SearchFilter.Song.value,
                             fromMusicShelfRendererContent = Innertube.SongItem.Companion::from
                         )
-                    }
-                    val albumsDeferred = async {
-                        Innertube.searchPage(
-                            query = query,
-                            params = Innertube.SearchFilter.Album.value,
-                            fromMusicShelfRendererContent = Innertube.AlbumItem::from
-                        )
-                    }
-                    val artistsDeferred = async {
-                        Innertube.searchPage(
-                            query = query,
-                            params = Innertube.SearchFilter.Artist.value,
-                            fromMusicShelfRendererContent = Innertube.ArtistItem::from
-                        )
-                    }
-                    val videosDeferred = async {
-                        Innertube.searchPage(
-                            query = query,
-                            params = Innertube.SearchFilter.Video.value,
-                            fromMusicShelfRendererContent = Innertube.VideoItem::from
-                        )
-                    }
-                    val playlistsDeferred = async {
-                        Innertube.searchPage(
-                            query = query,
-                            params = Innertube.SearchFilter.CommunityPlaylist.value,
-                            fromMusicShelfRendererContent = Innertube.PlaylistItem::from
-                        )
-                    }
-                    val soundcoreSongsDeferred = async { Soundcore.searchSongs(query) }
-                    val soundcoreArtistsDeferred = async { Soundcore.searchArtists(query) }
-
-                    val innertubeSongs = songsDeferred.await()?.getOrNull()?.items
-                    val innertubeAlbums = albumsDeferred.await()?.getOrNull()?.items
-                    val innertubeArtists = artistsDeferred.await()?.getOrNull()?.items
-                    val innertubeVideos = videosDeferred.await()?.getOrNull()?.items
-                    val innertubePlaylists = playlistsDeferred.await()?.getOrNull()?.items
-
-                    val soundcoreSongs = soundcoreSongsDeferred.await()
-                    val soundcoreArtists = soundcoreArtistsDeferred.await()
-
-                    soundcoreResults = soundcoreSongs.take(10)
-                    songResults = innertubeSongs?.take(10)
-                    albumResults = innertubeAlbums?.take(10)
-                    artistResults = mergeItems(innertubeArtists, soundcoreArtists.map { it.asSoundcoreArtistItem }).take(10)
-                    playlistResults = innertubePlaylists?.take(10)
-                    videoResults = innertubeVideos?.take(6)
-                } else {
-                    val songsDeferred = async {
-                        Innertube.searchPage(
-                            query = query,
-                            params = Innertube.SearchFilter.Song.value,
-                            fromMusicShelfRendererContent = Innertube.SongItem.Companion::from
-                        )
-                    }
-                    val albumsDeferred = async {
-                        Innertube.searchPage(
-                            query = query,
-                            params = Innertube.SearchFilter.Album.value,
-                            fromMusicShelfRendererContent = Innertube.AlbumItem::from
-                        )
-                    }
-                    val artistsDeferred = async {
-                        Innertube.searchPage(
-                            query = query,
-                            params = Innertube.SearchFilter.Artist.value,
-                            fromMusicShelfRendererContent = Innertube.ArtistItem::from
-                        )
-                    }
-                    val videosDeferred = async {
-                        Innertube.searchPage(
-                            query = query,
-                            params = Innertube.SearchFilter.Video.value,
-                            fromMusicShelfRendererContent = Innertube.VideoItem::from
-                        )
-                    }
-                    val playlistsDeferred = async {
-                        Innertube.searchPage(
-                            query = query,
-                            params = Innertube.SearchFilter.CommunityPlaylist.value,
-                            fromMusicShelfRendererContent = Innertube.PlaylistItem::from
-                        )
-                    }
-                    val soundcoreDeferred = async {
-                        Soundcore.searchSongs(query)
-                    }
-
-                    songResults = songsDeferred.await()?.getOrNull()?.items?.take(3)
-                    albumResults = albumsDeferred.await()?.getOrNull()?.items?.take(8)
-                    artistResults = artistsDeferred.await()?.getOrNull()?.items?.take(8)
-                    videoResults = videosDeferred.await()?.getOrNull()?.items?.take(6)
-                    playlistResults = playlistsDeferred.await()?.getOrNull()?.items?.take(8)
-                    soundcoreResults = soundcoreDeferred.await().take(10)
+                    }.getOrNull()
                 }
+                val albumsDeferred = async {
+                    runCatching {
+                        Innertube.searchPage(
+                            query = query,
+                            params = Innertube.SearchFilter.Album.value,
+                            fromMusicShelfRendererContent = Innertube.AlbumItem::from
+                        )
+                    }.getOrNull()
+                }
+                val artistsDeferred = async {
+                    runCatching {
+                        Innertube.searchPage(
+                            query = query,
+                            params = Innertube.SearchFilter.Artist.value,
+                            fromMusicShelfRendererContent = Innertube.ArtistItem::from
+                        )
+                    }.getOrNull()
+                }
+                val videosDeferred = async {
+                    runCatching {
+                        Innertube.searchPage(
+                            query = query,
+                            params = Innertube.SearchFilter.Video.value,
+                            fromMusicShelfRendererContent = Innertube.VideoItem::from
+                        )
+                    }.getOrNull()
+                }
+                val playlistsDeferred = async {
+                    runCatching {
+                        Innertube.searchPage(
+                            query = query,
+                            params = Innertube.SearchFilter.CommunityPlaylist.value,
+                            fromMusicShelfRendererContent = Innertube.PlaylistItem::from
+                        )
+                    }.getOrNull()
+                }
+                val soundcoreSongsDeferred = async { runCatching { Soundcore.searchSongs(query) }.getOrDefault(emptyList()) }
+                val soundcoreArtistsDeferred = async { runCatching { Soundcore.searchArtists(query) }.getOrDefault(emptyList()) }
+
+                val innertubeSongs = songsDeferred.await()?.getOrNull()?.items
+                val innertubeAlbums = albumsDeferred.await()?.getOrNull()?.items
+                val innertubeArtists = artistsDeferred.await()?.getOrNull()?.items
+                val innertubeVideos = videosDeferred.await()?.getOrNull()?.items
+                val innertubePlaylists = playlistsDeferred.await()?.getOrNull()?.items
+
+                val soundcoreSongs = soundcoreSongsDeferred.await()
+                val soundcoreArtists = soundcoreArtistsDeferred.await()
+
+                songResults = mergeItems(innertubeSongs, soundcoreSongs.map { it.asSoundcoreSongItem }).take(10)
+                albumResults = innertubeAlbums?.take(10)
+                artistResults = mergeItems(innertubeArtists, soundcoreArtists.map { it.asSoundcoreArtistItem }).take(10)
+                playlistResults = innertubePlaylists?.take(10)
+                videoResults = innertubeVideos?.take(6)
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {

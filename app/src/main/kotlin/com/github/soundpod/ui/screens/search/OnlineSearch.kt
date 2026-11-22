@@ -23,45 +23,27 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import com.github.core.ui.LocalAppearance
 import com.github.innertube.Innertube
-import com.github.soundcore.SoundcoreSong
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.models.LocalMenuState
-import com.github.soundpod.models.Song
 import com.github.soundpod.ui.appearance.LoadingAnimation
 import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.items.AlbumItem
 import com.github.soundpod.ui.items.ArtistItem
-import com.github.soundpod.ui.items.LocalSongItem
 import com.github.soundpod.ui.items.PlaylistItem
 import com.github.soundpod.ui.items.SongItem
 import com.github.soundpod.ui.items.VideoItem
-import com.github.soundpod.utils.PlaybackSource
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlay
-import com.github.soundpod.utils.getEnum
-import com.github.soundpod.utils.playbackSourceKey
-import com.github.soundpod.utils.preferences
-
-val SoundcoreSong.asSong: Song
-    get() = Song(
-        id = id,
-        title = title,
-        artistsText = artistsText,
-        durationText = durationText,
-        thumbnailUrl = thumbnailUrl
-    )
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @UnstableApi
@@ -72,14 +54,12 @@ fun OnlineSearch(
     artistResults: List<Innertube.ArtistItem>?,
     videoResults: List<Innertube.VideoItem>?,
     playlistResults: List<Innertube.PlaylistItem>?,
-    soundcoreResults: List<SoundcoreSong>?,
     isLoading: Boolean,
     onAlbumClick: (String) -> Unit,
     onArtistClick: (String) -> Unit,
     onPlaylistClick: (String) -> Unit,
     onViewAllClick: (String) -> Unit
 ) {
-    val context = LocalContext.current
     val (colorPalette) = LocalAppearance.current
     val binder = LocalPlayerServiceBinder.current
     val menuState = LocalMenuState.current
@@ -112,32 +92,6 @@ fun OnlineSearch(
             contentPadding = PaddingValues(bottom = 16.dp),
             modifier = Modifier.fillMaxSize()
         ) {
-            // Soundcore Songs Section (shown separately from YTM songs)
-            if (soundcoreResults?.isNotEmpty() == true) {
-                item(span = { GridItemSpan(maxCurrentLineSpan) }) {
-                    SearchSectionHeader(
-                        title = "Soundcore",
-                        onViewAllClick = onViewAllClick,
-                        colorPalette = colorPalette
-                    )
-                }
-                item(span = { GridItemSpan(maxCurrentLineSpan) }) {
-                    SettingsCard {
-                        Column {
-                            soundcoreResults.take(4).forEach { soundcoreSong ->
-                                LocalSongItem(
-                                    song = soundcoreSong.asSong,
-                                    onClick = {
-                                        binder?.stopRadio()
-                                        binder?.player?.forcePlay(soundcoreSong.asMediaItem)
-                                    },
-                                    onLongClick = {}
-                                )
-                            }
-                        }
-                    }
-                }
-            }
 
             // Songs Section
             if (songResults?.isNotEmpty() == true) {
@@ -157,7 +111,7 @@ fun OnlineSearch(
                                     onClick = {
                                         binder?.stopRadio()
                                         binder?.player?.forcePlay(song.asMediaItem)
-                                        binder?.setupRadio(song.info?.endpoint)
+                                        binder?.setupRadio(song.info?.endpoint, song.info?.name, song.authors?.firstOrNull()?.name)
                                     },
                                     onLongClick = {
                                         menuState.display {

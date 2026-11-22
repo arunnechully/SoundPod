@@ -18,13 +18,11 @@ import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.extractor.DefaultExtractorsFactory
 import com.github.innertube.Innertube
-import com.github.innertube.requests.player
+import com.github.innertube.requests.searchPage
 import com.github.innertube.requests.song
+import com.github.innertube.utils.from
 import com.github.soundpod.db
-import com.github.soundpod.utils.PlaybackSource
-import com.github.soundpod.utils.getEnum
 import com.github.soundpod.utils.pauseSongCacheKey
-import com.github.soundpod.utils.playbackSourceKey
 import com.github.soundpod.utils.preferences
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -55,7 +53,7 @@ class PlayerMediaSourceProvider(
 
     companion object {
         const val CACHE_EXPIRATION_MS = 4 * 3600000L
-        const val DEFAULT_USER_AGENT = "com.google.android.youtube/20.10.38 (Linux; U; Android 14; en_US; SM-S928B Build/UP1A.231005.007)"
+        const val DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
 
     fun createMediaSourceFactory(): MediaSource.Factory {
@@ -64,15 +62,13 @@ class PlayerMediaSourceProvider(
     }
 
     private fun createDataSourceFactory(): DataSource.Factory {
-        val playbackSource = context.preferences.getEnum(playbackSourceKey, PlaybackSource.Automatic)
-        
         val okHttpClient = okhttp3.OkHttpClient.Builder()
             .followRedirects(true)
             .followSslRedirects(true)
             .build()
 
         val httpDataSourceFactory = OkHttpDataSource.Factory(okHttpClient)
-            .setUserAgent(if (playbackSource == PlaybackSource.NewPipe) "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" else DEFAULT_USER_AGENT)
+            .setUserAgent(DEFAULT_USER_AGENT)
 
         val upstreamFactory = androidx.media3.datasource.DefaultDataSource.Factory(context, httpDataSourceFactory)
 
@@ -89,20 +85,10 @@ class PlayerMediaSourceProvider(
             val isYouTubeStream = targetUri.toString().contains("googlevideo.com") || targetUri.toString().contains("youtube.com")
 
             val headers = if (isYouTubeStream) {
-                buildMap {
-                    put("Referer", "https://www.youtube.com/")
-                    put("Origin", "https://www.youtube.com")
-                    put("X-YouTube-Client-Name", "1")
-                    put("X-YouTube-Client-Version", "20.10.38")
-                    Innertube.visitorData?.let { put("X-Goog-Visitor-Id", it) }
-                    Innertube.poToken?.let { put("X-YouTube-Po-Token", it) }
-                    Innertube.cookies?.let { 
-                        put("Cookie", it)
-                        Innertube.generateAuthHeader(it)?.let { auth ->
-                            put("Authorization", auth)
-                        }
-                    }
-                }
+                mapOf(
+                    "Referer" to "https://www.youtube.com/",
+                    "Origin" to "https://www.youtube.com"
+                )
             } else {
                 emptyMap()
             }
@@ -162,22 +148,24 @@ class PlayerMediaSourceProvider(
                 }
             }
 
-            val playbackSource = context.preferences.getEnum(playbackSourceKey, PlaybackSource.Automatic)
-
             val isPrecachedByNewPipe = runCatching {
                 val precachedIds = runBlocking { db.precachedSongIds().first() }
                 precachedIds.contains(videoId) || cacheManager.cache.getCachedSpans(videoId).isNotEmpty()
             }.getOrDefault(false)
 
+            val isYouTubeTrack = videoId.length == 11 && !videoId.startsWith("http")
+            var title: String? = null
+            var artistsText: String? = null
+            var albumTitle: String? = null
+            var durationText: String? = null
+
             if (isPrecachedByNewPipe) {
                 Log.d("SoundPod-DataSource", "Song $videoId is pre-cached by NewPipe, skipping Soundcore and continuing with NewPipe/Cache")
-            } else if (playbackSource == PlaybackSource.Soundcore || playbackSource == PlaybackSource.Automatic) {
-                val isYouTubeTrack = videoId.length == 11 && !videoId.startsWith("http")
+            } else {
                 val song = runCatching { com.github.soundpod.db.getSong(videoId) }.getOrNull()
-                var title = song?.title
-                var artistsText = song?.artistsText
-                var albumTitle: String? = null
-                var durationText: String? = song?.durationText
+                title = song?.title
+                artistsText = song?.artistsText
+                durationText = song?.durationText
 
                 if (isYouTubeTrack && title.isNullOrBlank()) {
                     val innertubeSong = runCatching {
@@ -191,8 +179,8 @@ class PlayerMediaSourceProvider(
                     durationText = innertubeSong?.durationText
                 }
 
-                // In Automatic mode, only try Soundcore for YouTube tracks if they belong to an album; YTM playlists are kept separate
-                val shouldAttemptSoundcore = playbackSource == PlaybackSource.Soundcore || !isYouTubeTrack || albumTitle != null
+                // Seamlessly try Soundcore for all tracks
+                val shouldAttemptSoundcore = true
 
                 val soundcoreUrl = if (shouldAttemptSoundcore) {
                     runCatching {
@@ -212,29 +200,32 @@ class PlayerMediaSourceProvider(
                     urlCache[videoId] = Pair(uri, System.currentTimeMillis())
                     sourceTracker[videoId] = com.github.soundpod.R.string.soundcore
                     return uri
-                } else if (playbackSource == PlaybackSource.Soundcore) {
-                    throw Exception("Soundcore resolution failed for $videoId")
                 }
             }
 
-            if (playbackSource == PlaybackSource.Innertube) {
-                val innertubeUrl = runCatching {
-                    val playerResponse = runBlocking { Innertube.player(videoId) }?.getOrNull()
-                    playerResponse?.streamingData?.highestQualityFormat?.url
-                        ?: throw Exception("No stream URL in Innertube player response for $videoId")
-                }.getOrNull()
-
-                if (innertubeUrl != null) {
-                    val uri = innertubeUrl.toUri()
-                    urlCache[videoId] = Pair(uri, System.currentTimeMillis())
-                    sourceTracker[videoId] = com.github.soundpod.R.string.innertube
-                    return uri
-                }
+            val ytVideoId = if (!isYouTubeTrack) {
+                runCatching {
+                    val localSong = runCatching { com.github.soundpod.db.getSong(videoId) }.getOrNull()
+                    val details = if (localSong == null) runCatching { com.github.soundcore.Soundcore.getSongDetails(videoId) }.getOrNull() else null
+                    val t = localSong?.title ?: details?.title ?: title
+                    val a = localSong?.artistsText ?: details?.artistsText ?: artistsText
+                    val query = listOfNotNull(t, a).filter { it.isNotBlank() }.joinToString(" ").trim()
+                    if (query.isNotBlank()) {
+                        runBlocking {
+                            Innertube.searchPage(
+                                query = query,
+                                params = Innertube.SearchFilter.Song.value,
+                                fromMusicShelfRendererContent = Innertube.SongItem.Companion::from
+                            )?.getOrNull()?.items?.firstOrNull()?.info?.endpoint?.videoId
+                        }
+                    } else null
+                }.getOrNull() ?: videoId
+            } else {
+                videoId
             }
 
-            if (playbackSource == PlaybackSource.NewPipe || playbackSource == PlaybackSource.Automatic || playbackSource == PlaybackSource.Innertube) {
-                val rawUrl = runCatching {
-                    val streamExtractor = ServiceList.YouTube.getStreamExtractor("https://www.youtube.com/watch?v=$videoId")
+            val rawUrl = runCatching {
+                    val streamExtractor = ServiceList.YouTube.getStreamExtractor("https://www.youtube.com/watch?v=$ytVideoId")
                     streamExtractor.fetchPage()
 
                     val audioStreams = streamExtractor.audioStreams
@@ -244,17 +235,12 @@ class PlayerMediaSourceProvider(
                         .maxByOrNull { it.averageBitrate }
                         ?: audioStreams.maxByOrNull { it.averageBitrate }
                         ?: streamExtractor.videoStreams.maxByOrNull { it.bitrate }
-                        ?: throw Exception("No playable streams found by NewPipe for $videoId")
+                        ?: throw Exception("No playable streams found by NewPipe for $ytVideoId")
 
                     bestAudio.content
-                }.recoverCatching { e ->
-                    Log.w("SoundPod-Debug", "NewPipe resolution failed for $videoId, falling back to Innertube", e)
-                    val playerResponse = runBlocking { Innertube.player(videoId) }?.getOrNull()
-                    playerResponse?.streamingData?.highestQualityFormat?.url
-                        ?: throw Exception("Innertube fallback also failed for $videoId", e)
                 }.getOrElse { e ->
-                    Log.e("SoundPod-Debug", "All resolution methods failed for $videoId", e)
-                    return "https://www.youtube.com/watch?v=$videoId".toUri()
+                    Log.e("SoundPod-Debug", "All resolution methods failed for $videoId (yt: $ytVideoId)", e)
+                    return "https://www.youtube.com/watch?v=$ytVideoId".toUri()
                 }
 
                 val newUri = rawUrl.toUri()
@@ -262,9 +248,6 @@ class PlayerMediaSourceProvider(
                 sourceTracker[videoId] = com.github.soundpod.R.string.newpipe
 
                 return newUri
-            }
-
-            throw Exception("Resolution failed for $videoId")
         }
     }
 }

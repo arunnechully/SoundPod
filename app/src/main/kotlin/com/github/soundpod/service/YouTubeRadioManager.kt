@@ -22,19 +22,51 @@ class YouTubeRadioManager(
     var isLoadingRadio by mutableStateOf(false)
         private set
 
-    fun setupRadio(endpoint: NavigationEndpoint.Endpoint.Watch?) = startRadio(endpoint, true)
-    fun playRadio(endpoint: NavigationEndpoint.Endpoint.Watch?) = startRadio(endpoint, false)
+    fun setupRadio(
+        endpoint: NavigationEndpoint.Endpoint.Watch?,
+        title: String? = null,
+        artist: String? = null
+    ) = startRadio(endpoint, true, title, artist)
 
-    private fun startRadio(endpoint: NavigationEndpoint.Endpoint.Watch?, justAdd: Boolean) {
+    fun playRadio(
+        endpoint: NavigationEndpoint.Endpoint.Watch?,
+        title: String? = null,
+        artist: String? = null
+    ) = startRadio(endpoint, false, title, artist)
+
+    private fun startRadio(
+        endpoint: NavigationEndpoint.Endpoint.Watch?,
+        justAdd: Boolean,
+        title: String? = null,
+        artist: String? = null
+    ) {
         radioJob?.cancel()
         radio = null
-        val newRadio = YouTubeRadio(endpoint?.videoId, endpoint?.playlistId, endpoint?.playlistSetVideoId, endpoint?.params)
+        val songTitle = title ?: player.currentMediaItem?.mediaMetadata?.title?.toString()
+        val songArtist = artist ?: player.currentMediaItem?.mediaMetadata?.artist?.toString()
+
+        val newRadio = YouTubeRadio(
+            videoId = endpoint?.videoId,
+            playlistId = endpoint?.playlistId,
+            playlistSetVideoId = endpoint?.playlistSetVideoId,
+            parameters = endpoint?.params,
+            title = songTitle,
+            artist = songArtist
+        )
         
         isLoadingRadio = true
         radioJob = coroutineScope.launch(Dispatchers.Main) {
             val items = newRadio.process()
-            if (justAdd) player.addMediaItems(items.drop(1)) 
-            else player.forcePlayFromBeginning(items)
+            val existingIds = (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId }.toSet()
+            val newItems = items.drop(1).filter { it.mediaId !in existingIds }
+
+            if (justAdd) {
+                if (newItems.isNotEmpty()) {
+                    player.addMediaItems(newItems)
+                }
+            } else {
+                player.forcePlayFromBeginning(items)
+            }
             
             radio = newRadio
             isLoadingRadio = false
@@ -45,7 +77,12 @@ class YouTubeRadioManager(
         val radioInstance = radio ?: return
         if (player.mediaItemCount - player.currentMediaItemIndex <= 3) {
             coroutineScope.launch(Dispatchers.Main) {
-                player.addMediaItems(radioInstance.process())
+                val nextBatch = radioInstance.process()
+                val existingIds = (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId }.toSet()
+                val newItems = nextBatch.filter { it.mediaId !in existingIds }
+                if (newItems.isNotEmpty()) {
+                    player.addMediaItems(newItems)
+                }
             }
         }
     }

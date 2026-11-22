@@ -10,14 +10,10 @@ object YouTubeSessionManager {
 
     fun updateSession(
         visitorData: String? = null,
-        poToken: String? = null,
-        cookies: String? = null,
-        decipher: (suspend (String) -> String)? = null
+        cookies: String? = null
     ) {
         visitorData?.let { Innertube.visitorData = it }
-        poToken?.let { Innertube.poToken = it }
         cookies?.let { Innertube.cookies = it }
-        decipher?.let { Innertube.decipher = it }
 
         if (Innertube.visitorData != null) {
             _isSessionReady.value = true

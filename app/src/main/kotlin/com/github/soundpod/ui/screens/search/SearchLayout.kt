@@ -262,7 +262,6 @@ fun NewSearchLayout(
                         artistResults = searchViewModel.artistResults,
                         videoResults = searchViewModel.videoResults,
                         playlistResults = searchViewModel.playlistResults,
-                        soundcoreResults = searchViewModel.soundcoreResults,
                         isLoading = searchViewModel.isLoading,
                         onAlbumClick = onAlbumClick,
                         onArtistClick = onArtistClick,

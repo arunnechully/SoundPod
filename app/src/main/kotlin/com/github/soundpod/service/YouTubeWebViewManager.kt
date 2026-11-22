@@ -9,30 +9,10 @@ import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import com.github.innertube.BotGuard
 import com.github.innertube.Innertube
-import kotlinx.coroutines.CompletableDeferred
-import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("unused")
-private class SoundPodJsBridge(
-    private val decipherRequests: ConcurrentHashMap<String, CompletableDeferred<String>>,
-    private val poTokenRequests: ConcurrentHashMap<String, CompletableDeferred<String>>
-) {
-    @JavascriptInterface
-    fun onDecipherResult(requestId: String, result: String) {
-        decipherRequests.remove(requestId)?.complete(result)
-    }
-
-    @JavascriptInterface
-    fun onPoTokenResult(requestId: String, poToken: String) {
-        Log.d("SoundPod-WebViewManager", "Received poToken for request $requestId: $poToken")
-        poTokenRequests.remove(requestId)?.complete(poToken)
-        if (requestId == "INITIAL") {
-            YouTubeSessionManager.updateSession(poToken = poToken)
-        }
-    }
-
+private class SoundPodJsBridge {
     @JavascriptInterface
     fun log(message: String) {
         Log.d("SoundPod-WebViewManager-JS", message)
@@ -42,8 +22,6 @@ private class SoundPodJsBridge(
 @SuppressLint("SetJavaScriptEnabled", "StaticFieldLeak")
 object YouTubeWebViewManager {
     private var webView: WebView? = null
-    private val decipherRequests = ConcurrentHashMap<String, CompletableDeferred<String>>()
-    private val poTokenRequests = ConcurrentHashMap<String, CompletableDeferred<String>>()
 
     fun initialize(context: Context) {
         if (webView != null) return
@@ -58,7 +36,7 @@ object YouTubeWebViewManager {
                 settings.domStorageEnabled = true
                 settings.userAgentString = "Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Mobile Safari/537.36"
 
-                addJavascriptInterface(SoundPodJsBridge(decipherRequests, poTokenRequests), "SoundPodBridge")
+                addJavascriptInterface(SoundPodJsBridge(), "SoundPodBridge")
 
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView, url: String) {
@@ -90,74 +68,10 @@ object YouTubeWebViewManager {
 
                                 if (!cleanVisitorData.isNullOrBlank()) {
                                     Log.d("SoundPod-WebViewManager", "Extracted VisitorData: $cleanVisitorData")
-
                                     YouTubeSessionManager.updateSession(
                                         visitorData = cleanVisitorData,
-                                        cookies = cookies,
-                                        decipher = { nParam ->
-                                            val deferred = CompletableDeferred<String>()
-                                            val requestId = "${System.currentTimeMillis()}_$nParam"
-                                            decipherRequests[requestId] = deferred
-
-                                            val decipherInvokeJs = """
-                                                (function() {
-                                                    if (typeof decipherNParam === 'function') {
-                                                        decipherNParam('$nParam', '$requestId');
-                                                    } else {
-                                                        SoundPodBridge.log('JS: decipherNParam not ready for ' + '$nParam');
-                                                        SoundPodBridge.onDecipherResult('$requestId', '$nParam');
-                                                    }
-                                                })();
-                                            """.trimIndent()
-
-                                            handler.post {
-                                                webView?.evaluateJavascript(decipherInvokeJs, null)
-                                            }
-
-                                            val decipherResult = deferred.await()
-                                            Log.d("SoundPod-WebViewManager", "Decipher nParam: $nParam -> $decipherResult")
-                                            decipherResult
-                                        }
+                                        cookies = cookies
                                     )
-
-                                    Innertube.poTokenResolver = object : Innertube.PoTokenResolver {
-                                        override suspend fun getPoToken(videoId: String?): String? {
-                                            val deferred = CompletableDeferred<String>()
-                                            val requestId = "REQ_${System.currentTimeMillis()}"
-                                            poTokenRequests[requestId] = deferred
-
-                                            val generatePoTokenJs = """
-                                                (async function() {
-                                                    try {
-                                                        const challenge = window.yt?.config_?.WEB_PLAYER_CONTEXT_CONFIG_ID_WEB_PLAYER_BOTGUARD_CHALLENGE || 
-                                                                        (window.ytcfg && ytcfg.get ? ytcfg.get('WEB_PLAYER_CONTEXT_CONFIG_ID_WEB_PLAYER_BOTGUARD_CHALLENGE') : null);
-                                                        
-                                                        if (challenge) {
-                                                            const result = await runBotGuard(challenge);
-                                                            if (result && result.botguardResponse) {
-                                                                SoundPodBridge.onPoTokenResult('$requestId', result.botguardResponse);
-                                                            } else {
-                                                                SoundPodBridge.log('JS: BotGuard failed or empty response');
-                                                                SoundPodBridge.onPoTokenResult('$requestId', '');
-                                                            }
-                                                        } else {
-                                                            SoundPodBridge.log('JS: No BotGuard challenge found');
-                                                            SoundPodBridge.onPoTokenResult('$requestId', '');
-                                                        }
-                                                    } catch (e) {
-                                                        SoundPodBridge.log('JS: BotGuard execution error: ' + e.message);
-                                                        SoundPodBridge.onPoTokenResult('$requestId', '');
-                                                    }
-                                                })();
-                                            """.trimIndent()
-
-                                            handler.post {
-                                                webView?.evaluateJavascript(generatePoTokenJs, null)
-                                            }
-
-                                            return deferred.await().takeIf { it.isNotBlank() }
-                                        }
-                                    }
                                 }
 
                                 if (!apiKey.isNullOrBlank()) {
@@ -167,115 +81,11 @@ object YouTubeWebViewManager {
                                 Log.e("SoundPod-WebViewManager", "Failed to parse session data", e)
                             }
                         }
-
-                        try {
-                            view.evaluateJavascript(BotGuard.JS, null)
-
-                            val initialPoTokenJs = """
-                                (async function() {
-                                    try {
-                                        const challenge = window.yt?.config_?.WEB_PLAYER_CONTEXT_CONFIG_ID_WEB_PLAYER_BOTGUARD_CHALLENGE || 
-                                                        (window.ytcfg && ytcfg.get ? ytcfg.get('WEB_PLAYER_CONTEXT_CONFIG_ID_WEB_PLAYER_BOTGUARD_CHALLENGE') : null);
-                                        
-                                        if (challenge) {
-                                            const result = await runBotGuard(challenge);
-                                            if (result && result.botguardResponse) {
-                                                SoundPodBridge.onPoTokenResult('INITIAL', result.botguardResponse);
-                                            }
-                                        }
-                                    } catch (e) {}
-                                })();
-                            """.trimIndent()
-
-                            view.evaluateJavascript(initialPoTokenJs, null)
-                        } catch (e: Exception) {
-                            Log.e("SoundPod-WebViewManager", "Failed to inject BotGuard script", e)
-                        }
-
-                        injectDecipherScript(view)
                     }
                 }
 
                 loadUrl("https://music.youtube.com")
             }
         }
-    }
-
-    private fun injectDecipherScript(webView: WebView) {
-        val script = """
-            (function() {
-                if (window.decipherFunction) {
-                    SoundPodBridge.log('JS: decipherFunction already exists');
-                    return;
-                }
-                
-                function findDecipherFunction() {
-                    SoundPodBridge.log('JS: searching for decipher function...');
-                    try {
-                        if (window._yt_player) {
-                             for (const key in window._yt_player) {
-                                 const val = window._yt_player[key];
-                                 if (typeof val === 'function' && val.length === 1) {
-                                     const str = val.toString();
-                                     if (str.includes('.split("")') && str.includes('.join("")')) {
-                                         SoundPodBridge.log('JS: Found decipher in window._yt_player.' + key);
-                                         return val;
-                                     }
-                                 }
-                             }
-                        }
-    
-                        const keys = Object.keys(window);
-                        for (const key of keys) {
-                            if (key.startsWith('_yt_')) {
-                                const val = window[key];
-                                if (typeof val === 'object' && val !== null) {
-                                    for (const subKey in val) {
-                                        try {
-                                            const subVal = val[subKey];
-                                            if (typeof subVal === 'function' && subVal.length === 1) {
-                                                const str = subVal.toString();
-                                                if (str.includes('.split("")') && str.includes('.join("")')) {
-                                                    SoundPodBridge.log('JS: Found potential decipher function in ' + key + '.' + subKey);
-                                                    return subVal;
-                                                }
-                                            }
-                                        } catch(e) {}
-                                    }
-                                }
-                            }
-                        }
-                    } catch(e) {
-                        SoundPodBridge.log('JS: findDecipherFunction error: ' + e.message);
-                    }
-                    return null;
-                }
-    
-                window.decipherFunction = findDecipherFunction();
-                
-                window.decipherNParam = function(n, requestId) {
-                    SoundPodBridge.log('JS: decipherNParam called for ' + n);
-                    let result = n; 
-                    if (!window.decipherFunction) {
-                        window.decipherFunction = findDecipherFunction();
-                    }
-                    
-                    if (window.decipherFunction) {
-                        try { 
-                            result = window.decipherFunction(n); 
-                            SoundPodBridge.log('JS: decipher success: ' + n + ' -> ' + result);
-                        } catch(e) { 
-                            SoundPodBridge.log('JS: decipher execution error: ' + e.message); 
-                        }
-                    } else {
-                        SoundPodBridge.log('JS: Decipher function not found even after retry');
-                    }
-                    SoundPodBridge.onDecipherResult(requestId, result);
-                };
-                
-                SoundPodBridge.log('JS: injectDecipherScript initialization complete');
-            })();
-        """.trimIndent()
-        webView.evaluateJavascript(script, null)
     }
 }

@@ -11,9 +11,7 @@ import androidx.compose.material.icons.automirrored.outlined.PlaylistPlay
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
@@ -40,18 +38,14 @@ import com.github.soundpod.ui.items.PlaylistItem
 import com.github.soundpod.ui.items.SongItem
 import com.github.soundpod.ui.items.VideoItem
 import com.github.soundpod.ui.navigation.Routes
-import com.github.soundpod.utils.PlaybackSource
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.enqueue
 import com.github.soundpod.utils.forcePlay
-import com.github.soundpod.utils.getEnum
-import com.github.soundpod.utils.playbackSourceKey
-import com.github.soundpod.utils.preferences
 import java.util.Locale
 
 private fun getItemName(item: Innertube.Item): String? = when (item) {
-    is Innertube.SongItem -> item.info?.name
-    is Innertube.AlbumItem -> item.info?.name
+    is Innertube.SongItem -> "${item.info?.name.orEmpty()} - ${item.authors?.firstOrNull()?.name.orEmpty()}"
+    is Innertube.AlbumItem -> "${item.info?.name.orEmpty()} - ${item.authors?.firstOrNull()?.name.orEmpty()}"
     is Innertube.ArtistItem -> item.info?.name
     is Innertube.PlaylistItem -> item.info?.name
     is Innertube.VideoItem -> item.info?.name
@@ -99,8 +93,6 @@ fun NewSearchResult(
 ) {
     BackHandler { navController.popBackStack() }
 
-    val context = LocalContext.current
-    val playbackSource = remember { context.preferences.getEnum(playbackSourceKey, PlaybackSource.Automatic) }
     val binder = LocalPlayerServiceBinder.current
     val menuState = LocalMenuState.current
     val emptyItemsText = stringResource(id = R.string.no_results_found)
@@ -121,19 +113,19 @@ fun NewSearchResult(
         ){
             when (resultType) {
 
-                stringResource(R.string.songs), "Soundcore" -> {
+                stringResource(R.string.songs) -> {
                     ItemsPage(
                         tag = "searchResults/$query/songs",
                         itemsPageProvider = { continuation ->
-                            if (playbackSource == PlaybackSource.Soundcore || resultType == "Soundcore") {
-                                val soundcoreSongs = Soundcore.searchSongs(query)
-                                Result.success(Innertube.ItemsPage(items = soundcoreSongs.map { it.asSoundcoreSongItem }, continuation = null))
-                            } else if (continuation == null) {
-                                Innertube.searchPage(
+                            if (continuation == null) {
+                                val innertubePage = Innertube.searchPage(
                                     query = query,
                                     params = Innertube.SearchFilter.Song.value,
                                     fromMusicShelfRendererContent = Innertube.SongItem.Companion::from
-                                )
+                                )?.getOrNull()
+                                val soundcoreSongs = runCatching { Soundcore.searchSongs(query) }.getOrDefault(emptyList())
+                                val merged = mergeItems(innertubePage?.items, soundcoreSongs.map { it.asSoundcoreSongItem })
+                                Result.success(Innertube.ItemsPage(items = merged, continuation = innertubePage?.continuation))
                             } else {
                                 Innertube.searchPage(
                                     continuation = continuation,
@@ -157,7 +149,7 @@ fun NewSearchResult(
                                     onClick = {
                                         binder?.stopRadio()
                                         binder?.player?.forcePlay(song.asMediaItem)
-                                        binder?.setupRadio(song.info?.endpoint)
+                                        binder?.setupRadio(song.info?.endpoint, song.info?.name, song.authors?.firstOrNull()?.name)
                                     },
                                     onLongClick = {
                                         menuState.display {
@@ -259,24 +251,15 @@ fun NewSearchResult(
                     ItemsPage(
                         tag = "searchResults/$query/artists",
                         itemsPageProvider = { continuation ->
-                            if (playbackSource == PlaybackSource.Soundcore) {
-                                val soundcoreArtists = Soundcore.searchArtists(query)
-                                Result.success(Innertube.ItemsPage(items = soundcoreArtists.map { it.asSoundcoreArtistItem }, continuation = null))
-                            } else if (playbackSource == PlaybackSource.Automatic && continuation == null) {
+                            if (continuation == null) {
                                 val innertubePage = Innertube.searchPage(
                                     query = query,
                                     params = Innertube.SearchFilter.Artist.value,
                                     fromMusicShelfRendererContent = Innertube.ArtistItem::from
                                 )?.getOrNull()
-                                val soundcoreArtists = Soundcore.searchArtists(query)
+                                val soundcoreArtists = runCatching { Soundcore.searchArtists(query) }.getOrDefault(emptyList())
                                 val merged = mergeItems(innertubePage?.items, soundcoreArtists.map { it.asSoundcoreArtistItem })
                                 Result.success(Innertube.ItemsPage(items = merged, continuation = innertubePage?.continuation))
-                            } else if (continuation == null) {
-                                Innertube.searchPage(
-                                    query = query,
-                                    params = Innertube.SearchFilter.Artist.value,
-                                    fromMusicShelfRendererContent = Innertube.ArtistItem::from
-                                )
                             } else {
                                 Innertube.searchPage(
                                     continuation = continuation,

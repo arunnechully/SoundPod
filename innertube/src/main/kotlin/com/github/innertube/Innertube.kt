@@ -38,16 +38,8 @@ object Innertube {
         }
 
     var onVisitorDataChanged: ((String?) -> Unit)? = null
-    var poToken: String? = null
     var cookies: String? = null
     var apiKey: String = "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30"
-    var decipher: (suspend (String) -> String)? = null
-
-    interface PoTokenResolver {
-        suspend fun getPoToken(videoId: String?): String?
-    }
-
-    var poTokenResolver: PoTokenResolver? = null
 
     val client = HttpClient(OkHttp) {
         expectSuccess = true
@@ -57,7 +49,6 @@ object Innertube {
                 val request = chain.request().newBuilder()
                 cookies?.let { request.addHeader("Cookie", it) }
                 visitorData?.let { request.addHeader("X-Goog-Visitor-Id", it) }
-                poToken?.let { request.addHeader("X-YouTube-Po-Token", it) }
                 
                 // Add Authorization SAPISIDHASH if possible
                 val authHeader = generateAuthHeader(cookies)
@@ -151,7 +142,6 @@ object Innertube {
 
     internal const val BROWSE = "/youtubei/v1/browse"
     internal const val NEXT = "/youtubei/v1/next"
-    internal const val PLAYER = "/youtubei/v1/player"
     internal const val QUEUE = "/youtubei/v1/music/get_queue"
     internal const val SEARCH = "/youtubei/v1/search"
     internal const val SEARCH_SUGGESTIONS = "/youtubei/v1/music/get_search_suggestions"

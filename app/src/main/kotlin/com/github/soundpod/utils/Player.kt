@@ -48,18 +48,23 @@ fun Player.forcePlay(mediaItem: MediaItem) {
         return
     }
 
-    // If playlist is empty, start normally
-    if (mediaItemCount == 0) {
-        setMediaItem(mediaItem)
+    // If playlist is empty or playback not active, start normally
+    if (mediaItemCount == 0 || playbackState == Player.STATE_IDLE || playbackState == Player.STATE_ENDED) {
+        if (mediaItemCount == 0) {
+            setMediaItem(mediaItem)
+        } else {
+            addMediaItem(mediaItem)
+            seekTo(mediaItemCount - 1, C.TIME_UNSET)
+        }
         playWhenReady = true
         prepare()
         return
     }
 
-    // Otherwise, add to END of queue and play it
-    addMediaItem(mediaItem)
-    val index = mediaItemCount - 1
-    seekTo(index, C.TIME_UNSET)
+    // Insert right after current song so the upcoming queue is preserved
+    val insertIndex = (currentMediaItemIndex + 1).coerceIn(0, mediaItemCount)
+    addMediaItem(insertIndex, mediaItem)
+    seekTo(insertIndex, C.TIME_UNSET)
     playWhenReady = true
 }
 

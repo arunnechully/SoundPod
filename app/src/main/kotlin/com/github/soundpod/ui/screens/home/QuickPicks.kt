@@ -175,7 +175,9 @@ fun QuickPicks(
                             binder?.stopRadio()
                             binder?.player?.forcePlay(mediaItem)
                             binder?.setupRadio(
-                                NavigationEndpoint.Endpoint.Watch(videoId = mediaItem.mediaId)
+                                NavigationEndpoint.Endpoint.Watch(videoId = mediaItem.mediaId),
+                                song.info?.name,
+                                song.authors?.firstOrNull()?.name
                             )
                         },
                         onLongClick = {
