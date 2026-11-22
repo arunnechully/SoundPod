@@ -1,6 +1,6 @@
 @file:Suppress("AssignedValueIsNeverRead")
 
-package com.github.soundpod.ui.screens.settings
+package com.github.soundpod.ui.screens.settings.subscreen
 
 import android.annotation.SuppressLint
 import android.text.format.Formatter
@@ -40,6 +40,11 @@ import com.github.soundpod.enums.CoilDiskCacheMaxSize
 import com.github.soundpod.enums.ExoPlayerDiskCacheMaxSize
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SwitchSetting
+import com.github.soundpod.ui.screens.settings.EnumValueSelectorSettingsEntry
+import com.github.soundpod.ui.screens.settings.SettingsAlertDialog
+import com.github.soundpod.ui.screens.settings.SettingsGroup
+import com.github.soundpod.ui.screens.settings.SettingsInformation
+import com.github.soundpod.ui.screens.settings.SettingsProgress
 import com.github.soundpod.utils.coilDiskCacheMaxSizeKey
 import com.github.soundpod.utils.exoPlayerDiskCacheMaxSizeKey
 import com.github.soundpod.utils.pauseImageCacheKey

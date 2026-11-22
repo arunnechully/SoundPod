@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.screens.settings
+package com.github.soundpod.ui.screens.settings.subscreen
 
 import android.Manifest
 import android.content.Context
@@ -25,15 +25,18 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.github.soundpod.BuildConfig
 import com.github.soundpod.R
 import com.github.soundpod.ui.common.IconSource
+import com.github.soundpod.ui.screens.settings.SettingsColumn
+import com.github.soundpod.ui.screens.settings.SettingsGroup
 
 @Suppress("KotlinConstantConditions")
 @Composable
 fun PrivacySettingsContent() {
     val context = LocalContext.current
-    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     var refreshTrigger by remember { mutableIntStateOf(0) }
 

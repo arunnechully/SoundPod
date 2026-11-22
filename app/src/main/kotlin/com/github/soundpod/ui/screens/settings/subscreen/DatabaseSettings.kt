@@ -1,6 +1,6 @@
 @file:Suppress("AssignedValueIsNeverRead")
 
-package com.github.soundpod.ui.screens.settings
+package com.github.soundpod.ui.screens.settings.subscreen
 
 import android.annotation.SuppressLint
 import androidx.annotation.OptIn
@@ -24,6 +24,9 @@ import com.github.soundpod.query
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SwitchSetting
 import com.github.soundpod.ui.navigation.SettingsDestinations
+import com.github.soundpod.ui.screens.settings.SettingsAlertDialog
+import com.github.soundpod.ui.screens.settings.SettingsColumn
+import com.github.soundpod.ui.screens.settings.SettingsGroup
 import com.github.soundpod.utils.pauseSearchHistoryKey
 import com.github.soundpod.utils.quickPicksSourceKey
 import com.github.soundpod.utils.rememberPreference

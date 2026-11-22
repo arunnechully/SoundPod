@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.screens.settings
+package com.github.soundpod.ui.screens.settings.subscreen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -43,6 +43,7 @@ import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
 import com.github.soundpod.ui.appearance.BackgroundStyles
 import com.github.soundpod.ui.appearance.PLAYER_BACKGROUND_STYLE_KEY
+import com.github.soundpod.ui.screens.settings.SettingsGroup
 import com.github.soundpod.utils.preferences
 import com.github.soundpod.utils.rememberPreference
 

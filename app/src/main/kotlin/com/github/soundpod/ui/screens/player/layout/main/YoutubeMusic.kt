@@ -1,8 +1,7 @@
-package com.github.soundpod.ui.screens.player
+package com.github.soundpod.ui.screens.player.layout.main
 
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -23,8 +21,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,16 +32,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.LaunchedEffect
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.ContentMetadata
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.db
-import com.github.soundpod.enums.PlayerLayout
 import com.github.soundpod.enums.ProgressBar
+import com.github.soundpod.ui.screens.player.PlayerControlBottom
+import com.github.soundpod.ui.screens.player.PlayerMediaItem
+import com.github.soundpod.ui.screens.player.PlayerMiddleControl
+import com.github.soundpod.ui.screens.player.PlayerSeekBar
+import com.github.soundpod.ui.screens.player.PlayerTopControl
+import com.github.soundpod.ui.screens.player.PlaylistOverlay
 import com.github.soundpod.ui.screens.player.lyrics.LyricsOverlay
 import com.github.soundpod.ui.styling.Dimensions
+import com.github.soundpod.utils.PlayerLayout
 import com.github.soundpod.utils.isLandscape
 import com.github.soundpod.utils.progressBarStyle
 import com.github.soundpod.utils.rememberPreference
@@ -54,13 +57,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onStart
 
 @OptIn(UnstableApi::class)
-@kotlin.OptIn(
-    ExperimentalAnimationApi::class,
-    ExperimentalMaterial3Api::class,
-    ExperimentalLayoutApi::class
-)
 @Composable
-fun MainPlayerContent(
+fun YoutubePlayer(
     expandProgress: Float,
     layoutMode: PlayerLayout,
     onGoToAlbum: (String) -> Unit,
@@ -104,12 +102,12 @@ fun MainPlayerContent(
     }
 
     var isDraggingSeekBar by remember { mutableStateOf(false) }
-    
+
     var isFullyCached by remember { mutableStateOf(false) }
     LaunchedEffect(mediaItem?.mediaId, binder) {
         val videoId = mediaItem?.mediaId ?: return@LaunchedEffect
         val cache = binder?.cache ?: return@LaunchedEffect
-        
+
         combine(
             db.isDownloaded(videoId),
             db.format(videoId),
@@ -119,7 +117,7 @@ fun MainPlayerContent(
                 val metadata = cache.getContentMetadata(videoId)
                 val length = ContentMetadata.getContentLength(metadata).takeIf { it > 0 }
                     ?: format?.contentLength ?: -1L
-                
+
                 if (length > 0) {
                     cache.isCached(videoId, 0, length)
                 } else {
@@ -299,22 +297,22 @@ fun MainPlayerContent(
                 Box(Modifier.weight(1f)) {
                     if (showPlaylist && playlistViewModel != null) {
 //                        Column {
-                            PlaylistOverlay(
-                                viewModel = playlistViewModel,
+                        PlaylistOverlay(
+                            viewModel = playlistViewModel,
 //                                modifier = Modifier.weight(1f),
-                                onGoToAlbum = handleGoToAlbum,
-                                onGoToArtist = handleGoToArtist
-                            )
+                            onGoToAlbum = handleGoToAlbum,
+                            onGoToArtist = handleGoToArtist
+                        )
 //                            Spacer(modifier = Modifier.height(26.dp))
 //                        }
                     } else if (showLyrics && mediaItem != null) {
 //                        Column {
-                            LyricsOverlay(
+                        LyricsOverlay(
 //                                modifier = Modifier.weight(1f),
-                                mediaId = mediaItem.mediaId,
-                                mediaMetadata = mediaItem.mediaMetadata
-                            )
-                            Spacer(modifier = Modifier.height(26.dp))
+                            mediaId = mediaItem.mediaId,
+                            mediaMetadata = mediaItem.mediaMetadata
+                        )
+                        Spacer(modifier = Modifier.height(26.dp))
 //                        }
                     } else {
                         Column(

@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.screens.settings
+package com.github.soundpod.ui.screens.settings.subscreen
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BlurOn
@@ -9,18 +9,22 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.github.soundpod.R
 import com.github.soundpod.enums.AppThemeColor
-import com.github.soundpod.enums.PlayerLayout
 import com.github.soundpod.enums.ProgressBar
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.utils.HomeTab
-import com.github.soundpod.utils.TabStyle
+import com.github.soundpod.utils.HomeStyle
 import com.github.soundpod.utils.appearanceUpdatedKey
 import com.github.soundpod.utils.appTheme
 import com.github.soundpod.utils.playerlayout
 import com.github.soundpod.utils.progressBarStyle
 import com.github.soundpod.utils.rememberPreference
-import com.github.soundpod.utils.tabStyleKey
+import com.github.soundpod.utils.homeStyleKey
 import androidx.compose.runtime.LaunchedEffect
+import com.github.soundpod.ui.screens.settings.EnumValueSelectorSettingsEntry
+import com.github.soundpod.ui.screens.settings.MultiSelectorSettingsEntry
+import com.github.soundpod.ui.screens.settings.SettingsColumn
+import com.github.soundpod.ui.screens.settings.SettingsGroup
+import com.github.soundpod.utils.PlayerLayout
 
 @Composable
 fun AppearanceSettingsContent(
@@ -29,7 +33,7 @@ fun AppearanceSettingsContent(
     var appThemeColor by rememberPreference(appTheme, AppThemeColor.System)
     var progressBarStyle by rememberPreference(progressBarStyle, ProgressBar.Default )
     var playerlayout by rememberPreference(playerlayout, PlayerLayout.SamsungMusic )
-    var tabStyle by rememberPreference(tabStyleKey, TabStyle.Default)
+    var homeStyle by rememberPreference(homeStyleKey, HomeStyle.Default)
 
     var isAppearanceUpdated by rememberPreference(appearanceUpdatedKey, false)
 
@@ -48,14 +52,14 @@ fun AppearanceSettingsContent(
             title = stringResource(id = R.string.app_theme),
             selectedValue = appThemeColor,
             onValueSelected = { appThemeColor = it },
-            icon = IconSource.Icon( painterResource(id = R.drawable.dark_mode)),
+            icon = IconSource.Icon(painterResource(id = R.drawable.dark_mode)),
             valueText = { stringResource(it.resourceId) }
         )
         SettingsColumn(
             icon = IconSource.Icon(painterResource(id = R.drawable.color_mode)),
             title = stringResource(id = R.string.accent_color),
             description = stringResource(id = R.string.accent_color_discription),
-            onClick = {/*Todo*/},
+            onClick = {/*Todo*/ },
         )
     }
 
@@ -66,17 +70,17 @@ fun AppearanceSettingsContent(
             title = stringResource(id = R.string.player_layout),
             selectedValue = playerlayout,
             onValueSelected = { playerlayout = it },
-            icon = IconSource.Icon( painterResource(id = R.drawable.layout)),
+            icon = IconSource.Icon(painterResource(id = R.drawable.layout)),
             valueText = { stringResource(it.resourceId) }
         )
     }
 
-    SettingsGroup{
+    SettingsGroup {
         EnumValueSelectorSettingsEntry(
             title = stringResource(id = R.string.progress_bar_style),
             selectedValue = progressBarStyle,
             onValueSelected = { progressBarStyle = it },
-            icon = IconSource.Icon( painterResource(id = R.drawable.wave)),
+            icon = IconSource.Icon(painterResource(id = R.drawable.wave)),
             valueText = { stringResource(it.resourceId) }
         )
         SettingsColumn(
@@ -92,8 +96,11 @@ fun AppearanceSettingsContent(
     ) {
         EnumValueSelectorSettingsEntry(
             title = stringResource(id = R.string.home_style),
-            selectedValue = tabStyle,
-            onValueSelected = { tabStyle = it },
+            selectedValue = homeStyle,
+            onValueSelected = {
+                homeStyle = it
+                isAppearanceUpdated = true
+            },
             icon = IconSource.Icon(painterResource(id = R.drawable.interface_ui_tabs)),
             valueText = { stringResource(it.resourceId) }
         )

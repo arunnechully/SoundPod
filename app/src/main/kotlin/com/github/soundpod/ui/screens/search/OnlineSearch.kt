@@ -45,7 +45,7 @@ import com.github.soundpod.ui.items.VideoItem
 import com.github.soundpod.utils.asMediaItem
 import com.github.soundpod.utils.forcePlay
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
+@OptIn(ExperimentalAnimationApi::class)
 @UnstableApi
 @Composable
 fun OnlineSearch(

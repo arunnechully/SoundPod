@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.screens.settings
+package com.github.soundpod.ui.screens.settings.subscreen
 
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
@@ -31,6 +31,9 @@ import com.github.soundpod.R
 import com.github.soundpod.service.PlayerMediaBrowserService
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SwitchSetting
+import com.github.soundpod.ui.screens.settings.SettingsColumn
+import com.github.soundpod.ui.screens.settings.SettingsGroup
+import com.github.soundpod.ui.screens.settings.SettingsInformation
 import com.github.soundpod.utils.isAtLeastAndroid12
 import com.github.soundpod.utils.isAtLeastAndroid13
 import com.github.soundpod.utils.isIgnoringBatteryOptimizations
@@ -116,7 +119,8 @@ fun MoreSettingsContent() {
                     "package:${context.packageName}".toUri()
                 )
 
-                val languageSelectorNotFound = stringResource(id = R.string.language_selector_not_found)
+                val languageSelectorNotFound =
+                    stringResource(id = R.string.language_selector_not_found)
 
                 SettingsColumn(
                     icon = IconSource.Vector(Icons.Outlined.Language),

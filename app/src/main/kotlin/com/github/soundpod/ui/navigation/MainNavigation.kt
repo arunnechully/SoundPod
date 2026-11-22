@@ -22,6 +22,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.compose.runtime.getValue
 import androidx.navigation.navArgument
 import androidx.navigation.toRoute
 import com.github.soundpod.enums.BuiltInPlaylist
@@ -30,12 +31,16 @@ import com.github.soundpod.ui.screens.artist.ArtistScreen
 import com.github.soundpod.ui.screens.offline.OfflineScreen
 import com.github.soundpod.ui.screens.favorites.FavoriteTracksScreen
 import com.github.soundpod.ui.screens.favorites.FavoritesScreen
+import com.github.soundpod.ui.screens.home.style.AppleHome
 import com.github.soundpod.ui.screens.home.HistoryScreen
 import com.github.soundpod.ui.screens.home.HomeScreen
 import com.github.soundpod.ui.screens.playlist.FavoritePlaylistScreen
 import com.github.soundpod.ui.screens.playlist.OnlinePlaylistScreen
 import com.github.soundpod.ui.screens.search.NewSearchLayout
 import com.github.soundpod.ui.screens.search.NewSearchResult
+import com.github.soundpod.utils.HomeStyle
+import com.github.soundpod.utils.rememberPreference
+import com.github.soundpod.utils.homeStyleKey
 import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
 
@@ -92,10 +97,17 @@ fun MainNavigation(
         }
 
         playerComposable(route = Routes.Home::class) {
-            HomeScreen(
-                navController = navController,
-                onSettingsClick = onNavigateToSettings
-            )
+            val homeStyle by rememberPreference(homeStyleKey, HomeStyle.Default)
+            when (homeStyle) {
+                homeStyle.AppleMusic -> AppleHome(
+                    navController = navController,
+                    onSettingsClick = onNavigateToSettings
+                )
+                homeStyle.SamsungMusic, homeStyle.Default -> HomeScreen(
+                    navController = navController,
+                    onSettingsClick = onNavigateToSettings
+                )
+            }
         }
 
         composable(

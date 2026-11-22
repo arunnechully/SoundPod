@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.screens.settings
+package com.github.soundpod.ui.screens.settings.subscreen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -57,10 +57,13 @@ import com.github.soundpod.R
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SwitchSetting
+import com.github.soundpod.ui.screens.settings.SettingsColumn
+import com.github.soundpod.ui.screens.settings.SettingsGroup
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.selectedSleepTimerPresetKey
 import com.github.soundpod.utils.stopAfterCurrentKey
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import java.util.Locale
 import kotlin.math.abs
@@ -70,7 +73,7 @@ import kotlin.time.Duration.Companion.milliseconds
 fun SleepTimerSettingsContent() {
     val binder = LocalPlayerServiceBinder.current
     val sleepTimerMillisLeft by (binder?.sleepTimerMillisLeft
-        ?: kotlinx.coroutines.flow.flowOf(null)).collectAsState(initial = null)
+        ?: flowOf(null)).collectAsState(initial = null)
     var stopAfterCurrent by rememberPreference(stopAfterCurrentKey, false)
 
     var isCustomDialogShowing by remember { mutableStateOf(false) }

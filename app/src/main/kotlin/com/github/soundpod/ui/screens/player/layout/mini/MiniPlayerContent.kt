@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.screens.player
+package com.github.soundpod.ui.screens.player.layout.mini
 
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -35,6 +35,7 @@ import androidx.media3.common.Player
 import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
+import com.github.soundpod.ui.screens.player.MiniPlayerControl
 import com.github.soundpod.utils.DisposableListener
 import com.github.soundpod.utils.shouldBePlaying
 import kotlinx.coroutines.delay
@@ -143,7 +144,8 @@ fun MiniPlayerContent(
                                     Player.STATE_IDLE -> player.prepare()
                                     Player.STATE_ENDED -> player.seekToDefaultPosition(0)
                                     Player.STATE_BUFFERING,
-                                    Player.STATE_READY -> {}
+                                    Player.STATE_READY -> {
+                                    }
                                 }
                                 player.play()
                             }

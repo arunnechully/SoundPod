@@ -41,10 +41,10 @@ import com.github.soundpod.ui.components.StaticScreenLayout
 import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.ui.screens.favorites.FavoritesScreen
 import com.github.soundpod.utils.HomeTab
-import com.github.soundpod.utils.TabStyle
+import com.github.soundpod.utils.HomeStyle
 import com.github.soundpod.utils.appearanceUpdatedKey
 import com.github.soundpod.utils.rememberPreference
-import com.github.soundpod.utils.tabStyleKey
+import com.github.soundpod.utils.homeStyleKey
 import com.github.soundpod.utils.updateAvailableKey
 
 @Composable
@@ -52,7 +52,7 @@ fun HomeScreen(
     navController: NavController,
     onSettingsClick: () -> Unit,
 ) {
-    val tabStyle by rememberPreference(tabStyleKey, TabStyle.Default)
+    val homeStyle by rememberPreference(homeStyleKey, HomeStyle.Default)
     val updateAvailable by rememberPreference(updateAvailableKey, false)
     val appearanceUpdated by rememberPreference(appearanceUpdatedKey, false)
 
@@ -129,7 +129,7 @@ fun HomeScreen(
     ) {
         val tabTitles = activeTabs.map { it.title }
 
-        if (tabStyle == TabStyle.SamsungMusic) {
+        if (homeStyle == homeStyle.SamsungMusic) {
             HorizontalTabs(
                 pagerState = pagerState,
                 tabs = tabTitles

@@ -1,6 +1,6 @@
 @file:Suppress("KotlinConstantConditions")
 
-package com.github.soundpod.ui.screens.settings
+package com.github.soundpod.ui.screens.settings.subscreen
 
 import android.content.Intent
 import android.os.Build
@@ -34,6 +34,8 @@ import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.common.UpdateStatus
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.SwitchSetting
+import com.github.soundpod.ui.screens.settings.SettingRow
+import com.github.soundpod.ui.screens.settings.SettingsGroup
 import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.updateAvailableKey
@@ -128,7 +130,7 @@ fun AboutSettingsContent(
 
         Spacer(modifier = Modifier.height(Dimensions.spacer + 8.dp))
 
-        SettingsGroup{
+        SettingsGroup {
             SettingRow(
                 icon = IconSource.Icon(painterResource(id = R.drawable.github)),
                 title = stringResource(id = R.string.source_code),
@@ -142,7 +144,9 @@ fun AboutSettingsContent(
             val isRecording by viewModel.isRecordingLogs.collectAsState()
             SettingRow(
                 icon = IconSource.Icon(painterResource(id = R.drawable.bug)),
-                title = if (isRecording) stringResource(id = R.string.stop_and_share_report) else stringResource(id = R.string.report_a_bug),
+                title = if (isRecording) stringResource(id = R.string.stop_and_share_report) else stringResource(
+                    id = R.string.report_a_bug
+                ),
                 onClick = { viewModel.toggleLogRecording() },
             )
         }

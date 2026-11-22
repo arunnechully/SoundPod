@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.screens.settings
+package com.github.soundpod.ui.screens.settings.subscreen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -12,15 +12,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,6 +32,8 @@ import com.github.core.ui.LocalAppearance
 import com.github.soundpod.R
 import com.github.soundpod.enums.QuickPicksSource
 import com.github.soundpod.ui.components.SettingsCard
+import com.github.soundpod.ui.screens.settings.SettingsColumn
+import com.github.soundpod.ui.screens.settings.SettingsGroup
 import com.github.soundpod.utils.quickPicksCustomGenreKey
 import com.github.soundpod.utils.quickPicksSourceKey
 import com.github.soundpod.utils.rememberPreference
@@ -79,7 +78,7 @@ fun QuickPicksSettingsContent() {
                                     color = colorPalette.text.copy(alpha = 0.5f)
                                 )
                             }
-                            
+
                             BasicTextField(
                                 value = customGenre,
                                 onValueChange = { customGenre = it },

@@ -59,6 +59,8 @@ import kotlinx.coroutines.launch
 import androidx.media3.common.Player
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Timeline
+import com.github.soundpod.ui.screens.player.layout.mini.MiniPlayerContent
+import com.github.soundpod.ui.screens.player.layout.PlayerLayout
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -266,15 +268,23 @@ fun SharedPlayer(
                                         }
                                     },
                                     onGoToTrackDetails = {
-                                        val intent = Intent(context, SettingsActivity::class.java).apply {
-                                            putExtra("SCREEN_ID", SettingsDestinations.TRACK_DETAILS)
-                                        }
+                                        val intent =
+                                            Intent(context, SettingsActivity::class.java).apply {
+                                                putExtra(
+                                                    "SCREEN_ID",
+                                                    SettingsDestinations.TRACK_DETAILS
+                                                )
+                                            }
                                         context.startActivity(intent)
                                     },
                                     onAddToPlaylist = {
-                                        val intent = Intent(context, SettingsActivity::class.java).apply {
-                                            putExtra("SCREEN_ID", SettingsDestinations.ADD_TO_PLAYLIST)
-                                        }
+                                        val intent =
+                                            Intent(context, SettingsActivity::class.java).apply {
+                                                putExtra(
+                                                    "SCREEN_ID",
+                                                    SettingsDestinations.ADD_TO_PLAYLIST
+                                                )
+                                            }
                                         context.startActivity(intent)
                                     },
                                     onBack = {

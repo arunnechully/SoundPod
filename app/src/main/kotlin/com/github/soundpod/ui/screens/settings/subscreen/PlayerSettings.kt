@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.screens.settings
+package com.github.soundpod.ui.screens.settings.subscreen
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
@@ -18,6 +18,8 @@ import com.github.soundpod.R
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SliderSettingsItem
 import com.github.soundpod.ui.components.SwitchSetting
+import com.github.soundpod.ui.screens.settings.SettingsColumn
+import com.github.soundpod.ui.screens.settings.SettingsGroup
 import com.github.soundpod.utils.formatAsDuration
 import com.github.soundpod.utils.pauseOnAppCloseKey
 import com.github.soundpod.utils.persistentQueueKey
@@ -28,6 +30,7 @@ import com.github.soundpod.utils.resumePlaybackWhenDeviceConnectedKey
 import com.github.soundpod.utils.skipSilenceKey
 import com.github.soundpod.utils.stopAfterCurrentKey
 import com.github.soundpod.utils.volumeNormalizationKey
+import kotlinx.coroutines.flow.flowOf
 import java.util.Locale
 
 @Composable
@@ -36,7 +39,7 @@ fun PlayerSettingsContent(
 ) {
     val binder = LocalPlayerServiceBinder.current
     val sleepTimerMillisLeft by (binder?.sleepTimerMillisLeft
-        ?: kotlinx.coroutines.flow.flowOf(null)).collectAsState(initial = null)
+        ?: flowOf(null)).collectAsState(initial = null)
     val stopAfterCurrent by rememberPreference(stopAfterCurrentKey, false)
 
     var skipSilence by rememberPreference(skipSilenceKey, false)

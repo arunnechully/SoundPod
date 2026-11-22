@@ -1,4 +1,4 @@
-package com.github.soundpod.ui.screens.settings
+package com.github.soundpod.ui.screens.settings.subscreen
 
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
@@ -33,6 +33,10 @@ import com.github.soundpod.query
 import com.github.soundpod.service.PlayerService
 import com.github.soundpod.ui.common.IconSource
 import com.github.soundpod.ui.components.SwitchSetting
+import com.github.soundpod.ui.screens.settings.EnumValueSelectorSettingsEntry
+import com.github.soundpod.ui.screens.settings.SettingsColumn
+import com.github.soundpod.ui.screens.settings.SettingsGroup
+import com.github.soundpod.ui.screens.settings.SettingsInformation
 import com.github.soundpod.utils.autoBackup
 import com.github.soundpod.utils.autoBackupUriPrefKey
 import com.github.soundpod.utils.intent

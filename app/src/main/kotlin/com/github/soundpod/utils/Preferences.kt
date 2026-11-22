@@ -1,7 +1,10 @@
+@file:Suppress("unused")
+
 package com.github.soundpod.utils
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import com.github.soundpod.R
 import androidx.compose.runtime.DisposableEffect
@@ -56,7 +59,7 @@ const val progressBarStyle = "progressBarStyle"
 
 const val playerlayout = "playerlayout"
 
-const val tabStyleKey = "tabStyle"
+const val homeStyleKey = "homeStyle"
 
 const val showHomeTabKey = "showHomeTab"
 const val showFavoritesTabKey = "showFavoritesTab"
@@ -81,10 +84,27 @@ enum class PlaybackSource(val resourceId: Int) {
     Soundcore(R.string.soundcore)
 }
 
-enum class TabStyle(val resourceId: Int) {
-    SamsungMusic(R.string.samsung_music),
+enum class HomeStyle(val resourceId: Int) {
+    SamsungHome(R.string.samsung_music),
     Default(R.string.defualt),
-    AppleMusic (R.string.apple_music)
+    AppleHome (R.string.apple_music)
+}
+
+enum class PlayerLayout(
+    @get:StringRes val resourceId: Int
+) {
+    SamsungMusic(
+        resourceId = R.string.samsung_music,
+    ),
+    New(
+        resourceId = R.string.new_layout,
+    ),
+    AppleMusic(
+        resourceId = R.string.apple_music,
+    ),
+    YoutubeMusic(
+        resourceId = R.string.youtube_music,
+    )
 }
 
 inline fun <reified T : Enum<T>> SharedPreferences.getEnum(

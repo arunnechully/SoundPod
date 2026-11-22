@@ -11,9 +11,9 @@ import com.github.soundpod.ui.styling.Dimensions
 /**
  * Shared metrics for the expanded player.
  *
- * [SharedThumbnail] is drawn as an overlay on top of [MainPlayerContent] and is positioned with an
+ * [SharedThumbnail] is drawn as an overlay on top of [com.github.soundpod.ui.screens.player.layout.main.MainPlayerContent] and is positioned with an
  * absolute offset, so it cannot rely on the layout pass to stay aligned with the placeholder that
- * [MainPlayerContent] reserves for it. These values keep the two in sync.
+ * [com.github.soundpod.ui.screens.player.layout.main.MainPlayerContent] reserves for it. These values keep the two in sync.
  */
 internal object PlayerMetrics {
 
@@ -22,7 +22,7 @@ internal object PlayerMetrics {
 
     /**
      * Distance between the top of the expanded player and the top of the artwork, matching the
-     * placeholder in [MainPlayerContent]: a spacer, the top control row (which is itself pushed
+     * placeholder in [com.github.soundpod.ui.screens.player.layout.main.MainPlayerContent]: a spacer, the top control row (which is itself pushed
      * down by the status bar inset), and another spacer.
      */
     val expandedThumbnailTop: Dp

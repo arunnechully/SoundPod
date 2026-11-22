@@ -21,6 +21,17 @@ import com.github.soundpod.ui.components.StaticScreenLayout
 import com.github.soundpod.ui.navigation.SettingsDestinations
 import com.github.soundpod.ui.screens.player.AddToListScreen
 import com.github.soundpod.ui.screens.player.TrackDetails
+import com.github.soundpod.ui.screens.settings.subscreen.AboutSettingsContent
+import com.github.soundpod.ui.screens.settings.subscreen.AppearanceSettingsContent
+import com.github.soundpod.ui.screens.settings.subscreen.BackgroundSettingsContent
+import com.github.soundpod.ui.screens.settings.subscreen.BackupSettingsContent
+import com.github.soundpod.ui.screens.settings.subscreen.CacheSettingsContent
+import com.github.soundpod.ui.screens.settings.subscreen.DatabaseSettingsContent
+import com.github.soundpod.ui.screens.settings.subscreen.MoreSettingsContent
+import com.github.soundpod.ui.screens.settings.subscreen.PlayerSettingsContent
+import com.github.soundpod.ui.screens.settings.subscreen.PrivacySettingsContent
+import com.github.soundpod.ui.screens.settings.subscreen.QuickPicksSettingsContent
+import com.github.soundpod.ui.screens.settings.subscreen.SleepTimerSettingsContent
 import com.github.soundpod.utils.appearanceUpdatedKey
 import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.viewmodels.SettingsViewModel
