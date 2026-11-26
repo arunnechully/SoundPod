@@ -66,7 +66,6 @@ fun PlayerLayout(
 
         PlayerLayout.YoutubeMusic -> {
             YoutubePlayer(
-                expandProgress = expandProgress,
                 onGoToAlbum = onGoToAlbum,
                 onGoToArtist = onGoToArtist,
                 onTrackDetailsClick = onGoToTrackDetails,

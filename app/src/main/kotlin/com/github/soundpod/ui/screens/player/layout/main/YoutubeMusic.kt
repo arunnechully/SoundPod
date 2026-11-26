@@ -1,10 +1,8 @@
 package com.github.soundpod.ui.screens.player.layout.main
 
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
@@ -46,9 +45,9 @@ import com.github.soundpod.db
 import com.github.soundpod.enums.ProgressBar
 import com.github.soundpod.query
 import com.github.soundpod.ui.screens.player.ActionChipItem
-import com.github.soundpod.ui.screens.player.PlayerTabs
 import com.github.soundpod.ui.screens.player.PlayerMediaItem
 import com.github.soundpod.ui.screens.player.PlayerSeekBar
+import com.github.soundpod.ui.screens.player.PlayerTabs
 import com.github.soundpod.ui.screens.player.PlayerTopControl
 import com.github.soundpod.ui.styling.Dimensions
 import com.github.soundpod.utils.PlayerLayout
@@ -60,7 +59,6 @@ import com.github.soundpod.utils.rememberPreference
 import com.github.soundpod.utils.shuffleQueue
 import com.github.soundpod.utils.trackLoopEnabledKey
 import com.github.soundpod.viewmodels.PlayerViewModel
-import com.github.soundpod.viewmodels.PlaylistViewModel
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onStart
@@ -68,7 +66,6 @@ import kotlinx.coroutines.flow.onStart
 @OptIn(UnstableApi::class)
 @Composable
 fun YoutubePlayer(
-    expandProgress: Float,
     layoutMode: PlayerLayout,
     onGoToAlbum: (String) -> Unit,
     onGoToArtist: (String) -> Unit,
@@ -84,10 +81,10 @@ fun YoutubePlayer(
 ) {
     val binder = LocalPlayerServiceBinder.current
     val player = binder?.player ?: return
+    val context = LocalContext.current
 
     val (colorPalette) = LocalAppearance.current
 
-    val playlistViewModel = remember(player) { PlaylistViewModel(player) }
     val playerViewModel = remember(player) { PlayerViewModel(player) }
 
     val uiState by playerViewModel.uiState.collectAsState()
@@ -149,18 +146,7 @@ fun YoutubePlayer(
     val progressBarStyleState = rememberPreference(progressBarStyle, ProgressBar.Default)
     val currentProgressStyle = progressBarStyleState.value
 
-    val playingScale by animateFloatAsState(
-        targetValue = if (shouldBePlaying) 1f else 0.7f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessMediumLow
-        ),
-        label = "playingScale"
-    )
-
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val containerWidth = maxWidth
-        val thumbnailSize = containerWidth * 0.85f
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -173,7 +159,6 @@ fun YoutubePlayer(
         ) {
             Spacer(modifier = Modifier.height(Dimensions.spacer))
 
-//                Top Control
             PlayerTopControl(
                 onGoToAlbum = albumId?.let { id -> { handleGoToAlbum(id) } },
                 onGoToArtist = if (isSingleArtist && artistId != null) {
@@ -234,7 +219,7 @@ fun YoutubePlayer(
                         isLiked = isLiked,
                         isDisliked = isDisliked,
                         onLikeClick = {
-                            val currentMediaItem = binder?.player?.currentMediaItem ?: return@PlayerTabs
+                            val currentMediaItem = binder.player.currentMediaItem ?: return@PlayerTabs
                             val id = currentMediaItem.mediaId
                             query {
                                 val newLikedAt = if (likedAt == null) System.currentTimeMillis() else null
@@ -246,7 +231,7 @@ fun YoutubePlayer(
                             }
                         },
                         onDislikeClick = {
-                            val currentMediaItem = binder?.player?.currentMediaItem ?: return@PlayerTabs
+                            val currentMediaItem = binder.player.currentMediaItem ?: return@PlayerTabs
                             val id = currentMediaItem.mediaId
                             val isCurrentlyBlacklisted = blacklistedAt != null
                             query {
@@ -258,9 +243,9 @@ fun YoutubePlayer(
                                 }
                             }
                             if (!isCurrentlyBlacklisted) {
-                                val player = binder?.player
-                                val currentIndex = player?.currentMediaItemIndex
-                                if (player != null && currentIndex != null && currentIndex >= 0) {
+                                val player = binder.player
+                                val currentIndex = player.currentMediaItemIndex
+                                if (currentIndex >= 0) {
                                     player.removeMediaItem(currentIndex)
                                 }
                             }
@@ -282,7 +267,18 @@ fun YoutubePlayer(
                                 id = "share",
                                 icon = R.drawable.share,
                                 label = "Share",
-                                onClick = { /* share track */ }
+                                onClick = {
+                                    val sendIntent = Intent().apply {
+                                        action = Intent.ACTION_SEND
+                                        type = "text/plain"
+                                        putExtra(
+                                            Intent.EXTRA_TEXT,
+                                            "https://music.youtube.com/watch?v=${mediaItem?.mediaId}"
+                                        )
+                                    }
+
+                                    context.startActivity(Intent.createChooser(sendIntent, null))
+                                }
                             ),
                             ActionChipItem(
                                 id = "download",
