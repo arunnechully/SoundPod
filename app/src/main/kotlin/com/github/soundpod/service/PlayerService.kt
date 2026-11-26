@@ -364,7 +364,13 @@ class PlayerService : InvincibleService(), Player.Listener,
     }
 
     private fun maybeRecoverPlaybackError() {
-        if (player.playerError != null) player.prepare()
+        if (player.playerError != null) {
+            player.currentMediaItem?.mediaId?.let { videoId ->
+                mediaSourceProvider.evictUrl(videoId)
+                cacheManager.removeCache(videoId)
+            }
+            player.prepare()
+        }
     }
     private fun maybeProcessRadio() {
         radioManager.processNextBatch()
@@ -401,12 +407,10 @@ class PlayerService : InvincibleService(), Player.Listener,
 
             audioDeviceCallback = object : AudioDeviceCallback() {
                 private fun canPlayMusic(audioDeviceInfo: AudioDeviceInfo): Boolean {
-                    if (!audioDeviceInfo.isSink) return false
-
-                    return audioDeviceInfo.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+                    return audioDeviceInfo.isSink && (audioDeviceInfo.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
                             audioDeviceInfo.type == AudioDeviceInfo.TYPE_WIRED_HEADSET ||
                             audioDeviceInfo.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
-                            (isAtLeastAndroid8 && audioDeviceInfo.type == AudioDeviceInfo.TYPE_USB_HEADSET)
+                            (isAtLeastAndroid8 && audioDeviceInfo.type == AudioDeviceInfo.TYPE_USB_HEADSET))
                 }
 
                 override fun onAudioDevicesAdded(addedDevices: Array<AudioDeviceInfo>) {
@@ -478,12 +482,7 @@ class PlayerService : InvincibleService(), Player.Listener,
                 isNotificationStarted = false
                 makeInvincible(false)
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    stopForeground(STOP_FOREGROUND_REMOVE)
-                } else {
-                    @Suppress("DEPRECATION")
-                    stopForeground(true)
-                }
+                stopForeground(STOP_FOREGROUND_REMOVE)
 
                 audioEffectManager.sendCloseEqualizerIntent()
                 playerNotificationManager.notificationManager?.cancel(NOTIFICATION_ID)
@@ -508,12 +507,7 @@ class PlayerService : InvincibleService(), Player.Listener,
                 if (!player.shouldBePlaying) {
                     isNotificationStarted = false
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        stopForeground(STOP_FOREGROUND_DETACH)
-                    } else {
-                        @Suppress("DEPRECATION")
-                        stopForeground(false)
-                    }
+                    stopForeground(STOP_FOREGROUND_DETACH)
 
                     makeInvincible(true)
                     audioEffectManager.sendCloseEqualizerIntent()
@@ -676,7 +670,13 @@ class PlayerService : InvincibleService(), Player.Listener,
 
 
     private fun play() {
-        if (player.playerError != null) player.prepare()
+        if (player.playerError != null) {
+            player.currentMediaItem?.mediaId?.let { videoId ->
+                mediaSourceProvider.evictUrl(videoId)
+                cacheManager.removeCache(videoId)
+            }
+            player.prepare()
+        }
         else if (player.playbackState == Player.STATE_ENDED) player.seekToDefaultPosition(0)
         else player.play()
     }

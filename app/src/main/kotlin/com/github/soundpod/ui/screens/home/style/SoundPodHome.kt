@@ -37,6 +37,7 @@ import com.github.soundpod.enums.BuiltInPlaylist
 import com.github.soundpod.ui.components.ClassicHorizontalTabs
 import com.github.soundpod.ui.components.SettingsCard
 import com.github.soundpod.ui.components.StaticScreenLayout
+import com.github.soundpod.ui.components.TabItem
 import com.github.soundpod.ui.navigation.Routes
 import com.github.soundpod.ui.screens.favorites.FavoritesScreen
 import com.github.soundpod.ui.screens.home.FollowingScreen
@@ -129,7 +130,7 @@ fun SoundPodHome(
             }
         }
     ) {
-        val tabTitles = activeTabs.map { it.title }
+        val tabTitles = activeTabs.map { TabItem(title = it.title) }
 
             ClassicHorizontalTabs(
                 pagerState = pagerState,

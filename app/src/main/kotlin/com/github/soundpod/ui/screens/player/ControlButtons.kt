@@ -1,5 +1,3 @@
-@file:kotlin.OptIn(ExperimentalAnimationApi::class)
-
 package com.github.soundpod.ui.screens.player
 
 import android.content.ActivityNotFoundException
@@ -8,7 +6,6 @@ import android.media.audiofx.AudioEffect
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.EaseInOutSine
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -82,7 +79,6 @@ import com.github.core.ui.LocalAppearance
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.db
-import com.github.soundpod.utils.PlayerLayout
 import com.github.soundpod.enums.ProgressBar
 import com.github.soundpod.models.Song
 import com.github.soundpod.query
@@ -91,6 +87,7 @@ import com.github.soundpod.ui.screens.player.seekbar.PaperBoatAnimation
 import com.github.soundpod.ui.screens.player.seekbar.SeekBar
 import com.github.soundpod.ui.screens.player.seekbar.SimpleWave
 import com.github.soundpod.ui.styling.Dimensions
+import com.github.soundpod.utils.PlayerLayout
 import com.github.soundpod.utils.forceSeekToNext
 import com.github.soundpod.utils.forceSeekToPrevious
 import com.github.soundpod.utils.formatAsDuration
@@ -140,7 +137,7 @@ fun AnimatedIconButton(
 
 @Suppress("KotlinConstantConditions")
 @Composable
-private fun HoldableAnimatedIconButton(
+fun HoldableAnimatedIconButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
     onHold: (suspend () -> Unit)? = null,
@@ -590,18 +587,35 @@ fun PlayerControlBottom(
             contentAlignment = Alignment.Center,
             modifier = Modifier.size(if (playerLayout == PlayerLayout.SoundPod) 84.dp else 72.dp)
         ) {
-            if (playerLayout == PlayerLayout.SoundPod) {
-                NewPlayPauseButton(
-                    playing = shouldBePlaying,
-                    isBuffering = isBuffering, // Passed directly
-                    onClick = onPlayPauseClick
-                )
-            } else if (playerLayout == PlayerLayout.SamsungMusic) {
-                PlayPauseButton(
-                    playing = shouldBePlaying,
-                    isBuffering = isBuffering, // Passed directly
-                    onClick = onPlayPauseClick
-                )
+            when (playerLayout) {
+                PlayerLayout.SoundPod -> {
+                    NewPlayPauseButton(
+                        playing = shouldBePlaying,
+                        isBuffering = isBuffering,
+                        onClick = onPlayPauseClick
+                    )
+                }
+                PlayerLayout.SamsungMusic -> {
+                    PlayPauseButton(
+                        playing = shouldBePlaying,
+                        isBuffering = isBuffering,
+                        onClick = onPlayPauseClick
+                    )
+                }
+                PlayerLayout.AppleMusic -> {
+                    PlayPauseButton(
+                        playing = shouldBePlaying,
+                        isBuffering = isBuffering,
+                        onClick = onPlayPauseClick
+                    )
+                }
+                PlayerLayout.YoutubeMusic -> {
+                    NewPlayPauseButton(
+                        playing = shouldBePlaying,
+                        isBuffering = isBuffering,
+                        onClick = onPlayPauseClick
+                    )
+                }
             }
         }
 

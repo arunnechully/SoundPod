@@ -217,7 +217,7 @@ fun SamsungPlayer(
                             PlayerMediaItem(
                                 onGoToArtist = if (isSingleArtist && artistId != null) {
                                     { handleGoToArtist(artistId) }
-                                } else null
+                                } else null,
                             )
 
                             Spacer(modifier = Modifier.height(Dimensions.spacer))
@@ -317,7 +317,7 @@ fun SamsungPlayer(
                                 PlayerMediaItem(
                                     onGoToArtist = if (isSingleArtist && artistId != null) {
                                         { handleGoToArtist(artistId) }
-                                    } else null
+                                    } else null,
                                 )
                             }
 

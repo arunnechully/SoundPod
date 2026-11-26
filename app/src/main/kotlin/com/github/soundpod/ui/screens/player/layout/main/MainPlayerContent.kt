@@ -46,7 +46,6 @@ import com.github.soundpod.ui.screens.player.PlayerTopControl
 import com.github.soundpod.ui.screens.player.PlaylistOverlay
 import com.github.soundpod.ui.screens.player.lyrics.LyricsOverlay
 import com.github.soundpod.ui.styling.Dimensions
-import com.github.soundpod.utils.PlayerLayout
 import com.github.soundpod.utils.isLandscape
 import com.github.soundpod.utils.progressBarStyle
 import com.github.soundpod.utils.rememberPreference
@@ -218,7 +217,7 @@ fun MainPlayerContent(
                             PlayerMediaItem(
                                 onGoToArtist = if (isSingleArtist && artistId != null) {
                                     { handleGoToArtist(artistId) }
-                                } else null
+                                } else null,
                             )
 
                             Spacer(modifier = Modifier.height(Dimensions.spacer))
@@ -328,7 +327,7 @@ fun MainPlayerContent(
                                 PlayerMediaItem(
                                     onGoToArtist = if (isSingleArtist && artistId != null) {
                                         { handleGoToArtist(artistId) }
-                                    } else null
+                                    } else null,
                                 )
                             }
 

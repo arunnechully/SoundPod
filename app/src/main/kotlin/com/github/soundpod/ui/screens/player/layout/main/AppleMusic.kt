@@ -217,7 +217,7 @@ fun ApplePlayer(
                             PlayerMediaItem(
                                 onGoToArtist = if (isSingleArtist && artistId != null) {
                                     { handleGoToArtist(artistId) }
-                                } else null
+                                } else null,
                             )
 
                             Spacer(modifier = Modifier.height(Dimensions.spacer))
@@ -341,7 +341,7 @@ fun ApplePlayer(
                                 PlayerMediaItem(
                                     onGoToArtist = if (isSingleArtist && artistId != null) {
                                         { handleGoToArtist(artistId) }
-                                    } else null
+                                    } else null,
                                 )
                             }
 

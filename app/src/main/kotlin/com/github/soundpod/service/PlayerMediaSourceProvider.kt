@@ -58,7 +58,7 @@ class PlayerMediaSourceProvider(
 
     fun createMediaSourceFactory(): MediaSource.Factory {
         return DefaultMediaSourceFactory(createDataSourceFactory(), DefaultExtractorsFactory())
-            .setLoadErrorHandlingPolicy(YouTube403ErrorPolicy(urlCache))
+            .setLoadErrorHandlingPolicy(YouTubeLoadErrorPolicy(urlCache, cacheManager))
     }
 
     private fun createDataSourceFactory(): DataSource.Factory {
@@ -105,6 +105,7 @@ class PlayerMediaSourceProvider(
             val cacheDataSource = CacheDataSource.Factory()
                 .setCache(cacheManager.cache)
                 .setUpstreamDataSourceFactory(resolvingUpstreamFactory)
+                .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
                 .apply {
                     if (pauseSongCache) {
                         setCacheWriteDataSinkFactory(null)
@@ -127,9 +128,11 @@ class PlayerMediaSourceProvider(
         val metadata = cacheManager.cache.getContentMetadata(videoId)
         val length = ContentMetadata.getContentLength(metadata)
         if (length > 0 && cacheManager.cache.isCached(videoId, 0, length)) {
-            Log.d("SoundPod-DataSource", "Cache HIT for $videoId ($length bytes), bypassing resolution")
-            sourceTracker[videoId] = com.github.soundpod.R.string.cache
-            return urlCache[videoId]?.first ?: "https://www.youtube.com/watch?v=$videoId".toUri()
+            urlCache[videoId]?.first?.let { cachedUri ->
+                Log.d("SoundPod-DataSource", "Cache HIT for $videoId ($length bytes), bypassing resolution")
+                sourceTracker[videoId] = com.github.soundpod.R.string.cache
+                return cachedUri
+            }
         }
 
         urlCache[videoId]?.let { (uri, timestamp) ->
@@ -240,7 +243,7 @@ class PlayerMediaSourceProvider(
                     bestAudio.content
                 }.getOrElse { e ->
                     Log.e("SoundPod-Debug", "All resolution methods failed for $videoId (yt: $ytVideoId)", e)
-                    return "https://www.youtube.com/watch?v=$ytVideoId".toUri()
+                    throw java.io.IOException("Failed to resolve playable stream for $videoId", e)
                 }
 
                 val newUri = rawUrl.toUri()
@@ -253,23 +256,30 @@ class PlayerMediaSourceProvider(
 }
 
 @UnstableApi
-private class YouTube403ErrorPolicy(
-    private val urlCache: ConcurrentHashMap<String, Pair<Uri, Long>>
+private class YouTubeLoadErrorPolicy(
+    private val urlCache: ConcurrentHashMap<String, Pair<Uri, Long>>,
+    private val cacheManager: PlayerCacheManager
 ) : DefaultLoadErrorHandlingPolicy() {
 
     override fun getRetryDelayMsFor(loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo): Long {
         val exception = loadErrorInfo.exception
+        val httpException = exception as? HttpDataSource.InvalidResponseCodeException
+            ?: exception.cause as? HttpDataSource.InvalidResponseCodeException
 
-        if (exception is HttpDataSource.InvalidResponseCodeException && exception.responseCode == 403) {
-            val videoId = loadErrorInfo.loadEventInfo.dataSpec.key
-            Log.w("SoundPod-Debug", "Hit a 403 Forbidden for $videoId! Evicting URL cache and retrying...")
+        if (httpException != null) {
+            val responseCode = httpException.responseCode
+            if (responseCode == 403 || responseCode == 416 || responseCode == 410) {
+                val videoId = loadErrorInfo.loadEventInfo.dataSpec.key
+                Log.w("SoundPod-Debug", "Hit HTTP $responseCode for $videoId! Evicting URL cache and player cache, retrying...")
 
-            if (videoId != null) {
-                urlCache.remove(videoId)
-            } else {
-                urlCache.clear()
+                if (videoId != null) {
+                    urlCache.remove(videoId)
+                    runCatching { cacheManager.removeCache(videoId) }
+                } else {
+                    urlCache.clear()
+                }
+                return 1000L
             }
-            return 1000L
         }
 
         return super.getRetryDelayMsFor(loadErrorInfo)
