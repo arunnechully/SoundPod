@@ -13,7 +13,8 @@ data class Song(
     val durationText: String?,
     val thumbnailUrl: String?,
     val likedAt: Long? = null,
-    val totalPlayTimeMs: Long = 0
+    val totalPlayTimeMs: Long = 0,
+    val blacklistedAt: Long? = null
 ) {
     val formattedTotalPlayTime: String
         get() {
@@ -29,8 +30,18 @@ data class Song(
         }
 
     fun toggleLike(): Song {
+        val newLikedAt = if (likedAt == null) System.currentTimeMillis() else null
         return copy(
-            likedAt = if (likedAt == null) System.currentTimeMillis() else null
+            likedAt = newLikedAt,
+            blacklistedAt = if (newLikedAt != null) null else blacklistedAt
+        )
+    }
+
+    fun toggleBlacklist(): Song {
+        val newBlacklistedAt = if (blacklistedAt == null) System.currentTimeMillis() else null
+        return copy(
+            blacklistedAt = newBlacklistedAt,
+            likedAt = if (newBlacklistedAt != null) null else likedAt
         )
     }
 }

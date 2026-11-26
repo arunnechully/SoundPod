@@ -11,6 +11,7 @@ import com.github.innertube.utils.from
 import com.github.soundcore.Soundcore
 import com.github.soundcore.asSoundcoreArtistItem
 import com.github.soundcore.asSoundcoreSongItem
+import com.github.soundpod.db
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -157,11 +158,17 @@ class SearchViewModel : ViewModel() {
                 val soundcoreSongs = soundcoreSongsDeferred.await()
                 val soundcoreArtists = soundcoreArtistsDeferred.await()
 
-                songResults = mergeItems(innertubeSongs, soundcoreSongs.map { it.asSoundcoreSongItem }).take(10)
+                val blacklistedIds = runCatching { db.getBlacklistedSongIds().toSet() }.getOrDefault(emptySet())
+
+                songResults = mergeItems(innertubeSongs, soundcoreSongs.map { it.asSoundcoreSongItem })
+                    .filterNot { it.key in blacklistedIds }
+                    .take(10)
                 albumResults = innertubeAlbums?.take(10)
                 artistResults = mergeItems(innertubeArtists, soundcoreArtists.map { it.asSoundcoreArtistItem }).take(10)
                 playlistResults = innertubePlaylists?.take(10)
-                videoResults = innertubeVideos?.take(6)
+                videoResults = innertubeVideos
+                    ?.filterNot { it.key in blacklistedIds }
+                    ?.take(6)
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {

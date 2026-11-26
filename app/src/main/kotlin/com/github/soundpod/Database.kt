@@ -102,42 +102,42 @@ interface Database {
     fun songsByArtistsDesc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' ORDER BY ROWID ASC")
+    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' AND blacklistedAt IS NULL ORDER BY ROWID ASC")
     @RewriteQueriesToDropUnusedColumns
     fun localSongsByRowIdAsc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' ORDER BY ROWID DESC")
+    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' AND blacklistedAt IS NULL ORDER BY ROWID DESC")
     @RewriteQueriesToDropUnusedColumns
     fun localSongsByRowIdDesc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' ORDER BY title ASC")
+    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' AND blacklistedAt IS NULL ORDER BY title ASC")
     @RewriteQueriesToDropUnusedColumns
     fun localSongsByTitleAsc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' ORDER BY title DESC")
+    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' AND blacklistedAt IS NULL ORDER BY title DESC")
     @RewriteQueriesToDropUnusedColumns
     fun localSongsByTitleDesc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' ORDER BY totalPlayTimeMs ASC")
+    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' AND blacklistedAt IS NULL ORDER BY totalPlayTimeMs ASC")
     @RewriteQueriesToDropUnusedColumns
     fun localSongsByPlayTimeAsc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' ORDER BY totalPlayTimeMs DESC")
+    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' AND blacklistedAt IS NULL ORDER BY totalPlayTimeMs DESC")
     @RewriteQueriesToDropUnusedColumns
     fun localSongsByPlayTimeDesc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' ORDER BY artistsText ASC")
+    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' AND blacklistedAt IS NULL ORDER BY artistsText ASC")
     @RewriteQueriesToDropUnusedColumns
     fun localSongsByArtistsAsc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' ORDER BY artistsText DESC")
+    @Query("SELECT * FROM Song WHERE id LIKE 'content://%' AND blacklistedAt IS NULL ORDER BY artistsText DESC")
     @RewriteQueriesToDropUnusedColumns
     fun localSongsByArtistsDesc(): Flow<List<Song>>
 
@@ -212,8 +212,33 @@ interface Database {
     @Query("SELECT likedAt FROM Song WHERE id = :songId")
     fun likedAt(songId: String): Flow<Long?>
 
-    @Query("UPDATE Song SET likedAt = :likedAt WHERE id = :songId")
+    @Query("SELECT blacklistedAt FROM Song WHERE id = :songId")
+    fun blacklistedAt(songId: String): Flow<Long?>
+
+    @Query("UPDATE Song SET likedAt = :likedAt, blacklistedAt = CASE WHEN :likedAt IS NOT NULL THEN NULL ELSE blacklistedAt END WHERE id = :songId")
     fun like(songId: String, likedAt: Long?): Int
+
+    @Query("UPDATE Song SET blacklistedAt = :blacklistedAt, likedAt = CASE WHEN :blacklistedAt IS NOT NULL THEN NULL ELSE likedAt END WHERE id = :songId")
+    fun blacklist(songId: String, blacklistedAt: Long?): Int
+
+    @Transaction
+    @Query("SELECT * FROM Song WHERE blacklistedAt IS NOT NULL ORDER BY blacklistedAt DESC")
+    fun blacklistedSongs(): Flow<List<Song>>
+
+    @Query("SELECT COUNT(*) FROM Song WHERE blacklistedAt IS NOT NULL")
+    fun blacklistedSongsCount(): Flow<Int>
+
+    @Query("SELECT id FROM Song WHERE blacklistedAt IS NOT NULL")
+    fun blacklistedSongIds(): Flow<List<String>>
+
+    @Query("SELECT id FROM Song WHERE blacklistedAt IS NOT NULL")
+    fun getBlacklistedSongIds(): List<String>
+
+    @Query("UPDATE Song SET blacklistedAt = NULL WHERE id IN (:songIds)")
+    fun removeBlacklist(songIds: List<String>)
+
+    @Query("UPDATE Song SET blacklistedAt = NULL")
+    fun clearBlacklist()
 
     @Query("UPDATE Song SET durationText = :durationText WHERE id = :songId")
     fun updateDurationText(songId: String, durationText: String): Int
@@ -262,7 +287,7 @@ interface Database {
     fun albumTimestamp(id: String): Long?
 
     @Transaction
-    @Query("SELECT * FROM Song JOIN SongAlbumMap ON Song.id = SongAlbumMap.songId WHERE SongAlbumMap.albumId = :albumId ORDER BY position")
+    @Query("SELECT * FROM Song JOIN SongAlbumMap ON Song.id = SongAlbumMap.songId WHERE SongAlbumMap.albumId = :albumId AND Song.blacklistedAt IS NULL ORDER BY position")
     @RewriteQueriesToDropUnusedColumns
     fun albumSongs(albumId: String): Flow<List<Song>>
 
@@ -371,7 +396,7 @@ interface Database {
     fun playlist(id: Long): Flow<Playlist?>
 
     @Transaction
-    @Query("SELECT Song.* FROM SongPlaylistMap JOIN Song on Song.id = SongPlaylistMap.songId WHERE playlistId = :id ORDER BY position")
+    @Query("SELECT Song.* FROM SongPlaylistMap JOIN Song on Song.id = SongPlaylistMap.songId WHERE playlistId = :id AND Song.blacklistedAt IS NULL ORDER BY position")
     fun playlistSongs(id: Long): Flow<List<Song>>
 
     @Transaction
@@ -426,23 +451,23 @@ interface Database {
         }
     }
 
-    @Query("SELECT thumbnailUrl FROM Song JOIN SongPlaylistMap ON id = songId WHERE playlistId = :id ORDER BY position LIMIT 4")
+    @Query("SELECT thumbnailUrl FROM Song JOIN SongPlaylistMap ON id = songId WHERE playlistId = :id AND blacklistedAt IS NULL ORDER BY position LIMIT 4")
     fun playlistThumbnailUrls(id: Long): Flow<List<String>>
 
     @Transaction
-    @Query("SELECT * FROM Song JOIN SongArtistMap ON Song.id = SongArtistMap.songId WHERE SongArtistMap.artistId = :artistId ORDER BY Song.ROWID DESC")
+    @Query("SELECT * FROM Song JOIN SongArtistMap ON Song.id = SongArtistMap.songId WHERE SongArtistMap.artistId = :artistId AND Song.blacklistedAt IS NULL ORDER BY Song.ROWID DESC")
     @RewriteQueriesToDropUnusedColumns
     fun artistSongs(artistId: String): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT Album.* FROM Album JOIN SongAlbumMap ON Album.id = SongAlbumMap.albumId JOIN SongArtistMap ON SongAlbumMap.songId = SongArtistMap.songId WHERE SongArtistMap.artistId = :artistId GROUP BY Album.id")
+    @Query("SELECT Album.* FROM Album JOIN SongAlbumMap ON Album.id = SongAlbumMap.albumId JOIN SongArtistMap ON SongAlbumMap.songId = SongArtistMap.songId JOIN Song ON Song.id = SongArtistMap.songId WHERE SongArtistMap.artistId = :artistId AND Song.blacklistedAt IS NULL GROUP BY Album.id")
     fun artistAlbums(artistId: String): Flow<List<Album>>
 
     @Query("SELECT * FROM Format WHERE songId = :songId")
     fun format(songId: String): Flow<Format?>
 
     @Transaction
-    @Query("SELECT Song.*, contentLength FROM Song LEFT JOIN Format ON id = songId ORDER BY Song.ROWID DESC")
+    @Query("SELECT Song.*, contentLength FROM Song LEFT JOIN Format ON id = songId WHERE Song.blacklistedAt IS NULL ORDER BY Song.ROWID DESC")
     fun songsWithContentLength(): Flow<List<SongWithContentLength>>
 
     @Query("""
@@ -465,7 +490,7 @@ interface Database {
     @Query("SELECT loudnessDb FROM Format WHERE songId = :songId")
     fun loudnessDb(songId: String): Flow<Float?>
 
-    @Query("SELECT * FROM Song WHERE title LIKE :query OR artistsText LIKE :query")
+    @Query("SELECT * FROM Song WHERE (title LIKE :query OR artistsText LIKE :query) AND blacklistedAt IS NULL")
     fun search(query: String): Flow<List<Song>>
 
     @Query("SELECT albumId AS id, title AS name FROM Album JOIN SongAlbumMap ON id = albumId WHERE songId = :songId")
@@ -475,7 +500,7 @@ interface Database {
     fun songArtistInfo(songId: String): List<Info>
 
     @Transaction
-    @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId WHERE playTime >= :minPlayTimeMs GROUP BY songId ORDER BY MAX(timestamp) DESC LIMIT :limit")
+    @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId WHERE playTime >= :minPlayTimeMs AND blacklistedAt IS NULL GROUP BY songId ORDER BY MAX(timestamp) DESC LIMIT :limit")
     @RewriteQueriesToDropUnusedColumns
     fun history(limit: Int, minPlayTimeMs: Long): Flow<List<Song>>
 
@@ -483,29 +508,29 @@ interface Database {
     fun latestQualifiedPlaybackTimestamp(minPlayTimeMs: Long): Flow<Long?>
 
     @Transaction
-    @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId GROUP BY songId ORDER BY SUM(CAST(playTime AS REAL) / (((:now - timestamp) / 86400000) + 1)) DESC LIMIT :limit")
+    @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId WHERE blacklistedAt IS NULL GROUP BY songId ORDER BY SUM(CAST(playTime AS REAL) / (((:now - timestamp) / 86400000) + 1)) DESC LIMIT :limit")
     @RewriteQueriesToDropUnusedColumns
     fun trending(limit: Int, now: Long = System.currentTimeMillis()): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId GROUP BY songId ORDER BY SUM(CAST(playTime AS REAL) / (((:now - timestamp) / 86400000) + 1)) DESC LIMIT 1")
+    @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId WHERE blacklistedAt IS NULL GROUP BY songId ORDER BY SUM(CAST(playTime AS REAL) / (((:now - timestamp) / 86400000) + 1)) DESC LIMIT 1")
     @RewriteQueriesToDropUnusedColumns
     fun trending(now: Long = System.currentTimeMillis()): Flow<Song?>
 
     @Transaction
-    @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId GROUP BY songId ORDER BY timestamp DESC LIMIT :limit")
+    @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId WHERE blacklistedAt IS NULL GROUP BY songId ORDER BY timestamp DESC LIMIT :limit")
     fun lastPlayed(limit: Int): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId GROUP BY songId ORDER BY timestamp DESC LIMIT 1")
+    @Query("SELECT Song.* FROM Event JOIN Song ON Song.id = songId WHERE blacklistedAt IS NULL GROUP BY songId ORDER BY timestamp DESC LIMIT 1")
     fun lastPlayed(): Flow<Song?>
 
     @Transaction
-    @Query("SELECT * FROM Song ORDER BY RANDOM() LIMIT :limit")
+    @Query("SELECT * FROM Song WHERE blacklistedAt IS NULL ORDER BY RANDOM() LIMIT :limit")
     fun randomSongs(limit: Int): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM Song ORDER BY RANDOM() LIMIT 1")
+    @Query("SELECT * FROM Song WHERE blacklistedAt IS NULL ORDER BY RANDOM() LIMIT 1")
     fun randomSong(): Flow<Song?>
 
     @Query("SELECT COUNT (*) FROM Event")
@@ -542,7 +567,7 @@ interface Database {
     fun downloadedSongIds(): Flow<List<String>>
 
     @Transaction
-    @Query("SELECT Song.*, contentLength, downloadedAt FROM Song JOIN DownloadedSong ON Song.id = DownloadedSong.id LEFT JOIN Format ON Song.id = Format.songId ORDER BY downloadedAt DESC")
+    @Query("SELECT Song.*, contentLength, downloadedAt FROM Song JOIN DownloadedSong ON Song.id = DownloadedSong.id LEFT JOIN Format ON Song.id = Format.songId WHERE Song.blacklistedAt IS NULL ORDER BY downloadedAt DESC")
     fun downloadedSongs(): Flow<List<SongWithContentLength>>
 
     @Query("SELECT EXISTS(SELECT 1 FROM DownloadedSong WHERE id = :id)")
@@ -732,7 +757,7 @@ interface Database {
         PrecachedSong::class, DownloadedSong::class
     ],
     views = [SortedSongPlaylistMap::class],
-    version = 28,
+    version = 29,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -757,6 +782,7 @@ interface Database {
         AutoMigration(from = 25, to = 26),
         AutoMigration(from = 26, to = 27),
         AutoMigration(from = 27, to = 28),
+        AutoMigration(from = 28, to = 29),
     ],
 )
 @TypeConverters(Converters::class)

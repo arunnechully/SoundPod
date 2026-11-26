@@ -8,6 +8,9 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.PlaylistPlay
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -16,6 +19,7 @@ import com.github.innertube.Innertube
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.models.ActionInfo
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
@@ -42,7 +46,10 @@ fun OnlinePlaylistSongs(
     val menuState = LocalMenuState.current
     val playerPadding = LocalPlayerPadding.current
 
-    val songs = playlistPage?.songsPage?.items ?: emptyList()
+    val blacklistedSongIds by remember { db.blacklistedSongIds() }.collectAsState(initial = emptyList())
+    val blacklistedSet = remember(blacklistedSongIds) { blacklistedSongIds.toSet() }
+
+    val songs = (playlistPage?.songsPage?.items ?: emptyList()).filterNot { it.key in blacklistedSet }
     val continuation = playlistPage?.songsPage?.continuation
 
     androidx.compose.runtime.LaunchedEffect(playlistPage) {

@@ -22,6 +22,7 @@ import com.github.soundpod.ui.screens.settings.subscreen.AboutSettingsContent
 import com.github.soundpod.ui.screens.settings.subscreen.AppearanceSettingsContent
 import com.github.soundpod.ui.screens.settings.subscreen.BackgroundSettingsContent
 import com.github.soundpod.ui.screens.settings.subscreen.BackupSettingsContent
+import com.github.soundpod.ui.screens.settings.subscreen.BlacklistSettingsContent
 import com.github.soundpod.ui.screens.settings.subscreen.CacheSettingsContent
 import com.github.soundpod.ui.screens.settings.subscreen.DatabaseSettingsContent
 import com.github.soundpod.ui.screens.settings.subscreen.MoreSettingsContent
@@ -54,6 +55,7 @@ fun SettingsScreen(
         SettingsDestinations.QUICK_PICKS -> stringResource(R.string.quick_picks)
         SettingsDestinations.TRACK_DETAILS -> stringResource(R.string.track_details)
         SettingsDestinations.ADD_TO_PLAYLIST -> stringResource(R.string.add_to_playlist)
+        SettingsDestinations.BLACKLIST -> stringResource(R.string.blacklist)
         else -> stringResource(R.string.settings)
     }
 
@@ -85,6 +87,7 @@ fun SettingsScreen(
                 SettingsDestinations.QUICK_PICKS -> QuickPicksSettingsContent()
                 SettingsDestinations.TRACK_DETAILS -> TrackDetails()
                 SettingsDestinations.ADD_TO_PLAYLIST -> AddToListScreen()
+                SettingsDestinations.BLACKLIST -> BlacklistSettingsContent()
             }
         }
     )

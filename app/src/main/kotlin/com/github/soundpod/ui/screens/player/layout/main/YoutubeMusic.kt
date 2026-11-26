@@ -44,6 +44,7 @@ import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
 import com.github.soundpod.db
 import com.github.soundpod.enums.ProgressBar
+import com.github.soundpod.query
 import com.github.soundpod.ui.screens.player.ActionChipItem
 import com.github.soundpod.ui.screens.player.PlayerTabs
 import com.github.soundpod.ui.screens.player.PlayerMediaItem
@@ -202,19 +203,67 @@ fun YoutubePlayer(
                         } else null,
                         contentAlignment = Alignment.Start
                     )
-                    var isLiked by remember { mutableStateOf(false) }
-                    var isDisliked by remember { mutableStateOf(false) }
+
+                    Spacer(modifier = Modifier.height(Dimensions.spacer))
+
+                    val mediaId = mediaItem?.mediaId
+
+                    var likedAt by remember(mediaId) { mutableStateOf<Long?>(null) }
+                    var blacklistedAt by remember(mediaId) { mutableStateOf<Long?>(null) }
+
+                    LaunchedEffect(mediaId) {
+                        if (mediaId != null) {
+                            db.likedAt(mediaId).distinctUntilChanged().collect { likedAt = it }
+                        } else {
+                            likedAt = null
+                        }
+                    }
+
+                    LaunchedEffect(mediaId) {
+                        if (mediaId != null) {
+                            db.blacklistedAt(mediaId).distinctUntilChanged().collect { blacklistedAt = it }
+                        } else {
+                            blacklistedAt = null
+                        }
+                    }
+
+                    val isLiked = likedAt != null
+                    val isDisliked = blacklistedAt != null
 
                     PlayerTabs(
                         isLiked = isLiked,
                         isDisliked = isDisliked,
                         onLikeClick = {
-                            isLiked = !isLiked
-                            if (isLiked) isDisliked = false
+                            val currentMediaItem = binder?.player?.currentMediaItem ?: return@PlayerTabs
+                            val id = currentMediaItem.mediaId
+                            query {
+                                val newLikedAt = if (likedAt == null) System.currentTimeMillis() else null
+                                if (db.like(id, newLikedAt) == 0) {
+                                    db.insert(currentMediaItem) { song ->
+                                        song.copy(likedAt = newLikedAt, blacklistedAt = null)
+                                    }
+                                }
+                            }
                         },
                         onDislikeClick = {
-                            isDisliked = !isDisliked
-                            if (isDisliked) isLiked = false
+                            val currentMediaItem = binder?.player?.currentMediaItem ?: return@PlayerTabs
+                            val id = currentMediaItem.mediaId
+                            val isCurrentlyBlacklisted = blacklistedAt != null
+                            query {
+                                val newBlacklistedAt = if (isCurrentlyBlacklisted) null else System.currentTimeMillis()
+                                if (db.blacklist(id, newBlacklistedAt) == 0) {
+                                    db.insert(currentMediaItem) { song ->
+                                        song.copy(blacklistedAt = newBlacklistedAt, likedAt = null)
+                                    }
+                                }
+                            }
+                            if (!isCurrentlyBlacklisted) {
+                                val player = binder?.player
+                                val currentIndex = player?.currentMediaItemIndex
+                                if (player != null && currentIndex != null && currentIndex >= 0) {
+                                    player.removeMediaItem(currentIndex)
+                                }
+                            }
                         },
                         likeIcon = R.drawable.like,
                         likeFilledIcon = R.drawable.like_filled,
@@ -233,6 +282,12 @@ fun YoutubePlayer(
                                 id = "share",
                                 icon = R.drawable.share,
                                 label = "Share",
+                                onClick = { /* share track */ }
+                            ),
+                            ActionChipItem(
+                                id = "download",
+                                icon = R.drawable.download,
+                                label = "Download",
                                 onClick = { /* share track */ }
                             ),
                             ActionChipItem(

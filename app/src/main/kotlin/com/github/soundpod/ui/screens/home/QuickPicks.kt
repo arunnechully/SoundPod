@@ -38,7 +38,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,6 +60,7 @@ import com.github.innertube.models.NavigationEndpoint
 import com.github.soundpod.LocalPlayerPadding
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.enums.QuickPicksSource
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
@@ -147,6 +150,9 @@ fun QuickPicks(
         val related = result?.getOrNull()
         val error = result?.exceptionOrNull() ?: if (result != null && related == null) Exception("Empty response") else null
 
+        val blacklistedSongIds by remember { db.blacklistedSongIds() }.collectAsState(initial = emptyList())
+        val blacklistedSet = remember(blacklistedSongIds) { blacklistedSongIds.toSet() }
+
         if (related != null) {
             Text(
                 text = stringResource(id = R.string.quick_picks),
@@ -162,7 +168,9 @@ fun QuickPicks(
                     .height((songThumbnailSizeDp + Dimensions.itemsVerticalPadding * 2) * 4)
             ) {
                 items(
-                    items = (related.songs ?: emptyList()).filter { it.key.isNotEmpty() }.distinctBy { it.key + it.info?.endpoint?.playlistId.orEmpty() },
+                    items = (related.songs ?: emptyList())
+                        .filter { it.key.isNotEmpty() && it.key !in blacklistedSet }
+                        .distinctBy { it.key + it.info?.endpoint?.playlistId.orEmpty() },
                     key = { it.key + it.info?.endpoint?.playlistId.orEmpty() }
                 ) { song ->
                     SongItem(

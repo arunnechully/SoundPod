@@ -59,4 +59,5 @@ object SettingsDestinations {
     const val QUICK_PICKS = "settings_quick_picks"
     const val TRACK_DETAILS = "settings_track_details"
     const val ADD_TO_PLAYLIST = "add_to_playlist"
+    const val BLACKLIST = "settings_blacklist"
 }

@@ -24,6 +24,7 @@ import com.github.soundcore.asSoundcoreArtistItem
 import com.github.soundcore.asSoundcoreSongItem
 import com.github.soundpod.LocalPlayerServiceBinder
 import com.github.soundpod.R
+import com.github.soundpod.db
 import com.github.soundpod.models.ActionInfo
 import com.github.soundpod.models.LocalMenuState
 import com.github.soundpod.ui.components.NonQueuedMediaItemMenu
@@ -117,6 +118,7 @@ fun NewSearchResult(
                     ItemsPage(
                         tag = "searchResults/$query/songs",
                         itemsPageProvider = { continuation ->
+                            val blacklistedIds = runCatching { db.getBlacklistedSongIds().toSet() }.getOrDefault(emptySet())
                             if (continuation == null) {
                                 val innertubePage = Innertube.searchPage(
                                     query = query,
@@ -125,12 +127,15 @@ fun NewSearchResult(
                                 )?.getOrNull()
                                 val soundcoreSongs = runCatching { Soundcore.searchSongs(query) }.getOrDefault(emptyList())
                                 val merged = mergeItems(innertubePage?.items, soundcoreSongs.map { it.asSoundcoreSongItem })
+                                    .filterNot { it.key in blacklistedIds }
                                 Result.success(Innertube.ItemsPage(items = merged, continuation = innertubePage?.continuation))
                             } else {
-                                Innertube.searchPage(
+                                val page = Innertube.searchPage(
                                     continuation = continuation,
                                     fromMusicShelfRendererContent = Innertube.SongItem.Companion::from
-                                )
+                                )?.getOrNull()
+                                val filtered = page?.items?.filterNot { it.key in blacklistedIds }
+                                Result.success(Innertube.ItemsPage(items = filtered.orEmpty(), continuation = page?.continuation))
                             }
                         },
                         emptyItemsText = emptyItemsText,
@@ -172,17 +177,22 @@ fun NewSearchResult(
                     ItemsPage(
                         tag = "searchResults/$query/videos",
                         itemsPageProvider = { continuation ->
+                            val blacklistedIds = runCatching { db.getBlacklistedSongIds().toSet() }.getOrDefault(emptySet())
                             if (continuation == null) {
-                                Innertube.searchPage(
+                                val page = Innertube.searchPage(
                                     query = query,
                                     params = Innertube.SearchFilter.Video.value,
                                     fromMusicShelfRendererContent = Innertube.VideoItem::from
-                                )
+                                )?.getOrNull()
+                                val filtered = page?.items?.filterNot { it.key in blacklistedIds }
+                                Result.success(Innertube.ItemsPage(items = filtered.orEmpty(), continuation = page?.continuation))
                             } else {
-                                Innertube.searchPage(
+                                val page = Innertube.searchPage(
                                     continuation = continuation,
                                     fromMusicShelfRendererContent = Innertube.VideoItem::from
-                                )
+                                )?.getOrNull()
+                                val filtered = page?.items?.filterNot { it.key in blacklistedIds }
+                                Result.success(Innertube.ItemsPage(items = filtered.orEmpty(), continuation = page?.continuation))
                             }
                         },
                         emptyItemsText = emptyItemsText,

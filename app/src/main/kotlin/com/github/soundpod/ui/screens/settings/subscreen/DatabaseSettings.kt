@@ -7,6 +7,7 @@ import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.ManageHistory
 import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.runtime.Composable
@@ -42,6 +43,9 @@ fun DatabaseSettingsContent(
     val eventsCount by remember {
         db.eventsCount().distinctUntilChanged()
     }.collectAsState(initial = 0)
+    val blacklistedCount by remember {
+        db.blacklistedSongsCount().distinctUntilChanged()
+    }.collectAsState(initial = 0)
     var quickPicksSource by rememberPreference(quickPicksSourceKey, QuickPicksSource.Default)
     var showClearQuickPicksDialog by remember { mutableStateOf(false) }
 
@@ -59,6 +63,18 @@ fun DatabaseSettingsContent(
                 description = stringResource(id = R.string.pause_search_history_description),
                 switchState = pauseSearchHistory,
                 onSwitchChange = { pauseSearchHistory = it }
+            )
+        }
+        SettingsGroup {
+            SettingsColumn(
+                icon = IconSource.Vector(Icons.Outlined.Block),
+                title = stringResource(id = R.string.blacklist),
+                description = if (blacklistedCount > 0) {
+                    stringResource(id = R.string.blacklisted_songs_count, blacklistedCount)
+                } else {
+                    stringResource(id = R.string.no_blacklisted_songs)
+                },
+                onClick = { onOptionClick(SettingsDestinations.BLACKLIST) },
             )
         }
         SettingsGroup {

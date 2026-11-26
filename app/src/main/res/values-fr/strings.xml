@@ -403,4 +403,11 @@
     <string name="update_ready">La version %s est disponible au téléchargement.</string>
     <string name="wikipedia_attribution">Extrait de Wikipédia sous licence Creative Commons Attribution CC-BY-SA 3.0</string>
     <string name="accent_color_discription">Choisissez la couleur d\'accent de votre choix</string>
+    <string name="blacklist">Blacklist</string>
+    <string name="blacklisted_songs_count">%d blacklisted songs</string>
+    <string name="no_blacklisted_songs">No blacklisted songs</string>
+    <string name="no_blacklisted_songs_description">Songs you dislike will be moved to the blacklist and won\'t appear in search results.</string>
+    <string name="retrieve">Retrieve</string>
+    <string name="clear_blacklist">Clear Blacklist</string>
+    <string name="clear_blacklist_confirm">Are you sure you want to retrieve all songs from the blacklist?</string>
 </resources>
